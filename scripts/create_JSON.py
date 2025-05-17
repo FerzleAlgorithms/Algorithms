@@ -11,7 +11,7 @@ def scan_dir(current_path):
             items.append(entry)
     return items
 
-def build_chapters_json(base_dir='../chapters'):
+def build_chapters_json(base_dir='../Content'):
     chapters = {}
     for chapter_dir in sorted(os.listdir(base_dir)):
         chapter_path = os.path.join(base_dir, chapter_dir)

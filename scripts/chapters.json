@@ -1,14 +1,17 @@
 {
   "Algorithms": [
     "Bubble Sort.html",
-    "Sequential Search.html"
+    "Hoare Partition.html",
+    "Selection Sort.html"
   ],
   "Demos": [
     "Bubble Sort Demo.html",
+    "Hoare Partition Demo.html",
     "Huffman Encoding Demo.html",
-    "Insertion Sort Demo.html",
     "Kruskals Algorithm Demo.html",
     "Prims Algorithm Demo.html",
+    "Selection Sort Demo.html",
+    "Sequential Search Demo.html",
     "Subset Sum Demo.html"
   ],
   "Problems": [
@@ -18,17 +21,6 @@
         "Sorting.html"
       ]
     },
-    {
-      "2_Optimization": []
-    },
-    {
-      "3_Geometric_or_Numerical": []
-    },
-    {
-      "4_Graphs": []
-    },
-    {
-      "5_Advanced_or_Illustrative": []
-    }
+    "Problem List.html"
   ]
 }
