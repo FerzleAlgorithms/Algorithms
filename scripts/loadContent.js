@@ -45,7 +45,7 @@ function loadContent(relativePath) {
   const contentObject = document.getElementById('content');
   const errorMessage = document.getElementById('errorMessage');
   const encodedPath = relativePath.split('/').map(encodeURIComponent).join('/');
-  const url = `chapters/${encodedPath}`;
+  const url = `Content/${encodedPath}`;
 
   fetch(url)
     .then(response => {
