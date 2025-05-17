@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Polynomial Evaluation</title>
+  <link rel="stylesheet" href="../../../style.css" />
+  <!-- Based on problem_template.html and styled by style.css -->
+</head>
+<body>
+  <h1>Polynomial Evaluation</h1>
+
+  <section>
+    <h2>Problem Description</h2>
+    <p>
+      Given the coefficients of a polynomial 
+      <em>p</em>(<em>x</em>) = <em>a<sub>n</sub></em><em>x<sup>n</sup></em> + … + <em>a<sub>1</sub></em><em>x</em> + 
+      <em>a<sub>0</sub></em>, and a value <em>x</em>, compute <em>p</em>(<em>x</em>).
+    </p>
+    <h3>Input</h3>
+    <p>
+      An array of coefficients [<em>a<sub>0</sub>, a<sub>1</sub>, …, a<sub>n</sub></em>] 
+      (from constant term up to the highest-degree term), and a number <em>x</em>.
+    </p>
+    <h3>Output</h3>
+    <p>
+      The value of the polynomial <em>p</em>(<em>x</em>).
+    </p>
+  </section>
+
+  <section>
+    <h2>Motivation/Applications</h2>
+    <p>
+      Polynomial evaluation is central in numerical analysis (e.g., curve fitting, approximation),
+      computer graphics (e.g., computing Bézier curves), and scientific computing.
+      Efficient evaluation—especially for high-degree polynomials—can greatly reduce computation time.
+    </p>
+  </section>
+
+  <section>
+    <h2>Examples</h2>
+    <div class="example-box">
+      <strong class="example-title">Example 1</strong><br>
+      Evaluate Polynomial <em>p</em>(<em>x</em>) = 2<em>x</em><sup>3</sup> – 6<em>x</em><sup>2</sup> + 2<em>x</em> – 1
+	  at 3.<br>
+      <strong>Input:</strong>
+	  Coefficients array: [<em>-1, 2, -6, 2</em>]<br>
+      <em>x</em> = 3<br>
+      <strong>Output:</strong> 5<br>
+      <em>Explanation:</em> 2·3³ – 6·3² + 2·3 – 1 = 54 – 54 + 6 – 1 = 5.
+    </div>
+    <br>
+    <div class="example-box">
+      <strong class="example-title">Example 2</strong><br>
+      Evaluate polynomial <em>p</em>(<em>x</em>) = <em>x</em><sup>2</sup>  – 4
+	  at 2.</br>
+      <strong>Input:</strong>
+	  Coefficients array: [<em>-4, 0, 1</em>]<br>
+      <em>x</em> = 2<br>
+      <strong>Output:</strong> 0<br>
+      <em>Explanation:</em> 1·2² + 0·2 – 4 = 4 – 4 = 0.
+    </div>
+  </section>
+
+  <section>
+    <h2>Common Algorithms/Techniques</h2>
+    <ul>
+      <li>Naïve evaluation (compute each <em>x<sup>i</sup></em> separately, O(n²) time)</li>
+      <li>Better evaluation (compute each <em>x<sup>i</sup></em> by multiplying previous power by <em>x</em>, O(n) time)</li>
+      <li>Horner’s method (rewrite in nested form, O(n) time, slightly faster than the "better" one)</li>
+      <li>Divide-and-conquer splitting (parallel evaluation, useful for SIMD/GPUs)</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Variants/Related Problems</h2>
+    <ul>
+      <li>Polynomial interpolation (e.g., Newton’s or Lagrange’s methods)</li>
+      <li>Simultaneous evaluation at multiple points (use FFT-based techniques)</li>
+      <li>Derivative evaluation (compute <em>p′(x)</em> alongside <em>p(x)</em>)</li>
+      <li>Modular polynomial evaluation (compute <em>p(x)</em> mod <em>m</em>)</li>
+      <li>Evaluation of multivariate polynomials</li>
+    </ul>
+  </section>
+</body>
+</html>
