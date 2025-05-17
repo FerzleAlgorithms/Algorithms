@@ -10,5 +10,25 @@
     "Kruskals Algorithm Demo.html",
     "Prims Algorithm Demo.html",
     "Subset Sum Demo.html"
+  ],
+  "Problems": [
+    {
+      "1_Foundational": [
+        "Searching.html",
+        "Sorting.html"
+      ]
+    },
+    {
+      "2_Optimization": []
+    },
+    {
+      "3_Geometric_or_Numerical": []
+    },
+    {
+      "4_Graphs": []
+    },
+    {
+      "5_Advanced_or_Illustrative": []
+    }
   ]
 }

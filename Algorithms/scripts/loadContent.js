@@ -1,59 +1,90 @@
-document.addEventListener("DOMContentLoaded", () => {
-  fetch('scripts/chapters.json')
-    .then(res => res.json())
-    .then(data => {
-      buildMenu(data);
-      loadFromURLParams(data);
-    })
-    .catch(err => console.error("Error loading chapters.json:", err));
-});
-
-function buildMenu(chapters) {
-  const menu = document.getElementById("menu");
+function buildMenu(chapters, basePath = "") {
+  const menu = document.querySelector("#menu ul");
   menu.innerHTML = '';
 
-  for (const [chapter, sections] of Object.entries(chapters)) {
-    const chapterLi = document.createElement("li");
-    chapterLi.innerHTML = `<strong>${chapter}</strong>`;
-
-    const sectionsUl = document.createElement("ul");
-    sections.forEach(section => {
-      const sectionLi = document.createElement("li");
-      const link = document.createElement("a");
-      link.href = `?chapter=${encodeURIComponent(chapter)}&section=${encodeURIComponent(section.replace('.html',''))}`;
-      link.textContent = section.replace('.html', '');
-      link.onclick = (e) => {
-        e.preventDefault();
-        loadContent(chapter, section);
-        history.pushState({}, '', link.href);
-      };
-      sectionLi.appendChild(link);
-      sectionsUl.appendChild(sectionLi);
+  const buildList = (items, parentUl, currentPath) => {
+    items.forEach(item => {
+      const li = document.createElement("li");
+      if (typeof item === "string") {
+        const link = document.createElement("a");
+        link.href = `?path=${encodeURIComponent(currentPath + item.replace('.html', ''))}`;
+        link.textContent = item.replace('.html', '').replace(/_/g, ' ');
+        link.onclick = (e) => {
+          e.preventDefault();
+          loadContent(`${currentPath}${item}`);
+          history.pushState({}, '', link.href);
+        };
+        li.appendChild(link);
+      } else if (typeof item === "object") {
+        for (const [subDir, subItems] of Object.entries(item)) {
+          const span = document.createElement("span");
+          span.innerHTML = `<strong>${subDir.replace(/_/g, ' ')}</strong>`;
+          li.appendChild(span);
+          const subUl = document.createElement("ul");
+          const newPath = `${currentPath}${subDir}/`;
+          buildList(subItems, subUl, newPath);
+          li.appendChild(subUl);
+        }
+      }
+      parentUl.appendChild(li);
     });
+  };
 
+  for (const [chapter, contents] of Object.entries(chapters)) {
+    const chapterLi = document.createElement("li");
+    chapterLi.innerHTML = `<strong>${chapter.replace(/_/g, ' ')}</strong>`;
+    const sectionsUl = document.createElement("ul");
+    const chapterPath = `${basePath}${chapter}/`;
+    buildList(contents, sectionsUl, chapterPath);
     chapterLi.appendChild(sectionsUl);
     menu.appendChild(chapterLi);
   }
 }
 
-function loadContent(chapter, section) {
-  const chapterFolder = chapter.replace(/\s+/g, '_').replace(/[^\w\-]/g, '');
-  const sectionFile = `${section.replace(/\.html$/, '')}.html`;
-  document.getElementById('content').data = `chapters/${chapterFolder}/${sectionFile}`;
+function loadContent(relativePath) {
+  const contentObject = document.getElementById('content');
+  const errorMessage = document.getElementById('errorMessage');
+  const encodedPath = relativePath.split('/').map(encodeURIComponent).join('/');
+  const url = `chapters/${encodedPath}`;
+
+  fetch(url)
+    .then(response => {
+      if (!response.ok) throw new Error('Page not found');
+      return response.text();
+    })
+    .then(() => {
+      errorMessage.style.display = 'none';
+      contentObject.style.display = 'block';
+      contentObject.data = url;
+    })
+    .catch(() => {
+      contentObject.style.display = 'none';
+      errorMessage.style.display = 'block';
+    });
 }
 
-function loadFromURLParams(chapters) {
+
+function loadFromURLParams() {
   const params = new URLSearchParams(window.location.search);
-  const chapter = params.get('chapter');
-  const section = params.get('section');
+  const fullPath = params.get('path');
+  const contentObject = document.getElementById('content');
 
-  if (chapter && section && chapters[chapter]) {
-    const sectionFile = chapters[chapter].find(sec => sec.replace('.html','') === section);
-    if (sectionFile) {
-      loadContent(chapter, sectionFile);
-      return;
-    }
+  if (fullPath) {
+    loadContent(`${fullPath}.html`);
+  } else {
+    contentObject.data = 'credits.html';
   }
- // If nothing else, show credits.
-  document.getElementById('content').data = 'credits.html';
 }
+
+window.onpopstate = loadFromURLParams;
+
+
+document.addEventListener("DOMContentLoaded", () => {
+  fetch('scripts/chapters.json')
+    .then(res => res.json())
+    .then(data => {
+      buildMenu(data);
+      loadFromURLParams();
+    })
+    .catch(err => console.error("Error loading chapters.json:", err));
+});
