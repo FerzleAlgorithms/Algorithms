@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Selection Sort Demo</title>
+  <link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+  <h2>Selection Sort Demo</h2>
+
+  <div id="controls">
+    <label>Size:
+      <input type="number" id="arraySize" min="8" max="20" value="10" size="2">
+    </label>
+    <button id="generate">Random Array</button>
+    <input type="text" id="customArray" placeholder="12,34,56,78" size="40">
+    <button id="useCustom">Create Array</button>
+  </div>
+
+  <div style="margin:10px 0;">
+    <button id="prev-step">Previous</button>
+    <button id="next-step">Next</button>
+  </div>
+
+  <div class="array-container" id="boxes"></div>
+
+  <div id="step-desc" class="step-comment"></div>
+
+  <div style="margin-top:20px; padding:10px; border:1px solid #ccc; width:fit-content;">
+    <b>Legend:</b>
+    <span style="display:inline-block;width:15px;height:15px;background-color:orange;margin-right:5px;border:1px solid black;"></span> Sorted
+    <span style="display:inline-block;width:15px;height:15px;background-color:yellow;margin-left:15px;margin-right:5px;border:1px solid black;"></span> Being Compared
+    <span style="display:inline-block;width:15px;height:15px;background-color:#b2f2bb;margin-left:15px;margin-right:5px;border:1px solid black;"></span> Being Swapped
+    <span style="display:inline-block;width:15px;height:15px;background-color:#ff7f7f;margin-left:15px;margin-right:5px;border:1px solid black;"></span> Max Index
+    <span style="display:inline-block;width:15px;height:15px;background-color:#cce3ff;margin-left:15px;margin-right:5px;border:1px solid black;"></span> Unsorted
+  </div>
+
+  <script>
+    let array = [], steps = [], cur = 0;
+
+    function record(state) {
+      steps.push(JSON.parse(JSON.stringify(state)));
+    }
+
+    function generateSteps(A) {
+      steps = [];
+      for (let i = A.length - 1; i > 0; i--) {
+        let maxIndex = i;
+        for (let j = 0; j < i; j++) {
+          const comment = `Comparing elements at ${j} and ${maxIndex}: ${A[j]} > ${A[maxIndex]} → ` +
+            (A[j] > A[maxIndex] ? `update max index to ${j}` : `max index remains at ${maxIndex}`);
+          record({A: [...A], i, j, maxIndex, phase: 'compare', desc: comment});
+          if (A[j] > A[maxIndex]) {
+            maxIndex = j;
+          }
+        }
+        if (maxIndex !== i) {
+          record({A: [...A], i, maxIndex, phase: 'swap', desc: `Swapping element ${A[i]} at index ${i} with element ${A[maxIndex]} at index ${maxIndex}`});
+          [A[i], A[maxIndex]] = [A[maxIndex], A[i]];
+          record({A: [...A], i, maxIndex, phase: 'swapped', desc: `Swapped elements at index ${i} and ${maxIndex}`});
+        }
+      }
+      record({A: [...A], phase: 'done', desc: 'Array fully sorted'});
+    }
+
+    function render() {
+      const box = document.getElementById('boxes');
+      box.innerHTML = '';
+      const st = steps[cur];
+      st.A.forEach((val, idx) => {
+        const div = document.createElement('div');
+        div.className = 'element';
+
+        if (st.phase === 'done') {
+          div.classList.add('sorted');
+        } else if (idx === st.i || idx === st.j) {
+          div.classList.add('comparing');
+        }
+        if ((st.phase === 'swap' || st.phase === 'swapped') && (idx === st.i || idx === st.maxIndex)) {
+          div.classList.remove('comparing');
+          div.classList.add('swap');
+        }
+        if (idx === st.maxIndex && st.phase !== 'swapped' && st.phase !== 'swap') {
+          div.style.backgroundColor = '#ff7f7f';
+        }
+        if (st.phase === 'done' || idx > st.i) {
+          div.className = 'element sorted';
+        }
+
+        div.textContent = val;
+
+        const labels = [];
+        if (idx === st.i) labels.push('i');
+        if (idx === st.j) labels.push('j');
+        if (idx === st.maxIndex) labels.push('max');
+        if (labels.length > 0) {
+          div.innerHTML += `<div class="arrow">↑<br>${labels.join(',')}</div>`;
+        }
+
+        box.appendChild(div);
+      });
+
+      document.getElementById('step-desc').textContent = st.desc || '';
+    }
+
+    function initDemo() {
+      let n = parseInt(document.getElementById('arraySize').value) || 10;
+      n = Math.max(8, Math.min(n, 20));
+      document.getElementById('arraySize').value = n;
+      array = Array.from({ length: n }, () => Math.floor(Math.random() * 100));
+      generateSteps([...array]);
+      cur = 0;
+      render();
+    }
+
+    document.getElementById('generate').onclick = initDemo;
+    document.getElementById('prev-step').onclick = () => { if (cur > 0) cur--; render(); };
+    document.getElementById('next-step').onclick = () => { if (cur < steps.length - 1) cur++; render(); };
+    document.getElementById('useCustom').onclick = () => {
+      const inputStr = document.getElementById('customArray').value;
+      const values = inputStr.split(',').map(x => parseInt(x.trim())).filter(x => !isNaN(x));
+      if (values.length >= 2) {
+        generateSteps([...values]);
+        cur = 0;
+        render();
+      } else {
+        alert("Please enter at least 2 valid integers separated by commas.");
+      }
+    };
+
+    initDemo();
+  </script>
+</body>
+</html>

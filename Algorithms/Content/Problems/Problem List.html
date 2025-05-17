@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Core Algorithm Problems (Categorized and Color-Coded)</title>
+    <style>
+        body { font-family: sans-serif; margin: 2em; }
+        table.problems-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.95em;
+        }
+        table.problems-table th, table.problems-table td {
+            border: 1px solid #ccc;
+            padding: 0.5em;
+            text-align: left;
+        }
+        table.problems-table th {
+            background-color: #f0f0f0;
+        }
+        /* Category row colors */
+        tr.Foundational { background-color: #e0f7fa; }
+        tr.Optimization { background-color: #fff3e0; }
+        tr.GeometryNumerical { background-color: #fce4ec; }
+        tr.GraphAlgorithms { background-color: #e8f5e9; }
+        tr.AdvancedIllustrative { background-color: #ede7f6; }
+        /* Difficulty colors */
+        .Easy { color: green; }
+        .Medium { color: orange; }
+        .Hard, .VeryHard { color: red; }
+        /* Technique colors */
+        .BruteForce { color: #1976d2; }
+        .DecreaseandConquer { color: #0097a7; }
+        .DivideandConquer { color: #388e3c; }
+        .TransformandConquer { color: #5d4037; }
+        .Randomized { color: #c2185b; }
+        .DynamicProgramming { color: #7b1fa2; }
+        .ExhaustiveSearch { color: #d32f2f; }
+        .Backtracking { color: #0288d1; }
+        .DP { color: #7b1fa2; }
+        .Greedy { color: #fbc02d; }
+        .Incremental { color: #00796b; }
+        .Grahamscan { color: #512da8; }
+        .Strassen { color: #455a64; }
+        .BFS { color: #e64a19; }
+        .DFS { color: #ef6c00; }
+        .AugmentingPaths { color: #ff5722; }
+        .Automatabased { color: #009688; }
+        .Approximation { color: #ff4081; }
+        .DesignTechnique { color: #5d4037; }
+        .Heap { color: #ffa000; }
+        .DesignProblem { color: #6d4c41; }
+    </style>
+</head>
+<body>
+    <h1>Core Algorithm Problems (Categorized and Color-Coded)</h1>
+    <table class="problems-table">
+        <thead>
+            <tr>
+                <th>Category</th>
+                <th>Problem</th>
+                <th>Techniques</th>
+                <th>Real-World Motivation</th>
+                <th>Difficulty</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr class="Foundational">
+                <td>Foundational</td>
+                <td>Searching</td>
+                <td><span class="BruteForce">Brute Force</span>, <span class="DecreaseandConquer">Decrease-and-Conquer</span></td>
+                <td>Find a target item in a list</td>
+                <td class="Easy">Easy</td>
+            </tr>
+            <tr class="Foundational">
+                <td>Foundational</td>
+                <td>Sorting</td>
+                <td><span class="BruteForce">Brute Force</span>, <span class="DivideandConquer">Divide-and-Conquer</span>, <span class="TransformandConquer">Transform-and-Conquer</span></td>
+                <td>Order data for efficient processing</td>
+                <td class="Easy">Easy</td>
+            </tr>
+            <tr class="Foundational">
+                <td>Foundational</td>
+                <td>N-th order statistic</td>
+                <td><span class="DivideandConquer">Divide-and-Conquer</span>, <span class="Randomized">Randomized</span></td>
+                <td>Find median or k-th smallest element</td>
+                <td class="Medium">Medium</td>
+            </tr>
+            <tr class="Foundational">
+                <td>Foundational</td>
+                <td>Exponentiation</td>
+                <td><span class="DivideandConquer">Divide-and-Conquer</span></td>
+                <td>Compute powers efficiently</td>
+                <td class="Easy">Easy</td>
+            </tr>
+            <tr class="Foundational">
+                <td>Foundational</td>
+                <td>Polynomial evaluation</td>
+                <td><span class="BruteForce">Brute Force</span>, <span class="TransformandConquer">Transform-and-Conquer</span></td>
+                <td>Evaluate polynomial at given value</td>
+                <td class="Easy">Easy</td>
+            </tr>
+            <tr class="Optimization">
+                <td>Optimization</td>
+                <td>0-1 Knapsack</td>
+                <td><span class="DynamicProgramming">Dynamic Programming</span>, <span class="ExhaustiveSearch">Exhaustive Search</span>, <span class="Backtracking">Backtracking</span></td>
+                <td>Resource allocation under constraints</td>
+                <td class="Hard">Hard</td>
+            </tr>
+            <tr class="Optimization">
+                <td>Optimization</td>
+                <td>Fractional Knapsack</td>
+                <td><span class="Greedy">Greedy</span></td>
+                <td>Maximize value with divisible items</td>
+                <td class="Medium">Medium</td>
+            </tr>
+            <tr class="Optimization">
+                <td>Optimization</td>
+                <td>Subset sum</td>
+                <td><span class="Backtracking">Backtracking</span>, <span class="DP">DP</span>, <span class="ExhaustiveSearch">Exhaustive Search</span></td>
+                <td>Determine if a subset sums to a target</td>
+                <td class="Hard">Hard</td>
+            </tr>
+            <tr class="Optimization">
+                <td>Optimization</td>
+                <td>Coin changing</td>
+                <td><span class="Greedy">Greedy</span>, <span class="DynamicProgramming">Dynamic Programming</span></td>
+                <td>Make change using fewest coins</td>
+                <td class="Medium">Medium</td>
+            </tr>
+            <tr class="Optimization">
+                <td>Optimization</td>
+                <td>Chain matrix multiplication</td>
+                <td><span class="DynamicProgramming">Dynamic Programming</span></td>
+                <td>Optimal matrix multiplication order</td>
+                <td class="Hard">Hard</td>
+            </tr>
+            <tr class="Optimization">
+                <td>Optimization</td>
+                <td>Edit distance</td>
+                <td><span class="DynamicProgramming">Dynamic Programming</span></td>
+                <td>Convert one string to another</td>
+                <td class="Medium">Medium</td>
+            </tr>
+            <tr class="GeometryNumerical">
+                <td>Geometry/Numerical</td>
+                <td>Closest pair</td>
+                <td><span class="DivideandConquer">Divide-and-Conquer</span></td>
+                <td>Find two points with minimal distance</td>
+                <td class="Medium">Medium</td>
+            </tr>
+            <tr class="GeometryNumerical">
+                <td>Geometry/Numerical</td>
+                <td>Convex hull</td>
+                <td><span class="DivideandConquer">Divide-and-Conquer</span>, <span class="Incremental">Incremental</span>, <span class="Grahamscan">Graham scan</span></td>
+                <td>Find the outer boundary of points</td>
+                <td class="Medium">Medium</td>
+            </tr>
+            <tr class="GeometryNumerical">
+                <td>Geometry/Numerical</td>
+                <td>Matrix multiplication</td>
+                <td><span class="BruteForce">Brute Force</span>, <span class="DivideandConquer">Divide-and-Conquer</span>, <span class="Strassen">Strassen</span></td>
+                <td>Multiply matrices efficiently</td>
+                <td class="Medium">Medium</td>
+            </tr>
+            <tr class="GraphAlgorithms">
+                <td>Graph Algorithms</td>
+                <td>Graph searching</td>
+                <td><span class="BFS">BFS</span>, <span class="DFS">DFS</span></td>
+                <td>Explore nodes and edges</td>
+                <td class="Easy">Easy</td>
+            </tr>
+            <tr class="GraphAlgorithms">
+                <td>Graph Algorithms</td>
+                <td>Graph traversal</td>
+                <td><span class="DFS">DFS</span>, <span class="BFS">BFS</span></td>
+                <td>Visit all nodes in a graph</td>
+                <td class="Easy">Easy</td>
+            </tr>
+            <tr class="GraphAlgorithms">
+                <td>Graph Algorithms</td>
+                <td>Topological sorting</td>
+                <td><span class="DFS">DFS</span></td>
+                <td>Order tasks given dependencies</td>
+                <td class="Medium">Medium</td>
+            </tr>
+            <tr class="GraphAlgorithms">
+                <td>Graph Algorithms</td>
+                <td>Spanning tree</td>
+                <td><span class="Greedy">Greedy</span></td>
+                <td>Connect all nodes with minimal cost</td>
+                <td class="Medium">Medium</td>
+            </tr>
+            <tr class="GraphAlgorithms">
+                <td>Graph Algorithms</td>
+                <td>Single-source Shortest path</td>
+                <td><span class="Greedy">Greedy</span>, <span class="DynamicProgramming">Dynamic Programming</span></td>
+                <td>Minimize path cost from source</td>
+                <td class="Medium">Medium</td>
+            </tr>
+            <tr class="GraphAlgorithms">
+                <td>Graph Algorithms</td>
+                <td>All pairs shortest path</td>
+                <td><span class="DynamicProgramming">Dynamic Programming</span></td>
+                <td>Find shortest paths between all node pairs</td>
+                <td class="Hard">Hard</td>
+            </tr>
+            <tr class="GraphAlgorithms">
+                <td>Graph Algorithms</td>
+                <td>Maximum flow</td>
+                <td><span class="Greedy">Greedy</span>, <span class="AugmentingPaths">Augmenting Paths</span></td>
+                <td>Maximize flow through a network</td>
+                <td class="Hard">Hard</td>
+            </tr>
+            <tr class="AdvancedIllustrative">
+                <td>Advanced/Illustrative</td>
+                <td>String matching</td>
+                <td><span class="BruteForce">Brute Force</span>, <span class="TransformandConquer">Transform-and-Conquer</span>, <span class="Automatabased">Automata-based</span></td>
+                <td>Search for a pattern in text</td>
+                <td class="Medium">Medium</td>
+            </tr>
+            <tr class="AdvancedIllustrative">
+                <td>Advanced/Illustrative</td>
+                <td>Travelling salesman</td>
+                <td><span class="ExhaustiveSearch">Exhaustive Search</span>, 
+                <span class="DynamicProgramming">Dynamic Programming</span>, <span class="Approximation">Approximation</span></td>
+                <td>Optimal route covering all cities</td>
+                <td class="VeryHard">Very Hard</td>
+            </tr>
+            <tr class="AdvancedIllustrative">
+                <td>Advanced/Illustrative</td>
+                <td>Character encoding</td>
+                <td><span class="Greedy">Greedy</span></td>
+                <td>Compress data using optimal codes</td>
+                <td class="Medium">Medium</td>
+            </tr>
+            <tr class="AdvancedIllustrative">
+                <td>Advanced/Illustrative</td>
+                <td>Searchable data structures</td>
+                <td><span class="DesignTechnique">Design Technique</span></td>
+                <td>Efficient searching and updating</td>
+                <td class="Medium">Medium</td>
+            </tr>
+            <tr class="AdvancedIllustrative">
+                <td>Advanced/Illustrative</td>
+                <td>Priority queue</td>
+                <td><span class="Heap">Heap</span>, <span class="DesignProblem">Design Problem</span></td>
+                <td>Manage prioritized tasks efficiently</td>
+                <td class="Easy">Easy</td>
+            </tr>
+            <tr class="AdvancedIllustrative">
+                <td>Advanced/Illustrative</td>
+                <td>Representing Disjoint sets</td>
+                <td><span class="TransformandConquer">Transform-and-Conquer</span></td>
+                <td>Track connected components</td>
+                <td class="Medium">Medium</td>
+            </tr>
+        </tbody>
+    </table>
+</body>
+</html>

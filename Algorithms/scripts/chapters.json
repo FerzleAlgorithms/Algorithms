@@ -1,0 +1,14 @@
+{
+  "Algorithms": [
+    "Bubble Sort.html",
+    "Sequential Search.html"
+  ],
+  "Demos": [
+    "Bubble Sort Demo.html",
+    "Huffman Encoding Demo.html",
+    "Insertion Sort Demo.html",
+    "Kruskals Algorithm Demo.html",
+    "Prims Algorithm Demo.html",
+    "Subset Sum Demo.html"
+  ]
+}

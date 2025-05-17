@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="visualization.css">
+  <title>Kruskal's Algorithm Visualization</title>
+  <style>
+    .flex-container { display: flex; gap: 2em; align-items: flex-start; margin-bottom: 1em; }
+    .graph-col { flex: 3; position: relative; }
+    .table-col { flex: 1; max-width: 300px; }
+    svg { border: 1px solid #ccc; width: 100%; height: 400px; background: #fafafa; }
+	table { width: 100%; border-collapse: collapse; font-size: 0.85em; line-height: 1.2em; }
+th, td { border: 1px solid #ddd; padding: 0.2em 0.4em; text-align: center; }
+    th { background: #f0f0f0; }
+    .included { background: #d4efdf; }
+    .skipped { background: #f9d6d5; }
+    .node circle { stroke: #333; stroke-width: 1px; cursor: move; }
+    .node text { font-size: 14px; font-weight: bold; text-anchor: middle; dominant-baseline: middle; pointer-events: none; }
+    .edge { stroke: #999; stroke-width: 2px; }
+    .edge.mst { stroke: blue; stroke-width: 3px; }
+    .edge.skipped { stroke: red; stroke-dasharray: 4 2; }
+    #stepDetails { margin-top: 0.5em; font-style: italic; }
+    #stepHeader, #setsHeader { margin-top: 1em; font-weight: bold; }
+    #setsDisplay { margin-top: 0.3em; }
+  </style>
+</head>
+<body>
+  <div class="controls">
+    <label>Nodes: <input type="number" id="nodeCount" min="3" max="20" value="9"></label>
+    <button id="generateBtn">Generate Graph</button>
+    <button id="startBtn">Start Kruskal</button>
+    <button id="prevBtn">Previous</button>
+    <button id="nextBtn">Next</button>
+  </div>
+
+  <div class="flex-container">
+    <div class="graph-col">
+      <svg id="graphSVG"></svg>
+      <div id="stepHeader">Step Details</div>
+      <div id="stepDetails"></div>
+      <div id="setsHeader">Disjoint Sets</div>
+      <div id="setsDisplay"></div>
+    </div>
+    <div class="table-col">
+      <h3>Edge List</h3>
+      <table id="edgeTable">
+        <thead><tr><th>Edge</th><th>Weight</th><th>Status</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    const svg = document.getElementById('graphSVG');
+    const generateBtn = document.getElementById('generateBtn');
+    const startBtn = document.getElementById('startBtn');
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const nodeCount = document.getElementById('nodeCount');
+    const edgeBody = document.querySelector('#edgeTable tbody');
+    const setsDisplay = document.getElementById('setsDisplay');
+    const stepDetails = document.getElementById('stepDetails');
+
+    let graph = [], positions = {}, steps = [], currentStep = 0;
+    let edgeEls = {}, textEls = {}, dragNode = null;
+  const colors = [
+  "#e31a22", // red
+  "#00a4e8", // blue
+  "#b1b134", // olive green
+  "#b24f3f", // red-brown
+  "#165b65", // teal
+  "#df8f2d", // orange
+  "#a4dbdb", // light cyan
+  "#4b0082", // indigo
+  "#bbd634", // chartreuse
+  "#f4979c", // blush pink
+  "#697d99", // dusty blue
+  "#f58268", // coral
+  "#b2c8bd", // pale green-cyan
+  "#dc9018", // gold-orange
+  "#96b8db", // soft blue
+  "#bfbdb0", // warm gray
+  "#b51f29", // crimson
+  "#7c8285", // steel gray
+  "#dbe3b6", // light olive
+  "#556270"  // dark slate gray
+];
+    window.onload = () => {
+      generateBtn.click();
+    };
+
+    generateBtn.onclick = () => {
+      buildGraph(+nodeCount.value);
+      edgeBody.innerHTML = '';
+      setsDisplay.textContent = '';
+      stepDetails.textContent = '';
+      prevBtn.disabled = true;
+      nextBtn.disabled = true;
+    };
+
+    startBtn.onclick = () => {
+      steps = computeKruskalSteps();
+      steps.unshift({ edgeStatus: {}, sets: Array(Object.keys(positions).length).fill(0).map((_, i) => i), message: 'Start of algorithm.' });
+      currentStep = 0;
+      showStep(0);
+    };
+
+    prevBtn.onclick = () => showStep(currentStep - 1);
+    nextBtn.onclick = () => showStep(currentStep + 1);
+
+    svg.onmousemove = e => {
+      if (!dragNode) return;
+      const pt = svg.createSVGPoint(); pt.x = e.clientX; pt.y = e.clientY;
+      const loc = pt.matrixTransform(svg.getScreenCTM().inverse());
+      positions[dragNode.getAttribute('data-id')] = { x: loc.x, y: loc.y };
+      updatePositions();
+    };
+    document.onmouseup = () => { dragNode = null; };
+
+	seen = new Set();
+    function buildGraph(n) {
+	  seen = new Set(); 
+      graph = [];
+      positions = {};
+      const w = svg.clientWidth, h = svg.clientHeight;
+      const cx = w / 2, cy = h / 2, r = Math.min(cx, cy) - 50;
+	  const rx = (w - 200) / 2; // horizontal radius
+	  const ry = (h - 100) / 2; // vertical radius (smaller for wide ellipse)
+	  for (let i = 0; i < n; i++) {
+		  const angle = 2 * Math.PI * i / n;
+		  positions[i] = {
+			x: cx + rx * Math.cos(angle),
+			y: cy + ry * Math.sin(angle)
+		  };
+		}
+
+      //for (let i = 0; i < n; i++) {
+      //  positions[i] = { x: cx + r * Math.cos(2 * Math.PI * i / n), y: cy + r * Math.sin(2 * Math.PI * i / n) };
+      //}
+      for (let i = 1; i < n; i++) addEdge(i, Math.floor(Math.random() * i));
+      for (let i = 0; i < n; i++) for (let j = i + 1; j < n; j++) if (Math.random() < 0.3) addEdge(i, j);
+      draw();
+    }
+
+	function addEdge(u, v) {
+	  const key = u < v ? `${u}-${v}` : `${v}-${u}`;
+	  if (seen.has(key)) return;
+	  seen.add(key);
+	  const w = 1 + Math.floor(Math.random() * 19);
+	  graph.push({ u, v, w });
+	}
+
+
+
+    function updatePositions() {
+      for (let i in edgeEls) {
+        const { u, v } = graph[i];
+        const p1 = positions[u], p2 = positions[v];
+        edgeEls[i].setAttribute('x1', p1.x);
+        edgeEls[i].setAttribute('y1', p1.y);
+        edgeEls[i].setAttribute('x2', p2.x);
+        edgeEls[i].setAttribute('y2', p2.y);
+        textEls[i].setAttribute('x', (p1.x + p2.x) / 2);
+        textEls[i].setAttribute('y', (p1.y + p2.y) / 2);
+      }
+      svg.querySelectorAll('g.node').forEach(g => {
+        const id = +g.getAttribute('data-id');
+        const p = positions[id];
+        g.setAttribute('transform', `translate(${p.x},${p.y})`);
+      });
+    }
+// Updated Kruskal step generation with initial unsorted and sorted edge list display
+function computeKruskalSteps() {
+  const n = Object.keys(positions).length;
+  const originalEdges = graph.map((e, i) => ({ ...e, i }));
+  const sortedEdges = [...originalEdges].sort((a, b) => a.w - b.w);
+  const sets = Array(n).fill(0).map((_, i) => i);
+  const edgeStatus = {};
+  const steps = [];
+
+  // Step 0: Show unsorted edge list
+  steps.push({
+    edgeIndex: -1,
+    edgeStatus: {},
+    sets: sets.slice(),
+    message: 'Initial unsorted edge list.',
+    edgeOrder: originalEdges.map(e => e.i),
+    highlight: -1
+  });
+
+  // Step 1: Show sorted edge list
+  steps.push({
+    edgeIndex: -1,
+    edgeStatus: {},
+    sets: sets.slice(),
+    message: 'Edge list sorted by weight.',
+    edgeOrder: sortedEdges.map(e => e.i),
+    highlight: -1
+  });
+
+  for (const { u, v, w, i } of sortedEdges) {
+    const setsBefore = sets.slice();
+    const fu = find(setsBefore.slice(), u);
+    const fv = find(setsBefore.slice(), v);
+    const action = fu !== fv ? 'included' : 'skipped';
+
+    // Step 2: Consider edge
+    steps.push({
+      edgeIndex: i,
+      edgeStatus: { ...edgeStatus },
+      sets: setsBefore.slice(),
+      message: `${String.fromCharCode(65 + u)} and ${String.fromCharCode(65 + v)} are ${fu === fv ? 'in the same set' : 'in different sets'}, so edge (${String.fromCharCode(65 + u)}, ${String.fromCharCode(65 + v)}) will ${action === 'included' ? 'be added' : 'be skipped'}.`,
+      edgeOrder: sortedEdges.map(e => e.i),
+      highlight: i
+    });
+
+    // Step 3: Apply action
+    if (action === 'included') union(sets, u, v);
+    edgeStatus[i] = action;
+    steps.push({
+      edgeIndex: i,
+      edgeStatus: { ...edgeStatus },
+      sets: sets.slice(),
+      message: action === 'included'
+        ? `Edge (${String.fromCharCode(65 + u)}, ${String.fromCharCode(65 + v)}) added to MST. Sets merged.`
+        : `Edge (${String.fromCharCode(65 + u)}, ${String.fromCharCode(65 + v)}) skipped. Sets unchanged.`,
+      edgeOrder: sortedEdges.map(e => e.i),
+      highlight: -1
+    });
+  }
+
+  return steps;
+}
+
+// PATCH: Draw edge highlight correctly and ensure proper layer order
+function draw(edgeStatus = {}, highlightIndex) {
+  svg.innerHTML = '';
+  edgeEls = {}; textEls = {};
+
+  const edgeLayer = document.createElementNS(svg.namespaceURI, 'g');
+  const labelLayer = document.createElementNS(svg.namespaceURI, 'g');
+  const nodeLayer = document.createElementNS(svg.namespaceURI, 'g');
+
+  graph.forEach(({ u, v, w }, i) => {
+    const line = document.createElementNS(svg.namespaceURI, 'line');
+    
+
+    if (i === highlightIndex) {
+    line.setAttribute('stroke', 'gold');
+    line.setAttribute('stroke-width', '5');
+  } else if (edgeStatus[i] === 'included') {
+    const sets = steps[currentStep].sets;
+    const root = find(sets.slice(), graph[i].u);
+    const color = colors[root % colors.length];
+    line.setAttribute('stroke', color);
+    line.setAttribute('stroke-width', '3');
+  } else if (edgeStatus[i] === 'skipped') {
+    line.setAttribute('stroke', 'red');
+    line.setAttribute('stroke-dasharray', '4 2');
+  } else {
+    line.setAttribute('stroke', '#999');
+    line.setAttribute('stroke-width', '2');
+  }
+
+    const isHighlighted = i === highlightIndex;
+    if (isHighlighted) {
+      line.setAttribute('stroke', 'gold');
+      line.setAttribute('stroke-width', '5');
+    } else if (edgeStatus[i] === 'included') {
+      line.classList.add('mst');
+    } else if (edgeStatus[i] === 'skipped') {
+      line.classList.add('skipped');
+    }
+
+    edgeLayer.appendChild(line);
+    edgeEls[i] = line;
+
+    const label = document.createElementNS(svg.namespaceURI, 'text');
+    label.setAttribute('font-size', '12px');
+    label.setAttribute('text-anchor', 'middle');
+    label.setAttribute('dominant-baseline', 'middle');
+    label.textContent = w;
+    labelLayer.appendChild(label);
+    textEls[i] = label;
+  });
+
+  for (let i in positions) {
+    const g = document.createElementNS(svg.namespaceURI, 'g');
+    g.classList.add('node');
+    g.setAttribute('data-id', i);
+    g.addEventListener('mousedown', e => { dragNode = g; e.preventDefault(); });
+    const c = document.createElementNS(svg.namespaceURI, 'circle');
+    c.setAttribute('r', '20');
+    g.appendChild(c);
+    const t = document.createElementNS(svg.namespaceURI, 'text');
+    t.setAttribute('x', '0');
+    t.setAttribute('y', '0');
+    t.textContent = String.fromCharCode(65 + +i);
+    g.appendChild(t);
+    nodeLayer.appendChild(g);
+  }
+
+  svg.appendChild(edgeLayer);
+  svg.appendChild(labelLayer);
+  svg.appendChild(nodeLayer);
+  updatePositions();
+}
+
+
+    function find(sets, u) {
+      if (sets[u] !== u) sets[u] = find(sets, sets[u]);
+      return sets[u];
+    }
+
+    function union(sets, u, v) {
+      sets[find(sets, u)] = find(sets, v);
+    }
+
+
+    function showStep(idx) {
+      if (idx < 0 || idx >= steps.length) return;
+      currentStep = idx;
+      const step = steps[idx];
+      draw(step.edgeStatus,step.highlight);
+      updatePositions();
+
+     edgeBody.innerHTML = '';
+	const edgeOrder = step.edgeOrder || graph.map((_, i) => i);
+	edgeOrder.forEach(i => {
+	  const { u, v, w } = graph[i];
+
+        const tr = document.createElement('tr');
+        if (step.edgeStatus[i] === 'included') tr.classList.add('included');
+        if (step.edgeStatus[i] === 'skipped') tr.classList.add('skipped');
+        tr.innerHTML = `<td>${String.fromCharCode(65 + u)}-${String.fromCharCode(65 + v)}</td><td>${w}</td><td>${step.edgeStatus[i] || ''}</td>`;
+        edgeBody.appendChild(tr);
+      });
+
+      const components = {};
+      step.sets.forEach((p, i) => {
+        const root = find(step.sets.slice(), i);
+        if (!components[root]) components[root] = [];
+        components[root].push(i);
+      });
+      svg.querySelectorAll('g.node').forEach(g => {
+        const id = +g.getAttribute('data-id');
+        const root = find(step.sets.slice(), id);
+        const color = colors[root % colors.length];
+		g.querySelector('circle').style.fill = color;
+      });
+
+      stepDetails.textContent = step.message;
+      setsDisplay.innerHTML = Object.values(components).map(set => `(${set.map(i => String.fromCharCode(65 + i)).join(', ')})`).join(' ');
+
+      prevBtn.disabled = currentStep === 0;
+      nextBtn.disabled = currentStep === steps.length - 1;
+    }
+  </script>
+</body>
+</html>

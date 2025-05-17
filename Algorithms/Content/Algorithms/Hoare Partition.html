@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Hoare's Partition</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js"></script>
+  <script src="../../scripts/chapterScripts.js"></script>
+  <link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+
+  <h1>Hoare's Partition</h1>
+
+    <h2>Problem</h2>
+	    <p>
+        Given an array <code>A</code> and indices <code>low</code> and <code>high</code> (with <code>low &lt; high</code>), 
+		rearrange the elements in the portion of <code>A</code> from <code>low</code> through <code>high</code> as follows:
+    </p>
+    <ol>
+        <li>Select a pivot element—typically the first element, <code>A[low]</code>.</li>
+        <li>Reorder the elements so that:
+            <ul>
+                <li>Every element less than or equal to the pivot is positioned to its left.</li>
+                <li>Every element greater than or equal to the pivot is positioned to its right.</li>
+                <li>The pivot element is positioned in its correct sorted location.</li>
+            </ul>
+        </li>
+		<li>The index of the pivot element is returned.</li>
+    </ol>
+    <p>
+	
+
+    <h2>Example (n = 8) <button id="replay" style="display:inline-block; margin-left:20px;">Play</button></h2>
+    <svg id="partition-svg" width="600" height="250" xmlns="http://www.w3.org/2000/svg">
+      <g transform="translate(0,30)">
+            <!-- Input Row (static) -->
+      <g font-family="monospace" font-size="14">
+        <text x="20" y="20">Input:</text>
+      </g><g font-family="monospace" font-size="18">
+        <rect x="200" y="5" width="40" height="30" fill="#eef" stroke="#333"/>
+        <text x="220" y="25" text-anchor="middle">5</text>
+        <rect x="250" y="5" width="40" height="30" fill="#eef" stroke="#333"/>
+        <text x="270" y="25" text-anchor="middle">3</text>
+        <rect x="300" y="5" width="40" height="30" fill="#eef" stroke="#333"/>
+        <text x="320" y="25" text-anchor="middle">9</text>
+        <rect x="350" y="5" width="40" height="30" fill="#eef" stroke="#333"/>
+        <text x="370" y="25" text-anchor="middle">1</text>
+        <rect x="400" y="5" width="40" height="30" fill="#eef" stroke="#333"/>
+        <text x="420" y="25" text-anchor="middle">7</text>
+        <rect x="450" y="5" width="40" height="30" fill="#eef" stroke="#333"/>
+        <text x="470" y="25" text-anchor="middle">4</text>
+        <rect x="500" y="5" width="40" height="30" fill="#eef" stroke="#333"/>
+        <text x="520" y="25" text-anchor="middle">8</text>
+        <rect x="550" y="5" width="40" height="30" fill="#eef" stroke="#333"/>
+        <text x="570" y="25" text-anchor="middle">2</text>
+                <!-- pivot arrow -->
+        <polygon points="210,-5 230,-5 220,5" fill="#c33"/>
+        <text x="220" y="-10" fill="#c33" font-size="12" text-anchor="middle">pivot</text>
+      </g>
+
+                  <!-- Legend & Compare Row -->
+      <g font-family="monospace" font-size="14">
+        <text x="20" y="80">≤ pivot — orange</text>
+        <text x="20" y="100">≥ pivot — blue</text>
+      </g><g font-family="monospace" font-size="18">
+        <rect x="200" y="70" width="40" height="30" fill="#0C0" stroke="#333"/>
+        <text x="220" y="90" text-anchor="middle">5</text>
+        <rect x="250" y="70" width="40" height="30" fill="#f90" stroke="#333"/>
+        <text x="270" y="90" text-anchor="middle">3</text>
+        <rect x="300" y="70" width="40" height="30" fill="#09f" stroke="#333"/>
+        <text x="320" y="90" text-anchor="middle">9</text>
+        <rect x="350" y="70" width="40" height="30" fill="#f90" stroke="#333"/>
+        <text x="370" y="90" text-anchor="middle">1</text>
+        <rect x="400" y="70" width="40" height="30" fill="#09f" stroke="#333"/>
+        <text x="420" y="90" text-anchor="middle">7</text>
+        <rect x="450" y="70" width="40" height="30" fill="#f90" stroke="#333"/>
+        <text x="470" y="90" text-anchor="middle">4</text>
+        <rect x="500" y="70" width="40" height="30" fill="#09f" stroke="#333"/>
+        <text x="520" y="90" text-anchor="middle">8</text>
+        <rect x="550" y="70" width="40" height="30" fill="#f90" stroke="#333"/>
+        <text x="570" y="90" text-anchor="middle">2</text>
+      </g>
+
+      <!-- Output Row -->
+      <g font-family="monospace" font-size="14">
+        <text x="20" y="150">Output (partitioned):</text>
+      </g><g font-family="monospace" font-size="18">
+        <!-- target boxes -->
+        <rect x="200" y="130" width="40" height="30" fill="#f90" stroke="#333"/>
+        <rect x="250" y="130" width="40" height="30" fill="#f90" stroke="#333"/>
+        <rect x="300" y="130" width="40" height="30" fill="#f90" stroke="#333"/>
+        <rect x="350" y="130" width="40" height="30" fill="#f90" stroke="#333"/>
+        <rect x="400" y="130" width="40" height="30" fill="#0C0" stroke="#333"/>
+        <rect x="450" y="130" width="40" height="30" fill="#09f" stroke="#333"/>
+        <rect x="500" y="130" width="40" height="30" fill="#09f" stroke="#333"/>
+        <rect x="550" y="130" width="40" height="30" fill="#09f" stroke="#333"/>
+
+                          <!-- animate numbers from compare positions to output -->
+      <g font-family="monospace" font-size="18">
+        <text x="215" y="90" fill="#000">5
+          <animate attributeName="x" begin="replay.click" dur="5s" to="420" fill="freeze"/>
+          <animate attributeName="y" begin="replay.click" dur="5s" to="150" fill="freeze"/>
+        </text>
+        <text x="265" y="90" fill="#000">3
+          <animate attributeName="x" begin="replay.click" dur="5s" to="220" fill="freeze"/>
+          <animate attributeName="y" begin="replay.click" dur="5s" to="150" fill="freeze"/>
+        </text>
+        <text x="315" y="90" fill="#000">9
+          <animate attributeName="x" begin="replay.click" dur="5s" to="470" fill="freeze"/>
+          <animate attributeName="y" begin="replay.click" dur="5s" to="150" fill="freeze"/>
+        </text>
+        <text x="365" y="90" fill="#000">1
+          <animate attributeName="x" begin="replay.click" dur="5s" to="270" fill="freeze"/>
+          <animate attributeName="y" begin="replay.click" dur="5s" to="150" fill="freeze"/>
+        </text>
+        <text x="415" y="90" fill="#000">7
+          <animate attributeName="x" begin="replay.click" dur="5s" to="520" fill="freeze"/>
+          <animate attributeName="y" begin="replay.click" dur="5s" to="150" fill="freeze"/>
+        </text>
+        <text x="465" y="90" fill="#000">4
+          <animate attributeName="x" begin="replay.click" dur="5s" to="320" fill="freeze"/>
+          <animate attributeName="y" begin="replay.click" dur="5s" to="150" fill="freeze"/>
+        </text>
+        <text x="515" y="90" fill="#000">8
+          <animate attributeName="x" begin="replay.click" dur="5s" to="570" fill="freeze"/>
+          <animate attributeName="y" begin="replay.click" dur="5s" to="150" fill="freeze"/>
+        </text>
+        <text x="565" y="90" fill="#000">2
+          <animate attributeName="x" begin="replay.click" dur="5s" to="370" fill="freeze"/>
+          <animate attributeName="y" begin="replay.click" dur="5s" to="150" fill="freeze"/>
+        </text>
+      </g>
+                  <!-- Pivot indicator under output -->
+      <g font-family="monospace" font-size="14">
+        <line x1="420" y1="160" x2="420" y2="180" stroke="#c33" stroke-width="2" opacity="0">
+          <animate attributeName="opacity" begin="replay.click +5s" dur="0.1s" to="1" fill="freeze"/>
+        </line>
+        <polygon points="416,180 424,180 420,190" fill="#c33" opacity="0">
+          <animate attributeName="opacity" begin="replay.click +5s" dur="0.1s" to="1" fill="freeze"/>
+        </polygon>
+        <text x="400" y="210" fill="#c33" opacity="0">
+          pivot index = 4
+          <animate attributeName="opacity" begin="replay.click +5s" dur="0.1s" to="1" fill="freeze"/>
+        </text>
+      </g>
+    </svg>
+
+    <h2>Design and Strategy</h2>
+	<p>
+  Hoare’s Partition begins by selecting a pivot element, typically <code>A[low]</code>. 
+  It uses two pointers, <code>i</code> and <code>j</code>, to traverse the array. 
+  Pointer <code>i</code> starts at <code>low + 1</code>, and pointer <code>j</code> starts at <code>high</code>. 
+  The pointer <code>i</code> increments until it finds an element greater than or equal to the pivot (<code>A[i] ≥ pivot</code>), 
+  and pointer <code>j</code> decrements until it finds an element less than or equal to the pivot (<code>A[j] ≤ pivot</code>). 
+  When both out-of-place elements are identified, the algorithm swaps <code>A[i]</code> and <code>A[j]</code>,
+  and then increments <code>i</code> and decrements <code>j</code>. 
+  This process repeats until <code>i ≥ j</code>. Finally, the pivot element <code>A[low]</code> 
+  is swapped with <code>A[j]</code>, placing the pivot correctly at index <code>j</code>. 
+  The partition index <code>j</code> is then returned.
+</p>
+<p>
+Here is a step-by-step description.
+</p>
+<ol>
+  <li>Select the pivot element, typically <code>A[low]</code>.</li>
+  <li>Initialize two pointers:
+    <ul>
+      <li><code>i = low + 1</code></li>
+      <li><code>j = high</code></li>
+    </ul>
+  </li>
+  <li>Repeat the following steps until <code>i ≥ j</code>:
+    <ul>
+      <li>Move pointer <code>i</code> forward until <code>A[i] ≥ pivot</code>.</li>
+      <li>Move pointer <code>j</code> backward until <code>A[j] ≤ pivot</code>.</li>
+      <li>If <code>i &lt; j</code>, swap <code>A[i]</code> and <code>A[j]</code>, then increment <code>i</code> and decrement <code>j</code>.</li>
+    </ul>
+  </li>
+  <li>Finally, swap the pivot element <code>A[low]</code> with <code>A[j]</code>.</li>
+  <li>Return the pivot index <code>j</code>.</li>
+</ol>
+
+<p>
+Hoare’s algorithm exemplifies the <strong>decrease-and-conquer</strong> paradigm.
+As the pointers <code>i</code> and <code>j</code> move inward, elements are progressively 
+placed into their correct positions at the array's leftmost and rightmost ends, 
+shrinking the unsorted middle section with each iteration. 
+Thus, the size of the unsolved portion decreases with each iteration.
+</p>
+
+<div class="embeddedDemoContainer">
+  <object class="embeddedDemo" 
+          type="text/html" 
+          style="height: 410px"
+          data="../Demos/Hoare Partition Demo.html"></object>
+</div>
+
+  <h2>Implementation in Java, C++, Python</h2>
+  <p>Here is one implementation of Hoare's Partition algorithm. 
+  There are many slight variations of the algorithm, so
+  do not be surprised if you see versions that do not match this one exactly.</p>
+  
+  <div class="tabs">
+    <button class="tablink" onclick="openTab(event, 'java')" id="tab-java">Java</button>
+    <button class="tablink" onclick="openTab(event, 'cpp')" id="tab-cpp">C++</button>
+    <button class="tablink" onclick="openTab(event, 'python')" id="tab-python">Python</button>
+  </div>
+
+   <div id="java" class="code-container">
+    <pre><code class="language-java">int partition(int[] A, int lo, int hi) {
+    int p = A[lo];
+    int i = lo + 1;
+    int j = hi;
+    while (true) {
+        while (i &lt; hi &amp;&amp; A[i] &lt;= p) i++;
+        while (j &gt; lo &amp;&amp; A[j] &gt;= p) j--;
+        if (j &lt;= i) {
+            swap(A, lo, j);
+            return j;
+        } else {
+            swap(A, i, j);
+            i++;
+            j--;
+        }
+    }
+}
+
+void swap(int[] A, int i, int j) {
+    int temp = A[i];
+    A[i] = A[j];
+    A[j] = temp;
+}</code></pre>
+  </div>
+
+  <div id="cpp" class="code-container" style="display:none">
+    <pre><code class="language-cpp">int partition(int A[], int lo, int hi) {
+    int p = A[lo];
+    int i = lo + 1;
+    int j = hi;
+    while (true) {
+        while (i &lt; hi &amp;&amp; A[i] &lt;= p) i++;
+        while (j &gt; lo &amp;&amp; A[j] &gt;= p) j--;
+        if (j &lt;= i) {
+            swap(A, lo, j);
+            return j;
+        } else {
+            swap(A, i, j);
+            i++;
+            j--;
+        }
+    }
+}
+
+void swap(int &a, int &b) {
+    int temp = a;
+    a = b;
+    b = temp;
+}</code></pre>
+  </div>
+
+  <div id="python" class="code-container" style="display:none">
+    <pre><code class="language-python">def partition(A, lo, hi):
+    p = A[lo]
+    i = lo + 1
+    j = hi
+    while True:
+        while i &lt; hi and A[i] &lt;= p:
+            i += 1
+        while j &gt; lo and A[j] &gt;= p:
+            j -= 1
+        if j &lt;= i:
+            swap(A, lo, j)
+            return j
+        else:
+            swap(A, i, j)
+            i += 1
+            j -= 1
+
+def swap(A, i, j):
+    A[i], A[j] = A[j], A[i]</code></pre>
+  </div>
+
+
+  <script>
+  hljs.highlightAll();
+
+  function openTab(evt, lang) {
+    const containers = document.getElementsByClassName('code-container');
+    const tabs = document.getElementsByClassName('tablink');
+    for (let container of containers) {
+      container.style.display = 'none';
+    }
+    for (let tab of tabs) {
+      tab.classList.remove('active');
+    }
+    document.getElementById(lang).style.display = 'block';
+    evt.currentTarget.classList.add('active');
+  }
+
+  window.addEventListener('DOMContentLoaded', () => {
+    const defaultTab = document.getElementById('tab-java');
+    if (defaultTab) defaultTab.click();
+  });
+</script>
+  </script>
+  
+  <h2>Time/Space Analysis</h2>
+  
+  <p><b>Time Complexity:</b>
+  The algorithm consistently operates in linear time, O(n), because it involves two pointers traversing the array from opposite ends, 
+  moving toward each other until they cross. Each time a pointer moves, a constant number of operations is executed.
+</p>
+<p>
+  Compared to other partitioning methods like Lomuto’s scheme, Hoare's algorithm typically involves fewer swaps and fewer overall operations. 
+  Its efficiency arises from the bidirectional scanning of the array and performing swaps only when necessary.
+</p>
+
+<p>
+<b>Space Complexity:</b>
+  Hoare’s Partition algorithm operates in-place, requiring only constant additional space, O(1). The algorithm does not need auxiliary arrays or additional significant memory beyond a few pointers and temporary variables.
+</p>
+  
+
+  
+<h2>Variations/Improvements</h2>
+<ul>
+  <li><strong>Equal Elements:</strong> Different implementations may treat elements that are equal to the pivot differently, and
+  how they do so can affect the performance. Thus, when dealing with arrays where many duplicates are expected, careful thought is
+  needed to choose the best varition.</li>
+  <li><strong>Lomuto Partition Scheme:</strong> 
+  An alternative partitioning method where the pivot is typically the last element. 
+  It maintains three distinct regions: elements smaller than the pivot, 
+  elements greater than or equal to the pivot, and an unknown region yet to be examined. 
+  A single pointer moves forward to manage these regions, placing smaller elements in the correct region. 
+  The algorithm is slightly more complicated conceptually than Hoare's Partition, and it tends to perform more swaps.</li>
+  <li><strong>Randomized Pivot Selection:</strong> 
+  Instead of always choosing the first or last element as the pivot, 
+  this approach selects a pivot randomly from the range, swapping it with the first element at the beginning. 
+  This can be useful in cases where you want to increase the likelihood of the pivot being closer to the center
+  (especially if the array is sorted or mostly sorted),
+  which increases the efficiency of certain algorithms that use partitioning (e.g. Quicksort, Quickselect).</li>
+  <li><strong>Median-of-Three Pivot:</strong> A refinement that picks the pivot as the median of the first, middle, and last elements. 
+  Like random pivot selection, this heuristic often yields better-balanced partitions.</li>
+  <li><strong>Three-Way Partitioning:</strong> Useful when dealing with arrays containing many duplicate values. This strategy partitions the array into three parts: less than pivot, equal to pivot, and greater than pivot. It enhances performance by reducing redundant comparisons.</li>
+</ul>
+<h2>Links to Resources</h2>
+<ul>
+  <li><a href="https://en.wikipedia.org/wiki/Quicksort">Wikipedia: Quicksort (includes Hoare partition)</a></li>
+  <li><a href="https://www.geeksforgeeks.org/hoares-vs-lomuto-partition-scheme-quicksort/">GeeksforGeeks: Hoare's vs Lomuto Partition Scheme</a></li>
+</ul>
+
+
+<h2>Practice Question</h2>
+  <h2>Reading Comprehension Questions</h2>
+  <ol>
+    <li>What is the role of the two pointers <i>i</i> and <i>j</i> in Hoare's Partition algorithm?</li>
+    <li>Why does Hoare’s Partition algorithm swap between the pivot and A[j] at the end?</li>
+    <li>In what way is Hoare’s Partition an example of the decrease-and-conquer strategy?</li>
+    <li>What are the best and worst time complexities of Hoare's Partition?</li>
+    <li>Why might 3 be a bad pivot value for the array [3,34,93,68,4,49,24,32,23,88,49]?</li>
+	<li>Given the array <code>[7, 4, 9, 6, 2, 8, 3]</code> with <code>low = 0</code> and <code>high = 6</code>, 
+	apply Hoare's Partition algorithm with the pivot being the first element. 
+	What does the array look like after partitioning, and what is the returned pivot index?</li>
+  </ol>
+
+  <button onclick="toggleAnswers()" style="margin-top: 10px;">Show Answers</button>
+  <div id="answers" style="display: none; margin-top: 10px;">
+    <ol>
+      <li><strong>Answer:</strong> The <i>i</i> pointer moves from the left searching for values greater than the pivot, and <i>j</i> moves from the right searching for values less than or equal to the pivot. They identify and help reposition out-of-place elements.</li>
+      <li><strong>Answer:</strong> The final swap places the pivot in its correct position in the partitioned array, ensuring that all elements to the left are ≤ pivot and those to the right are ≥ pivot.</li>
+      <li><strong>Answer:</strong> It's a decrease and conquer algorithm, given that each iteration, the problem size is reduced. </li>
+      <li><strong>Answer:</strong> Best and worst time complexities are both O(n) since every element is examined once. However, the number of swaps varies with input ordering.</li>
+      <li><strong>Answer:</strong> Because 3 is the smallest value and occurs at the beginning of the array, 
+	  choosing it as the pivot results in an unbalanced partition with nearly the entire array ending up on one side.
+      This may reduce the efficiency of algorithms that rely on this one.</li>
+	  <li><strong>Answer</strong>
+	  After applying Hoare's Partition, the array will look like: 
+	  <code>[2, 4, 3, 6, 7, 8, 9]</code> with the pivot placed at index 4.
+	  </li>
+
+    </ol>
+  </div>
+
+<script>
+  function toggleAnswers() {
+    const answerDiv = document.getElementById('answers');
+    const button = event.target;
+    if (answerDiv.style.display === 'none') {
+      answerDiv.style.display = 'block';
+      button.textContent = 'Hide Answers';
+    } else {
+      answerDiv.style.display = 'none';
+      button.textContent = 'Show Answers';
+    }
+  }
+</script>
+
+  <h2>In-Class Activities</h2>
+  <ol>
+    <li>Go over a few examples of Hoare's Partition algorithm. </li>
+    <li>Explains the scenarios of what bad and good pivot values might look like and discuss why.</li>
+    <li> Go over some techniques that can be used to avoid getting bad pivoting values, such as random pivot values 
+    and median of three.</li>
+    <li>Go over the difference between the Hoare's and Lomuto partitioning algorithms.</li>
+    <li>Provide students with an unsorted array and have them manually trace through Hoare’s Partition step-by-step.</li>
+  </ol>
+
+  <h2>Problems</h2>
+  <ol>
+    <li>Implement Hoare's Partition in your chosen programming language. Generate and test arrays with:
+    <ul>
+      <li>Random pivots</li>
+      <li>Pivots chosen using the median-of-three method</li>
+    </ul>
+    Compare performance (swaps, comparisons) across multiple arrays of varying sizes.</li>
+  <li>Given the array <code>[34, 23, 54, 21, 11, 45, 67, 89, 10]</code>, perform Hoare’s Partition step-by-step. Count and document each swap and comparison made.</li>
+  <li>Describe a scenario where Hoare’s Partition significantly outperforms Lomuto’s scheme and explain why.</li>
+  <li>Provide a detailed walkthrough of Hoare's Partition using an array of your choice (minimum of 8 elements), clearly marking pivot movements, pointer updates, swaps, and final partition index.</li>
+  </ol>
+</body>
+
+</html>
+</body>
+</html>
