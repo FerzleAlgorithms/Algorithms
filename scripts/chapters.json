@@ -17,12 +17,17 @@
   "Problems": [
     {
       "1_Foundational": [
+        "Exponentiation.html",
+        "Nth Order Statistic.html",
+        "Polynomial Evaluation.html",
         "Searching.html",
         "Sorting.html"
       ]
     },
     {
-      "2_Optimization": []
+      "2_Optimization": [
+        "0-1 Knapsack.html"
+      ]
     },
     {
       "3_Geometry_and_Numerical": []

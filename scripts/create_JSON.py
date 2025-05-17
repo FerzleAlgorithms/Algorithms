@@ -1,5 +1,8 @@
-#!/usr/bin/env python3 
+#!/usr/bin/env python4 
 import os, json
+
+# Set working directory explicitly to the script's directory
+os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
 def scan_dir(current_path):
     items = []
