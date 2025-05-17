@@ -2,13 +2,15 @@ function buildMenu(chapters, basePath = "") {
   const menu = document.querySelector("#menu ul");
   menu.innerHTML = '';
 
-  const buildList = (items, parentUl, currentPath) => {
+  const buildList = (items, parentUl, currentPath, isDemoSection) => {
     items.forEach(item => {
       const li = document.createElement("li");
       if (typeof item === "string") {
         const link = document.createElement("a");
         link.href = `?path=${encodeURIComponent(currentPath + item.replace('.html', ''))}`;
-        link.textContent = item.replace('.html', '').replace(/_/g, ' ');
+        let displayName = item.replace('.html', '').replace(/_/g, ' ');
+        if (isDemoSection) displayName = displayName.replace(/Demo/g, '').trim();
+        link.textContent = displayName;
         link.onclick = (e) => {
           e.preventDefault();
           loadContent(`${currentPath}${item}`);
@@ -18,11 +20,11 @@ function buildMenu(chapters, basePath = "") {
       } else if (typeof item === "object") {
         for (const [subDir, subItems] of Object.entries(item)) {
           const span = document.createElement("span");
-          span.innerHTML = `<strong>${subDir.replace(/_/g, ' ')}</strong>`;
+          span.innerHTML = `<strong>${subDir.replace(/_/g, ' ').trim()}</strong>`;
           li.appendChild(span);
           const subUl = document.createElement("ul");
           const newPath = `${currentPath}${subDir}/`;
-          buildList(subItems, subUl, newPath);
+          buildList(subItems, subUl, newPath, isDemoSection);
           li.appendChild(subUl);
         }
       }
@@ -32,10 +34,11 @@ function buildMenu(chapters, basePath = "") {
 
   for (const [chapter, contents] of Object.entries(chapters)) {
     const chapterLi = document.createElement("li");
-    chapterLi.innerHTML = `<strong>${chapter.replace(/_/g, ' ')}</strong>`;
+    chapterLi.innerHTML = `<strong>${chapter.replace(/_/g, ' ').trim()}</strong>`;
     const sectionsUl = document.createElement("ul");
     const chapterPath = `${basePath}${chapter}/`;
-    buildList(contents, sectionsUl, chapterPath);
+    const isDemoSection = chapter === "Demos";
+    buildList(contents, sectionsUl, chapterPath, isDemoSection);
     chapterLi.appendChild(sectionsUl);
     menu.appendChild(chapterLi);
   }
