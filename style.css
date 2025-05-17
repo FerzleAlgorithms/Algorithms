@@ -36,7 +36,7 @@ body.fullWidth #container {
   box-shadow: none;
 }
 
-
+/* nav menu */
 nav#menu {
   width: 250px;
   background-color: #e2e8f0;
@@ -49,6 +49,31 @@ nav#menu ul {
   padding-left: 0px;
 }
 
+nav#menu li {
+  cursor: pointer;
+  user-select: none;
+}
+
+nav#menu li span {
+  display: block;
+  padding: 5px 10px;
+  background-color: #cbd5e1;
+  border-bottom: 1px solid #94a3b8;
+}
+
+nav#menu li span:hover {
+  background-color: #94a3b8;
+}
+
+nav#menu ul ul {
+  display: none;
+  padding-left: 10px;
+}
+
+nav#menu li.open > ul {
+  display: block;
+}
+
 nav#menu a {
   text-decoration: none;
   color: #1e293b;
@@ -58,6 +83,8 @@ nav#menu a:hover {
   text-decoration: underline;
 }
 
+
+/* menu */
 #menu ul {
   list-style-type: none;
   padding-left: 1em;

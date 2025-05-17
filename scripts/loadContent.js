@@ -21,6 +21,7 @@ function buildMenu(chapters, basePath = "") {
         for (const [subDir, subItems] of Object.entries(item)) {
           const span = document.createElement("span");
           span.innerHTML = `<strong>${subDir.replace(/_/g, ' ').trim()}</strong>`;
+          span.onclick = () => li.classList.toggle('open');
           li.appendChild(span);
           const subUl = document.createElement("ul");
           const newPath = `${currentPath}${subDir}/`;
@@ -34,7 +35,10 @@ function buildMenu(chapters, basePath = "") {
 
   for (const [chapter, contents] of Object.entries(chapters)) {
     const chapterLi = document.createElement("li");
-    chapterLi.innerHTML = `<strong>${chapter.replace(/_/g, ' ').trim()}</strong>`;
+    const span = document.createElement("span");
+    span.innerHTML = `<strong>${chapter.replace(/_/g, ' ').trim()}</strong>`;
+    span.onclick = () => chapterLi.classList.toggle('open');
+    chapterLi.appendChild(span);
     const sectionsUl = document.createElement("ul");
     const chapterPath = `${basePath}${chapter}/`;
     const isDemoSection = chapter === "Demos";
@@ -43,6 +47,7 @@ function buildMenu(chapters, basePath = "") {
     menu.appendChild(chapterLi);
   }
 }
+
 
 function loadContent(relativePath) {
   const contentObject = document.getElementById('content');
