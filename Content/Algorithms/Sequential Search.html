@@ -20,16 +20,11 @@
 <body>
 
   <h1>Sequential Search</h1>
-
   
-    <h2>Problem Statement</h2>
-    <p>Given an array of integers (or other comparable objects) and a target value to search for,
-	returns the index of the target in the array, or <code>-1</code> if it is not present.</p>
-    <strong>Example:</strong>
-    <pre><code>Input:  [5, 3, 8, 1, 2], target = 8
-Output: 2</code></pre>
- 
-
+    <h2>Problem Solved</h2>
+	Sequential Search solves the 
+	<a class="problem" href="?path=Problems%2F1_Foundational%2FSearching">Searching</a>
+	problem.
   
     <h2>Design and Strategy</h2>
     <p>
@@ -97,26 +92,33 @@ Output: 2</code></pre>
 
 <h2>Time/Space Analysis</h2>
     
- <p><strong>Time Complexity:</strong> We count the number of element‐to‐target comparisons \(C\) as our cost metric. If the target is found at position \(k\), then:</p>
-<ul>
-  <li>\(\,C(k) = k\,\) comparisons (you check each element once).</li>
-  <li>If the target is not present, you perform \(\,C(n+1) = n\,\) comparisons (you stop after checking all \(n\) elements).</li>
-</ul>
+ <p><strong>Time Complexity:</strong> 
+ We count the number of element-to-target comparisons as our cost metric. 
+ If the target is found at position <em>k</em>, then
+ <em>k</em> comparisons were executed since it compare the target with each of the first <em>k</em>
+ elements until it found it. 
+ If the target is not present, then it compared the target with every element of the array, so it 
+did <em>m</em> comparisons.
+</p>
+
 <p>From this we can see:</p>
 <ul>
-  <li><strong>Best‐case:</strong> \(\,C(1) = 1\,\), so the complexity is \(\,O(1)\,\) (target at first position).</li>
-  <li><strong>Worst‐case:</strong> \(\,C(n) = n\,\), so the complexity is \(\,O(n)\,\) (target at last position or absent).</li>
-  <li><strong>Average‐case:</strong> assuming the target is equally likely to be in any of the \(n\) slots (or missing), the average value of the index would be \(\frac{n}{2}\), 
-  thus the complexity would be \(\displaystyle O\!\bigl(\tfrac{n}{2}\bigr) = O(n)\).</li>
+  <li><strong>Best-case:</strong>  <em>O(1)</em> comparisons (e.g. target is at the first position).</li>
+  <li><strong>Worst-case:</strong> <em>O(n) </em> comparisons (e.g. target is at the last position or absent).</li>
+  <li><strong>Average-case:</strong> Assuming the searched value is equally likely to be present or absent:
+  <ul>
+    <li><strong>Value present:</strong> On average, the algorithm finds the value after checking about <em>n/2</em> elements.</li>
+    <li><strong>Value absent:</strong> The algorithm always checks all <em>n</em> elements.</li>
+  </ul>
+  Thus, in either case, the average complexity is <em>O(n)</em>.
+</li>
+
 </ul>
 
  
-  <p> <b>Space Complexity:</b> The iterative sequential search uses only a fixed number of additional variables:</p>
-  <ul>
-    <li>The loop index <code>i</code>.</li>
-    <li>Space for the <code>target</code> and a few constant‐size temporaries (if any).</li>
-  </ul>
-  <p>Thus, the space complexity is O(1)</p>
+  <p> <b>Space Complexity:</b> The iterative sequential search uses only a fixed number of additional variables:
+  The loop index <code>i</code>, the space for the <code>target</code>, and the return value.
+  and a few constant‐size temporaries (if any). Thus, the space complexity is <em>O(1)</em>.</p>
 </div>
   </div>
 
@@ -138,27 +140,33 @@ Output: 2</code></pre>
         <li><strong>Answer:</strong> <code>O(n)</code>, when the target is at the last position or not present.</li>
         <li><strong>Answer:</strong> Brute Force because it checks every element until it either finds the target or reaches the end.</li>
         <li><strong>Answer:</strong> It returns the index of the first matching element found.</li>
-        <li><strong>Answer:</strong> <code>O(1)</code>, since it uses constant extra space.</li>
+        <li><strong>Answer:</strong> <code>O(1)</code>, since it only uses a constant amount of extra space.</li>
         <li><strong>Answer:</strong> Collect matches in a list as you scan and return that list instead of stopping early.</li>
       </ol>
     </div>
   
 
  <h2>In-Class Activities</h2>
-<ul>
+<ol>
   <li>Walk through the algorithm on different arrays to count comparisons.</li>
   <li>Discuss how the target’s position affects performance.</li>
-  <li>Compare and contrast with binary search on sorted data.</li>
+  <li>Compare and contrast with Binary Search on sorted data. Discuss in which cases you would use each.</li>
   <li>Explore handling of duplicate targets in various implementations.</li>
-  <li>Simulate a <strong>sentinel-based</strong> sequential search: place a copy of the target at the end to eliminate the boundary check, then compare the number of comparisons and loop logic to the standard version.</li>
-  </ul>
+  <li>Simulate a <strong>sentinel-based</strong> Sequential Search: 
+  place a copy of the target at the end to eliminate the boundary check, 
+  then compare the number of comparisons and loop logic to the standard version.</li>
+  </ol>
 
 <h2>Problems</h2>
 <ol>
-  <li>Implement a recursive version of sequential search (with pseudocode).</li>
+  <li>Write code or pseudocode for a recursive version of Sequential Search.</li>
   <li>Adapt sequential search to operate on a singly linked list (with pseudocode).</li>
-  <li>Modify the algorithm to <strong>return all indices</strong> where the target occurs (not just the first), then analyze how this changes your time and space complexity.</li>
-  <li>Implement a <strong>sentinel-based</strong> sequential search: before scanning, append the target as a sentinel at the end of the array to remove the explicit bounds check; then compare its performance (number of comparisons and code branches) against the standard implementation.</li>
+  <li>Write code or pseudocode for the version of the algorithm to <strong>return all indices</strong> 
+  where the target occurs (not just the first). Analyze how this changes your time and space complexity.</li>
+  <li>Implement a <strong>sentinel-based</strong> sequential search: 
+  before scanning, append the target as a sentinel at the end of the array to remove the explicit bounds check; 
+  then compare its performance (number of comparisons and code branches) against the standard implementation.
+  Discuss any drawbacks of this approach.</li>
 </ol>
   
 <script>

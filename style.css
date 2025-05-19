@@ -13,6 +13,20 @@ body {
   min-height: 100vh; /* Ensures full vertical height */
 }
 
+/* style for inline “problem” links */
+a.problem {
+  color: #0366d6;               /* a medium-dark blue for good contrast */
+  text-decoration: none;        /* remove the default underline */
+  border-bottom: 2px solid #8bbde0; /* subtle light-blue underline echoing your node fill */
+  padding-bottom: 1px;          /* give the underline a little breathing room */
+  transition: color 0.2s, border-color 0.2s;
+}
+
+a.problem:hover {
+  color: #024f9a;               /* darken text on hover */
+  border-color: #559ecb;        /* slightly deeper accent underline */
+}
+
 header {
   background-color: #334155;
   color: white;
@@ -134,6 +148,28 @@ input {
     font-size: 18px;      
     position: relative;    
     }
+	
+	/* For Legends */
+ .legend {
+      margin-top: 30px; /* added buffer from buttons */
+      margin-bottom: 20px;
+      text-align: left;
+    }
+	
+.legend-box {
+      display: inline-block;
+      width: 15px;
+      height: 15px;
+      vertical-align: middle;
+      margin-right: 5px;
+      border-radius: 4px;
+	  border: 1px solid #333;
+    }
+	.legend-box.default { background-color: #cce3ff; border: 1px solid; }
+    .legend-box.key { background-color: #1f77b4; }
+    .legend-box.comparing { background-color: #yellow; }
+    .legend-box.sorted { background-color:orange }
+    .legend-box.empty { background-color: transparent; border: 1px dashed #ccc; }
     	
 	/* For code display? */
 .tabs {   
@@ -182,6 +218,7 @@ input {
 .sorted {  /* A cell that is in its final position */
     background-color: orange;
 }
+
 .arrow {  /* An arrow pointing into a cell */
     position: absolute;  
     top: 50px;  

@@ -12,26 +12,17 @@
 
   <h1>Hoare's Partition</h1>
 
-    <h2>Problem</h2>
-	    <p>
-        Given an array <code>A</code> and indices <code>low</code> and <code>high</code> (with <code>low &lt; high</code>), 
-		rearrange the elements in the portion of <code>A</code> from <code>low</code> through <code>high</code> as follows:
-    </p>
-    <ol>
-        <li>Select a pivot element—typically the first element, <code>A[low]</code>.</li>
-        <li>Reorder the elements so that:
-            <ul>
-                <li>Every element less than or equal to the pivot is positioned to its left.</li>
-                <li>Every element greater than or equal to the pivot is positioned to its right.</li>
-                <li>The pivot element is positioned in its correct sorted location.</li>
-            </ul>
-        </li>
-		<li>The index of the pivot element is returned.</li>
-    </ol>
-    <p>
+    <h2>Problem Solved</h2>
+	Hoare's Partition solves the
+	<a class="problem" href="?path=Problems%2F1_Foundational%2FArray%20Partition">Array Partition</a>
+	problem.
+	   
 	
 
-    <h2>Example (n = 8) <button id="replay" style="display:inline-block; margin-left:20px;">Play</button></h2>
+    <h2>Example</h2>
+	<p>Here is an example of how partition might perform on a small array, with the assumption that the
+	first element is the desired pivot.</p>
+	<button id="replay">Play</button><br>
     <svg id="partition-svg" width="600" height="250" xmlns="http://www.w3.org/2000/svg">
       <g transform="translate(0,30)">
             <!-- Input Row (static) -->
@@ -99,49 +90,49 @@
                           <!-- animate numbers from compare positions to output -->
       <g font-family="monospace" font-size="18">
         <text x="215" y="90" fill="#000">5
-          <animate attributeName="x" begin="replay.click" dur="5s" to="420" fill="freeze"/>
-          <animate attributeName="y" begin="replay.click" dur="5s" to="150" fill="freeze"/>
+          <animate attributeName="x" begin="replay.click" dur="3s" to="420" fill="freeze"/>
+          <animate attributeName="y" begin="replay.click" dur="3s" to="150" fill="freeze"/>
         </text>
         <text x="265" y="90" fill="#000">3
-          <animate attributeName="x" begin="replay.click" dur="5s" to="220" fill="freeze"/>
-          <animate attributeName="y" begin="replay.click" dur="5s" to="150" fill="freeze"/>
+          <animate attributeName="x" begin="replay.click" dur="3s" to="220" fill="freeze"/>
+          <animate attributeName="y" begin="replay.click" dur="3s" to="150" fill="freeze"/>
         </text>
         <text x="315" y="90" fill="#000">9
-          <animate attributeName="x" begin="replay.click" dur="5s" to="470" fill="freeze"/>
-          <animate attributeName="y" begin="replay.click" dur="5s" to="150" fill="freeze"/>
+          <animate attributeName="x" begin="replay.click" dur="3s" to="470" fill="freeze"/>
+          <animate attributeName="y" begin="replay.click" dur="3s" to="150" fill="freeze"/>
         </text>
         <text x="365" y="90" fill="#000">1
-          <animate attributeName="x" begin="replay.click" dur="5s" to="270" fill="freeze"/>
-          <animate attributeName="y" begin="replay.click" dur="5s" to="150" fill="freeze"/>
+          <animate attributeName="x" begin="replay.click" dur="3s" to="270" fill="freeze"/>
+          <animate attributeName="y" begin="replay.click" dur="3s" to="150" fill="freeze"/>
         </text>
         <text x="415" y="90" fill="#000">7
-          <animate attributeName="x" begin="replay.click" dur="5s" to="520" fill="freeze"/>
-          <animate attributeName="y" begin="replay.click" dur="5s" to="150" fill="freeze"/>
+          <animate attributeName="x" begin="replay.click" dur="3s" to="520" fill="freeze"/>
+          <animate attributeName="y" begin="replay.click" dur="3s" to="150" fill="freeze"/>
         </text>
         <text x="465" y="90" fill="#000">4
-          <animate attributeName="x" begin="replay.click" dur="5s" to="320" fill="freeze"/>
-          <animate attributeName="y" begin="replay.click" dur="5s" to="150" fill="freeze"/>
+          <animate attributeName="x" begin="replay.click" dur="3s" to="320" fill="freeze"/>
+          <animate attributeName="y" begin="replay.click" dur="3s" to="150" fill="freeze"/>
         </text>
         <text x="515" y="90" fill="#000">8
-          <animate attributeName="x" begin="replay.click" dur="5s" to="570" fill="freeze"/>
-          <animate attributeName="y" begin="replay.click" dur="5s" to="150" fill="freeze"/>
+          <animate attributeName="x" begin="replay.click" dur="3s" to="570" fill="freeze"/>
+          <animate attributeName="y" begin="replay.click" dur="3s" to="150" fill="freeze"/>
         </text>
         <text x="565" y="90" fill="#000">2
-          <animate attributeName="x" begin="replay.click" dur="5s" to="370" fill="freeze"/>
-          <animate attributeName="y" begin="replay.click" dur="5s" to="150" fill="freeze"/>
+          <animate attributeName="x" begin="replay.click" dur="3s" to="370" fill="freeze"/>
+          <animate attributeName="y" begin="replay.click" dur="3s" to="150" fill="freeze"/>
         </text>
       </g>
                   <!-- Pivot indicator under output -->
       <g font-family="monospace" font-size="14">
         <line x1="420" y1="160" x2="420" y2="180" stroke="#c33" stroke-width="2" opacity="0">
-          <animate attributeName="opacity" begin="replay.click +5s" dur="0.1s" to="1" fill="freeze"/>
+          <animate attributeName="opacity" begin="replay.click +3s" dur="0.1s" to="1" fill="freeze"/>
         </line>
         <polygon points="416,180 424,180 420,190" fill="#c33" opacity="0">
-          <animate attributeName="opacity" begin="replay.click +5s" dur="0.1s" to="1" fill="freeze"/>
+          <animate attributeName="opacity" begin="replay.click +3s" dur="0.1s" to="1" fill="freeze"/>
         </polygon>
         <text x="400" y="210" fill="#c33" opacity="0">
           pivot index = 4
-          <animate attributeName="opacity" begin="replay.click +5s" dur="0.1s" to="1" fill="freeze"/>
+          <animate attributeName="opacity" begin="replay.click +3s" dur="0.1s" to="1" fill="freeze"/>
         </text>
       </g>
     </svg>
@@ -151,8 +142,8 @@
   Hoare’s Partition begins by selecting a pivot element, typically <code>A[low]</code>. 
   It uses two pointers, <code>i</code> and <code>j</code>, to traverse the array. 
   Pointer <code>i</code> starts at <code>low + 1</code>, and pointer <code>j</code> starts at <code>high</code>. 
-  The pointer <code>i</code> increments until it finds an element greater than or equal to the pivot (<code>A[i] ≥ pivot</code>), 
-  and pointer <code>j</code> decrements until it finds an element less than or equal to the pivot (<code>A[j] ≤ pivot</code>). 
+  The pointer <code>i</code> increments until it finds an element greater than the pivot (<code>A[i] &gt; pivot</code>), 
+  and pointer <code>j</code> decrements until it finds an element less than the pivot (<code>A[j] &lt; pivot</code>). 
   When both out-of-place elements are identified, the algorithm swaps <code>A[i]</code> and <code>A[j]</code>,
   and then increments <code>i</code> and decrements <code>j</code>. 
   This process repeats until <code>i ≥ j</code>. Finally, the pivot element <code>A[low]</code> 
@@ -172,8 +163,8 @@ Here is a step-by-step description.
   </li>
   <li>Repeat the following steps until <code>i ≥ j</code>:
     <ul>
-      <li>Move pointer <code>i</code> forward until <code>A[i] ≥ pivot</code>.</li>
-      <li>Move pointer <code>j</code> backward until <code>A[j] ≤ pivot</code>.</li>
+      <li>Move pointer <code>i</code> forward until <code>A[i] &gt; pivot</code>.</li>
+      <li>Move pointer <code>j</code> backward until <code>A[j] &lt; pivot</code>.</li>
       <li>If <code>i &lt; j</code>, swap <code>A[i]</code> and <code>A[j]</code>, then increment <code>i</code> and decrement <code>j</code>.</li>
     </ul>
   </li>

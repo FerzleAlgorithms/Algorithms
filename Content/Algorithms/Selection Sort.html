@@ -182,10 +182,6 @@ More formally, the algorithm works as follows:
       This enhancement leverages the observation that, in each pass, one element can be placed at the beginning of 
       the unsorted region and another at the end, effectively sorting two elements per iteration instead of one.
 </li>
-  <li>
-
-    Unlike other sorting algorithms such as Bubble Sort or Insertion Sort, selection sort does not adapt to already sorted input; it always performs the same number of comparisons regardless of the input order. This makes it easy to implement but inefficient in terms of time complexity.
-  </li>
   </ul>
 
 
@@ -194,7 +190,6 @@ More formally, the algorithm works as follows:
     <li><a href="https://visualgo.net/en/sorting">Visualgo – Sorting Visualizations</a></li>
     <li><a href="https://www.geeksforgeeks.org/selection-sort/">GeeksforGeeks – Selection Sort</a></li>
     <li><a href="https://en.wikipedia.org/wiki/Selection_sort">Wikipedia – Selection Sort</a></li>
-    <li><a href="https://cs.stackexchange.com/">CS StackExchange – Ask or answer sorting questions</a></li>
   </ol>
 
 
@@ -203,9 +198,9 @@ More formally, the algorithm works as follows:
   <ol>
     <li>Why does selection sort always have the same number of comparisons, regardless of input order?</li>
     <li>What part of the array is considered “sorted” during the execution of selection sort?</li>
-    <li>What technique does selection sort use? And Why?</li>
+    <li>What technique does selection sort use? Explain.</li>
     <li>What is the time complexity of selection sort?</li>
-    <li>Perform selection sort on the array [46,89,8,34,33,77]</li>
+    <li>Perform selection sort on the array [46, 89, 8, 34, 33, 77].</li>
   </ol>
 
   <button onclick="toggleAnswers()" style="margin-top: 10px;">Show Answers</button>
@@ -225,22 +220,36 @@ More formally, the algorithm works as follows:
 
   <h2>In-class Activities</h2>
   <ol>
-    <li>Go over the Left-to-Right Selection Sort (Minimum-Based) optimzation of the algorithm.</li>
-    <li>Compare and constrast Bubble Sort and Selection Sort.</li>
-    <li>Switch between "min-to-front" and "max-to-end" versions. Which creates more swaps?</li>
+    <li>Go over the left-to-right Selection Sort (minimum-Based) variation of the algorithm.</li>
+	<li>Is the right-to-left or the left-to-right better? Explain.</li>
+    <li>Compare and contrast Selection Sort with Bubble Sort and Insertion Sort. 
+	<ol type='a'>
+	   <li>How is it similar to each?</li>
+	   <li>How is it different than each?</li>
+	   <li>Which of them is better?</li>
+	</ol>
+	</li>
+	<li>Discuss any potential optimizations to Selection Sort.</li>
   </ol>
 
 
 <div class="section">
   <h2>Problems</h2>
   <ol>
-    <li>Implement selection sort so that it tracks both the minimum and maximum each pass and moves them to opposite ends.</li>
-    <li>Implement selection sort so that it sorts strings alphabetically. Does this affect the time complexity of the algorithm? Explain why. </li>
-    <li>Write a version of Selection Sort that uses recursion instead of iteration.</li>
-    <li> Analyze the time complexity for insertion sort for an array vs for a linked list.</li>
-    <li> Given a list ['c','e','a','f','b'] show the steps necessary for Selection Sorts and Bubble Sort. Additionlly 
-    show the number of comparisions and swaps for said algorihtms. What does this say about what you 
-    know about the performance of both algorithms?</li>
+    <li>Implement Selection Sort so that it tracks both the minimum and maximum each pass and moves them to opposite ends.</li>
+    <li>Implement Selection Sort so that it sorts strings alphabetically. Does this affect the time complexity of the algorithm? Explain why. </li>
+    <li>Write a version of Selection Sort that uses recursion instead of iteration.
+	What is the computational complexity of this version?</li>
+    <li>Give an implementation of Selection Sort using a linked list instead of an array.</li>
+	<li>Analyze the time complexity for Selection Sort on a linked list.</li>
+    <li>Given a list ['c','v','e','a','f','b','q','w'] show the steps necessary for Selection Sorts and Bubble Sort. 
+	Make sure to give the array at the end of each iteration of the outer loop.
+	<ol type='a'>
+	<li>Compare the arrays from both algorithms at the end of each iteration. What do you notice?</li>
+	<li>Compute the number of comparisons and swaps for each algorithm. Are the results what you expected?</li> 
+	<li>Discuss and compare the performance of both algorithms.</li>
+	</ol>
+	</li>
   </ol>
 </div>
 

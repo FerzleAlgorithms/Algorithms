@@ -106,15 +106,15 @@ function render() {
     record({A, i, j, phase: 'start', desc: `p=A[${pivot}]=${p}`});
     while (true) {
       while (i <= high && A[i] <= p) {
-        record({A, i, j, phase: 'compare-i', desc: `${A[i]}<=${p}? Yes --> i++`});
+        record({A, i, j, phase: 'compare-i', desc: `${A[i]} <= ${p}? Yes → i++`});
         i++;
       }
-      record({A, i, j, phase: 'compare-i', desc: `${A[i]}<=${p}? No --> check j`});
+      record({A, i, j, phase: 'compare-i', desc: `${A[i]} <= ${p}? No → check j`});
       while (j >= pivot && A[j] > p) {
-        record({A, i, j, phase: 'compare-j', desc: `${A[j]}>${p}? Yes --> j--`});
+        record({A, i, j, phase: 'compare-j', desc: `${A[j]} > ${p}? Yes → j--`});
         j--;
       }
-      record({A, i, j, phase: 'compare-j', desc: `${A[j]}>${p}? No --> check swap`});
+      record({A, i, j, phase: 'compare-j', desc: `${A[j]} > ${p}? No → swap`});
       if (i >= j) {
         [A[pivot], A[j]] = [A[j], A[pivot]];
         record({A, i, j, phase: 'do-p', desc: `Swapped p with A[${j}], p now at index ${j}`});
