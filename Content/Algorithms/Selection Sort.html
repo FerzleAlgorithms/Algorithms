@@ -13,7 +13,6 @@
       hljs.highlightAll();
     });
   </script>
-  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
   <script id="MathJax-script" async
     src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 </head>
@@ -143,7 +142,7 @@ More formally, the algorithm works as follows:
 
 
   <h2>Time/Space Analysis </h2>
-  <p>
+  <p><b>Time Complexity:</b>
    To analyze the time complexity of Selection Sort, we consider the number of comparisons the algorithms does, since 
   it only swaps once the inner loop has terminated. Given the fixed nature of Selection Sort, it performs the 
    same number of comparisons regardless of the input. 
@@ -152,28 +151,23 @@ More formally, the algorithm works as follows:
 <p>
   On each pass through the array, 
   Selection Sort scans the unsorted portion to find the maximum element and places it in its 
-  correct position at the end. 
-  In the first pass, it compares  all \( n \) elements. 
-  In the second pass, it scans \( n - 1 \), and so on, until just one element remains unsorted.
+  correct position.
+  In the first pass, it makes \( n - 1 \) comparisons. 
+  In the second pass, it makes \( n - 2 \) comparisons, and so on, until just one element remains unsorted.
+  Thus, the total number of comparisons is 
 </p>
-<p>
-  If we denote the outer loop index as \( i \) from 1 to \( n - 1 \), and for each \( i \), the inner loop performs \( i \) comparisons, the total number of comparisons is the following summation:
-</p>
-
   <p>
     \[
-    \sum_{i=1}^{n-1} \sum_{j=0}^{i-1} = \sum_{i=1}^{n-1}i = \frac{(n-1)(n)}{2} \in O(n^2).
+    \sum_{i=1}^{n-1}i = \frac{(n-1)(n)}{2} = O(n^2).
     \]
   </p>
 
-  <h3>Space Complexity</h3>
   <p>
-    The algorithm uses only a constant amount of auxiliary memory (a few index variables and a swap buffer). Therefore, space complexity is:
-    \[
-    O(1).
-    \]
+  <b>Space Complexity:</b>
+    The algorithm uses only a constant amount of auxiliary memory (a few index variables and a swap variable). 
+	Therefore, the space complexity is \( O(1). \)
   </p>
-
+  <p></p>
 
 
   <h2>Variations/Improvements</h2>

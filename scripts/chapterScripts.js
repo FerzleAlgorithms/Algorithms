@@ -21,6 +21,20 @@ function getLanguageFromUrl() {
 
 
 window.onload = function() {
+  document.querySelectorAll('pre code').forEach(block => hljs.highlightBlock(block));
+  // Show Java tab by default
+  openTab({ currentTarget: document.querySelector('.tablink.active') }, 'java');
+  // ← Measure & equalize the heights of all .code-container panels
+  const panels = Array.from(document.querySelectorAll('.code-container'));
+  // temporarily show each so offsetHeight is correct
+  panels.forEach(p => p.style.display = 'block');
+  // find the tallest
+  const maxH = panels.reduce((h, p) => Math.max(h, p.offsetHeight), 0);
+  // hide them again and lock in that height
+  panels.forEach(p => {
+    p.style.display = 'none';
+    p.style.minHeight = maxH + 'px';
+  });
   const lang = getLanguageFromUrl();
   const validLangs = ['java', 'cpp', 'python'];
   const defaultLang = validLangs.includes(lang) ? lang : 'java';
