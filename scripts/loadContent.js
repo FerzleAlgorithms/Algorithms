@@ -1,125 +1,169 @@
+// scripts/loadContent.js
+
+// 1) Build the sidebar menu from chapters.json
 function buildMenu(chapters, basePath = "") {
   const menu = document.querySelector("#menu ul");
-  menu.innerHTML = '';
+  menu.innerHTML = "";
 
-  const buildList = (items, parentUl, currentPath, isDemoSection) => {
-    items.forEach(item => {
+  function buildList(items, parentUl, currentPath, isDemo) {
+    for (const item of items) {
       const li = document.createElement("li");
+
       if (typeof item === "string") {
-        const link = document.createElement("a");
-        link.href = `?path=${encodeURIComponent(currentPath + item.replace('.html', ''))}`;
-        let displayName = item.replace('.html', '').replace(/_/g, ' ');
-        if (isDemoSection) displayName = displayName.replace(/Demo/g, '').trim();
-        link.textContent = displayName;
-        link.onclick = (e) => {
-          e.preventDefault();
-          loadContent(`${currentPath}${item}`);
-          history.pushState({}, '', link.href);
-        };
-        li.appendChild(link);
-      } else if (typeof item === "object") {
-        for (const [subDir, subItems] of Object.entries(item)) {
+        // leaf: an HTML page
+        const name = item.replace(/\.html$/, "").replace(/_/g, " ");
+        const a = document.createElement("a");
+        a.href = `?path=${encodeURIComponent(currentPath + name)}`;
+        a.textContent = isDemo
+          ? name.replace(/Demo/g, "").trim()
+          : name;
+        li.appendChild(a);
+
+      } else {
+        // subtree: a directory
+        for (const [dir, subItems] of Object.entries(item)) {
           const span = document.createElement("span");
-          span.innerHTML = `<strong>${subDir.replace(/_/g, ' ').trim()}</strong>`;
-          span.onclick = () => li.classList.toggle('open');
+          span.textContent = dir.replace(/_/g, " ");
+          span.onclick = () => li.classList.toggle("open");
           li.appendChild(span);
+
           const subUl = document.createElement("ul");
-          const newPath = `${currentPath}${subDir}/`;
-          buildList(subItems, subUl, newPath, isDemoSection);
+          buildList(subItems, subUl, currentPath + dir + "/", isDemo);
           li.appendChild(subUl);
         }
       }
-      parentUl.appendChild(li);
-    });
-  };
 
-  for (const [chapter, contents] of Object.entries(chapters)) {
-    const chapterLi = document.createElement("li");
+      parentUl.appendChild(li);
+    }
+  }
+
+  for (const [chap, contents] of Object.entries(chapters)) {
+    const li = document.createElement("li");
     const span = document.createElement("span");
-    span.innerHTML = `<strong>${chapter.replace(/_/g, ' ').trim()}</strong>`;
-    span.onclick = () => chapterLi.classList.toggle('open');
-    chapterLi.appendChild(span);
-    const sectionsUl = document.createElement("ul");
-    const chapterPath = `${basePath}${chapter}/`;
-    const isDemoSection = chapter === "Demos";
-    buildList(contents, sectionsUl, chapterPath, isDemoSection);
-    chapterLi.appendChild(sectionsUl);
-    menu.appendChild(chapterLi);
+    span.textContent = chap.replace(/_/g, " ");
+    span.onclick = () => li.classList.toggle("open");
+    li.appendChild(span);
+
+    const subUl = document.createElement("ul");
+    buildList(contents, subUl, chap + "/", chap === "Demos");
+    li.appendChild(subUl);
+
+    menu.appendChild(li);
   }
 }
-
-
 function loadContent(relativePath) {
-  const contentObject = document.getElementById('content');
-  const errorMessage = document.getElementById('errorMessage');
-  const encodedPath = relativePath.split('/').map(encodeURIComponent).join('/');
-  const url = `Content/${encodedPath}`;
+  const obj = document.getElementById("content");
+  const err = document.getElementById("errorMessage");
 
-  fetch(url, {cache: 'no-cache'})
-    .then(response => {
-      if (!response.ok) throw new Error('Page not found');
-      return response.text();
+  // build the URL we want to fetch
+  const urlBase = `Content/${relativePath}`;
+
+  return fetch(urlBase, { cache: "no-cache" })
+    .then(r => {
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      return r.text();
     })
     .then(() => {
-      errorMessage.style.display = 'none';
-      contentObject.style.display = 'block';
-      contentObject.data = url;
-    })
-    .catch(() => {
-      contentObject.style.display = 'none';
-      errorMessage.style.display = 'block';
-    });
-    
-          // **Cache-bust the <object>** by adding a query param
+      // hide any old error, show the object
+      err.style.display = "none";
+      obj.style.display = "block";
+
+      // force the object to reload the new page
       const bustUrl = `${urlBase}?_=${Date.now()}`;
-      contentObject.data = bustUrl;
+      obj.data = bustUrl;
+
+      // **once the object’s document is ready**, hook its links
+      obj.onload = () => {
+        const edoc = obj.contentDocument;
+        if (!edoc) return;
+
+        // a) Intercept internal ?path=… clicks
+        edoc.addEventListener("click", e => {
+          const a = e.target.closest('a[href]');
+          if (!a) return;
+
+          const href = a.getAttribute("href");
+          if (href.startsWith("?path=")) {
+            e.preventDefault();
+            const raw = new URLSearchParams(href.slice(1)).get("path");
+            if (!raw) return;
+
+            // normalize to match your filenames
+            const norm = raw
+              .split("/")
+              .map(decodeURIComponent)
+              .map(encodeURIComponent)
+              .join("/");
+            const htmlPath = `${norm}.html`;
+
+            // call the parent’s loader
+            parent.loadContent(htmlPath).catch(() => {});
+            parent.history.pushState({}, "", `?path=${raw}`);
+          }
+        });
+
+        // b) Force all other links to break out of the object
+        edoc
+          .querySelectorAll('a[href]:not([href^="?path="])')
+          .forEach(a => {
+            a.setAttribute("target", "_top");
+          });
+      };
     })
-    .catch(() => {
-      contentObject.style.display = 'none';
-      errorMessage.style.display = 'block';
+    .catch(e => {
+      console.error("loadContent error:", e);
+      obj.style.display = "none";
+      err.style.display = "block";
+      throw e;
     });
 }
 
 
+// 3) Handle back/forward and initial load
 function loadFromURLParams() {
-  const params = new URLSearchParams(window.location.search);
-  const fullPath = params.get('path');
-  const contentObject = document.getElementById('content');
-
-  if (fullPath) {
-    loadContent(`${fullPath}.html`);
+  const p = new URLSearchParams(window.location.search).get("path");
+  if (p) {
+    // normalize encoding
+    const norm = p
+      .split("/")
+      .map(decodeURIComponent)
+      .map(encodeURIComponent)
+      .join("/");
+    loadContent(`${norm}.html`).catch(() => {});
   } else {
-    contentObject.data = 'credits.html';
+    loadContent("credits.html").catch(() => {});
   }
 }
+window.addEventListener("popstate", loadFromURLParams);
 
-window.onpopstate = loadFromURLParams;
-
-
+// 4) DOMContentLoaded — fetch chapters, build menu, show first page,
+//    and install one delegated click listener
 document.addEventListener("DOMContentLoaded", () => {
-  fetch('scripts/chapters.json')
-    .then(res => res.json())
-    .then(data => {
-      buildMenu(data);
+  fetch("scripts/chapters.json")
+    .then(r => r.json())
+    .then(chapters => {
+      buildMenu(chapters);
       loadFromURLParams();
     })
-    .catch(err => console.error("Error loading chapters.json:", err));
-});
+    .catch(e => console.error("Error loading chapters.json:", e));
 
+  // delegate only links that start with "?path="
+  document.addEventListener("click", e => {
+    const a = e.target.closest('a[href^="?path="]');
+    if (!a) return;           // ignore everything else
+    e.preventDefault();
 
-document.addEventListener('click', e => {
-  // look for the nearest <a> that has a ?path=… href
-  const a = e.target.closest('a[href^="?path="]');
-  if (!a) return;
+    const raw = new URLSearchParams(a.getAttribute("href").slice(1)).get("path");
+    if (!raw) return;
 
-  e.preventDefault();
+    const norm = raw
+      .split("/")
+      .map(decodeURIComponent)
+      .map(encodeURIComponent)
+      .join("/");
+    const htmlPath = `${norm}.html`;
 
-  // pull the path param out of the href (strip leading “?”)
-  const params = new URLSearchParams(a.getAttribute('href').slice(1));
-  const raw  = params.get('path');           // e.g. "Problems/1_Foundational/Array Partition"
-  const path = decodeURIComponent(raw) + '.html';
-
-  // load it via AJAX and update history
-  loadContent(path);
-  history.pushState({}, '', `?path=${raw}`);
+    loadContent(htmlPath).catch(() => {});
+    history.pushState({}, "", `?path=${raw}`);
+  });
 });
