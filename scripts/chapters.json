@@ -2,12 +2,14 @@
   "Algorithms": [
     "Bubble Sort.html",
     "Hoare Partition.html",
-    "Selection Sort.html"
+    "Selection Sort.html",
+    "Sequential Search.html"
   ],
   "Demos": [
     "Bubble Sort Demo.html",
     "Hoare Partition Demo.html",
     "Huffman Encoding Demo.html",
+    "Insertion Sort Demo.html",
     "Kruskals Algorithm Demo.html",
     "Prims Algorithm Demo.html",
     "Selection Sort Demo.html",
@@ -17,6 +19,7 @@
   "Problems": [
     {
       "1_Foundational": [
+        "Array Partition.html",
         "Exponentiation.html",
         "Nth Order Statistic.html",
         "Polynomial Evaluation.html",
