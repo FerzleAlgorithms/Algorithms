@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Subset Sum Problem</title>
+  <link rel="stylesheet" href="../../../style.css" />
+</head>
+<body>
+  <h1>Subset Sum</h1>
+
+  <section>
+    <h2>Problem Description</h2>
+    <p>
+      Given a set of non-negative integers and a target sum <em>S</em>, determine whether there exists a subset
+      of the given integers that sums exactly to <em>S</em>. Return <code>true</code> if such a subset exists,
+      and <code>false</code> otherwise.
+    </p>
+    <h3>Input</h3>
+    <p>
+      An array <code>A</code> of <code>n</code> integers (<code>A[0..n−1]</code>) and an integer <code>S</code>;
+      <strong>Constraints:</strong> <code>n ≥ 0</code>, each <code>A[i] ≥ 0</code>, and <code>S ≥ 0</code>.
+    </p>
+    <h3>Output</h3>
+    <p>
+      A boolean: <code>true</code> if there exists indices <code>i₁,…,iₖ</code> with
+      <code>A[i₁] + … + A[iₖ] = S</code>, else <code>false</code>.
+    </p>
+  </section>
+
+  <section>
+    <h2>Motivation/Applications</h2>
+    <p>
+      The Subset Sum problem models resource allocation and combinatorial verification tasks:
+      filling a knapsack to exact capacity, partitioning workloads evenly, or checking financial
+      transactions for exact balances. It also underpins cryptographic knapsack schemes.
+    </p>
+  </section>
+
+  <section>
+    <h2>Examples</h2>
+    <div class="example-box">
+      <strong class="example-title">Example 1</strong><br>
+      <strong>Input:</strong><br>  <code>A = [3, 34, 4, 12, 5, 2], S = 9</code><br>
+      <strong>Output:</strong><br>  <code>true</code> (subset <code>{4, 5}</code> sums to 9)
+    </div>
+    <br>
+    <div class="example-box">
+      <strong class="example-title">Example 2</strong><br>
+      <strong>Input:</strong><br>  <code>A = [3, 34, 4, 12, 5, 2], S = 30</code><br>
+      <strong>Output:</strong><br> <code>false</code> (no subset sums to exactly 30)
+    </div>
+  </section>
+
+  <section>
+    <h2>Common Algorithms/Techniques</h2>
+    <ul>
+      <li>Dynamic Programming (pseudopolynomial time DP table)</li>
+      <li>Backtracking / Recursive subset exploration</li>
+      <li>Meet-in-the-Middle (splitting into two halves)</li>
+      <li>Bitset or boolean-array optimizations</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Variants/Related Problems</h2>
+    <ul>
+      <li>Partition Problem (special case with <code>S = totalSum/2</code>)</li>
+      <li><code>k</code>-Sum Problem (fixed subset size)</li>
+      <li>Counting Subsets with Given Sum</li>
+      <li>0-1 Knapsack Problem</li>
+    </ul>
+  </section>
+</body>
+</html>

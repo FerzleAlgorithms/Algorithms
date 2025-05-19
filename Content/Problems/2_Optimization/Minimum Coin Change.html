@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Minimum Coin Change</title>
+  <link rel="stylesheet" href="../../../style.css" />
+</head>
+    <h1>Minimum Coin Change</h1>
+
+    <section>
+      <h2>Problem Description</h2>
+      <p>
+        Given a collection of coin denominations and a target amount, determine the minimum number of coins required to make exactly that amount. If it is impossible to make the exact amount, output <code>-1</code>.
+      </p>
+      <h3>Input</h3>
+      <p>
+        An integer <code>n</code> (the number of denominations), followed by a list of <code>n</code> positive integers
+        <code>c<sub>1</sub>, c<sub>2</sub>, …, c<sub>n</sub></code> (the coin values), and an integer <code>T</code> (the target amount).<br/>
+		</p>
+      <h3>Output</h3>
+      <p>
+        A single integer: the fewest number of coins needed to form <code>T</code>, 
+		or <code>-1</code> if no combination of coins adds up to <code>T</code>.
+      </p>
+	  <p>Alternatively, we also might want to know which coins to use.</p>
+    </section>
+
+    <section>
+      <h2>Motivation/Applications</h2>
+      <p>
+        Finding the minimum number of resources needed to meet a requirement appears in budgeting, resource allocation, and making change with limited coins.  
+        It models optimization in unbounded-knapsack scenarios and appears in logistics and operations research.
+      </p>
+    </section>
+
+     <section>
+      <h2>Examples</h2>
+      <div class="example-box">
+        <strong class="example-title">Example 1</strong><br/>
+        <strong>Input:</strong> n = 3, coins = [1, 2, 5], T = 11<br/>
+        <strong>Output:</strong> 3<br/>
+        Explanation: Use two 5-value coins and one 1-value coin (5 + 5 + 1 = 11).
+      </div>
+      <br/>
+      <div class="example-box">
+        <strong class="example-title">Example 2</strong><br/>
+        <strong>Input:</strong> n = 2, coins = [2, 4], T = 7<br/>
+        <strong>Output:</strong> -1<br/>
+        Explanation: It is impossible to sum to 7 using only 2- and 4-value coins.
+      </div>
+    </section>
+    </section>
+
+    <section>
+      <h2>Common Algorithms/Techniques</h2>
+      <ul>
+        <li>Dynamic programming (bottom-up array <code>dp[0…T]</code> where <code>dp[x]</code> is min coins for amount <code>x</code>)</li>
+        <li>Breadth-first search on implicit “amount + coin” graph</li>
+        <li>Greedy algorithm (only for canonical coin systems, e.g., U.S. currency)</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>Variants/Related Problems</h2>
+      <ul>
+        <li>Coin Changing (counting number of ways)</li>
+        <li>Subset Sum (decision problem)</li>
+        <li>Unbounded Knapsack (optimize total value instead of coin count)</li>
+      </ul>
+    </section>
+</body>
+</html>

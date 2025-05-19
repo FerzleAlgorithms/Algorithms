@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Fractional Knapsack</title>
+  <link rel="stylesheet" href="../../../style.css" />
+</head>
+<body>
+  <h1>Fractional Knapsack</h1>
+
+  <section>
+    <h2>Problem Description</h2>
+    <p>
+      Given a set of <em>n</em> items, each with a weight <em>w<sub>i</sub></em> and a 
+	  value <em>v<sub>i</sub></em>, and a knapsack with capacity <em>W</em>, 
+	  determine the maximum total value you can carry. You may take fractions of items.
+    </p>
+    <h3>Input</h3>
+    <p>
+      <ul>
+        <li>An integer <em>n</em>, the number of items.</li>
+        <li>An integer <em>W</em>, the capacity of the knapsack.</li>
+        <li>For each item <em>i</em> (1 ≤ <em>i</em> ≤ <em>n</em>):
+          <ul>
+            <li>Value <em>v<sub>i</sub></em> (non-negative integer)</li>
+            <li>Weight <em>w<sub>i</sub></em> (positive integer)</li>
+          </ul>
+        </li>
+      </ul>
+    </p>
+    <h3>Output</h3>
+    <p>
+      A single number: the maximum total value achievable with capacity ≤ <em>W</em>, 
+	  allowing fractional parts of items.
+    </p>
+  </section>
+
+  <section>
+    <h2>Motivation/Applications</h2>
+    <p>
+      The fractional knapsack models scenarios where resources can be divided, such as loading cargo of divisible goods, investing funds across opportunities, or allocating bandwidth. Its greedy solution gives insight into resource allocation and serves as a foundation for more complex variants.
+    </p>
+  </section>
+  
+  <h2>Examples</h2>
+  <section>
+
+ <div class="example-box">
+      <strong class="example-title">Example 1</strong>
+      <p><strong>Input:</strong></p>
+      <table  class="example-table">
+        <thead>
+          <tr><th>Item</th><th>Value</th><th>Weight</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>1</td><td>60</td><td>10</td></tr>
+          <tr><td>2</td><td>100</td><td>20</td></tr>
+          <tr><td>3</td><td>120</td><td>30</td></tr>
+        </tbody>
+      </table>
+      <p><strong>Capacity (W):</strong> 50</p>
+
+      <p><strong>Output:</strong></p>
+      <p>Take items <strong>1, 2,</strong> and <strong>2/3 of item 3</strong><br>
+	  using	  all <strong>50</strong> of the weight.</br>
+	  <br>Maximum value =
+	  <strong>240</strong>.</p>
+    </div>
+	&nbsp; &nbsp;
+    <div class="example-box">
+      <strong class="example-title">Example 2</strong>
+      <p><strong>Input:</strong></p>
+      <table class="example-table">
+        <thead>
+          <tr><th>Item</th><th>Value</th><th>Weight</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>1</td><td>12</td><td>4</td></tr>
+          <tr><td>2</td><td>4</td><td>3</td></tr>
+          <tr><td>3</td><td>5</td><td>5</td></tr>
+          <tr><td>4</td><td>3</td><td>6</td></tr>
+          <tr><td>5</td><td>8</td><td>1</td></tr>
+          <tr><td>6</td><td>8</td><td>4</td></tr>
+          <tr><td>7</td><td>12</td><td>10</td></tr>
+          <tr><td>8</td><td>1</td><td>4</td></tr>
+        </tbody>
+      </table>
+      <p><strong>Capacity (W):</strong> 15</p>
+
+      <p><strong>Output:</strong></p>
+	  <p>Take items <strong>5, 1, 6, 2,</strong> and <strong>3/10 of item 7</strong> <br>
+	  using all <strong>15</strong> of the weight.<br>
+      </br>
+	  Max value = <strong>35.6</strong>.</p>
+    </div>
+  </section>
+
+
+  <section>
+    <h2>Common Algorithms/Techniques</h2>
+    <ul>
+      <li>Greedy by sorting items in decreasing order of value-to-weight ratio: O(<em>n</em> log <em>n</em>).</li>
+      <li>Linear-time selection if ratios precomputed and bucketed (advanced).</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Variants/Related Problems</h2>
+    <ul>
+      <li>0-1 Knapsack (no fractions allowed)</li>
+    </ul>
+  </section>
+</body>
+</html>
