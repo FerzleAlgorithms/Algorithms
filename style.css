@@ -164,6 +164,7 @@ input {
       margin-right: 5px;
       border-radius: 4px;
 	  border: 1px solid #333;
+	  background-color;
     }
 	.legend-box.default { background-color: #cce3ff; border: 1px solid; }
     .legend-box.key { background-color: #1f77b4; }
