@@ -14,7 +14,9 @@ th, td { border: 1px solid #ddd; padding: 0.2em 0.4em; text-align: center; }
     th { background: #f0f0f0; }
     .included { background: #d4efdf; }
     .skipped { background: #f9d6d5; }
-    .node circle { stroke: #333; stroke-width: 1px; cursor: move; }
+    .node circle { 
+      fill: lightblue; 
+      stroke: #333; stroke-width: 1px; cursor: move; }
     .node text { font-size: 14px; font-weight: bold; text-anchor: middle; dominant-baseline: middle; pointer-events: none; }
     .edge { stroke: #999; stroke-width: 2px; }
     .edge.mst { stroke: blue; stroke-width: 3px; }
@@ -25,6 +27,7 @@ th, td { border: 1px solid #ddd; padding: 0.2em 0.4em; text-align: center; }
   </style>
 </head>
 <body>
+<h2>Kruskal's Algorithm Demo</h2>
   <div class="controls">
     <label>Nodes: <input type="number" id="nodeCount" min="3" max="20" value="9"></label>
     <button id="generateBtn">Generate Graph</button>
