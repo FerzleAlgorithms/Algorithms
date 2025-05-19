@@ -55,7 +55,7 @@ function loadContent(relativePath) {
   const encodedPath = relativePath.split('/').map(encodeURIComponent).join('/');
   const url = `Content/${encodedPath}`;
 
-  fetch(url)
+  fetch(url, {cache: 'reload'})
     .then(response => {
       if (!response.ok) throw new Error('Page not found');
       return response.text();
