@@ -48,53 +48,43 @@ function buildMenu(chapters, basePath = "") {
   }
 }
 
-
 function loadContent(relativePath) {
-  const contentObject = document.getElementById('content');
+  const container    = document.getElementById('content');
   const errorMessage = document.getElementById('errorMessage');
-  const encodedPath = relativePath.split('/').map(encodeURIComponent).join('/');
+  const encodedPath  = relativePath
+    .split('/')
+    .map(encodeURIComponent)
+    .join('/');
   const url = `Content/${encodedPath}`;
 
-  fetch(url, {cache: 'no-cache'})
-    .then(response => {
-      if (!response.ok) throw new Error('Page not found');
-      return response.text();
+  fetch(url, { cache: 'no-cache' })
+    .then(res => {
+      if (!res.ok) throw new Error('Page not found');
+      return res.text();
     })
-    .then(() => {
+    .then(html => {
       errorMessage.style.display = 'none';
-      contentObject.style.display = 'block';
-      contentObject.data = url;
+      container.style.display    = 'block';
+      container.innerHTML        = html;
     })
     .catch(() => {
-      contentObject.style.display = 'none';
-      errorMessage.style.display = 'block';
-    });
-    
-          // **Cache-bust the <object>** by adding a query param
-      const bustUrl = `${urlBase}?_=${Date.now()}`;
-      contentObject.data = bustUrl;
-    })
-    .catch(() => {
-      contentObject.style.display = 'none';
+      container.style.display    = 'none';
       errorMessage.style.display = 'block';
     });
 }
 
-
 function loadFromURLParams() {
-  const params = new URLSearchParams(window.location.search);
+  const params   = new URLSearchParams(window.location.search);
   const fullPath = params.get('path');
-  const contentObject = document.getElementById('content');
 
   if (fullPath) {
     loadContent(`${fullPath}.html`);
   } else {
-    contentObject.data = 'credits.html';
+    loadContent('credits.html');
   }
 }
 
 window.onpopstate = loadFromURLParams;
-
 
 document.addEventListener("DOMContentLoaded", () => {
   fetch('scripts/chapters.json')
@@ -123,3 +113,4 @@ document.addEventListener('click', e => {
   loadContent(path);
   history.pushState({}, '', `?path=${raw}`);
 });
+
