@@ -112,8 +112,15 @@ function loadContent(relativePath) {
     })
     .catch(e => {
       console.error("loadContent error:", e);
+      // hide the <object>
       obj.style.display = "none";
+
+      // show a descriptive error including the page name and HTTP status
+      err.textContent =
+        `Error loading content: Page "${relativePath}" could not be loaded (${e.message}).`;
       err.style.display = "block";
+
+      // re-throw if you need upstream handlers to catch it, otherwise you can omit this
       throw e;
     });
 }

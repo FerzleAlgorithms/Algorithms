@@ -59,7 +59,7 @@ function loadContent(relativePath) {
 
   fetch(url, { cache: 'no-cache' })
     .then(res => {
-      if (!res.ok) throw new Error('Page not found');
+      if (!res.ok) throw new Error('Page not founded: ${encodedPath}');
       return res.text();
     })
     .then(html => {
