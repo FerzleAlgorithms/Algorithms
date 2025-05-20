@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script src="../../scripts/demoScripts.js"></script>
+  <link rel="stylesheet" href="../../style.css">
+
+  <title>Merge Sort Visualization</title>
+  <style>
+    
+   
+   
+   
+    .compare { background: #f99; }
+    .merged { background: #9f9; }
+    .left { background: #ffcc00; }
+    .right { background: #1f77b4; }
+    .active-subarray { background-color: rgba(128, 0, 128, 0.2); border-radius: 4px; padding: 4px; }
+    .array-container { display: flex; gap: 12px; margin-bottom: 10px; }
+    .left { background-color: #ffcc00; }
+    .right { background-color: #1f77b4; }
+    .compare { background: #f99; }
+    .merged { background: #9f9; }
+    .active-subarray { background-color: rgba(128, 0, 128, 0.2); border-radius: 4px; padding: 4px; }
+    #aux-label, #main-label { font-weight: bold; margin-bottom: 8px; }
+    #aux-container { margin-bottom: 20px; }
+    #main-label { margin-top: 20px; }
+    #subarrays { margin-bottom: 20px; }
+    #description { margin-top: 10px; font-style: italic; }
+  </style>
+</head>
+<body>
+  <h1>Merge Sort Demo</h1>
+  <div id="controls">
+    <label>Size:<input type="number" id="size" min="8" max="20" value="10" /></label>
+    <button id="generate">Random Array</button>
+    <input type="text" id="customArray" placeholder="12,6,10,5,3,8,1,20,13" size="30" />
+    <button id="useCustom">Use Custom Array</button>
+  </div>
+  <div id="buttons">
+    <button id="prev" disabled>Previous</button>
+    <button id="next" disabled>Next</button>
+  </div>
+  <!-- Legend -->
+ 
+  <div id="legend">
+    <strong>Legend:</strong>
+    <span><span class="legend-box compare"></span> Compare</span>
+    <span><span class="legend-box merged"></span> Placed / Copied</span>
+    <span><span class="legend-box left"></span> Left subarray</span>
+    <span><span class="legend-box right"></span> Right subarray</span>
+    <span><span class="legend-box active-subarray"></span> Active subarray</span>
+  </div>
+  <div id="aux-label">Auxiliary Array:</div>
+  <div id="aux-container" class="array-container"></div>
+  <div id="main-label">Sorting Array:</div>
+  <div id="visualization" class="array-container"></div>
+  <div id="subarrays"></div>
+  <div id="description">Press "Next" to begin.</div>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const sizeInput = document.getElementById('size');
+      const customInput = document.getElementById('customArray');
+      const prevBtn = document.getElementById('prev');
+      const nextBtn = document.getElementById('next');
+      const genBtn = document.getElementById('generate');
+      const useCustomBtn = document.getElementById('useCustom');
+      const main = document.getElementById('visualization');
+      const aux = document.getElementById('aux-container');
+      const sub = document.getElementById('subarrays');
+      const desc = document.getElementById('description');
+
+      let steps = [];
+      let idx = 0;
+      let original = [];
+
+      function genSteps(arr) {
+        original = arr.slice();
+        let a = arr.slice();
+        const records = [];
+        function record(type, meta = {}) {
+          records.push({ a: a.slice(), type, ...meta });
+        }
+
+        function mergeSort(l, r) {
+          if (l >= r) return;
+          const m = Math.floor((l + r) / 2);
+          record('split', { l, m, r });
+          record('recurseLeft', { l, m, r }); mergeSort(l, m);
+          record('recurseRight', { l, m, r }); mergeSort(m + 1, r);
+          record('mergeStep', { l, m, r }); merge(l, m, r);
+          record('mergeEnd', { l, m, r });
+          record('copyToAux', { l, r });
+        }
+
+        function merge(l, m, r) {
+          const L = a.slice(l, m + 1);
+          const R = a.slice(m + 1, r + 1);
+          let i = 0, j = 0, k = l;
+          while (i < L.length && j < R.length) {
+            record('compare', { l, m, r, valueL: L[i], valueR: R[j] });
+            const v = L[i] <= R[j] ? L[i++] : R[j++];
+            a[k] = v; record('placed', { l, m, r, k, newValue: v }); k++;
+ }
+          while (i < L.length) { const v = L[i++]; a[k] = v; record('placed', { l, m, r, k, newValue: v }); k++; }
+          while (j < R.length) { const v = R[j++]; a[k] = v; record('placed', { l, m, r, k, newValue: v }); k++; }
+        }
+
+        record('init'); mergeSort(0, a.length - 1); record('done');
+        return records;
+      }
+
+      function setupAux(n) {
+        aux.innerHTML = '';
+        for (let i = 0; i < n; i++) {
+          const el = document.createElement('div');
+          el.className = 'element';
+          el.textContent = original[i];
+          aux.appendChild(el);
+        }
+      }
+
+      function render() {
+        main.innerHTML = '';
+        sub.innerHTML = '';
+        // reset auxiliary to original values
+        setupAux(original.length);
+        // reapply all past auxiliary copies up to current step
+        for (let j = 0; j <= idx; j++) {
+          const prev = steps[j];
+          if (prev.type === 'copyToAux') {
+            for (let k = prev.l; k <= prev.r; k++) {
+              if (aux.children[k]) aux.children[k].textContent = prev.a[k];
+            }
+          }
+        }
+        // clear any lingering compare highlights
+        Array.from(aux.children).forEach(c => c.classList.remove('compare'));
+        if (!steps.length) return;
+        const st = steps[idx];
+
+        // Render main array
+        st.a.forEach((v, i) => {
+          const cell = document.createElement('div');
+          cell.className = 'element';
+          cell.textContent = v;
+          if (st.type === 'placed' && st.k === i) cell.classList.add('merged');
+          main.appendChild(cell);
+        });
+
+                // Auxiliary update (copyToAux step)
+        if (st.type === 'copyToAux') {
+          for (let i = st.l; i <= st.r; i++) {
+            aux.children[i].textContent = st.a[i];
+            // highlight changed auxiliary elements
+            aux.children[i].classList.add('merged');
+          }
+        }
+
+        // Subarrays: render halves
+        const active = [];
+        steps.slice(0, idx + 1).forEach(s => {
+          if (s.type === 'split') active.push(s);
+          if (s.type === 'mergeEnd') active.pop();
+        });
+        active.forEach(sp => {
+          const { l, m, r } = sp;
+          const row = document.createElement('div'); row.className = 'array-container';
+          for (let p = 0; p < l; p++) {
+            const ph = document.createElement('div'); ph.className = 'element'; ph.style.visibility = 'hidden'; row.appendChild(ph);
+          }
+          const leftWrap = document.createElement('div'); leftWrap.className = 'array-container';
+          // Highlight left subarray during left recurse and throughout merge
+          if (sp.l === st.l && sp.m === st.m && ['recurseLeft','mergeStep','compare','placed','mergeEnd'].includes(st.type)) {
+            leftWrap.classList.add('active-subarray');
+          }
+          for (let i = l; i <= m; i++) {
+            const c = document.createElement('div'); c.className = 'element left'; c.textContent = st.a[i]; leftWrap.appendChild(c);
+          }
+          row.appendChild(leftWrap);
+          const rightWrap = document.createElement('div'); rightWrap.className = 'array-container';
+          // Highlight right subarray during right recurse and throughout merge
+          if (sp.l === st.l && sp.m === st.m && ['recurseRight','mergeStep','compare','placed','mergeEnd'].includes(st.type)) {
+            rightWrap.classList.add('active-subarray');
+          }
+          for (let i = m + 1; i <= r; i++) {
+            const c = document.createElement('div'); c.className = 'element right'; c.textContent = st.a[i]; rightWrap.appendChild(c);
+          }
+          row.appendChild(rightWrap);
+          sub.appendChild(row);
+        });
+
+        // Commentary
+        switch (st.type) {
+          case 'init': desc.textContent = 'Initial array.'; break;
+          case 'split': desc.textContent = `Split step: divide [${st.l},${st.m}] & [${st.m+1},${st.r}]`; break;
+          case 'recurseLeft': desc.textContent = `Calling merge sort on [${st.l},${st.m}]`; break;
+          case 'recurseRight': desc.textContent = `Calling merge sort on [${st.m+1},${st.r}]`; break;
+          case 'mergeStep': desc.textContent = `Merge step: preparing [${st.l},${st.r}]`; break;
+          case 'compare': {
+            const auxEls = Array.from(aux.children);
+            const idxL = auxEls.findIndex(e => e.textContent == st.valueL);
+            if (idxL > -1) auxEls[idxL].classList.add('compare');
+            const idxR = auxEls.findIndex(e => e.textContent == st.valueR);
+            if (idxR > -1) auxEls[idxR].classList.add('compare');
+            desc.textContent = `Compare ${st.valueL} & ${st.valueR}`;
+            break;
+          }
+          case 'placed': desc.textContent = `Placed ${st.newValue} at index ${st.k}`; break;
+          case 'mergeEnd': desc.textContent = `Merge complete for [${st.l},${st.r}]`; break;
+          case 'copyToAux': desc.textContent = `Copy merged segment [${st.l},${st.r}] to auxiliary`; break;
+          case 'done': desc.textContent = 'Array fully sorted!'; break;
+        }
+
+        prevBtn.disabled = idx === 0;
+        nextBtn.disabled = idx === steps.length - 1;
+      }
+
+      function go(n) { idx = n; render(); }
+      prevBtn.addEventListener('click', () => { if (idx > 0) go(idx - 1); });
+      nextBtn.addEventListener('click', () => { if (idx < steps.length - 1) go(idx + 1); });
+
+      genBtn.addEventListener('click', () => {
+        const n = parseInt(sizeInput.value, 10);
+        if (isNaN(n) || n < 5 || n > 20) return alert('Size must be 5–20');
+        const arr = Array.from({ length: n }, () => Math.floor(Math.random() * 90) + 10);
+        customInput.value = arr.join(',');
+        steps = genSteps(arr); idx = 0; setupAux(arr.length); render();
+      });
+
+      useCustomBtn.addEventListener('click', () => {
+        const arr = customInput.value.split(',').map(x => parseInt(x.trim(), 10));
+        if (arr.some(isNaN) || arr.length < 5 || arr.length > 20) return alert('Array must have 5–20 numbers');
+        steps = genSteps(arr); idx = 0; setupAux(arr.length); render();
+      });
+
+      genBtn.click();
+    });
+  </script>
+</body>
+</html>
+
