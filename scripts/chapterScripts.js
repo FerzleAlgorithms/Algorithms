@@ -35,6 +35,8 @@ window.onload = function() {
     p.style.display = 'none';
     p.style.minHeight = maxH + 'px';
   });
+  
+  
   //This gives the show answers functionality
 	   // Show/Hide Answers toggle
   const toggleBtn = document.getElementById('toggleAnswers');
@@ -47,8 +49,6 @@ window.onload = function() {
       toggleBtn.setAttribute('aria-expanded', String(!isVisible));
     });
   }
-
-	
 
   const lang = getLanguageFromUrl();
   const validLangs = ['java', 'cpp', 'python'];

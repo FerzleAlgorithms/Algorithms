@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Convex Hull</title>
+  <link rel="stylesheet" href="../../../style.css" />
+</head>
+<body>
+  <h1>Convex Hull</h1>
+
+  <section>
+    <h2>Problem Description</h2>
+    <p>
+      Given a set of points in the plane, the <strong>convex hull</strong> is the smallest convex polygon that contains all the points. In other words, it is the tightest boundary that encloses all the points such that every internal angle is less than or equal to 180 degrees, and all the points lie inside or on the boundary.
+    </p>
+
+    <h3>Input</h3>
+    <p>
+      A list of <em>n</em> points in the plane, each specified by two real numbers: their x- and y-coordinates.
+    </p>
+
+    <h3>Output</h3>
+    <p>
+      The vertices of the convex hull in order (either clockwise or counter-clockwise), with no repeated points. The output should include only the points on the hull.
+    </p>
+  </section>
+
+  <section>
+    <h2>Motivation/Applications</h2>
+    <p>
+      Convex hulls are foundational in computational geometry and appear in many applications such as collision detection, shape analysis, image processing, pattern recognition, and geographical mapping. For example, the convex hull can define the boundary of a cluster of data points or help identify the outline of an object in a digital image.
+    </p>
+  </section>
+  
+  
+  <section>
+  <h2>Examples</h2>
+
+<div class="example-box">
+  <strong class="example-title">Example 1</strong><br>
+  <strong>Input:</strong> (30, 170), (80, 100), (100, 30), (120, 120), (170, 170), (100, 140), (125, 90)<br>
+  <strong>Output:</strong> (30, 170), (170, 170), (100, 30)<br>
+  Convex hull indicated by the blue below.<br>
+
+  <svg width="450" height="250" viewBox="0 0 200 200">
+    <!-- Convex hull triangle -->
+    <polyline points="30,170 200,170 100,30 30,170"
+              fill="none" stroke="blue" stroke-width="2" />
+
+    <!-- Hull points -->
+    <circle cx="30" cy="170" r="6" fill="black" />
+    <text x="35" y="165" font-size="12">(30, 170)</text>
+
+    <circle cx="200" cy="170" r="6" fill="black" />
+    <text x="205" y="165" font-size="12">(170, 170)</text>
+
+    <circle cx="100" cy="30" r="6" fill="black" />
+    <text x="105" y="25" font-size="12">(100, 30)</text>
+
+    <!-- Interior points -->
+    <circle cx="80" cy="100" r="6" fill="black" />
+    <text x="85" y="95" font-size="12">(80, 100)</text>
+
+    <circle cx="120" cy="120" r="6" fill="black" />
+    <text x="125" y="115" font-size="12">(120, 120)</text>
+
+    <circle cx="100" cy="160" r="6" fill="black" />
+    <text x="105" y="155" font-size="12">(100, 110)</text>
+
+    <circle cx="125" cy="80" r="6" fill="black" />
+    <text x="135" y="80" font-size="12">(125, 90)</text>
+  </svg>
+</div>
+
+  <br>
+
+  <div class="example-box">
+    <strong class="example-title">Example 2</strong><br>
+    <strong>Input:</strong> (3, 1), (2, 1), (1, 2), (2, 3), (2, 2)<br>
+    <strong>Output:</strong> (1, 2), (2, 3), (3, 1), (2, 1)<br>
+  Convex hull indicated by the blue below.<br><br>
+    <svg width="250" height="250" viewBox="0 0 220 220">
+      <!-- Convex hull path -->
+      <polyline points="50,120 100,70 150,170 100,170 50,120"
+                fill="none" stroke="blue" stroke-width="2"/>
+      <!-- Points -->
+      <circle cx="50" cy="120" r="6" fill="black" />
+      <text x="50" y="115" font-size="12">(1, 2)</text>
+
+      <circle cx="100" cy="70" r="6" fill="black" />
+      <text x="100" y="65" font-size="12">(2, 3)</text>
+
+      <circle cx="150" cy="170" r="6" fill="black" />
+      <text x="150" y="165" font-size="12">(3, 1)</text>
+
+      <circle cx="100" cy="120" r="6" fill="black" />
+      <text x="100" y="115" font-size="12">(2, 2)</text>
+
+      <circle cx="100" cy="170" r="6" fill="black" />
+      <text x="100" y="165" font-size="12">(2, 1)</text>
+
+    </svg>
+  </div>
+</section>
+
+  <section>
+    <h2>Common Algorithms/Techniques</h2>
+    <ul>
+      <li>Graham's Scan (O(n log n))</li>
+      <li>Andrew's Monotone Chain Algorithm (O(n log n))</li>
+      <li>Jarvis March / Gift Wrapping (O(nh))</li>
+      <li>QuickHull (average O(n log n))</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Variants/Related Problems</h2>
+    <ul>
+      <li>Convex layers (onion peeling)</li>
+      <li>Finding the diameter of a set of points (rotating calipers)</li>
+      <li>Concave hull (alpha shapes)</li>
+    </ul>
+  </section>
+</body>
+</html>

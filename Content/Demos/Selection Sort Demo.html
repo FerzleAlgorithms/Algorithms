@@ -26,14 +26,14 @@
 
   <div id="step-desc" class="step-comment"></div>
 
-  <div style="margin-top:20px; padding:10px; border:1px solid #ccc; width:fit-content;">
-    <b>Legend:</b>
-    <span style="display:inline-block;width:15px;height:15px;background-color:orange;margin-right:5px;border:1px solid black;"></span> Sorted
-    <span style="display:inline-block;width:15px;height:15px;background-color:yellow;margin-left:15px;margin-right:5px;border:1px solid black;"></span> Being Compared
-    <span style="display:inline-block;width:15px;height:15px;background-color:#b2f2bb;margin-left:15px;margin-right:5px;border:1px solid black;"></span> Being Swapped
-    <span style="display:inline-block;width:15px;height:15px;background-color:#ff7f7f;margin-left:15px;margin-right:5px;border:1px solid black;"></span> Max Index
-    <span style="display:inline-block;width:15px;height:15px;background-color:#cce3ff;margin-left:15px;margin-right:5px;border:1px solid black;"></span> Unsorted
-  </div>
+     <div class="legend">
+  <strong>Legend:</strong>
+  <span class="legend-box default"></span> Unsorted
+  <span class="legend-box comparing"></span> Being Compared
+  <span class="legend-box swap"></span> Being Swapped
+  <span class="legend-box sorted"></span> Sorted
+</div>
+
 
   <script>
     let array = [], steps = [], cur = 0;

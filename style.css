@@ -215,12 +215,7 @@ input {
 	  border: 1px solid #333;
 	  background-color;
     }
-	.legend-box.default { background-color: #cce3ff; border: 1px solid; }
-    .legend-box.key { background-color: #1f77b4; }
-    .legend-box.comparing { background-color: #yellow; }
-    .legend-box.sorted { background-color:orange }
-    .legend-box.empty { background-color: transparent; border: 1px dashed #ccc; }
-    	
+	
 	/* For code display? */
 .tabs {   
     overflow: hidden;  
@@ -259,16 +254,22 @@ input {
     background-color: #cce3ff; 
     position: relative;
 }
+.default { background-color: #cce3ff; border: 1px solid; }
+
+.key { background-color: #1f77b4; }
+
+.finished { background-color: lightgreen; }
+   	
 .blank{
 	background-color:white;
 }
 
-.right{
+.right-partition{
 	background-color:#1e90ff;
 }
 
-.left{
-	background-color: lightorange;
+.left-partition{
+	background-color: lightsalmon;
 }
 .pivot{
 	 background-color: lightgreen;
@@ -282,6 +283,7 @@ input {
 .sorted {  /* A cell that is in its final position */
     background-color: orange;
 }
+.empty { background-color: transparent; border: 1px dashed #ccc; }
 
 .arrow {  /* An arrow pointing into a cell */
     position: absolute;  

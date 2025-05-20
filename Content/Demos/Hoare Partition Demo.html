@@ -28,22 +28,14 @@
 
 
 
-<div style="margin-top:20px; padding:10px; border:1px solid #ccc; width:fit-content;">
-    <b>Legend:</b>
-    <span style="display:inline-block;width:15px;height:15px;background-color:lightgreen;margin-right:5px;border:1px solid black;"></span> Pivot 
-    <span style="display:inline-block;width:15px;height:15px;background-color:orange;margin-left:15px;margin-right:5px;border:1px solid black;"></span> Left Partition (≤ pivot)
-    <span style="display:inline-block;width:15px;height:15px;background-color:#1e90ff;margin-left:15px;margin-right:5px;border:1px solid black;"></span> Right Partition (> pivot)
-    <span style="display:inline-block;width:15px;height:15px;background-color:yellow;margin-left:15px;margin-right:5px;border:1px solid black;"></span> Being Swapped
-    <span style="display:inline-block;width:15px;height:15px;background-color:white;margin-left:15px;margin-right:5px;border:1px solid black;"></span> Unpartitioned
-  </div>
   <div class="legend">
   <strong>Legend:</strong>
   <!-- Pivot -->
   <span class="legend-box pivot"></span> Pivot
   <!-- Left Partition (≤ pivot) -->
-  <span class="legend-box left" ></span> Left Partition (≤ pivot)
+  <span class="legend-box left-partition" ></span> Left Partition (≤ pivot)
   <!-- Right Partition (> pivot) -->
-  <span class="legend-box right" ></span> Right Partition (> pivot)
+  <span class="legend-box right-partition" ></span> Right Partition (> pivot)
   <!-- Being Swapped -->
   <span class="legend-box comparing" ></span> Being Swapped
   <!-- Unpartitioned -->
@@ -65,10 +57,10 @@ function render() {
   for (let k = 0; k <= cur; k++) {
     const s = steps[k];
     if (s.phase === 'compare-i' && s.i < A.length) {
-      permanentColors[s.i] = (A[s.i] <= p) ? 'orange' : '#1e90ff';
+      permanentColors[s.i] = (A[s.i] <= p) ? 'lightsalmon' : '#1e90ff';
     }
     if (s.phase === 'compare-j' && s.j < A.length) {
-      permanentColors[s.j] = (A[s.j] <= p) ? 'orange' : '#1e90ff';
+      permanentColors[s.j] = (A[s.j] <= p) ? 'lightsalmon' : '#1e90ff';
     }
   }
 
@@ -91,7 +83,7 @@ function render() {
         if (idx === st.j) {
         fill = 'lightgreen'; // Pivot's new home
         } else if (idx === pivot) {
-        fill = 'orange'; // Value that pivot was swapped with
+        fill = 'lightsalmon'; // Value that pivot was swapped with
         }
     }
     } else if (idx === pivot) {

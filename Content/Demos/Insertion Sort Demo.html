@@ -9,11 +9,9 @@
   <style>
     #visualization { position: relative; height: 180px; overflow: visible; margin: 0 auto; }
     #array-container { display: flex; align-items: flex-end; justify-content: left; gap: 5px; height: calc(100% - 10px); margin-bottom: 10px; }
-    .element.finished { background-color: lightgreen; }
-    .empty { background-color: transparent; border: 1px dashed #ccc; }
-    .key       { background-color: #1f77b4; }
-    .comparing { background-color: yellow; }
-    .sorted    { background-color: orange; }
+    
+    
+    
     .floating  { position: absolute; z-index: 10; transition: top 0.3s ease; }
   </style>
 </head>
@@ -130,7 +128,9 @@
         case 'placed':
           if (state.sortedCount === state.arr.length) {
             desc.textContent = 'Array is sorted!';
-            Array.from(arrayContainer.children).forEach(el => el.classList.add('finished'));
+            Array.from(arrayContainer.children).forEach(el => {
+			el.classList.remove('sorted');
+			el.classList.add('finished')});
           } else {
             desc.textContent = `${state.keyVal} placed at index ${state.keyIndex}.`;
           }

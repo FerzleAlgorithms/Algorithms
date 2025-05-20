@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Matrix Multiplication</title>
+  <script id="MathJax-script" async
+    src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+  <link rel="stylesheet" href="../../../style.css" />
+</head>
+<body>
+  <h1>Matrix Multiplication</h1>
+
+  <section>
+    <h2>Problem Description</h2>
+    <p>
+      Given two matrices \( A \) of size \( m \times n \) and \( B \) of size \( n \times p \), compute the product matrix \( C = A \cdot B \), where \( C \) is an \( m \times p \) matrix and each element \( c_{ij} \) is defined as:
+      \[
+      c_{ij} = \sum_{k=1}^{n} a_{ik} \cdot b_{kj}
+      \]
+    </p>
+    <h3>Input</h3>
+    <p>
+      Two matrices: <br>
+      - Matrix \( A \) with dimensions \( m \times n \)<br>
+      - Matrix \( B \) with dimensions \( n \times p \)
+    </p>
+
+    <h3>Output</h3>
+    <p>
+      Matrix \( C \) with dimensions \( m \times p \), where each entry is the dot product of the corresponding row of \( A \) and column of \( B \).
+    </p>
+  </section>
+
+  <section>
+    <h2>Motivation/Applications</h2>
+    <p>
+      Matrix multiplication is a core operation in linear algebra and has applications in computer graphics, scientific simulations, machine learning (e.g., neural networks), and solving systems of linear equations. Efficient matrix multiplication is essential in both theoretical and practical computing.
+    </p>
+  </section>
+
+  <section>
+    <h2>Examples</h2>
+
+    <div class="example-box">
+      <strong class="example-title">Example 1</strong><br>
+      <strong>Input:</strong><br>
+      \( A = \begin{bmatrix}1 & 2\\ 3 & 4\end{bmatrix} \),
+      \( B = \begin{bmatrix}2 & 0\\ 1 & 2\end{bmatrix} \)<br><br>
+      <strong>Output:</strong><br>
+      \( A\times B = \begin{bmatrix}4 & 4\\ 10 & 8\end{bmatrix} \)
+    </div>
+    <br>
+
+    <div class="example-box">
+      <strong class="example-title">Example 2</strong><br>
+      <strong>Input:</strong><br>
+      \( A = \begin{bmatrix}1 & 0 & 2\\ -1 & 3 & 1\end{bmatrix} \),
+      \( B = \begin{bmatrix}3 & 1\\ 2 & 1\\ 1 & 0\end{bmatrix} \)<br><br>
+      <strong>Output:</strong><br>
+      \( A\times B = \begin{bmatrix}5 & 1\\ 4 & 2\end{bmatrix} \)
+    </div>
+  </section>
+
+  <section>
+    <h2>Common Algorithms/Techniques</h2>
+    <ul>
+      <li>Naive matrix multiplication (triple loop)</li>
+      <li>Strassen’s algorithm (divide-and-conquer)</li>
+      <li>Recursive matrix multiplication</li>
+      <li>Block matrix multiplication (cache-efficient)</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Variants/Related Problems</h2>
+    <ul>
+      <li>Strassen's Matrix Multiplication</li>
+      <li>Chain Matrix Multiplication</li>
+      <li>Sparse Matrix Multiplication</li>
+    </ul>
+  </section>
+</body>
+</html>
