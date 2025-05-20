@@ -192,7 +192,7 @@ Thus, the size of the unsolved portion decreases with each iteration.
   do not be surprised if you see versions that do not match this one exactly.</p>
   
   <div class="tabs">
-    <button class="tablink" onclick="openTab(event, 'java')" id="tab-java">Java</button>
+    <button class="tablink active" onclick="openTab(event, 'java')" id="tab-java">Java</button>
     <button class="tablink" onclick="openTab(event, 'cpp')" id="tab-cpp">C++</button>
     <button class="tablink" onclick="openTab(event, 'python')" id="tab-python">Python</button>
   </div>
@@ -272,28 +272,7 @@ def swap(A, i, j):
   </div>
 
 
-  <script>
-  hljs.highlightAll();
-
-  function openTab(evt, lang) {
-    const containers = document.getElementsByClassName('code-container');
-    const tabs = document.getElementsByClassName('tablink');
-    for (let container of containers) {
-      container.style.display = 'none';
-    }
-    for (let tab of tabs) {
-      tab.classList.remove('active');
-    }
-    document.getElementById(lang).style.display = 'block';
-    evt.currentTarget.classList.add('active');
-  }
-
-  window.addEventListener('DOMContentLoaded', () => {
-    const defaultTab = document.getElementById('tab-java');
-    if (defaultTab) defaultTab.click();
-  });
-</script>
-  </script>
+  
   
   <h2>Time/Space Analysis</h2>
   
@@ -341,50 +320,38 @@ def swap(A, i, j):
 </ul>
 
 
-<h2>Practice Question</h2>
-  <h2>Reading Comprehension Questions</h2>
+<h2>Reading Comprehension Questions</h2>
+<ol>
+  <li>What is the role of the two pointers <i>i</i> and <i>j</i> in Hoare's Partition algorithm?</li>
+  <li>Why does Hoare’s Partition algorithm swap between the pivot and A[j] at the end?</li>
+  <li>In what way is Hoare’s Partition an example of the decrease-and-conquer strategy?</li>
+  <li>What are the best and worst time complexities of Hoare's Partition?</li>
+  <li>Why might <code>3</code> be a bad pivot value for the array <code>[3,34,93,68,4,49,24,32,23,88,49]</code>?</li>
+  <li>
+    Given the array <code>[7, 4, 9, 6, 2, 8, 3]</code> with <code>low = 0</code> and <code>high = 6</code>,  
+    apply Hoare's Partition with the pivot as the first element.  
+    What does the array look like after partitioning, and what is the returned pivot index?
+  </li>
+</ol>
+
+<button id="toggleAnswers" class="show-answer" aria-expanded="false" style="margin-top: 10px;">
+  Show Answers
+</button>
+
+<div id="answers" class="answer" hidden style="margin-top: 10px;">
   <ol>
-    <li>What is the role of the two pointers <i>i</i> and <i>j</i> in Hoare's Partition algorithm?</li>
-    <li>Why does Hoare’s Partition algorithm swap between the pivot and A[j] at the end?</li>
-    <li>In what way is Hoare’s Partition an example of the decrease-and-conquer strategy?</li>
-    <li>What are the best and worst time complexities of Hoare's Partition?</li>
-    <li>Why might 3 be a bad pivot value for the array [3,34,93,68,4,49,24,32,23,88,49]?</li>
-	<li>Given the array <code>[7, 4, 9, 6, 2, 8, 3]</code> with <code>low = 0</code> and <code>high = 6</code>, 
-	apply Hoare's Partition algorithm with the pivot being the first element. 
-	What does the array look like after partitioning, and what is the returned pivot index?</li>
+    <li><strong>Answer:</strong> <i>i</i> moves inwards from the left looking for values > pivot, and <i>j</i> moves inwards from the right looking for values ≤ pivot, so they can swap out-of-place elements.</li>
+    <li><strong>Answer:</strong> That final swap puts the pivot into its correct spot, guaranteeing all left-side elements are ≤ pivot and right-side ones are ≥ pivot.</li>
+    <li><strong>Answer:</strong> Each partition step reduces the problem size—once the pivot is placed, you recurse on smaller subarrays—so it’s a classic decrease-and-conquer.</li>
+    <li><strong>Answer:</strong> Both best and worst are O(n), since each element is examined exactly once; only the number of swaps varies with input order.</li>
+    <li><strong>Answer:</strong> Because 3 is the smallest element and at the front, choosing it yields a highly unbalanced partition, negating the benefit of dividing the work.</li>
+    <li><strong>Answer:</strong> After partitioning you get  
+      <code>[2, 4, 3, 6, 7, 8, 9]</code>  
+      and the pivot (7) ends up at index 4.
+    </li>
   </ol>
+</div>
 
-  <button onclick="toggleAnswers()" style="margin-top: 10px;">Show Answers</button>
-  <div id="answers" style="display: none; margin-top: 10px;">
-    <ol>
-      <li><strong>Answer:</strong> The <i>i</i> pointer moves from the left searching for values greater than the pivot, and <i>j</i> moves from the right searching for values less than or equal to the pivot. They identify and help reposition out-of-place elements.</li>
-      <li><strong>Answer:</strong> The final swap places the pivot in its correct position in the partitioned array, ensuring that all elements to the left are ≤ pivot and those to the right are ≥ pivot.</li>
-      <li><strong>Answer:</strong> It's a decrease and conquer algorithm, given that each iteration, the problem size is reduced. </li>
-      <li><strong>Answer:</strong> Best and worst time complexities are both O(n) since every element is examined once. However, the number of swaps varies with input ordering.</li>
-      <li><strong>Answer:</strong> Because 3 is the smallest value and occurs at the beginning of the array, 
-	  choosing it as the pivot results in an unbalanced partition with nearly the entire array ending up on one side.
-      This may reduce the efficiency of algorithms that rely on this one.</li>
-	  <li><strong>Answer</strong>
-	  After applying Hoare's Partition, the array will look like: 
-	  <code>[2, 4, 3, 6, 7, 8, 9]</code> with the pivot placed at index 4.
-	  </li>
-
-    </ol>
-  </div>
-
-<script>
-  function toggleAnswers() {
-    const answerDiv = document.getElementById('answers');
-    const button = event.target;
-    if (answerDiv.style.display === 'none') {
-      answerDiv.style.display = 'block';
-      button.textContent = 'Hide Answers';
-    } else {
-      answerDiv.style.display = 'none';
-      button.textContent = 'Show Answers';
-    }
-  }
-</script>
 
   <h2>In-Class Activities</h2>
   <ol>

@@ -259,6 +259,20 @@ input {
     background-color: #cce3ff; 
     position: relative;
 }
+.blank{
+	background-color:white;
+}
+
+.right{
+	background-color:#1e90ff;
+}
+
+.left{
+	background-color: lightorange;
+}
+.pivot{
+	 background-color: lightgreen;
+}
 .comparing {  /* A cell that is being compared to another one */
     background-color: yellow;
 }

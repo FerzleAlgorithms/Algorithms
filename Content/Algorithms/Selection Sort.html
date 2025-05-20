@@ -8,11 +8,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js"></script>
   <script src="../../scripts/chapterScripts.js"></script>
   <link rel="stylesheet" href="../../style.css">
-  <script>
-    document.addEventListener("DOMContentLoaded", function() {
-      hljs.highlightAll();
-    });
-  </script>
+  
   <script id="MathJax-script" async
     src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 </head>
@@ -187,30 +183,37 @@ More formally, the algorithm works as follows:
   </ol>
 
 
+<h2>Reading Comprehension Questions</h2>
+<ol>
+  <li>Why does selection sort always have the same number of comparisons, regardless of input order?</li>
+  <li>What part of the array is considered “sorted” during the execution of selection sort?</li>
+  <li>What technique does selection sort use? Explain.</li>
+  <li>What is the time complexity of selection sort?</li>
+  <li>Perform selection sort on the array <code>[46, 89, 8, 34, 33, 77]</code>.</li>
+</ol>
 
-  <h2>Reading Comprehension Questions</h2>
+<button id="toggleAnswers" class="show-answer" aria-expanded="false" style="margin-top: 10px;">
+  Show Answers
+</button>
+
+<div id="answers" class="answer" hidden style="margin-top: 10px;">
   <ol>
-    <li>Why does selection sort always have the same number of comparisons, regardless of input order?</li>
-    <li>What part of the array is considered “sorted” during the execution of selection sort?</li>
-    <li>What technique does selection sort use? Explain.</li>
-    <li>What is the time complexity of selection sort?</li>
-    <li>Perform selection sort on the array [46, 89, 8, 34, 33, 77].</li>
+    <li><strong>Answer:</strong> Because it always compares every unsorted element on each pass, regardless of input.</li>
+    <li><strong>Answer:</strong> The left portion of the array that grows each iteration is “sorted.”</li>
+    <li><strong>Answer:</strong> It uses a brute-force (select-and-swap) technique, scanning the unsorted section linearly to find the min (or max) each pass.</li>
+    <li><strong>Answer:</strong> \(Θ(n^2)\) in best, average, and worst cases.</li>
+    <li><strong>Answer:</strong> Step-by-step, the array evolves as:
+      <code>
+        [46, 89, 8, 34, 33, 77] →  
+        [8, 89, 46, 34, 33, 77] →  
+        [8, 33, 46, 34, 89, 77] →  
+        [8, 33, 34, 46, 89, 77] →  
+        [8, 33, 34, 46, 77, 89] →  
+        [8, 33, 34, 46, 77, 89]
+      </code>
+    </li>
   </ol>
-
-  <button onclick="toggleAnswers()" style="margin-top: 10px;">Show Answers</button>
-
-  <div id="answers" style="display: none; margin-top: 10px;">
-    <ol>
-      <li><strong>Answer:</strong> Because it always compares every unsorted element on each pass, regardless of input.</li>
-      <li><strong>Answer:</strong> The portion at the end of the array that grows with each iteration.</li>
-      <li><strong>Answer:</strong> Selection sort uses a brute-force technique because it linearly scans 
-        the unsorted part of the array on every pass to find the maximum (or minimum) value.</li>
-      <li><strong>Answer:</strong> \( \Theta(n^2) \) for all cases (best, average, and worst).</li>
-      <li><strong>Answer:</strong> Double check with the Live Demo.</li>
-    </ol>
-  </div>
-
-  
+</div>
 
   <h2>In-class Activities</h2>
   <ol>
@@ -249,20 +252,7 @@ More formally, the algorithm works as follows:
 
 
 
-<script>
-  function toggleAnswers() {
-    const answerDiv = document.getElementById('answers');
-    const button = event.target;
-    if (answerDiv.style.display === 'none') {
-      answerDiv.style.display = 'block';
-      button.textContent = 'Hide Answers';
-    } else {
-      answerDiv.style.display = 'none';
-      button.textContent = 'Show Answers';
-    }
-  }
 
-</script>
 
 </body>
 </html>

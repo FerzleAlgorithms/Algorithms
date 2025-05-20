@@ -26,6 +26,31 @@
 
   <div id="step-desc" class="step-comment"></div>
 
+
+
+<div style="margin-top:20px; padding:10px; border:1px solid #ccc; width:fit-content;">
+    <b>Legend:</b>
+    <span style="display:inline-block;width:15px;height:15px;background-color:lightgreen;margin-right:5px;border:1px solid black;"></span> Pivot 
+    <span style="display:inline-block;width:15px;height:15px;background-color:orange;margin-left:15px;margin-right:5px;border:1px solid black;"></span> Left Partition (≤ pivot)
+    <span style="display:inline-block;width:15px;height:15px;background-color:#1e90ff;margin-left:15px;margin-right:5px;border:1px solid black;"></span> Right Partition (> pivot)
+    <span style="display:inline-block;width:15px;height:15px;background-color:yellow;margin-left:15px;margin-right:5px;border:1px solid black;"></span> Being Swapped
+    <span style="display:inline-block;width:15px;height:15px;background-color:white;margin-left:15px;margin-right:5px;border:1px solid black;"></span> Unpartitioned
+  </div>
+  <div class="legend">
+  <strong>Legend:</strong>
+  <!-- Pivot -->
+  <span class="legend-box pivot"></span> Pivot
+  <!-- Left Partition (≤ pivot) -->
+  <span class="legend-box left" ></span> Left Partition (≤ pivot)
+  <!-- Right Partition (> pivot) -->
+  <span class="legend-box right" ></span> Right Partition (> pivot)
+  <!-- Being Swapped -->
+  <span class="legend-box comparing" ></span> Being Swapped
+  <!-- Unpartitioned -->
+  <span class="legend-box blank" ></span> Unpartitioned
+</div>
+
+
 <script>
 (function(){
   const boxWidth = 60, boxHeight = 40;
@@ -158,14 +183,6 @@ function render() {
 /*randomArray();*/
 </script>
 
-<div style="margin-top:20px; padding:10px; border:1px solid #ccc; width:fit-content;">
-    <b>Legend:</b>
-    <span style="display:inline-block;width:15px;height:15px;background-color:lightgreen;margin-right:5px;border:1px solid black;"></span> Pivot 
-    <span style="display:inline-block;width:15px;height:15px;background-color:orange;margin-left:15px;margin-right:5px;border:1px solid black;"></span> Left Partition (≤ pivot)
-    <span style="display:inline-block;width:15px;height:15px;background-color:#1e90ff;margin-left:15px;margin-right:5px;border:1px solid black;"></span> Right Partition (> pivot)
-    <span style="display:inline-block;width:15px;height:15px;background-color:yellow;margin-left:15px;margin-right:5px;border:1px solid black;"></span> Being Swapped
-    <span style="display:inline-block;width:15px;height:15px;background-color:white;margin-left:15px;margin-right:5px;border:1px solid black;"></span> Unpartitioned
-  </div>
   
 </body>
 </html>

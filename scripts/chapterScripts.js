@@ -35,19 +35,21 @@ window.onload = function() {
     p.style.display = 'none';
     p.style.minHeight = maxH + 'px';
   });
-  document.addEventListener("DOMContentLoaded", function() {
-      hljs.highlightAll();
+  //This gives the show answers functionality
+	   // Show/Hide Answers toggle
+  const toggleBtn = document.getElementById('toggleAnswers');
+  const answers  = document.getElementById('answers');
+  if (toggleBtn && answers) {
+    toggleBtn.addEventListener('click', () => {
+      const isVisible = answers.style.display === 'block';
+      answers.style.display       = isVisible ? 'none' : 'block';
+      toggleBtn.textContent       = isVisible ? 'Show Answers' : 'Hide Answers';
+      toggleBtn.setAttribute('aria-expanded', String(!isVisible));
     });
-document.addEventListener('DOMContentLoaded', () => {
-   
-      document.getElementById('toggleAnswers').addEventListener('click', () => {
-        const ans = document.getElementById('answers');
-        const btn = document.getElementById('toggleAnswers');
-        const shown = ans.style.display === 'block';
-        ans.style.display = shown ? 'none' : 'block';
-        btn.textContent = shown ? 'Show Answers' : 'Hide Answers';
-      });
-    });
+  }
+
+	
+
   const lang = getLanguageFromUrl();
   const validLangs = ['java', 'cpp', 'python'];
   const defaultLang = validLangs.includes(lang) ? lang : 'java';
