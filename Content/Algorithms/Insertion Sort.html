@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Insertion Sort Tutorial & Demo</title>
+ <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js"></script>
+  <script src="../../scripts/chapterScripts.js"></script>
+  <link rel="stylesheet" href="../../style.css">
+  <!-- MathJax for LaTeX rendering -->
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <style>
+      
+    
+    
+    
+  </style>
+</head>
+<body>
+  <h1>Insertion Sort</h1>
+
+  
+    <h2>Problem Statement</h2>
+    <p>Insertion Sort solves the 
+	<a class="problem" href="?path=Problems%2F1_Foundational%2FSorting">Sorting</a>  problem.
+	</p>
+    <strong>Example:</strong>
+    <pre><code>Input:  [5, 3, 8, 1, 2]
+Output: [1, 2, 3, 5, 8]</code></pre>
+ 
+
+
+    <h2>Design and Strategy</h2>
+	
+	
+	<p>
+Insertion Sort works by dividing the array into two sections: 
+a <b>sorted portion</b> on the left and an <b>unsorted portion</b> on the right. 
+Initially, the sorted portion contains only the first element. 
+The algorithm repeatedly takes the first element from the unsorted portion (called the <b>key element</b>) 
+and inserts it into its correct position within the sorted portion. 
+With each step, the sorted portion grows by one, and the unsorted portion shrinks by one, 
+until the entire array becomes sorted. 
+Thus, Insertion Sort is considered a <b>decrease-and-conquer</b> algorithm.
+</p>
+
+<ol>
+  <li>
+    Initially, consider the first element of the array (index 0) as the sorted portion. 
+  </li>
+  <li>
+	Select the first element from the unsorted portion as the key element.
+  </li>
+  <li>
+    Compare the key element with the elements in the sorted portion, moving leftward through the array, 
+	until an element <i>s</i> with a value less than or equal to the key element is found. 
+	The correct insertion position for the key element is the space right after <i>s</i>. 
+  </li>
+  <li>
+    From right to left, shift each element that is to the right of <i>s</i> in the sorted portion of the array 
+	one position to the right to make room for insertion.
+  </li>
+  <li>
+    Insert the key element into the empty position created in the sorted portion.
+  </li>
+  <li>
+    Move the boundary separating the sorted and unsorted portions one position to the right, 
+	and repeat steps 2-5 until the unsorted portion is empty, resulting in a fully sorted array.
+  </li>
+</ol>
+ 
+
+
+ 
+  <object type="text/html" data="../Demos/Insertion Sort Demo.html" style="width:100%; height:400px; border:none;"></object>
+ 
+
+  
+    <h2>Code Implementations</h2>
+    <div class="tabs">
+      <button class="tablink active" onclick="openTab(event, 'java')" id="tab-java">Java</button>
+      <button class="tablink" onclick="openTab(event, 'cpp')"id="tab-cpp">C++</button>
+      <button class="tablink" onclick="openTab(event, 'python')"id="tab-python">Python</button>
+	  </div>
+  
+
+    <div id="java" class="code-container">
+      <pre><code class="language-java">public void insertionSort(int[] A) {
+  for (int i = 1; i &lt; A.length; i++) {
+    int key = A[i];
+    int j = i - 1;
+    while (j &gt;= 0 && A[j] &gt; key) {
+      A[j+1] = A[j];
+      j--;
+    }
+    A[j+1] = key;
+  }
+}</code></pre>
+    </div>
+
+    <div id="cpp" class="code-container">
+      <pre><code class="language-cpp">void insertionSort(int []A, int n) {
+  for (int i = 1; i &lt; n; i++) {
+    int key = A[i];
+    int j = i - 1;
+    while (j &gt;= 0 && A[j] &gt; key) {
+      A[j+1] = A[j];
+      j--;
+    }
+    A[j+1] = key;
+  }
+}</code></pre>
+    </div>
+
+    <div id="python" class="code-container">
+      <pre><code class="language-python">def insertion_sort(A):
+  for i in range(1, len(A)):
+    key = A[i]
+    j = i - 1
+    while j &gt;= 0 and A[j] &gt; key:
+      A[j+1] = A[j]
+      j -= 1
+    A[j+1] = key
+  return A</code></pre>
+    </div>
+  
+
+
+<h2>Time/Space Analysis</h2>
+
+<p>
+To analyze the complexity of Insertion Sort, we'll consider the worst-case scenario, 
+where the array is initially sorted in descending order (completely reversed). 
+This situation requires the maximum number of comparisons and shifts for each element, 
+making it the worst-case scenario.
+</p>
+
+<p>
+Insertion Sort builds the sorted array incrementally by repeatedly inserting the next 
+element from the unsorted portion into the correct position within the already sorted 
+portion on the left. Let's break down this process in detail:
+</p>
+
+<ul>
+  <li>
+    <b>First iteration:</b> The element at index 1 is compared with the element at 
+    index 0. In the worst case, it's smaller, requiring 1 comparison and 1 shift.
+  </li>
+  <li>
+    <b>Second iteration:</b> The element at index 2 needs to be inserted into the sorted 
+    portion (indices 0-1). In the worst case, it is the smallest so far, requiring 2 
+    comparisons and 2 shifts.
+  </li>
+  <li>
+    <b>Third iteration:</b> Similarly, the element at index 3, in the worst case, requires 
+    3 comparisons and 3 shifts, as it is again the smallest encountered.
+  </li>
+  <li>
+    <b>Subsequent iterations:</b> This pattern continues, with the element at index <i>k</i> 
+    requiring <i>k</i> comparisons and <i>k</i> shifts in the worst case.
+  </li>
+</ul>
+
+<p>
+Thus, the total number of comparisons and shifts in the worst case can be expressed 
+as the sum:
+</p>
+
+<pre>
+1 + 2 + 3 + ... + (n - 2) + (n - 1) = n(n - 1)/2 = O(n²)
+</pre>
+
+<p>
+Therefore, the worst-case time complexity of Insertion Sort is <i>O(n²)</i>.
+</p>
+
+<p>
+However, consider the best-case scenario—when the array is already sorted. In this case, 
+each element from the unsorted portion (starting from index 1) only needs one comparison 
+to verify it’s in the correct position. There are no shifts required:
+</p>
+
+<ul>
+  <li>
+    Each of the <i>(n - 1)</i> elements after the first one requires exactly 1 comparison 
+    and 0 shifts.
+  </li>
+</ul>
+
+<p>
+Thus, in the best case, the total number of comparisons is exactly:
+</p>
+
+<pre>
+(n - 1) = O(n)
+</pre>
+
+<p>
+This linear complexity in the best case makes Insertion Sort efficient for nearly sorted 
+datasets, outperforming algorithms like Bubble Sort in such scenarios. Nevertheless, the 
+average complexity remains quadratic, <i>O(n²)</i>, making Insertion Sort generally less 
+efficient than more advanced sorting methods (e.g., mergesort, quicksort) for large datasets.
+</p>
+
+<p>
+<b>Space Complexity:</b> Insertion Sort is an in-place sorting algorithm, requiring only 
+a constant amount of extra space to hold variables for indexing and temporary storage during 
+shifts. Hence, its space complexity is:
+</p>
+
+<pre>
+O(1)
+</pre>
+
+
+  <div class="section">
+    <h2>Reading Comprehension Questions</h2>
+    <ol>
+    <li><strong>Q1:</strong> What is the worst-case time complexity of insertion sort, and when does it occur?</li>
+    <li><strong>Q2:</strong> What is the best-case time complexity, and when does it occur?</li>
+    <li><strong>Q3:</strong> Why is insertion sort considered a decrease-and-conquer algorithm?</li>
+    <li><strong>Q4:</strong> Use insertion sort on <code>[5, 2, 4, 6, 1]</code>. Show the array after each insertion (i=1…4).</li>
+    <li><strong>Q5:</strong> Does insertion sort swap elements?</li>
+    <li><strong>Q6:</strong> In the nested loops, which loop selects the next element to insert, and which loop shifts elements?</li>
+	 <li><strong>Q7:</strong> After finishing iteration <var>i</var>, which part of the array is guaranteed to be sorted?</li>
+  </ol>
+
+  <button id="toggleAnswers" class="show-answer" aria-expanded="false">Show Answers</button>
+  <div id="answers" class="answer" hidden>
+    <ol>
+      <li><strong>Answer:</strong> O(n²), when the input is in reverse order (each new element shifts past all sorted items).</li>
+      <li><strong>Answer:</strong> O(n), when the input is already sorted (no shifts, only one comparison per element).</li>
+      <li><strong>Answer:</strong> It sorts the first i–1 elements, then inserts the ith element into that sorted subarray, reducing the unsorted portion by one each time.</li>
+      <li><strong>Answer:</strong>
+        <ul>
+          <li>Start: <code>[5, 2, 4, 6, 1]</code></li>
+          <li>i=1 (insert 2): <code>[2, 5, 4, 6, 1]</code></li>
+          <li>i=2 (insert 4): <code>[2, 4, 5, 6, 1]</code></li>
+          <li>i=3 (insert 6): <code>[2, 4, 5, 6, 1]</code> (no change)</li>
+          <li>i=4 (insert 1): <code>[1, 2, 4, 5, 6]</code></li>
+        </ul>
+      </li>
+      <li><strong>Answer:</strong> No, it shifts elements and places elements in the array.</li>
+      <li><strong>Answer:</strong> The outer loop (for i=1…n–1) picks the next key; the inner loop (while) shifts elements.</li>
+	   <li><strong>Answer:</strong> The subarray from index 0 up to index <var>i</var> (inclusive) is sorted.</li>
+    </ol>
+  </div>
+  </div>
+<div class="section">
+    <h2>In-Class Activities</h2>
+    <ul>
+      <li>Use cards to physically insert elements into a sorted row.</li>
+      <li>Pair-program and verbalize each shift step.</li>
+      <li>Compare performance on nearly-sorted vs. reverse-sorted arrays.</li>
+	  <li>During insertion sort, a portion of the array is sorted, are those elements guaranteed to be in there final spot?</li>
+    </ul>
+  </div>
+  <div class="section">
+    <h2>Problems</h2>
+    <ol>
+      <li>Implement insertion sort recursively.</li>
+      <li>Count the number of shifts and comparisons, (data movements) for <code>[1, 2, 4, 5, 6], [10,9,5,3,1] </code>and <code>[8, 2, 4, 10, 6]</code>.</li>
+      <li>Modify insertion sort to sort in descending order.</li>
+      <li>Integrate binary search to optimize comparisons.</li>
+    </ol>
+  </div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+      hljs.highlightAll();
+    });
+document.addEventListener('DOMContentLoaded', () => {
+   
+      document.getElementById('toggleAnswers').addEventListener('click', () => {
+        const ans = document.getElementById('answers');
+        const btn = document.getElementById('toggleAnswers');
+        const shown = ans.style.display === 'block';
+        ans.style.display = shown ? 'none' : 'block';
+        btn.textContent = shown ? 'Show Answers' : 'Hide Answers';
+      });
+    });
+	</script>
+</body>
+</html>

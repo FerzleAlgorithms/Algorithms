@@ -4,127 +4,71 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Insertion Sort Demo</title>
-   <script src="../../scripts/demoScripts.js"></script>
+  <script src="../../scripts/demoScripts.js"></script>
   <link rel="stylesheet" href="../../style.css">
   <style>
- 
-    
-    #visualization {
-      position: relative;
-    
-    
-      height: 180px;
-      overflow: visible;
-      margin: 0 auto;
-   
-    }
-	
-    #array-container {
-      display: flex;
-      align-items: flex-end;
-      justify-content: left;
-      gap: 5px;
-      height: calc(100% - 10px);
-      margin-bottom: 10px;
-    }
-	
-    #floatLayer {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      pointer-events: none;
-    }
-    #description {
-      margin-top: 10px;
-      font-style: italic;
-      text-align: left;
-    }
-    
-
-    
-  
-	
-    
-    .empty {
-      background-color: transparent;
-      border: 1px dashed #ccc;
-    }
-    .key { background-color: #1f77b4; }
-    
-   
-    .floating {
-      position: absolute;
-      z-index: 10;
-      transition: transform 0.5s ease;
-    }
-   
+    #visualization { position: relative; height: 180px; overflow: visible; margin: 0 auto; }
+    #array-container { display: flex; align-items: flex-end; justify-content: left; gap: 5px; height: calc(100% - 10px); margin-bottom: 10px; }
+    .element.finished { background-color: lightgreen; }
+    .empty { background-color: transparent; border: 1px dashed #ccc; }
+    .key       { background-color: #1f77b4; }
+    .comparing { background-color: yellow; }
+    .sorted    { background-color: orange; }
+    .floating  { position: absolute; z-index: 10; transition: top 0.3s ease; }
   </style>
 </head>
 <body>
-  <h1>Insertion Sort Visualization</h1>
+  <h1>Insertion Sort Demo</h1>
   <div id="controls">
     <label>Size:<input type="number" id="size" min="8" max="20" value="10" /></label>
     <button id="generate">Random Array</button>
     <input type="text" id="customArray" placeholder="12,6,10,5,3,8,1,20,13" size="30" />
     <button id="useCustom">Use Custom Array</button>
   </div>
-  
-   <div id="buttons">
+  <div id="buttons">
     <button id="prev" disabled>Previous</button>
     <button id="next" disabled>Next</button>
   </div>
-
   <div id="visualization">
     <div id="array-container"></div>
     <div id="floatLayer"></div>
   </div>
   <div id="description">Press "Next" to start sorting.</div>
-
- 
-
-  <!-- Legend moved below buttons with buffer -->
   <div id="legend">
     <strong>Legend:</strong>
-    <span><span class="legend-box default" ></span> Unsorted</span>
-    <span><span class="legend-box key" ></span> Key</span>
+    <span><span class="legend-box default"></span> Unsorted</span>
+    <span><span class="legend-box sorted"></span> Sorted Portion</span>
+    <span><span class="legend-box key"></span> Key</span>
     <span><span class="legend-box comparing"></span> Comparing</span>
-    <span><span class="legend-box sorted"></span> Sorted</span>
     <span><span class="legend-box empty"></span> Empty Placeholder</span>
   </div>
-
   <script>
     const arrayContainer = document.getElementById('array-container');
     const floatLayer = document.getElementById('floatLayer');
     const desc = document.getElementById('description');
     const prevBtn = document.getElementById('prev');
     const nextBtn = document.getElementById('next');
-    let steps = [];
-    let stepIndex = 0;
-    let floatingKey = null;
+    let steps = [], stepIndex = 0, floatingKey = null;
 
     function generateSteps(arr) {
       const states = [];
-      const a = arr.slice();
-      states.push({ arr: a.slice(), sortedCount: 1, keyIndex: null, compareIndex: null, keyVal: null, stage: 'init', i: 1 });
+      let a = arr.slice();
+      states.push({ arr: a.slice(), sortedCount: 1, stage: 'init', i: 1 });
       for (let i = 1; i < a.length; i++) {
         const key = a[i];
+        let kArr = a.slice();
         let j = i - 1;
+        states.push({ arr: kArr.slice(), sortedCount: i, stage: 'newKey', keyIndex: i, keyVal: key, i });
         while (j >= 0) {
-          states.push({ arr: a.slice(), sortedCount: i, keyIndex: i, compareIndex: j, keyVal: key, stage: 'comparing', i });
+          states.push({ arr: kArr.slice(), sortedCount: i, stage: 'comparing', keyIndex: i, compareIndex: j, keyVal: key, i });
           if (a[j] <= key) break;
+          kArr[j + 1] = kArr[j]; kArr[j] = null;
+          states.push({ arr: kArr.slice(), sortedCount: i, stage: 'shift', keyIndex: i, keyVal: key, firstShiftIndex: j + 1, i });
           j--;
         }
-        let shiftArr = a.slice();
-        for (let k = i; k > j + 1; k--) {
-          shiftArr[k] = shiftArr[k - 1];
-          shiftArr[k - 1] = null;
-          states.push({ arr: shiftArr.slice(), sortedCount: i, keyIndex: i, compareIndex: j + 1, keyVal: key, stage: 'shift', i, firstShiftIndex: k });
-        }
-        a.splice(i, 1);
-        a.splice(j + 1, 0, key);
-        states.push({ arr: a.slice(), sortedCount: i + 1, keyIndex: j + 1, compareIndex: null, keyVal: key, stage: 'placed', i });
+        kArr[j + 1] = key;
+        states.push({ arr: kArr.slice(), sortedCount: i + 1, stage: 'placed', keyIndex: j + 1, keyVal: key, i });
+        a = kArr.slice();
       }
       return states;
     }
@@ -133,60 +77,79 @@
       arrayContainer.innerHTML = '';
       state.arr.forEach((val, idx) => {
         const element = document.createElement('div');
-        const isEmpty = (state.stage === 'comparing' && idx === state.keyIndex) || (state.stage === 'shift' && val === null);
         element.className = 'element';
-
-        if (isEmpty) {
+        const hideOriginalKey = state.stage === 'comparing' && state.compareIndex === state.i - 1 && idx === state.i;
+        if (val === null || hideOriginalKey) {
           element.classList.add('empty');
         } else {
           element.textContent = val;
-          const isFinalShiftSpot = (state.stage === 'shift' && idx === state.i);
-          const isFirstShiftFilled = (state.stage === 'shift' && typeof state.firstShiftIndex === 'number' && idx === state.firstShiftIndex);
-          if (idx < state.sortedCount || isFinalShiftSpot || isFirstShiftFilled) element.classList.add('sorted');
-          if (state.stage !== 'comparing' && idx === state.keyIndex && state.stage !== 'shift') element.classList.add('key');
-          if (idx === state.compareIndex && state.stage === 'comparing') {
-            element.classList.remove('sorted');
-            element.classList.add('comparing');
+          // orange under floating key except on init/comparing/newKey
+          if (idx === state.i && !['init','newKey'].includes(state.stage)) element.classList.add('sorted');
+          // always sorted portion
+          if (idx < state.sortedCount) element.classList.add('sorted');
+          // blue for key on newKey stage
+          if (state.stage === 'newKey' && idx === state.keyIndex ) element.classList.add('key');
+          // blue for key after shift/placed
+          if (['shift','placed'].includes(state.stage) && idx === state.keyIndex) element.classList.add('key');
+          // yellow for comparing
+          if (state.stage === 'comparing' && idx === state.compareIndex) {
+            element.classList.remove('sorted'); element.classList.add('comparing');
           }
+		  // blue for key when it’s just been placed
+		  if (state.stage === 'placed' && idx === state.keyIndex) {
+		  element.classList.remove('sorted');
+		  element.classList.add('key');
+		  }
+
         }
         arrayContainer.appendChild(element);
       });
 
-      if (state.sortedCount === state.arr.length && state.stage === 'placed') {
-        desc.textContent = 'Array is sorted!';
-      } else if (state.stage === 'init') {
-        desc.textContent = 'Initial array.';
-      } else if (state.stage === 'comparing') {
-        const aVal = state.keyVal;
-        const bVal = state.arr[state.compareIndex];
-        const op = aVal <= bVal ? '<=' : '>';
-        desc.textContent = `${aVal} ${op} ${bVal}?`;
-      } else if (state.stage === 'shift') {
-        desc.textContent = `Shifting element to the right.`;
-      } else if (state.stage === 'placed') {
-        desc.textContent = `${state.keyVal} placed at index ${state.keyIndex}.`;
+      // description text
+      switch(state.stage) {
+        case 'newKey':
+          desc.textContent = `${state.keyVal} is the new key element.`;
+          break;
+        case 'init':
+          desc.textContent = 'Initial array.';
+          break;
+        case 'comparing': {
+          const aVal = state.keyVal;
+          const bVal = state.arr[state.compareIndex];
+          const op = aVal <= bVal ? '<' : '>';
+          if (aVal < bVal) {
+            desc.textContent = `${aVal} < ${bVal}? Yes, shifting ${bVal} to the right.`;
+          } else {
+            desc.textContent = `${aVal} < ${bVal}? No, placing key element.`;
+          }
+          break;
+        }
+        case 'shift':
+          desc.textContent = 'Shifting element to the right.';
+          break;
+        case 'placed':
+          if (state.sortedCount === state.arr.length) {
+            desc.textContent = 'Array is sorted!';
+            Array.from(arrayContainer.children).forEach(el => el.classList.add('finished'));
+          } else {
+            desc.textContent = `${state.keyVal} placed at index ${state.keyIndex}.`;
+          }
+          break;
       }
 
-      if (state.stage === 'comparing' || state.stage === 'shift') {
-        const elements = arrayContainer.children;
-        const targetElem = elements[state.i];
-        const targetRect = targetElem.getBoundingClientRect();
-        const parentRect = floatLayer.getBoundingClientRect();
-        const cw = targetRect.width;
-        const ch = targetRect.height;
-        const x = targetRect.left - parentRect.left;
-        const y = targetRect.top - parentRect.top - 80;
-
-        if (!floatingKey) {
-          floatingKey = document.createElement('div');
-          floatingKey.className = 'element key floating';
-          floatingKey.textContent = state.keyVal;
-          floatingKey.style.width = cw + 'px';
-          floatingKey.style.height = ch + 'px';
-          floatingKey.style.left = x + 'px';
-          floatingKey.style.top = y + 'px';
-          floatLayer.appendChild(floatingKey);
-        }
+      // floating key
+      if (['comparing','shift'].includes(state.stage)) {
+        floatLayer.innerHTML = '';
+        floatingKey = document.createElement('div');
+        floatingKey.className = 'element key floating';
+        floatingKey.textContent = state.keyVal;
+        const target = arrayContainer.children[state.i].getBoundingClientRect();
+        const parent = floatLayer.getBoundingClientRect();
+        floatingKey.style.width  = `${target.width}px`;
+        floatingKey.style.height = `${target.height}px`;
+        floatingKey.style.left   = `${target.left - parent.left}px`;
+        floatingKey.style.top    = `${target.top - parent.top + 100}px`;
+        floatLayer.appendChild(floatingKey);
       } else {
         floatLayer.innerHTML = '';
         floatingKey = null;
@@ -198,9 +161,9 @@
       nextBtn.disabled = stepIndex === steps.length - 1;
     }
 
-    function goToStep(index) {
-      stepIndex = index;
-      renderState(steps[stepIndex]);
+    function goToStep(idx) {
+      stepIndex = idx;
+      renderState(steps[idx]);
       updateButtons();
     }
 
@@ -209,9 +172,9 @@
 
     document.getElementById('generate').addEventListener('click', () => {
       const size = parseInt(document.getElementById('size').value, 10);
-      if (isNaN(size) || size < 5 || size > 20) return alert('Size must be between 5 and 20');
+      if (isNaN(size) || size < 8 || size > 20) return alert('Size must be between 8 and 20');
       const arr = Array.from({ length: size }, () => Math.floor(Math.random() * 90) + 10);
-	  document.getElementById('customArray').value = arr.join(',');
+      document.getElementById('customArray').value = arr.join(',');
       steps = generateSteps(arr);
       goToStep(0);
     });
@@ -220,13 +183,12 @@
       const input = document.getElementById('customArray').value.trim();
       if (!input) return;
       const arr = input.split(',').map(s => parseInt(s.trim(), 10));
-      if (arr.some(isNaN) || arr.length < 5 || arr.length > 20) {
-        return alert('Custom array must have 5-20 numbers, comma-separated.');
-      }
+      if (arr.some(isNaN) || arr.length < 8 || arr.length > 20) return alert('Custom array must have 8-20 numbers, comma-separated.');
       steps = generateSteps(arr);
       goToStep(0);
     });
 
+    // initialize
     document.getElementById('generate').click();
   </script>
 </body>

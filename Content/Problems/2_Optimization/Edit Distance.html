@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Edit Distance</title>
+  <link rel="stylesheet" href="../../../style.css" />
+</head>
+<body>
+  <h1>Edit Distance</h1>
+
+  <section>
+    <h2>Problem Description</h2>
+    <p>
+      Given two strings, determine the minimum number of operations required to convert one string into the other.
+      The allowed operations are:
+    </p>
+    <ul>
+      <li>Insert a character</li>
+      <li>Delete a character</li>
+      <li>Substitute one character for another</li>
+    </ul>
+
+    <h3>Input</h3>
+    <p>
+      Two strings <code>X</code> and <code>Y</code>, consisting of lowercase letters.
+    </p>
+
+    <h3>Output</h3>
+    <p>
+      An integer representing the minimum number of operations required to transform <code>X</code> into <code>Y</code>.
+	  Optionally, the list of operations to perform the transformation.
+    </p>
+  </section>
+
+  <section>
+    <h2>Motivation/Applications</h2>
+    <p>
+      Edit distance has applications in computational linguistics, spell checking, DNA sequencing, plagiarism detection,
+      and other areas where similarity between strings is important. It's also known as the Levenshtein distance.
+    </p>
+  </section>
+
+  <section>
+    <h2>Examples</h2>
+    <div class="example-box">
+      <strong class="example-title">Example 1</strong><br>
+      <strong>Input:</strong><br>
+      X = "kitten"<br>
+      Y = "sitting"<br><br>
+      <strong>Output:</strong><br>
+      3<br><br>
+      <strong>Explanation:</strong><br>
+      kitten → sitten (substitute 'k' with 's')<br>
+      sitten → sittin (substitute 'e' with 'i')<br>
+      sittin → sitting (insert 'g')
+    </div>
+    <br>
+    <div class="example-box">
+      <strong class="example-title">Example 2</strong><br>
+      <strong>Input:</strong><br>
+      X = "flaw"<br>
+      Y = "lawn"<br><br>
+      <strong>Output:</strong><br>
+      2<br><br>
+      <strong>Explanation:</strong><br>
+      flaw → law (delete 'f')<br>
+      law → lawn (insert 'n')
+    </div>
+  </section>
+
+  <section>
+    <h2>Common Algorithms/Techniques</h2>
+    <ul>
+      <li>Dynamic Programming</li>
+      <li>Memoization</li>
+      <li>Recursive Backtracking (inefficient)</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Variants/Related Problems</h2>
+    <ul>
+      <li>Longest Common Subsequence</li>
+      <li>Damerau-Levenshtein Distance (adds transposition)</li>
+      <li>Hamming Distance (only substitutions, strings must be same length)</li>
+    </ul>
+  </section>
+</body>
+</html>

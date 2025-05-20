@@ -35,6 +35,19 @@ window.onload = function() {
     p.style.display = 'none';
     p.style.minHeight = maxH + 'px';
   });
+  document.addEventListener("DOMContentLoaded", function() {
+      hljs.highlightAll();
+    });
+document.addEventListener('DOMContentLoaded', () => {
+   
+      document.getElementById('toggleAnswers').addEventListener('click', () => {
+        const ans = document.getElementById('answers');
+        const btn = document.getElementById('toggleAnswers');
+        const shown = ans.style.display === 'block';
+        ans.style.display = shown ? 'none' : 'block';
+        btn.textContent = shown ? 'Show Answers' : 'Hide Answers';
+      });
+    });
   const lang = getLanguageFromUrl();
   const validLangs = ['java', 'cpp', 'python'];
   const defaultLang = validLangs.includes(lang) ? lang : 'java';
