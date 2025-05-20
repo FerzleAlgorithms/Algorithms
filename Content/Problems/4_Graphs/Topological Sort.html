@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Topological Sort</title>
+  
+  <script id="MathJax-script" async
+    src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <link rel="stylesheet" href="../../../style.css" />
+</head>
+<body>
+  <h1>Topological Sort</h1>
+
+  <section>
+    <h2>Problem Description</h2>
+    <p>
+      Given a directed graph, return a valid ordering of the vertices such that for every directed edge \(u \to v\), vertex \(u\) appears before \(v\).  
+      If the graph contains a cycle (i.e., is not a DAG), return <code>Not possible</code>.
+    </p>
+
+    <h3>Input</h3>
+    <p>
+      A directed graph represented by a set of vertices \(V\) and edges \(E\), where each edge is a pair \((u, v)\) indicating a directed edge from \(u\) to \(v\).  
+      Input may be given as an adjacency list, adjacency matrix, or edge list. Assume vertices are labeled from \(0\) to \(n-1\).
+    </p>
+
+    <h3>Output</h3>
+    <p>
+      A linear ordering of all vertices such that for every edge \(u \to v\), \(u\) comes before \(v\).  
+      If the graph has a cycle, output <code>Not possible</code>.
+    </p>
+  </section>
+
+  <section>
+    <h2>Motivation/Applications</h2>
+    <p>
+      Topological sort is used to order tasks that have dependencies. It is widely used in build systems (e.g., make), instruction scheduling, course prerequisite planning, and dependency resolution in package managers.
+    </p>
+  </section>
+
+  <section>
+    <h2>Examples</h2>
+
+   
+
+    <div class="example-box">
+      <strong class="example-title">Example 1</strong><br>
+      <strong>Input:</strong><br>
+      Vertices: 3<br>
+      Edges: (0,1), (1,2)<br>
+      <strong>Output:</strong><br>
+      A valid topological sort: 0, 1, 2
+      <br><br>
+      <svg width="180" height="100">
+        <defs>
+          <marker id="arrow2" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+            <path d="M0,0 L0,6 L9,3 z" fill="#333" />
+          </marker>
+        </defs>
+        <circle cx="30" cy="50" r="15" fill="#cce3ff"/><text x="30" y="55" text-anchor="middle" font-size="12">0</text>
+        <circle cx="90" cy="50" r="15" fill="#cce3ff"/><text x="90" y="55" text-anchor="middle" font-size="12">1</text>
+        <circle cx="150" cy="50" r="15" fill="#cce3ff"/><text x="150" y="55" text-anchor="middle" font-size="12">2</text>
+        <line x1="45" y1="50" x2="75" y2="50" stroke="#333" marker-end="url(#arrow2)" />
+        <line x1="105" y1="50" x2="135" y2="50" stroke="#333" marker-end="url(#arrow2)" />
+      </svg>
+    </div>
+    <br>
+
+    <div class="example-box">
+      <strong class="example-title">Example 2</strong><br>
+      <strong>Input:</strong><br>
+      Vertices: 5<br>
+      Edges: (0,2), (0,3), (1,3), (1,4)<br>
+      <strong>Output:</strong><br>
+      Possible topological orderings: 0,1,2,3,4 or 1,0,2,3,4 or 1,0,3,2,4 and others
+      <br><br>
+      <svg width="280" height="160">
+        <defs>
+          <marker id="arrow3" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+            <path d="M0,0 L0,6 L9,3 z" fill="#333" />
+          </marker>
+        </defs>
+        <!-- Nodes -->
+        <circle cx="40" cy="40" r="15" fill="#cce3ff"/><text x="40" y="45" text-anchor="middle" font-size="12">0</text>
+        <circle cx="40" cy="120" r="15" fill="#cce3ff"/><text x="40" y="125" text-anchor="middle" font-size="12">1</text>
+        <circle cx="140" cy="30" r="15" fill="#cce3ff"/><text x="140" y="35" text-anchor="middle" font-size="12">2</text>
+        <circle cx="140" cy="80" r="15" fill="#cce3ff"/><text x="140" y="85" text-anchor="middle" font-size="12">3</text>
+        <circle cx="140" cy="130" r="15" fill="#cce3ff"/><text x="140" y="135" text-anchor="middle" font-size="12">4</text>
+        <!-- Edges -->
+        <line x1="55" y1="40" x2="125" y2="30" stroke="#333" marker-end="url(#arrow3)" />
+        <line x1="55" y1="40" x2="125" y2="80" stroke="#333" marker-end="url(#arrow3)" />
+        <line x1="55" y1="120" x2="125" y2="80" stroke="#333" marker-end="url(#arrow3)" />
+        <line x1="55" y1="120" x2="125" y2="130" stroke="#333" marker-end="url(#arrow3)" />
+      </svg>
+    </div>
+    <br>
+	 <div class="example-box">
+      <strong class="example-title">Example 3</strong><br>
+      <strong>Input:</strong><br>
+      Vertices: 8<br>
+      Edges: (0,2), (0,3), (1,3), (1,4), (2,5), (3,6), (4,6), (3,5), (2,4), (5,7), (6,7)<br>
+      <strong>Output:</strong><br>
+      One possible topological ordering: 0, 1, 2, 3, 4, 5, 6, 7
+      <br><br>
+      <svg width="400" height="200">
+        <defs>
+          <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+            <path d="M0,0 L0,6 L9,3 z" fill="#333" />
+          </marker>
+        </defs>
+        <!-- Nodes -->
+        <circle cx="50" cy="50" r="15" fill="#cce3ff"/><text x="50" y="55" text-anchor="middle" font-size="12">0</text>
+        <circle cx="50" cy="150" r="15" fill="#cce3ff"/><text x="50" y="155" text-anchor="middle" font-size="12">1</text>
+        <circle cx="150" cy="50" r="15" fill="#cce3ff"/><text x="150" y="55" text-anchor="middle" font-size="12">2</text>
+        <circle cx="150" cy="100" r="15" fill="#cce3ff"/><text x="150" y="105" text-anchor="middle" font-size="12">3</text>
+        <circle cx="150" cy="150" r="15" fill="#cce3ff"/><text x="150" y="155" text-anchor="middle" font-size="12">4</text>
+        <circle cx="250" cy="50" r="15" fill="#cce3ff"/><text x="250" y="55" text-anchor="middle" font-size="12">5</text>
+        <circle cx="250" cy="100" r="15" fill="#cce3ff"/><text x="250" y="105" text-anchor="middle" font-size="12">6</text>
+        <circle cx="350" cy="100" r="15" fill="#cce3ff"/><text x="350" y="105" text-anchor="middle" font-size="12">7</text>
+        <!-- Edges -->
+        <line x1="65" y1="50" x2="135" y2="50" stroke="#333" marker-end="url(#arrow)" />
+        <line x1="65" y1="50" x2="135" y2="100" stroke="#333" marker-end="url(#arrow)" />
+        <line x1="65" y1="150" x2="135" y2="100" stroke="#333" marker-end="url(#arrow)" />
+        <line x1="65" y1="150" x2="135" y2="150" stroke="#333" marker-end="url(#arrow)" />
+        <line x1="165" y1="50" x2="235" y2="50" stroke="#333" marker-end="url(#arrow)" />
+        <line x1="165" y1="100" x2="235" y2="100" stroke="#333" marker-end="url(#arrow)" />
+        <line x1="165" y1="150" x2="235" y2="100" stroke="#333" marker-end="url(#arrow)" />
+        <line x1="165" y1="100" x2="235" y2="50" stroke="#333" marker-end="url(#arrow)" />
+        <line x1="165" y1="50" x2="150" y2="135" stroke="#333" marker-end="url(#arrow)" />
+        <line x1="165" y1="50" x2="150" y2="135" stroke="#333" marker-end="url(#arrow)" />
+        <line x1="265" y1="50" x2="335" y2="100" stroke="#333" marker-end="url(#arrow)" />
+        <line x1="265" y1="100" x2="335" y2="100" stroke="#333" marker-end="url(#arrow)" />
+      </svg>
+    </div>
+	
+  </section>
+
+  <section>
+    <h2>Common Algorithms/Techniques</h2>
+    <ul>
+      <li>Kahn’s Algorithm (BFS-based)</li>
+      <li>DFS-based Topological Sort</li>
+      <li>Decrease-and-Conquer</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Variants/Related Problems</h2>
+    <ul>
+      <li>Course Schedule Problem</li>
+      <li>All Topological Sorts</li>
+      <li>Cycle Detection in Directed Graphs</li>
+    </ul>
+  </section>
+</body>
+</html>
