@@ -10,23 +10,31 @@ function buildMenu(chapters, basePath = "") {
       const li = document.createElement("li");
 
       if (typeof item === "string") {
-		  // leaf: an HTML page
-		  const raw = item.replace(/\.html$/, "");
-		  const stripped = raw.replace(/^\d+_/, "");       // remove leading "2_"
-		  const name   = stripped.replace(/_/g, " ");      // then spaces
-		  a.textContent = isDemo
-		     ? name.replace(/Demo/g, "").trim()
-		     : name;
-          a.href = `?path=${encodeURIComponent(currentPath + name)}`;
-          li.appendChild(a);
+        // leaf: an HTML page
+        //const name = item.replace(/\.html$/, "").replace(/_/g, " ");
+        const a = document.createElement("a");
+		// leaf: an HTML page
+		const raw = item.replace(/\.html$/, "");
+		const stripped = raw.replace(/^\d+_/, "");       // remove leading "2_"
+		const name   = stripped.replace(/_/g, " ");      // then spaces
+		a.textContent = isDemo
+		  ? name.replace(/Demo/g, "").trim()
+		  : name;
+
+        a.href = `?path=${encodeURIComponent(currentPath + name)}`;
+        //a.textContent = isDemo
+        //  ? name.replace(/Demo/g, "").trim()
+        //  : name;
+        li.appendChild(a);
 
       } else {
         // subtree: a directory
         for (const [dir, subItems] of Object.entries(item)) {
           const span = document.createElement("span");
-		  const chapRaw  = dir.replace(/^\d+_/, "");
-          span.textContent = chapRaw.replace(/_/g, " ");
           //span.textContent = dir.replace(/_/g, " ");
+		  const dirName  = dir.replace(/^\d+_/, "");        // strip "2_"
+		  span.textContent = dirName.replace(/_/g, " ");
+
           span.onclick = () => li.classList.toggle("open");
           li.appendChild(span);
 
@@ -43,9 +51,9 @@ function buildMenu(chapters, basePath = "") {
   for (const [chap, contents] of Object.entries(chapters)) {
     const li = document.createElement("li");
     const span = document.createElement("span");
-	const dirName  = chap.replace(/^\d+_/, "");        // strip "2_"
-    span.textContent = dirName.replace(/_/g, " ");
-    // span.textContent = chap.replace(/_/g, " ");
+    //span.textContent = chap.replace(/_/g, " ");
+	const chapRaw  = chap.replace(/^\d+_/, "");
+    span.textContent = chapRaw.replace(/_/g, " ");
     span.onclick = () => li.classList.toggle("open");
     li.appendChild(span);
 
