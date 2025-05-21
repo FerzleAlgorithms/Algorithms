@@ -68,13 +68,6 @@ nav#menu li {
   user-select: none;
 }
 
-/* turn the span into a clickable header with a caret */
-navOLD#menu li span {
-  position: relative;
-  padding-left: 1.2em;           /* make room for the triangle */
-  cursor: pointer;
-}
-
 /* make the heading spans inline-flex so the arrow and text are aligned line-by-line */
 nav#menu li span {
   display: inline-flex;
@@ -82,7 +75,6 @@ nav#menu li span {
   gap: 0.4em;                /* space between arrow and text */
   cursor: pointer;
 }
-
 
 /* turn off the old absolute‐positioned arrow */
 nav#menu li span::before {
@@ -94,33 +86,9 @@ nav#menu li span::before {
   transform-origin: center;
 }
 
-/* insert a right‐pointing triangle before each span */
-naOLDv#menu li span::before {
-  content: "▶";                  /* ▶ (U+25B6) */
-  position: absolute;
-  left: 0;
-  top: 50%;
-  transform: translateY(-50%) rotate(0deg);
-  transition: transform 0.15s ease;
-  font-size: 0.8em;
-  color: #1e293b;
-}
-
-/* when the item is open, rotate the triangle down */
-nav#OLDmenu li.open > span::before {
-  transform: translateY(-50%) rotate(90deg);
-}
-
 /* rotate down when open */
 nav#menu li.open > span::before {
   transform: rotate(90deg);
-}
-
-navOLD#menu li span {
-  display: block;
-  padding: 5px 10px;
-  background-color: #cbd5e1;
-  border-bottom: 1px solid #94a3b8;
 }
 
 nav#menu li span:hover {
@@ -147,7 +115,7 @@ nav#menu a:hover {
 
 
 /* menu */
-#menu ul {
+#menuOLD ul {
   list-style-type: none;
   padding-left: 1em;
 }
@@ -155,6 +123,29 @@ nav#menu a:hover {
 #menu ul ul {
   margin-left: 1em;
 }
+
+#menu ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+#menu li {
+  /* make your “bullet” or icon space on the left… */
+  padding-left: 1.2em;
+  /* …then pull the first line back out */
+  text-indent: -1.2em;
+  margin-bottom: 0.5em;            /* extra breathing room */
+  line-height: 1.4;                /* good readability */
+}
+/* optional: custom bullet via a pseudo-element */
+#menu li::before {
+  content: "•";
+  display: inline-block;
+  width: 1.2em;
+  color: #888;
+  font-size: 0.8em;
+}
+
 
 
 
@@ -166,6 +157,11 @@ nav#menu a:hover {
   border-radius: 5px;
   margin-top: 1em;
 }
+
+#errorMessage {
+  align-self: flex-start;   /* only this child opts out of stretching */
+}
+
 
 
 #content {
