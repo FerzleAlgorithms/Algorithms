@@ -24,7 +24,7 @@ function buildMenu(chapters, basePath = "") {
         // subtree: a directory
         for (const [dir, subItems] of Object.entries(item)) {
           const span = document.createElement("span");
-		  const chapRaw  = chap.replace(/^\d+_/, "");
+		  const chapRaw  = dir.replace(/^\d+_/, "");
           span.textContent = chapRaw.replace(/_/g, " ");
           //span.textContent = dir.replace(/_/g, " ");
           span.onclick = () => li.classList.toggle("open");
@@ -43,7 +43,7 @@ function buildMenu(chapters, basePath = "") {
   for (const [chap, contents] of Object.entries(chapters)) {
     const li = document.createElement("li");
     const span = document.createElement("span");
-	const dirName  = dir.replace(/^\d+_/, "");        // strip "2_"
+	const dirName  = chap.replace(/^\d+_/, "");        // strip "2_"
     span.textContent = dirName.replace(/_/g, " ");
     // span.textContent = chap.replace(/_/g, " ");
     span.onclick = () => li.classList.toggle("open");

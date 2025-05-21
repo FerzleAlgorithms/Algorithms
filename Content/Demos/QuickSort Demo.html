@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Quick Sort Demo (Top-Level Array Updated)</title>
+  <script src="../../scripts/demoScripts.js"></script>
+  <link rel="stylesheet" href="../../style.css">
+  <style>
+    .subarray-container { display: flex; flex-direction: column; gap: 10px; margin-top: 5px; }
+    .subarray-row {
+      display: flex;
+      gap: 10px;
+      position: relative;
+      min-height: 80px;      /* extra space for arrows underneath */
+    }
+    .element-wrapper {
+      display: flex; flex-direction: column; align-items: center;
+    }
+    .element {
+      width: 40px; height: 40px;
+      display: flex; justify-content: center; align-items: center;
+      border: 1px solid #000;
+      background: white;
+    }
+    .arrow {
+      margin-top: 4px;
+      font-size: 12px;
+      text-align: center;
+      line-height: 1.2;
+    }
+    .step-comment { margin-top: 10px; font-style: italic; }
+    .dynamic-group, .static-group { padding-top: 5px; }
+    /* Adjust margins for headers and containers */
+    .array-container { display: flex; gap: 10px; margin-top: 10px; margin-bottom: 10px; }
+    h3 { margin: 5px 0; }
+  </style>
+</head>
+<body>
+  <h2>Quick Sort Demo</h2>
+
+  <div id="controls">
+    <label>Size:
+      <input type="number" id="arraySize" min="8" max="20" value="10" size="2">
+    </label>
+    <button id="generate">Random Array</button>
+    <input type="text" id="customArray" placeholder="12,34,56,78" size="40">
+    <button id="useCustom">Create Array</button>
+  </div>
+
+  <div style="margin:10px 0;">
+    <button id="prev-step">Previous</button>
+    <button id="next-step">Next</button>
+  </div>
+
+<!-- after -->
+<div style="margin:10px 0; padding:0; display:flex; flex-wrap:wrap; gap:10px;">
+    <b>Legend:</b>
+    <span style="width:15px; height:15px; background-color:lightgreen; border:1px solid black;"></span> Pivot
+    <span style="width:15px; height:15px; background-color:orange;    border:1px solid black;"></span> ≤ pivot
+    <span style="width:15px; height:15px; background-color:#1e90ff;  border:1px solid black;"></span> &gt; pivot
+    <span style="width:15px; height:15px; background-color:yellow;    border:1px solid black;"></span> Swapping
+    <span style="width:15px; height:15px; background-color:white;     border:1px solid black;"></span> Unpartitioned
+    <span style="width:15px; height:15px; background-color:#b579ee;  border:1px solid black;"></span> Sorted
+  </div>
+  
+
+  <!-- Header for main array -->
+  <h3>Main Array</h3>
+  <div class="array-container" id="boxes"></div>
+
+  <!-- Header for recursive visualization -->
+  <h3>Recursive Steps</h3>
+  <div class="subarray-container" id="subarrays"></div>
+
+  <div id="step-desc" class="step-comment"></div>
+
+<script>
+(function(){
+  let A = [], cur = 0, steps = [];
+  const renderedSnapshots = new Set();
+  const depthContainers = {};
+
+  function record(state) {
+    steps.push(JSON.parse(JSON.stringify(state)));
+  }
+
+  function queueSubarrayStep(arr, label, depth) {
+    const color = label.startsWith('Left') ? 'orange' : '#1e90ff';
+    record({
+      type: 'draw-subarray',
+      label,
+      values: [...arr],
+      depth,
+      colors: arr.map(() => color)
+    });
+  }
+
+  function render() {
+  const st = steps[cur];
+  const sortedColor = '#b579ee';       // your purple swatch
+  const fullKey     = `${st.depth}-${st.low}-${st.high}`;
+  const depthKey    = st.depth;
+  const container   = document.getElementById('subarrays');
+
+  // --- 1) Build permanentColors, never clobbering sortedColor once set ---
+  const permanentColors = Array(st.A.length).fill(null);
+  for (let k = 0; k <= cur; k++) {
+    const s = steps[k];
+
+    // “start” highlight
+    if (s.phase === 'start' && permanentColors[s.pivot] !== sortedColor) {
+      permanentColors[s.pivot] = 'lightgreen';
+    }
+
+    // compare-i
+    if (s.phase === 'compare-i' && permanentColors[s.i] !== sortedColor) {
+      permanentColors[s.i] = (s.A[s.i] <= s.p) ? 'orange' : '#1e90ff';
+    }
+
+    // compare-j
+    if (s.phase === 'compare-j' && permanentColors[s.j] !== sortedColor) {
+      permanentColors[s.j] = (s.A[s.j] <= s.p) ? 'orange' : '#1e90ff';
+    }
+
+    // element swap
+    if (s.phase === 'do-swap') {
+      const c1 = permanentColors[s.oldi], c2 = permanentColors[s.oldj];
+      // swap colours—but skip overwriting purple
+      if (permanentColors[s.oldi] !== sortedColor) {
+        permanentColors[s.oldi] = (c2 === sortedColor) ? c1 : c2;
+      }
+      if (permanentColors[s.oldj] !== sortedColor) {
+        permanentColors[s.oldj] = (c1 === sortedColor) ? c2 : c1;
+      }
+    }
+
+    // pivot-placement: **always** mark purple (and never lose it)
+    if (s.phase === 'do-p') {
+      permanentColors[s.j] = sortedColor;
+    }
+
+    // base-case: mark entire segment purple
+    if (s.phase === 'base') {
+      for (let i = s.low; i <= s.high; i++) {
+        permanentColors[i] = sortedColor;
+      }
+    }
+  }
+
+  // --- 2) Draw master array (uses permanentColors) ---
+  const mainC = document.getElementById('boxes');
+  mainC.innerHTML = '';
+  const mainRow = document.createElement('div');
+  mainRow.className = 'subarray-row';
+  for (let i = 0; i < st.A.length; i++) {
+    const wrap = document.createElement('div');
+    wrap.className = 'element-wrapper';
+    const box = document.createElement('div');
+    box.className = 'element';
+    box.textContent = st.A[i];
+    box.style.background = permanentColors[i] || '#fff';
+    wrap.appendChild(box);
+    mainRow.appendChild(wrap);
+  }
+  mainC.appendChild(mainRow);
+
+  // --- 3) Static snapshot after pivot swap (grouped by depthKey) ---
+  if (st.phase === 'do-p' && !renderedSnapshots.has(fullKey)) {
+    renderedSnapshots.add(fullKey);
+
+    let row = depthContainers[depthKey];
+    if (!row) {
+      row = document.createElement('div');
+      row.className = 'subarray-row';
+      container.appendChild(row);
+      depthContainers[depthKey] = row;
+    }
+
+    // clear only the dynamic‐group, preserving previous static subarrays
+    const prevD = row.querySelector('.dynamic-group');
+    if (prevD) row.removeChild(prevD);
+
+    const staticGroup = document.createElement('div');
+    staticGroup.className = 'static-group';
+    staticGroup.style.position = 'absolute';
+    staticGroup.style.left = '0';
+
+    const staticRow = document.createElement('div');
+    staticRow.className = 'subarray-row';
+
+    // indent blanks
+    for (let p = 0; p < st.low; p++) {
+      const ph = document.createElement('div');
+      ph.className = 'element';
+      ph.style.visibility = 'hidden';
+      staticRow.appendChild(ph);
+    }
+
+    // live‐compute partition colors (never purple here)
+    for (let i = st.low; i <= st.high; i++) {
+      const wrap = document.createElement('div');
+      wrap.className = 'element-wrapper';
+      const box = document.createElement('div');
+      box.className = 'element';
+      box.textContent = st.A[i];
+      const fill = (i === st.j)
+        ? 'lightgreen'
+        : (st.A[i] <= st.p ? 'orange' : '#1e90ff');
+      box.style.background = fill;
+      wrap.appendChild(box);
+      staticRow.appendChild(wrap);
+    }
+
+    staticGroup.appendChild(staticRow);
+    row.appendChild(staticGroup);
+  }
+
+  // --- 4) Dynamic animation (all phases except do-p & base) ---
+  if (st.phase !== 'do-p' && st.phase !== 'base') {
+    let row = depthContainers[depthKey];
+    if (!row) {
+      row = document.createElement('div');
+      row.className = 'subarray-row';
+      container.appendChild(row);
+      depthContainers[depthKey] = row;
+    }
+    const prev = row.querySelector('.dynamic-group');
+    if (prev) row.removeChild(prev);
+
+    const dynGroup = document.createElement('div');
+    dynGroup.className = 'dynamic-group';
+    dynGroup.style.position = 'absolute';
+    dynGroup.style.left = '0';
+
+    const dRow = document.createElement('div');
+    dRow.className = 'subarray-row';
+
+    // indent blanks
+    for (let p = 0; p < st.low; p++) {
+      const ph = document.createElement('div');
+      ph.className = 'element';
+      ph.style.visibility = 'hidden';
+      dRow.appendChild(ph);
+    }
+
+    // animate slice, stripping any stray purple on recursive depths
+    for (let i = st.low; i <= st.high; i++) {
+      const wrap = document.createElement('div');
+      wrap.className = 'element-wrapper';
+
+      let base = permanentColors[i] || '#fff';
+      if (st.depth > 0 && base === sortedColor) base = '#fff';
+
+      let fill = base;
+      if (i === st.pivot)                          fill = 'lightgreen';
+      if (st.phase === 'compare-i' && i === st.i)  fill = '#ffa';
+      if (st.phase === 'compare-j' && i === st.j)  fill = '#acf';
+      if (st.phase === 'highlight-swap' &&
+          (i === st.oldi || i === st.oldj))        fill = 'yellow';
+      if (st.phase === 'do-swap' &&
+          (i === st.oldi || i === st.oldj))        fill = 'lightgreen';
+
+      const box = document.createElement('div');
+      box.className = 'element';
+      box.style.background = fill;
+      box.textContent = st.A[i];
+      wrap.appendChild(box);
+
+      const labels = [];
+      if (i === st.i)     labels.push('i');
+      if (i === st.j)     labels.push('j');
+      if (i === st.pivot) labels.push('pivot');
+      if (labels.length) {
+        const a = document.createElement('div');
+        a.className = 'arrow';
+        a.innerHTML = '↑<br>' + labels.join(', ');
+        wrap.appendChild(a);
+      }
+
+      dRow.appendChild(wrap);
+    }
+
+    dynGroup.appendChild(dRow);
+    row.appendChild(dynGroup);
+  }
+
+  // --- 5) Step description (unchanged) ---
+  document.getElementById('step-desc').textContent = st.desc;
+}
+
+
+  function quickSort(A, low, high, depth = 0) {
+    if (low < high) {
+      const pi = runPartition(A, low, high, depth);
+      queueSubarrayStep(A.slice(low, pi), `Left of ${A[pi]}`, depth+1);
+      quickSort(A, low, pi - 1, depth+1);
+      queueSubarrayStep(A.slice(pi+1, high+1), `Right of ${A[pi]}`, depth+1);
+      quickSort(A, pi + 1, high, depth+1);
+    }
+    else{
+         // record base‐case for this subarray
+        record({ A: [...A], low, high, depth, phase: 'base',
+             desc: `Reached base case [${low}…${high}]` });
+    }
+  }
+
+  function runPartition(arr, low, high, depth) {
+    let pivot = low, p = arr[pivot], i = low+1, j = high;
+    record({A:[...arr], i, j, pivot, p, low, high, depth, phase: 'start', desc: `p=A[${pivot}]=${p}`});
+    while (true) {
+      while (i <= high && arr[i] <= p) {
+        record({A:[...arr], i, j, pivot, p, low, high, depth, phase: 'compare-i',
+                desc: `${arr[i]}≤${p}? Yes → i++`});
+        i++;
+      }
+      record({A:[...arr], i, j, pivot, p, low, high, depth, phase: 'compare-i',
+              desc: `${arr[i]}≤${p}? No → check j`});
+      while (j >= low && arr[j] > p) {
+        record({A:[...arr], i, j, pivot, p, low, high, depth, phase: 'compare-j',
+                desc: `${arr[j]}>${p}? Yes → j--`});
+        j--;
+      }
+      record({A:[...arr], i, j, pivot, p, low, high, depth, phase: 'compare-j',
+              desc: `${arr[j]}>${p}? No → check swap`});
+      if (i >= j) {
+        [arr[pivot], arr[j]] = [arr[j], arr[pivot]];
+        record({A:[...arr], i, j, pivot, p, low, high, depth, phase: 'do-p',
+                desc: `Swapped p with A[${j}], p now at index ${j}`});
+        return j;
+      }
+      record({A:[...arr], i, j, pivot, p, low, high, depth, phase: 'highlight-swap',
+              desc: `Swap A[${i}] & A[${j}]`});
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+      const oldi = i, oldj = j; i++; j--;
+      record({A:[...arr], i, j, oldi, oldj, pivot, p, low, high, depth, phase: 'do-swap',
+              desc: `Swapped A[${oldi}] & A[${oldj}], i=${i}, j=${j}`});
+    }
+  }
+
+  function initDemo() {
+    const n = Math.min(Math.max(parseInt(document.getElementById('arraySize').value)||10,8),20);
+    document.getElementById('arraySize').value = n;
+    A = Array.from({length:n}, ()=>Math.floor(Math.random()*100));
+    steps = [];
+    renderedSnapshots.clear();
+    Object.keys(depthContainers).forEach(k => delete depthContainers[k]);
+    document.getElementById('subarrays').innerHTML = '';
+    quickSort(A, 0, A.length-1);
+    cur = 0; render();
+  }
+
+  document.getElementById('generate').onclick = initDemo;
+  document.getElementById('prev-step').onclick = () => { if(cur>0) cur--, render(); };
+  document.getElementById('next-step').onclick = () => { if(cur<steps.length-1) cur++, render(); };
+  document.getElementById('useCustom').onclick = () => {
+  // parse user input
+  const input = document.getElementById('customArray').value;
+  const vals = input.split(',')
+                    .map(x => parseInt(x.trim(), 10))
+                    .filter(x => !isNaN(x));
+  if (vals.length < 2) {
+    return alert("Please enter at least 2 valid integers separated by commas.");
+  }
+
+  // reinitialize state using the user’s array
+  A = vals;
+  steps = [];
+  renderedSnapshots.clear();
+  Object.keys(depthContainers).forEach(k => delete depthContainers[k]);
+  document.getElementById('subarrays').innerHTML = '';
+
+  // run and render
+  quickSort(A, 0, A.length - 1);
+  cur = 0;
+  render();
+};
+
+
+  initDemo();
+})();
+</script>
+</body>
+</html>
