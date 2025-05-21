@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Maximum Flow</title>
+  <script id="MathJax-script" async
+    src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <link rel="stylesheet" href="../../../style.css" />
+</head>
+<body>
+  <h1>Maximum Flow</h1>
+
+   <h2>Problem Description</h2>
+    <p>
+      Given a directed graph where each edge has a non-negative capacity, a source vertex \( s \), and a sink vertex \( t \),
+      determine the maximum amount of flow that can be sent from \( s \) to \( t \) without violating capacity constraints on the edges.
+      Each edge can carry flow up to its capacity and flow must obey conservation at each intermediate vertex.
+    </p>
+
+    <h3>Input</h3>
+    <p>
+      A directed graph \( G = (V, E) \), where each edge \( (u, v) \in E \) has a non-negative capacity \( c(u,v) \).<br>
+      A source vertex \( s \in V \) and a sink vertex \( t \in V \), with \( s \ne t \).
+    </p>
+
+    <h3>Output</h3>
+    <p>
+      The maximum flow value from \( s \) to \( t \), and optionally the flow along each edge.
+    </p>
+  </section>
+
+  <section>
+    <h2>Motivation/Applications</h2>
+    <p>
+      Maximum flow is a fundamental problem with applications in traffic routing, network design, bipartite matching, image segmentation, and project selection.
+    </p>
+  </section>
+
+<section>
+  <h2>Examples</h2>
+
+  <!-- Example 1 -->
+  <div class="example-box">
+    <strong class="example-title">Example 1</strong><br>
+    <strong>Input:</strong><br>
+	Graph with edges 
+    (s, x, 8), (s, y, 5), (x, y, 3), (x, t, 4), (y, t, 6)<br><br>
+
+    <!-- Original graph -->
+    <svg width="500" height="200">
+      <defs>
+        <marker id="arrow1" markerWidth="10" markerHeight="10"
+                refX="10" refY="3" orient="auto" markerUnits="strokeWidth">
+          <path d="M0,0 L0,6 L9,3 z" fill="#333"/>
+        </marker>
+      </defs>
+	  <g transform="translate(0, -50)">
+
+      <!-- Nodes -->
+      <circle cx="60" cy="150" r="20" fill="#cce3ff"/>
+      <text x="60" y="155" text-anchor="middle" font-weight="bold">s</text>
+
+      <circle cx="200" cy="80" r="20" fill="#cce3ff"/>
+      <text x="200" y="85" text-anchor="middle" font-weight="bold">x</text>
+
+      <circle cx="200" cy="220" r="20" fill="#cce3ff"/>
+      <text x="200" y="225" text-anchor="middle" font-weight="bold">y</text>
+
+      <circle cx="340" cy="150" r="20" fill="#cce3ff"/>
+      <text x="340" y="155" text-anchor="middle" font-weight="bold">t</text>
+
+      <!-- Edges -->
+      <line x1="78" y1="141" x2="182" y2="89" stroke="#333" stroke-width="2" marker-end="url(#arrow1)"/>
+      <text x="120" y="110" font-size="14" text-anchor="middle">8</text>
+
+      <line x1="78" y1="159" x2="182" y2="211" stroke="#333" stroke-width="2" marker-end="url(#arrow1)"/>
+      <text x="130" y="180" font-size="14" text-anchor="middle">5</text>
+
+      <line x1="200" y1="100" x2="200" y2="200" stroke="#333" stroke-width="2" marker-end="url(#arrow1)"/>
+      <text x="210" y="150" font-size="14" text-anchor="middle">3</text>
+
+      <line x1="220" y1="80" x2="320" y2="150" stroke="#333" stroke-width="2" marker-end="url(#arrow1)"/>
+      <text x="270" y="100" font-size="14" text-anchor="middle">4</text>
+
+      <line x1="220" y1="220" x2="320" y2="150" stroke="#333" stroke-width="2" marker-end="url(#arrow1)"/>
+      <text x="270" y="200" font-size="14" text-anchor="middle">6</text>
+    </svg>
+
+    <br>
+	
+    <strong>Output:</strong><br>
+    <em>Flow assignment:</em><br>
+
+    <!-- Flow graph -->
+    <svg width="500" height="200">
+      <defs>
+        <marker id="arrow1f" markerWidth="10" markerHeight="10"
+                refX="10" refY="3" orient="auto" markerUnits="strokeWidth">
+          <path d="M0,0 L0,6 L9,3 z" fill="#333"/>
+        </marker>
+      </defs>
+	  <g transform="translate(0, -50)">
+
+      <!-- Nodes -->
+      <circle cx="60" cy="150" r="20" fill="#cce3ff"/>
+      <text x="60" y="155" text-anchor="middle" font-weight="bold">s</text>
+
+      <circle cx="200" cy="80" r="20" fill="#cce3ff"/>
+      <text x="200" y="85" text-anchor="middle" font-weight="bold">x</text>
+
+      <circle cx="200" cy="220" r="20" fill="#cce3ff"/>
+      <text x="200" y="225" text-anchor="middle" font-weight="bold">y</text>
+
+      <circle cx="340" cy="150" r="20" fill="#cce3ff"/>
+      <text x="340" y="155" text-anchor="middle" font-weight="bold">t</text>
+
+      <!-- Flows / Capacities -->
+      <line x1="78" y1="141" x2="182" y2="89" stroke="#333" stroke-width="2" marker-end="url(#arrow1f)"/>
+      <text x="120" y="110" font-size="14" text-anchor="middle">
+        <tspan fill="#007bff">7</tspan>/8
+      </text>
+
+      <line x1="78" y1="159" x2="182" y2="211" stroke="#333" stroke-width="2" marker-end="url(#arrow1f)"/>
+      <text x="130" y="180" font-size="14" text-anchor="middle">
+        <tspan fill="#007bff">3</tspan>/5
+      </text>
+
+      <line x1="200" y1="100" x2="200" y2="200" stroke="#333" stroke-width="2" marker-end="url(#arrow1f)"/>
+      <text x="210" y="150" font-size="14" text-anchor="middle">
+        <tspan fill="#007bff">3</tspan>/3
+      </text>
+
+      <line x1="220" y1="80" x2="320" y2="150" stroke="#333" stroke-width="2" marker-end="url(#arrow1f)"/>
+      <text x="270" y="100" font-size="14" text-anchor="middle">
+        <tspan fill="#007bff">4</tspan>/4
+      </text>
+
+      <line x1="220" y1="220" x2="320" y2="150" stroke="#333" stroke-width="2" marker-end="url(#arrow1f)"/>
+      <text x="270" y="200" font-size="14" text-anchor="middle">
+        <tspan fill="#007bff">6</tspan>/6
+      </text>
+    </svg>
+
+    <br>
+    Maximum flow = 10
+  </div>
+
+  <br>
+
+  <!-- Example 2 -->
+  <div class="example-box">
+    <strong class="example-title">Example 2</strong><br>
+    <strong>Input:</strong><br>
+	Graph with edges 
+    (s, a, 10), (s, c, 10), (a, b, 4), (a, c, 2), (b, t, 10), (c, d, 9), (d, b, 6), (d, t, 10)<br><br>
+
+    <!-- Original graph -->
+    <svg width="500" height="250">
+      <defs>
+        <marker id="arrow2" markerWidth="10" markerHeight="10"
+                refX="10" refY="3" orient="auto" markerUnits="strokeWidth">
+          <path d="M0,0 L0,6 L9,3 z" fill="#333"/>
+        </marker>
+      </defs>
+	  <g transform="translate(0, -20)">
+      <!-- Nodes -->
+      <circle cx="60" cy="150" r="20" fill="#cce3ff"/>
+      <text x="60" y="155" text-anchor="middle" font-weight="bold">s</text>
+
+      <circle cx="180" cy="60" r="20" fill="#cce3ff"/>
+      <text x="180" y="65" text-anchor="middle" font-weight="bold">a</text>
+
+      <circle cx="300" cy="60" r="20" fill="#cce3ff"/>
+      <text x="300" y="65" text-anchor="middle" font-weight="bold">b</text>
+
+      <circle cx="420" cy="150" r="20" fill="#cce3ff"/>
+      <text x="420" y="155" text-anchor="middle" font-weight="bold">t</text>
+
+      <circle cx="180" cy="240" r="20" fill="#cce3ff"/>
+      <text x="180" y="245" text-anchor="middle" font-weight="bold">c</text>
+
+      <circle cx="300" cy="240" r="20" fill="#cce3ff"/>
+      <text x="300" y="245" text-anchor="middle" font-weight="bold">d</text>
+
+      <!-- Edges -->
+      <line x1="76" y1="138" x2="164" y2="72" stroke="#333" stroke-width="2" marker-end="url(#arrow2)"/>
+      <text x="90" y="100" font-size="14" text-anchor="middle">10</text>
+
+      <line x1="76" y1="162" x2="164" y2="228" stroke="#333" stroke-width="2" marker-end="url(#arrow2)"/>
+      <text x="90" y="195" font-size="14" text-anchor="middle">10</text>
+
+      <line x1="200" y1="60" x2="280" y2="60" stroke="#333" stroke-width="2" marker-end="url(#arrow2)"/>
+      <text x="240" y="45" font-size="14" text-anchor="middle">4</text>
+
+      <line x1="180" y1="80" x2="180" y2="220" stroke="#333" stroke-width="2" marker-end="url(#arrow2)"/>
+      <text x="190" y="150" font-size="14" text-anchor="middle">2</text>
+
+      <line x1="316" y1="72" x2="404" y2="138" stroke="#333" stroke-width="2" marker-end="url(#arrow2)"/>
+      <text x="370" y="105" font-size="14" text-anchor="middle">10</text>
+
+      <line x1="200" y1="240" x2="280" y2="240" stroke="#333" stroke-width="2" marker-end="url(#arrow2)"/>
+      <text x="240" y="255" font-size="14" text-anchor="middle">9</text>
+
+      <line x1="300" y1="220" x2="300" y2="80" stroke="#333" stroke-width="2" marker-end="url(#arrow2)"/>
+      <text x="310" y="150" font-size="14" text-anchor="middle">6</text>
+
+      <line x1="316" y1="228" x2="404" y2="162" stroke="#333" stroke-width="2" marker-end="url(#arrow2)"/>
+      <text x="340" y="195" font-size="14" text-anchor="middle">10</text>
+    </svg>
+
+	<br>
+    <strong>Output:</strong><br>
+    <em>Flow assignment:</em><br>
+
+    <!-- Flow graph -->
+    <svg width="500" height="250">
+      <defs>
+        <marker id="arrow2f" markerWidth="10" markerHeight="10"
+                refX="10" refY="3" orient="auto" markerUnits="strokeWidth">
+          <path d="M0,0 L0,6 L9,3 z" fill="#333"/>
+        </marker>
+      </defs>
+	  <g transform="translate(0, -20)">
+
+      <!-- Nodes -->
+      <circle cx="60" cy="150" r="20" fill="#cce3ff"/>
+      <text x="60" y="155" text-anchor="middle" font-weight="bold">s</text>
+
+      <circle cx="180" cy="60" r="20" fill="#cce3ff"/>
+      <text x="180" y="65" text-anchor="middle" font-weight="bold">a</text>
+
+      <circle cx="300" cy="60" r="20" fill="#cce3ff"/>
+      <text x="300" y="65" text-anchor="middle" font-weight="bold">b</text>
+
+      <circle cx="420" cy="150" r="20" fill="#cce3ff"/>
+      <text x="420" y="155" text-anchor="middle" font-weight="bold">t</text>
+
+      <circle cx="180" cy="240" r="20" fill="#cce3ff"/>
+      <text x="180" y="245" text-anchor="middle" font-weight="bold">c</text>
+
+      <circle cx="300" cy="240" r="20" fill="#cce3ff"/>
+      <text x="300" y="245" text-anchor="middle" font-weight="bold">d</text>
+
+      <!-- Flows / Capacities -->
+      <line x1="76" y1="138" x2="164" y2="72" stroke="#333" stroke-width="2" marker-end="url(#arrow2f)"/>
+      <text x="110" y="100" font-size="14" text-anchor="middle">
+        <tspan fill="#007bff">4</tspan>/10
+      </text>
+
+      <line x1="76" y1="162" x2="164" y2="228" stroke="#333" stroke-width="2" marker-end="url(#arrow2f)"/>
+      <text x="90" y="195" font-size="14" text-anchor="middle">
+        <tspan fill="#007bff">9</tspan>/10
+      </text>
+
+      <line x1="200" y1="60" x2="280" y2="60" stroke="#333" stroke-width="2" marker-end="url(#arrow2f)"/>
+      <text x="240" y="45" font-size="14" text-anchor="middle">
+        <tspan fill="#007bff">4</tspan>/4
+      </text>
+
+      <line x1="180" y1="80" x2="180" y2="220" stroke="#333" stroke-width="2" marker-end="url(#arrow2f)"/>
+      <text x="200" y="150" font-size="14" text-anchor="middle">
+        <tspan fill="#007bff">0</tspan>/2
+      </text>
+
+      <line x1="316" y1="72" x2="404" y2="138" stroke="#333" stroke-width="2" marker-end="url(#arrow2f)"/>
+      <text x="380" y="105" font-size="14" text-anchor="middle">
+        <tspan fill="#007bff">4</tspan>/10
+      </text>
+
+      <line x1="200" y1="240" x2="280" y2="240" stroke="#333" stroke-width="2" marker-end="url(#arrow2f)"/>
+      <text x="240" y="255" font-size="14" text-anchor="middle">
+        <tspan fill="#007bff">9</tspan>/9
+      </text>
+
+      <line x1="300" y1="220" x2="300" y2="80" stroke="#333" stroke-width="2" marker-end="url(#arrow2f)"/>
+      <text x="320" y="150" font-size="14" text-anchor="middle">
+        <tspan fill="#007bff">0</tspan>/6
+      </text>
+
+      <line x1="316" y1="228" x2="404" y2="162" stroke="#333" stroke-width="2" marker-end="url(#arrow2f)"/>
+      <text x="340" y="195" font-size="14" text-anchor="middle">
+        <tspan fill="#007bff">9</tspan>/10
+      </text>
+    </svg>
+
+    <br>
+    Maximum flow = 13
+  </div>
+</section>
+
+
+  <section>
+    <h2>Common Algorithms/Techniques</h2>
+    <ul>
+      <li>Ford–Fulkerson Method</li>
+      <li>Edmonds–Karp Algorithm</li>
+      <li>Dinic’s Algorithm</li>
+      <li>Push–Relabel Algorithm</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Variants/Related Problems</h2>
+    <ul>
+      <li>Minimum Cut</li>
+      <li>Circulation with Demands</li>
+      <li>Multi-commodity Flow</li>
+      <li>Maximum Bipartite Matching</li>
+    </ul>
+  </section>
+</body>
+</html>

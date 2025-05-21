@@ -1,0 +1,229 @@
+<style>
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: Arial, sans-serif;
+  }
+  th, td {
+    border: 1px solid #ccc;
+    padding: 8px;
+    text-align: left;
+    vertical-align: top;      /* ← added */
+  }
+  th {
+    background-color: #4A768B;
+    color: #fff;
+  }
+  tr:nth-child(even) {
+    background-color: #F2F2F2;
+  }
+  tr:nth-child(odd) {
+    background-color: #FFFFFF;
+  }
+  ul {
+    margin: 0;
+    padding-left: 1.2em;
+  }
+</style>
+
+<h1>Common Data Structures</h1>
+<p>
+<font color="red">Coming in the future: More details about Data Structures.
+But don't hold your breathe. It may not happen until 2026.</font></p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Data Structure</th>
+      <th>Description</th>
+      <th>Key Operations</th>
+      <th>Common Implementations</th>
+      <th>Other Notes</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Array</td>
+      <td>Contiguous block of elements; constant‐time random access.</td>
+      <td>
+        <ul>
+          <li>Access (O(1))</li>
+          <li>Search (O(n))</li>
+          <li>Insert/Delete at end (O(1) amortized)</li>
+          <li>Insert/Delete elsewhere (O(n))</li>
+        </ul>
+      </td>
+      <td>
+        <ul>
+          <li>Fixed-size contiguous array</li>
+          <li>Resizable array (dynamic, doubling)</li>
+        </ul>
+      </td>
+      <td>Great cache performance; resizing costs amortized.</td>
+    </tr>
+    <tr>
+      <td>Linked List</td>
+      <td>Chain of nodes, each holding a value and pointer(s).</td>
+      <td>
+        <ul>
+          <li>Insert/Delete at head/tail (O(1))</li>
+          <li>Traversal/Search (O(n))</li>
+        </ul>
+      </td>
+      <td>
+        <ul>
+          <li>Singly linked (next pointer)</li>
+          <li>Doubly linked (next + prev pointers)</li>
+        </ul>
+      </td>
+      <td>No constant‐time random access; extra pointer overhead.</td>
+    </tr>
+    <tr>
+      <td>Stack</td>
+      <td>LIFO (last‐in, first‐out) abstract data type.</td>
+      <td>
+        <ul>
+          <li>push, pop, peek (all O(1))</li>
+        </ul>
+      </td>
+      <td>
+        <ul>
+          <li>Array (fixed or dynamic)</li>
+          <li>Linked list (singly)</li>
+        </ul>
+      </td>
+      <td>Used for recursion, backtracking, expression evaluation.</td>
+    </tr>
+    <tr>
+      <td>Queue</td>
+      <td>FIFO (first‐in, first‐out) abstract data type.</td>
+      <td>
+        <ul>
+          <li>enqueue, dequeue, front (all O(1))</li>
+        </ul>
+      </td>
+      <td>
+        <ul>
+          <li>Circular buffer (array)</li>
+          <li>Linked list (singly)</li>
+        </ul>
+      </td>
+      <td>Common in BFS, buffering, producer–consumer.</td>
+    </tr>
+    <tr>
+      <td>Hash Table</td>
+      <td>Key–value map with average constant‐time access via hashing.</td>
+      <td>
+        <ul>
+          <li>insert, delete, lookup (O(1) avg)</li>
+        </ul>
+      </td>
+      <td>
+        <ul>
+          <li>Array of buckets + linked lists (chaining)</li>
+          <li>Flat array with probing (open addressing)</li>
+        </ul>
+      </td>
+      <td>Watch load factor; worst‐case O(n) under heavy collisions.</td>
+    </tr>
+    <tr>
+      <td>Binary Tree</td>
+      <td>Each node has up to two children; no particular ordering.</td>
+      <td>
+        <ul>
+          <li>traverse (pre/in/post: O(n))</li>
+          <li>insert/delete (depends on policy; often O(n))</li>
+        </ul>
+      </td>
+      <td>
+        <ul>
+          <li>Pointer-based nodes</li>
+          <li>Implicit array (heap-like layout, without heap property)</li>
+        </ul>
+      </td>
+      <td>Foundation for many more specialized trees (BST, heaps).</td>
+    </tr>
+    <tr>
+      <td>Binary Search Tree</td>
+      <td>Ordered binary tree: <em>left &lt; root &lt; right</em>.</td>
+      <td>
+        <ul>
+          <li>search, insert, delete (O(log n) avg)</li>
+          <li>in-order traversal (O(n))</li>
+        </ul>
+      </td>
+      <td>
+        <ul>
+          <li>Pointer-based nodes</li>
+        </ul>
+      </td>
+      <td>Unbalanced can degrade to O(n) height.</td>
+    </tr>
+    <tr>
+      <td>Balanced BST</td>
+      <td>Self-balancing trees guaranteeing O(log n) height.</td>
+      <td>
+        <ul>
+          <li>search, insert, delete (O(log n))</li>
+          <li>rebalancing via rotations or color flips</li>
+        </ul>
+      </td>
+      <td>
+        <ul>
+          <li>Pointer-based (AVL, Red-Black)</li>
+        </ul>
+      </td>
+      <td>Consistent performance at slight restructuring cost.</td>
+    </tr>
+    <tr>
+      <td>Priority Queue<br/>(Heap)</td>
+      <td>ADT supporting extract-min/max; typically backed by a heap.</td>
+      <td>
+        <ul>
+          <li>insert, extract-min/max (O(log n))</li>
+          <li>peek (O(1))</li>
+        </ul>
+      </td>
+      <td>
+        <ul>
+          <li>Binary heap (array)</li>
+          <li>Binomial/Fibonacci heap (pointer-based)</li>
+        </ul>
+      </td>
+      <td>Essential for Dijkstra, scheduling, heapsort.</td>
+    </tr>
+    <tr>
+      <td>Graph</td>
+      <td>Vertices connected by edges; directed or undirected.</td>
+      <td>
+        <ul>
+          <li>add/remove v/e; DFS, BFS (O(V+E))</li>
+          <li>shortest paths (Dijkstra, A*)</li>
+        </ul>
+      </td>
+      <td>
+        <ul>
+          <li>Adjacency list (array of lists)</li>
+          <li>Adjacency matrix (2D array)</li>
+        </ul>
+      </td>
+      <td>Sparse vs. dense trade-offs in space/time.</td>
+    </tr>
+    <tr>
+      <td>Disjoint Set (Union-Find)</td>
+      <td>Maintains a collection of non-overlapping sets.</td>
+      <td>
+        <ul>
+          <li>find, union (O(α(n)) amortized)</li>
+        </ul>
+      </td>
+      <td>
+        <ul>
+          <li>Array of parent indices + path compression</li>
+          <li>Pointer-based forest with union by rank/size</li>
+        </ul>
+      </td>
+      <td>Key in Kruskal’s MST, connectivity queries.</td>
+    </tr>
+  </tbody>
+</table>

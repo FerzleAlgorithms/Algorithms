@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Exact String Matching</title>
+  <link rel="stylesheet" href="../../../style.css" />
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body>
+  <h1>Exact String Matching</h1>
+
+  <section>
+    <h2>Problem Description</h2>
+    <p>Given a pattern string \( P \) of length \( m \) and a text string \( T \) of length \( n \), determine whether \( P \) appears in \( T \), and if so, return the index or indices at which it occurs.</p>
+
+    <h3>Input</h3>
+    <p>
+      A string \( P \) (the pattern) of length \( m \) and a string \( T \) (the text) of length \( n \), where \( 1 \le m \le n \).<br>
+      Both strings consist of characters from a fixed alphabet, often ASCII.
+    </p>
+
+    <h3>Output</h3>
+    <p>
+      The list of starting indices in \( T \) where \( P \) occurs exactly. Some versions of the problem may instead return only the first index (or -1 if \( P \) does not occur).
+    </p>
+  </section>
+
+  <section>
+    <h2>Motivation/Applications</h2>
+    <p>
+      String matching is fundamental to a wide variety of applications, including text search (e.g., Ctrl+F), DNA sequence analysis, plagiarism detection, and search engines. Fast string search algorithms are also critical in file systems and compression utilities.
+    </p>
+  </section>
+
+  <section>
+    <h2>Examples</h2>
+    <div class="example-box">
+      <strong class="example-title">Example 1</strong><br>
+      <strong>Input:</strong><br>
+      Pattern: <code>ana</code><br>
+      Text: <code>bananas</code><br><br>
+      <strong>Output:</strong><br>
+      <code>[1, 3]</code><br>
+      <strong>Explanation:</strong> "ana" appears starting at indices 1 and 3.<br>
+    </div>
+    <br>
+    <div class="example-box">
+      <strong class="example-title">Example 2</strong><br>
+      <strong>Input:</strong><br>
+      Pattern: <code>abc</code><br>
+      Text: <code>abdabcbabc</code><br><br>
+      <strong>Output:</strong><br>
+      <code>[3, 7]</code><br>
+      <strong>Explanation:</strong> "abc" appears starting at indices 3 and 7.<br>
+    </div>
+  </section>
+
+  <section>
+    <h2>Common Algorithms/Techniques</h2>
+    <ul>
+      <li>Naive Brute Force</li>
+      <li>Knuth-Morris-Pratt (KMP)</li>
+      <li>Boyer-Moore</li>
+      <li>Rabin-Karp (Rolling Hash)</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Variants/Related Problems</h2>
+    <ul>
+      <li>Approximate String Matching (with errors)</li>
+      <li>Multiple Pattern Matching (Aho-Corasick)</li>
+      <li>Longest Common Substring</li>
+      <li>Regular Expression Matching</li>
+    </ul>
+  </section>
+</body>
+</html>

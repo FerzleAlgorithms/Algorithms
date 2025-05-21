@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Optimal Character Encoding</title>
+  <link rel="stylesheet" href="../../../style.css" />
+  <script id="MathJax-script" async
+    src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+
+<h1>Optimal Character Encoding</h1>
+
+<section>
+  <h2>Problem Description</h2>
+  <p>
+    Given an alphabet of characters (or symbols) along with their frequencies in a
+    data stream/file, assign a unique binary code to each character so that the
+    overall length of the encoded stream is minimized.
+  </p>
+  <p>
+    The codes must be <strong>prefix-free</strong>: no codeword is a prefix of another.
+    This ensures instantaneous decodability—once you’ve read a complete codeword,
+    you know exactly which character it represents, without needing delimiters or
+    lookahead.
+  </p>
+
+  <h3>Input</h3>
+  <p>
+    A list of pairs \(\,(c_i, f_i)\), where each \(c_i\) is a character and \(f_i\) is its
+    positive integer frequency in the data stream/file.
+  </p>
+
+  <h3>Output</h3>
+  <p>
+    A prefix-free binary code for each character \(c_i\) that minimizes the total number of bits
+    \[
+      \sum_i f_i \,\ell_i
+    \]
+    where \(\ell_i\) is the length of the code assigned to \(c_i\).
+  </p>
+</section>
+
+<section>
+  <h2>Motivation/Applications</h2>
+  <p>
+    Efficient storage and transmission of data (e.g., text, genomic sequences,
+    network packets) relies on compressing frequent symbols with shorter codes.
+    Huffman’s algorithm provides an optimal solution under the prefix-free constraint.
+  </p>
+</section>
+
+<section>
+  <h2>Examples</h2>
+
+  <div class="example-box">
+    <strong class="example-title">Example 1</strong><br>
+    <strong>Input:</strong><br>
+    \(
+      \{(A,45),\, (B,13),\, (C,12),\, (D,16),\, (E,9),\, (F,5)\}
+    \)
+    <br><br>
+    <strong>Output:</strong><br>
+    One possible optimal prefix-free code:<br>
+    \(
+      \begin{aligned}
+        A &\colon 0,\\
+        B &\colon 101,\\
+        C &\colon 100,\\
+        D &\colon 111,\\
+        E &\colon 1101,\\
+        F &\colon 1100.
+      \end{aligned}
+    \)
+  </div>
+
+  <br>
+    <div class="example-box">
+    <strong class="example-title">Example 2</strong><br>
+    <strong>Input:</strong><br>
+    \(
+      \{(U,30),\, (V,25),\, (W,20),\, (X,15),\, (Y,7),\, (Z,3)\}
+    \)
+    <br><br>
+    <strong>Output:</strong><br>
+    One optimal prefix-free code:<br>
+    \(
+      \begin{aligned}
+        U &\colon 11,\\
+        V &\colon 10,\\
+        W &\colon 00,\\
+        X &\colon 011,\\
+        Y &\colon 0101,\\
+        Z &\colon 0100.
+      \end{aligned}
+    \)
+  </div>
+</section>
+
+<section>
+  <h2>Common Algorithms/Techniques</h2>
+  <ul>
+    <li>Huffman’s algorithm (greedy, optimal under prefix-free constraint)</li>
+    <li>Binary heap or priority-queue implementation for \(O(n \log n)\) performance</li>
+  </ul>
+</section>
+
+<section>
+  <h2>Variants/Related Problems</h2>
+  <ul>
+    <li>Shannon–Fano coding (greedy but not always optimal)</li>
+    <li>Adaptive Huffman coding (dynamic prefix-free codes)</li>
+    <li>Arithmetic coding (not prefix-free, but can achieve better compression rates)</li>
+  </ul>
+</section>
+
+</html>

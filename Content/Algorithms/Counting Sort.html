@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Counting Sort Tutorial & Demo</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js"></script>
+  <script src="../../scripts/chapterScripts.js"></script>
+  <link rel="stylesheet" href="../../style.css">
+  <!-- MathJax for LaTeX rendering -->
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+ 
+</head>
+<body>
+  <h1>Counting Sort</h1>
+
+  <h2>Problem Statement</h2>
+  <p>Counting Sort solves the <a class="problem" href="?path=Problems%2F1_Foundational%2FSorting">Sorting</a> problem.</p>
+  <strong>Example:</strong>
+  <pre><code>Input:  [4, 2, 2, 8, 3, 3, 1]
+Output: [1, 2, 2, 3, 3, 4, 8]</code></pre>
+<h2>Design and Strategy</h2>
+
+
+<p>
+Counting sort is a <b>non-comparison-based</b> distribution sorting algorithm that leverages a <b>counting</b> 
+strategy to sort integers within a known range. 
+First, it tallies the frequency of each distinct 
+value in the input array into a “count” array of size <i>k</i> (where <i>k</i> = max_value – min_value + 1). 
+Next, it transforms the count array into a <b>prefix‐sum</b> array, so that each position in the count array indicates the final position of the corresponding value in the sorted output. This two-phase approach—counting and prefix accumulation—enables sorting in Θ(<i>n</i> + <i>k</i>) time.
+</p>
+
+
+<p>
+To implement counting sort, you allocate a count array indexed by value offset 
+(value – min_value). In the first pass, you iterate through the input (with index <i>i</i> from 0 to
+ <i>n</i>–1), incrementing the appropriate slot in the count arrayfor each element. 
+ In the second pass, you compute the prefix sums in-place over the count array 
+ to determine the end positions for each value.
+ Finally, to achieve <b>stability</b>, you traverse the original array backward (index <i>j</i> 
+ from <i>n</i>–1 down to 0), decrement the count for the current element, 
+ and place it at the position indicated by the updated count.
+ This reverse traversal ensures that equal elements preserve their original 
+ relative order. Here is the 
+</p>
+
+<p>Counting sort functions by distributing elements into three arrays:</p>
+<ul>
+  <li><b>Input Array</b> (<i>A</i>): The original array of <i>n</i> elements to be sorted.</li>
+  <li><b>Count Array</b> (<i>C</i>): An auxiliary array of size <i>k = max_value − min_value + 1</i>, initialized to zero, used to tally frequencies.</li>
+  <li><b>Output Array</b> (<i>B</i>): A new array of length <i>n</i>, initially empty, which will hold the sorted result.</li>
+</ul>
+
+<p>
+<b>Pass 1 – Counting:</b>  
+Iterate <i>i</i> from 0 to <i>n−1</i>.  
+Let <i>v = A[i]</i> and <i>idx = v − min_value</i>.  
+Increment <i>C[idx]</i>.  
+<br>
+After this pass, <i>C[j]</i> contains the number of times the value <i>min_value + j</i> appears in <i>A</i>.
+</p>
+
+<p>
+<b>Pass 2 – Prefix Sum:</b>  
+For each <i>j</i> from 1 to <i>k−1</i>, do <i>C[j] += C[j−1]</i>.  
+<br>
+Now each <i>C[j]</i> indicates the index in <i>B</i> immediately after the last occurrence of <i>min_value + j</i>.
+</p>
+
+<p>
+<b>Pass 3 – Placement (stable):</b>  
+Traverse <i>A</i> backwards from <i>j = n−1</i> down to 0.  
+For each <i>v = A[j]</i>, compute <i>idx = v − min_value</i>, then  
+<pre style="display:inline">C[idx]--; B[C[idx]] = v;</pre>  
+<br>
+By placing elements in reverse order, equal values retain their original relative positions.
+</p>
+
+  <p>Counting Sort works by counting the number of occurrences of each unique key in the input array and using these counts to determine the positions of each key in the sorted output.</p>
+  <ol>
+    <li>Find the maximum value <i>k</i> in the input array to determine the range of keys (0 to <i>k</i>).</li>
+    <li>Create a count array <code>C</code> of size <i>k+1</i>, initialized to zero.</li>
+    <li>Iterate over the input array <code>A</code>, and for each element <code>A[i]</code>, increment <code>C[A[i]]</code>.</li>
+    <li>Compute prefix sums in the count array: for <code>i</code> from 1 to <i>k</i>, set <code>C[i] += C[i-1]</code>. Now <code>C[i]</code> represents the number of elements ≤ <code>i</code>.</li>
+    <li>Allocate an output array <code>B</code> of the same length as <code>A</code>.</li>
+    <li>Iterate over <code>A</code> from right to left (to ensure stability): for each <code>A[i]</code>, place it at index <code>C[A[i]] - 1</code> in <code>B</code>, then decrement <code>C[A[i]]</code>.</li>
+    <li>Copy the sorted elements from <code>B</code> back into <code>A</code> if an in-place operation is desired.</li>
+  </ol>
+
+  <div class="embeddedDemoContainer">
+  <object class="embeddedDemo" 
+          type="text/html" 
+          style="height: 625px"
+          data="../Demos/Counting Sort Demo.html"></object>
+</div>
+
+  <h2>Code Implementations</h2>
+  <div class="tabs">
+    <button class="tablink active" onclick="openTab(event, 'java')" id="tab-java">Java</button>
+    <button class="tablink" onclick="openTab(event, 'cpp')" id="tab-cpp">C++</button>
+    <button class="tablink" onclick="openTab(event, 'python')" id="tab-python">Python</button>
+  </div>
+
+  <div id="java" class="code-container">
+    <pre><code class="language-java">public void countingSort(int[] A) {
+    int n = A.length;
+    int k = 0;
+    for (int i = 0; i < n; i++) {
+        if (A[i] > k) k = A[i];
+    }
+    int[] C = new int[k+1];
+    for (int value : A) {
+        C[value]++;
+    }
+    for (int i = 1; i <= k; i++) {
+        C[i] += C[i-1];
+    }
+    int[] B = new int[n];
+    for (int i = n-1; i >= 0; i--) {
+        B[C[A[i]] - 1] = A[i];
+        C[A[i]]--;
+    }
+    System.arraycopy(B, 0, A, 0, n);
+}</code></pre>
+  </div>
+
+  <div id="cpp" class="code-container">
+    <pre><code class="language-cpp">void countingSort(vector<int>& A) {
+    int n = A.size();
+    int k = *max_element(A.begin(), A.end());
+    vector<int> C(k+1, 0);
+    for (int x : A) C[x]++;
+    for (int i = 1; i <= k; i++) C[i] += C[i-1];
+    vector<int> B(n);
+    for (int i = n-1; i >= 0; i--) {
+        B[C[A[i]] - 1] = A[i];
+        C[A[i]]--;
+    }
+    A = B;
+}</code></pre>
+  </div>
+
+  <div id="python" class="code-container">
+    <pre><code class="language-python">def counting_sort(A):
+    n = len(A)
+    if n == 0: return A
+    k = max(A)
+    C = [0] * (k+1)
+    for x in A:
+        C[x] += 1
+    for i in range(1, k+1):
+        C[i] += C[i-1]
+    B = [0] * n
+    for x in reversed(A):
+        B[C[x] - 1] = x
+        C[x] -= 1
+    return B</code></pre>
+  </div>
+
+  <h2>Time/Space Analysis</h2>
+  <p>Counting Sort runs in <i>O(n + k)</i> time, where <i>n</i> is the number of elements and <i>k</i> is the range of input values. Its space complexity is also <i>O(n + k)</i> due to the count array and output array.</p>
+
+  <div class="section">
+    <h2>Reading Comprehension Questions</h2>
+    <ol>
+      <li>What is the time complexity of Counting Sort?</li>
+      <li>What is the space complexity of Counting Sort?</li>
+      <li>Why is Counting Sort not comparison-based?</li>
+      <li>When is Counting Sort most efficient?</li>
+      <li>How does Counting Sort achieve stability?</li>
+    </ol>
+    <button id="toggleAnswers" class="show-answer" aria-expanded="false">Show Answers</button>
+    <div id="answers" class="answer" hidden>
+      <ol>
+        <li><strong>Answer:</strong> <i>O(n + k)</i>.</li>
+        <li><strong>Answer:</strong> <i>O(n + k)</i>.</li>
+        <li><strong>Answer:</strong> It counts occurrences instead of comparing elements.</li>
+        <li><strong>Answer:</strong> When <i>k = O(n)</i>, i.e., the range of values is not significantly larger than the number of elements.</li>
+        <li><strong>Answer:</strong> By iterating from right to left when placing elements into the output array.</li>
+      </ol>
+    </div>
+  </div>
+
+  <div class="section">
+  <h2>In-Class Activities</h2>
+  <ul>
+    <li>Use physical tokens to count and place elements in order.</li>
+    <li>Discuss the stability of Counting Sort with varying input distributions.</li>
+    <li>Compare Counting Sort with comparison-based sorts on different datasets.</li>
+    <li>Work in pairs to write pseudocode for Counting Sort on the whiteboard, then peer-review each other’s approach.</li>
+    <li>Simulate the count and prefix-sum phases using colored cards or sticky notes to represent different values.</li>
+    <li>Measure and plot the running time of Counting Sort versus array size <i>n</i> and key range <i>k</i> using a simple script.</li>
+    </ul>
+</div>
+
+
+ <div class="section">
+  <h2>Problems</h2>
+  <ol>
+    <li>Implement Counting Sort for a range including negative integers.</li>
+	<li>Modify the algorithm on paper to handle non‐integer keys (e.g., strings) by mapping them to integer indices.</li>
+  
+    <li>Modify Counting Sort to work in-place without an extra output array.</li>
+    <li>Analyze memory usage for large <i>k</i> compared to <i>n</i>.</li>
+    <li>Prove the correctness and stability of Counting Sort, and derive its Θ(<i>n</i> + <i>k</i>) time complexity and Θ(<i>n</i> + <i>k</i>) space complexity.</li>
+    <li>Design a parallel Counting Sort variant that distributes the counting and prefix-sum phases across multiple processors, and analyze its parallel runtime and speedup.</li>
+  </ol>
+</div>
+
+
+
+</body>
+</html>
