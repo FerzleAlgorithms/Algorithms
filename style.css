@@ -115,7 +115,7 @@ nav#menu a:hover {
 
 
 /* menu */
-#menuOLD ul {
+#menu ul {
   list-style-type: none;
   padding-left: 1em;
 }
@@ -124,27 +124,16 @@ nav#menu a:hover {
   margin-left: 1em;
 }
 
-#menu ul {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
 #menu li {
-  /* make your “bullet” or icon space on the left… */
-  padding-left: 1.2em;
-  /* …then pull the first line back out */
-  text-indent: -1.2em;
-  margin-bottom: 0.5em;            /* extra breathing room */
-  line-height: 1.4;                /* good readability */
+  margin-bottom: 0.3em;
+  padding: 0.1em 0.1em;
+  border-radius: 4px;
+  transition: background 0.2s;
 }
-/* optional: custom bullet via a pseudo-element */
-#menu li::before {
-  content: "•";
-  display: inline-block;
-  width: 1.2em;
-  color: #888;
-  font-size: 0.8em;
+#menu li:hover {
+  background: #f1f5f9;
 }
+
 
 
 

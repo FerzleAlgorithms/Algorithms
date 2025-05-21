@@ -2,6 +2,8 @@
   "Algorithms": [
     "Bubble Sort.html",
     "Hoare Partition.html",
+    "Insertion Sort.html",
+    "Merge Sort.html",
     "Selection Sort.html",
     "Sequential Search.html"
   ],
@@ -11,6 +13,7 @@
     "Huffman Encoding Demo.html",
     "Insertion Sort Demo.html",
     "Kruskals Algorithm Demo.html",
+    "Merge Sort Demo.html",
     "Prims Algorithm Demo.html",
     "Selection Sort Demo.html",
     "Sequential Search Demo.html",
@@ -21,6 +24,7 @@
       "1_Foundational": [
         "Array Partition.html",
         "Exponentiation.html",
+        "Matrix Multiplication.html",
         "Nth Order Statistic.html",
         "Polynomial Evaluation.html",
         "Searching.html",
@@ -29,17 +33,32 @@
     },
     {
       "2_Optimization": [
-        "0-1 Knapsack.html"
+        "0-1 Knapsack.html",
+        "Chain Matrix Multiplication.html",
+        "Edit Distance.html",
+        "Fractional Knapsack.html",
+        "Minimum Coin Change.html"
       ]
     },
     {
-      "3_Geometry_and_Numerical": []
+      "3_Geometry": [
+        "Closest Pair.html",
+        "Convex Hull.html"
+      ]
     },
     {
-      "4_Graphs": []
+      "4_Graphs": [
+        "Graph Traversal.html",
+        "Minimum Spanning Tree.html",
+        "Single-Source Shortest Path.html",
+        "Spanning Tree.html",
+        "Topological Sort.html"
+      ]
     },
     {
-      "5_Other": []
+      "5_Other": [
+        "Subset Sum.html"
+      ]
     },
     "Problem List.html"
   ]
