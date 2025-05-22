@@ -3,7 +3,8 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8"/>
-  <link rel="stylesheet" href="visualization.css"> 
+  <script src="../../scripts/demoScripts.js"></script>
+  <link rel="stylesheet" href="../../style.css"> 
   <title>Subset Sum Backtracking Tree with Functional Sliders</title>
   <style>
     #controls1 { margin-bottom: 1em; display: flex; flex-wrap: wrap; gap: 1em; }
@@ -130,10 +131,10 @@ window.onload = () => build(false);
 document.getElementById('buildBtn').addEventListener('click', ()=>build(false));
 document.getElementById('nextBtn').addEventListener('click', next);
 document.getElementById('prevBtn').addEventListener('click', prev);
-document.getElementById('hSpread').addEventListener('input', ()=>build(true));
-document.getElementById('nodeFontSize').addEventListener('input', ()=>{updateSettings(); draw();});
-document.getElementById('edgeFontSize').addEventListener('input', ()=>{updateSettings(); draw();});
-document.getElementById('circleRadius').addEventListener('input', ()=>{updateSettings(); draw();});
+//document.getElementById('hSpread').addEventListener('input', ()=>build(true));
+//document.getElementById('nodeFontSize').addEventListener('input', ()=>{updateSettings(); draw();});
+//document.getElementById('edgeFontSize').addEventListener('input', ()=>{updateSettings(); draw();});
+//document.getElementById('circleRadius').addEventListener('input', ()=>{updateSettings(); draw();});
 </script>
 </body>
 </html>

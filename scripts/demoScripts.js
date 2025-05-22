@@ -1,20 +1,6 @@
 
-function generateRandomArray(sizeInput,inputValues) {
-  size = +sizeInput.value;
-  const minV = parseInt(sizeInput.min);
-  const maxV = parseInt(sizeInput.max);
-  if(size < minV) {
-      size = minV;
-      sizeInput.value = minV;
-  }
-  if(size > maxV) {
-     size = maxV;
-     sizeInput.value = maxV;
-  }
 
-  array = Array.from({length: size}, () => Math.floor(Math.random() * 100));
-  inputValues.value = array.join(',');
-}
+
 document.addEventListener('DOMContentLoaded', () => {
   // 1) Create & style the button
   const btn = document.createElement('button');
@@ -29,13 +15,14 @@ document.addEventListener('DOMContentLoaded', () => {
   });
   document.body.appendChild(btn);
 
-  // 2) Wire it up to always fullscreen *this* document
-  btn.addEventListener('click', () => {
-    const docEl = document.documentElement;      // the <html> of *this* demo
+btn.addEventListener('click', () => {
+    const html = document.documentElement;
     if (!document.fullscreenElement) {
-      docEl.requestFullscreen().catch(console.error);
+      html.requestFullscreen().catch(console.error);
     } else {
       document.exitFullscreen();
     }
   });
+  
 });
+

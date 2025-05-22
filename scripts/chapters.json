@@ -1,25 +1,35 @@
 {
   "Algorithms": [
     "Bubble Sort.html",
+    "Counting Sort.html",
     "Hoare Partition.html",
     "Insertion Sort.html",
     "Merge Sort.html",
+    "Radix Sort.html",
     "Selection Sort.html",
     "Sequential Search.html"
   ],
+  "Data Structures": [
+    "Data Structure List.html"
+  ],
   "Demos": [
     "Bubble Sort Demo.html",
+    "Counting Sort Demo.html",
     "Hoare Partition Demo.html",
     "Huffman Encoding Demo.html",
     "Insertion Sort Demo.html",
     "Kruskals Algorithm Demo.html",
     "Merge Sort Demo.html",
     "Prims Algorithm Demo.html",
+    "QuickSort Demo.html",
+    "Radix Sort Demo.html",
+    "Radix Sort.html",
     "Selection Sort Demo.html",
     "Sequential Search Demo.html",
     "Subset Sum Demo.html"
   ],
   "Problems": [
+    "0_Problem List.html",
     {
       "1_Foundational": [
         "Array Partition.html",
@@ -48,7 +58,9 @@
     },
     {
       "4_Graphs": [
+        "All Pairs Shortest Path.html",
         "Graph Traversal.html",
+        "Maximum Flow.html",
         "Minimum Spanning Tree.html",
         "Single-Source Shortest Path.html",
         "Spanning Tree.html",
@@ -57,9 +69,11 @@
     },
     {
       "5_Other": [
-        "Subset Sum.html"
+        "Optimal Character Encoding.html",
+        "String Matching.html",
+        "Subset Sum.html",
+        "Travelling Salesman.html"
       ]
-    },
-    "Problem List.html"
+    }
   ]
 }

@@ -83,7 +83,7 @@ function loadContent(relativePath) {
 
       // force the object to reload the new page
       const bustUrl = `${urlBase}?_=${Date.now()}`;
-      obj.data = bustUrl;
+      obj.src = bustUrl;
 
       // **once the object’s document is ready**, hook its links
       obj.onload = () => {
@@ -121,6 +121,15 @@ function loadContent(relativePath) {
           .forEach(a => {
             a.setAttribute("target", "_top");
           });
+        // --- cache-bust any embedded demos -------------------------
+        // This makes sure they reload every time instead of using a stale copy
+        edoc.querySelectorAll('iframe.embeddedDemo').forEach(frame => {
+        // strip off any old query, then append a fresh timestamp
+        const baseSrc = frame.getAttribute('src').split('?')[0];
+        frame.setAttribute('src', baseSrc + '?cb=' + Date.now());
+});
+// ------------------------------------------------------------------
+
       };
     })
     .catch(e => {
@@ -186,4 +195,16 @@ document.addEventListener("DOMContentLoaded", () => {
     loadContent(htmlPath).catch(() => {});
     history.pushState({}, "", `?path=${raw}`);
   });
+});
+
+//-- Listen for fullscreen request
+
+window.addEventListener('message', e => {
+  if (e.data?.type === 'demo-fullscreen') {
+    // e.source is the demoPage’s Window
+    const obj = e.source.frameElement;  
+    if (obj && typeof obj.requestFullscreen === 'function') {
+      obj.requestFullscreen().catch(console.error);
+    }
+  }
 });

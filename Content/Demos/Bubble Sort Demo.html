@@ -2,6 +2,10 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma"        content="no-cache">
+<meta http-equiv="Expires"       content="0">
+
   <title>Bubble Sort Demo</title>
   <script src="../../scripts/demoScripts.js"></script>
   <link rel="stylesheet" href="../../style.css">
@@ -33,10 +37,28 @@
   &nbsp;&nbsp;<strong>i, j</strong> pointers during sorting
 </div>
 
-<script>
+<script> 
+
 let array = [];
 let steps = [];
 let currentStep = -1;
+
+function generateRandomArray(sizeInput,inputValues) {
+  size = +sizeInput.value;
+  const minV = parseInt(sizeInput.min);
+  const maxV = parseInt(sizeInput.max);
+  if(size < minV) {
+      size = minV;
+      sizeInput.value = minV;
+  }
+  if(size > maxV) {
+     size = maxV;
+     sizeInput.value = maxV;
+  }
+
+  array = Array.from({length: size}, () => Math.floor(Math.random() * 100));
+  inputValues.value = array.join(',');
+}
 
 function generateArray() {
   const input = document.getElementById('inputValues').value;
