@@ -170,7 +170,9 @@ But don't hold your breathe. It may not happen until 2026.</font></p>
       </td>
       <td>
         <ul>
-          <li>Pointer-based (AVL, Red-Black)</li>
+          <li>AVL Tree (pointer-based)</li>
+          <li>Red-Black Tree (pointer-based)</li>
+          <li>2-3 Tree (pointer-based, not technically BST)</li>
         </ul>
       </td>
       <td>Consistent performance at slight restructuring cost.</td>
@@ -197,14 +199,16 @@ But don't hold your breathe. It may not happen until 2026.</font></p>
       <td>Vertices connected by edges; directed or undirected.</td>
       <td>
         <ul>
-          <li>add/remove v/e; DFS, BFS (O(V+E))</li>
-          <li>shortest paths (Dijkstra, A*)</li>
+          <li>Add/Remove vertex/edge</li>
+		  <li>Iterate over neighbors of vertex</li>
+		  <li>Traverse (DFS, BFS (O(V+E))</li>
         </ul>
       </td>
       <td>
         <ul>
           <li>Adjacency list (array of lists)</li>
           <li>Adjacency matrix (2D array)</li>
+		  <li>Incidence Matrix (much less common)</li>
         </ul>
       </td>
       <td>Sparse vs. dense trade-offs in space/time.</td>
@@ -214,7 +218,7 @@ But don't hold your breathe. It may not happen until 2026.</font></p>
       <td>Maintains a collection of non-overlapping sets.</td>
       <td>
         <ul>
-          <li>find, union (O(α(n)) amortized)</li>
+          <li>find, union</li>
         </ul>
       </td>
       <td>

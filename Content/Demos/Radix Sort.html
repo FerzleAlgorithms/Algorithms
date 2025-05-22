@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Radix Sort Tutorial & Demo</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js"></script>
+  <script src="../../scripts/chapterScripts.js"></script>
+  <link rel="stylesheet" href="../../style.css">
+  <!-- MathJax for LaTeX rendering -->
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body>
+  <h1>Radix Sort</h1>
+
+  <h2>Problem Statement</h2>
+  <p>Radix Sort solves the <a class="problem" href="?path=Problems%2F1_Foundational%2FSorting">Sorting</a> problem.</p>
+  <strong>Example:</strong>
+  <pre><code>Input:  [170, 45, 75, 90, 802, 24, 2, 66]
+Output: [2, 24, 45, 66, 75, 90, 170, 802]</code></pre>
+
+  <h2>Design and Strategy</h2>
+  <p>Radix sort is a <b>non-comparison-based</b> distribution sorting algorithm that processes integer keys digit by digit from least significant to most significant (LSD), using a <b>stable</b> intermediate sort (commonly counting sort) for each digit position. Let <i>d</i> be the number of digits in the maximum key, and <i>k</i> the radix (base), typically 10 for decimal digits. Radix sort runs in Θ(<i>d</i>(<i>n</i> + <i>k</i>)) time.</p>
+  <p>The algorithm uses three arrays:</p>
+  <ul>
+    <li><b>Input Array</b> (<i>A</i>): The original array of <i>n</i> integer keys.</li>
+    <li><b>Count Array</b> (<i>C</i>): An auxiliary array of size <i>k</i>, initialized to zero, to count occurrences of each digit 0..<i>k</i>−1.</li>
+    <li><b>Output Array</b> (<i>B</i>): An array of length <i>n</i> to hold the sorted result after each digit pass.</li>
+  </ul>
+  <p>
+    <b>Pass</b> = one stable sort by digit:<br>
+    For each digit position <i>p</i> from 0 (least significant) to <i>d−1</i>:
+  </p>
+  <ol>
+    <li>
+      <b>Extract Digit and Count:</b>  
+      Initialize <i>C[0..k−1]</i> = 0. For each <i>i</i> in 0..<i>n−1</i>, let <i>d_i = (A[i] / k^p) mod k</i>, and increment <i>C[d_i]</i>.
+    </li>
+    <li>
+      <b>Prefix Sum:</b>  
+      For <i>j</i> from 1 to <i>k−1</i>, do <i>C[j] += C[j−1]</i>, so <i>C[j]</i> indicates the end position of digit <i>j</i> in <i>B</i>.
+    </li>
+    <li>
+      <b>Placement (stable):</b>  
+      Traverse <i>A</i> backwards from <i>i=n−1</i> down to 0. For each <i>A[i]</i>, compute <i>d_i</i> again, decrement <i>C[d_i]</i>, and set <i>B[C[d_i]] = A[i]</i>.
+    </li>
+    <li>
+      Copy <i>B</i> back to <i>A</i> for the next digit pass.
+    </li>
+  </ol>
+
+  <div class="embeddedDemoContainer">
+    <object class="embeddedDemo"
+            type="text/html"
+            style="height: 625px"
+            data="../Demos/Radix Sort Demo.html"></object>
+  </div>
+
+  <h2>Code Implementations</h2>
+  <div class="tabs">
+    <button class="tablink active" onclick="openTab(event, 'java')" id="tab-java">Java</button>
+    <button class="tablink" onclick="openTab(event, 'cpp')" id="tab-cpp">C++</button>
+    <button class="tablink" onclick="openTab(event, 'python')" id="tab-python">Python</button>
+  </div>
+  <div id="java" class="code-container">
+    <pre><code class="language-java">public void radixSort(int[] A) {
+    int n = A.length;
+    int max = 0;
+    for (int x : A) max = Math.max(max, x);
+    int d = 0;
+    while ((int)Math.pow(10, d) <= max) d++;
+    int[] B = new int[n];
+    for (int p = 0; p < d; p++) {
+        int[] C = new int[10];
+        int exp = (int)Math.pow(10, p);
+        for (int i = 0; i < n; i++) {
+            int digit = (A[i] / exp) % 10;
+            C[digit]++;
+        }
+        for (int i = 1; i < 10; i++) C[i] += C[i-1];
+        for (int i = n-1; i >= 0; i--) {
+            int digit = (A[i] / exp) % 10;
+            B[--C[digit]] = A[i];
+        }
+        System.arraycopy(B, 0, A, 0, n);
+    }
+}</code></pre>
+  </div>
+  <div id="cpp" class="code-container">
+    <pre><code class="language-cpp">void radixSort(vector<int>& A) {
+    int n = A.size();
+    int maxv = *max_element(A.begin(), A.end());
+    int d = 0;
+    while (pow(10, d) <= maxv) d++;
+    vector<int> B(n);
+    for (int p = 0; p < d; p++) {
+        vector<int> C(10, 0);
+        int exp = pow(10, p);
+        for (int x : A) C[(x / exp) % 10]++;
+        for (int i = 1; i < 10; i++) C[i] += C[i-1];
+        for (int i = n-1; i >= 0; i--) {
+            int digit = (A[i] / exp) % 10;
+            B[--C[digit]] = A[i];
+        }
+        A = B;
+    }
+}</code></pre>
+  </div>
+  <div id="python" class="code-container">
+    <pre><code class="language-python">def radix_sort(A):
+    if not A: return A
+    maxv = max(A)
+    d = len(str(maxv))
+    n = len(A)
+    B = [0]*n
+    for p in range(d):
+        C = [0]*10
+        exp = 10**p
+        for x in A:
+            C[(x // exp) % 10] += 1
+        for i in range(1, 10):
+            C[i] += C[i-1]
+        for x in reversed(A):
+            digit = (x // exp) % 10
+            C[digit] -= 1
+            B[C[digit]] = x
+        A = B[:]
+    return A</code></pre>
+  </div>
+
+  <h2>Time/Space Analysis</h2>
+  <p>Radix Sort runs in Θ(<i>d</i>(<i>n</i> + <i>k</i>)) time, where <i>d</i> is the number of digits and <i>k</i> is the radix (base). When <i>k</i> is constant (e.g., 10), this simplifies to Θ(<i>d·n</i>). Space complexity is Θ(<i>n</i> + <i>k</i>), predominantly for the count and output arrays per digit pass.</p>
+
+  <div class="section">
+    <h2>Reading Comprehension Questions</h2>
+    <ol>
+      <li>What property must the intermediate sort satisfy for Radix Sort to work correctly?</li>
+      <li>How does the number of digits <i>d</i> affect the running time?</li>
+      <li>Why is Radix Sort not a comparison-based algorithm?</li>
+      <li>What trade-offs arise when choosing a larger radix?</li>
+      <li>How would you adapt Radix Sort to sort strings of equal length?</li>
+    </ol>
+    <button id="toggleAnswers" class="show-answer" aria-expanded="false">Show Answers</button>
+    <div id="answers" class="answer" hidden>
+      <ol>
+        <li><strong>Answer:</strong> It must be <i>stable</i>, preserving the order of equal keys.</li>
+        <li><strong>Answer:</strong> Running time is linear in <i>d</i>, so more digits increase total passes linearly.</li>
+        <li><strong>Answer:</strong> It sorts by digit extraction and counting rather than element comparisons.</li>
+        <li><strong>Answer:</strong> Larger radix reduces <i>d</i> but increases <i>k</i>, affecting both time and space for the count array.</li>
+        <li><strong>Answer:</strong> Treat each character as a digit, convert to numeric codes, and apply LSD Radix Sort.</li>
+      </ol>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>In-Class Activities</h2>
+    <ul>
+      <li>Visualize each digit pass by grouping cards or tokens according to the current digit.</li>
+      <li>Explore how stability affects sorting order by comparing stable vs unstable intermediate sorts.</li>
+      <li>Compare performance for different radices (e.g., base-10 vs base-256) on large datasets.</li>
+      <li>Implement a digit-extraction function in pairs and test its correctness on diverse inputs.</li>
+    </ul>
+  </div>
+
+  <div class="section">
+    <h2>Problems</h2>
+    <ol>
+      <li>Analyze the performance of MSD vs LSD Radix Sort on strings of fixed and variable lengths.</li>
+      <li>Modify Radix Sort to handle negative integers.</li>
+      <li>Design a hybrid Radix-QuickSort algorithm and discuss scenarios where it outperforms each individual algorithm.</li>
+      <li>Implement an in-place Radix Sort variant that uses O(1) additional space.</li>
+    </ol>
+  </div>
+
+</body>
+</html>

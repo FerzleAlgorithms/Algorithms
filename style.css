@@ -195,10 +195,11 @@ input {
       width: 15px;
       height: 15px;
       vertical-align: middle;
-      margin-right: 5px;
+      margin-right: 1px;
+      margin-left: 10px;
       border-radius: 4px;
 	  border: 1px solid #333;
-	  background-color;
+	  background-color: transparent;
     }
 	
 	/* For code display? */

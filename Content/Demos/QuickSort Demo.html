@@ -24,11 +24,10 @@
     }
     .arrow {
       margin-top: 4px;
-      font-size: 12px;
       text-align: center;
       line-height: 1.2;
     }
-    .step-comment { margin-top: 10px; font-style: italic; }
+    .step-comment { margin-top: 30px; font-style: italic; }
     .dynamic-group, .static-group { padding-top: 5px; }
     /* Adjust margins for headers and containers */
     .array-container { display: flex; gap: 10px; margin-top: 10px; margin-bottom: 10px; }
@@ -40,7 +39,7 @@
 
   <div id="controls">
     <label>Size:
-      <input type="number" id="arraySize" min="8" max="20" value="10" size="2">
+      <input type="number" id="arraySize" min="8" max="20" value="16" size="2">
     </label>
     <button id="generate">Random Array</button>
     <input type="text" id="customArray" placeholder="12,34,56,78" size="40">
@@ -52,17 +51,15 @@
     <button id="next-step">Next</button>
   </div>
 
-<!-- after -->
-<div style="margin:10px 0; padding:0; display:flex; flex-wrap:wrap; gap:10px;">
-    <b>Legend:</b>
-    <span style="width:15px; height:15px; background-color:lightgreen; border:1px solid black;"></span> Pivot
-    <span style="width:15px; height:15px; background-color:orange;    border:1px solid black;"></span> ≤ pivot
-    <span style="width:15px; height:15px; background-color:#1e90ff;  border:1px solid black;"></span> &gt; pivot
-    <span style="width:15px; height:15px; background-color:yellow;    border:1px solid black;"></span> Swapping
-    <span style="width:15px; height:15px; background-color:white;     border:1px solid black;"></span> Unpartitioned
-    <span style="width:15px; height:15px; background-color:#b579ee;  border:1px solid black;"></span> Sorted
-  </div>
-  
+<div class="legend">
+  <b>Legend:</b>
+  <span class="legend-box" style="background-color: lightgreen;"></span> Pivot
+  <span class="legend-box" style="background-color: orange;"></span> ≤ pivot
+  <span class="legend-box" style="background-color: #1e90ff;"></span> &gt; pivot
+  <span class="legend-box" style="background-color: yellow;"></span> Swapping
+  <span class="legend-box" style="background-color: white;"></span> Unpartitioned
+  <span class="legend-box" style="background-color: #b579ee;"></span> Sorted
+</div> 
 
   <!-- Header for main array -->
   <h3>Main Array</h3>
@@ -306,22 +303,22 @@
 
   function runPartition(arr, low, high, depth) {
     let pivot = low, p = arr[pivot], i = low+1, j = high;
-    record({A:[...arr], i, j, pivot, p, low, high, depth, phase: 'start', desc: `p=A[${pivot}]=${p}`});
+    record({A:[...arr], i, j, pivot, p, low, high, depth, phase: 'start', desc: `pivot = A[${pivot}] = ${p}`});
     while (true) {
       while (i <= high && arr[i] <= p) {
         record({A:[...arr], i, j, pivot, p, low, high, depth, phase: 'compare-i',
-                desc: `${arr[i]}≤${p}? Yes → i++`});
+                desc: `${arr[i]} ≤ ${p}? Yes → i++`});
         i++;
       }
       record({A:[...arr], i, j, pivot, p, low, high, depth, phase: 'compare-i',
-              desc: `${arr[i]}≤${p}? No → check j`});
+              desc: `${arr[i]} ≤ ${p}? No → check j`});
       while (j >= low && arr[j] > p) {
         record({A:[...arr], i, j, pivot, p, low, high, depth, phase: 'compare-j',
-                desc: `${arr[j]}>${p}? Yes → j--`});
+                desc: `${arr[j]} > ${p}? Yes → j--`});
         j--;
       }
       record({A:[...arr], i, j, pivot, p, low, high, depth, phase: 'compare-j',
-              desc: `${arr[j]}>${p}? No → check swap`});
+              desc: `${arr[j]} > ${p}? No → swap`});
       if (i >= j) {
         [arr[pivot], arr[j]] = [arr[j], arr[pivot]];
         record({A:[...arr], i, j, pivot, p, low, high, depth, phase: 'do-p',
@@ -333,7 +330,7 @@
       [arr[i], arr[j]] = [arr[j], arr[i]];
       const oldi = i, oldj = j; i++; j--;
       record({A:[...arr], i, j, oldi, oldj, pivot, p, low, high, depth, phase: 'do-swap',
-              desc: `Swapped A[${oldi}] & A[${oldj}], i=${i}, j=${j}`});
+              desc: `Swapped A[${oldi}] & A[${oldj}], i = ${i}, j = ${j}`});
     }
   }
 
@@ -341,6 +338,8 @@
     const n = Math.min(Math.max(parseInt(document.getElementById('arraySize').value)||10,8),20);
     document.getElementById('arraySize').value = n;
     A = Array.from({length:n}, ()=>Math.floor(Math.random()*100));
+    const customInput = document.getElementById('customArray');
+	customInput.value = A.join(',');
     steps = [];
     renderedSnapshots.clear();
     Object.keys(depthContainers).forEach(k => delete depthContainers[k]);
