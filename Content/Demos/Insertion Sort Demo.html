@@ -7,16 +7,14 @@
   <script src="../../scripts/demoScripts.js"></script>
   <link rel="stylesheet" href="../../style.css">
   <style>
-    #visualization { position: relative; height: 180px; overflow: visible; margin: 0 auto; }
-    #array-container { display: flex; align-items: flex-end; justify-content: left; gap: 5px; height: calc(100% - 10px); margin-bottom: 10px; }
-    
-    
-    
+    #visualization { position: relative; height: 120px; overflow: visible; margin: 0 auto; }
+    #array-container { display: flex; align-items: flex-end; justify-content: left; gap: 5px; 
+	    height: calc(100% - 10px); margin-bottom: 10px; }
     .floating  { position: absolute; z-index: 10; transition: top 0.3s ease; }
   </style>
 </head>
 <body>
-  <h1>Insertion Sort Demo</h1>
+  <h2>Insertion Sort Demo</h2>
   <div id="controls">
     <label>Size:<input type="number" id="size" min="8" max="20" value="10" /></label>
     <button id="generate">Random Array</button>
@@ -32,7 +30,7 @@
     <div id="floatLayer"></div>
   </div>
   <div id="description">Press "Next" to start sorting.</div>
-  <div id="legend">
+  <div id="legend" class="legend">
     <strong>Legend:</strong>
     <span><span class="legend-box default"></span> Unsorted</span>
     <span><span class="legend-box sorted"></span> Sorted Portion</span>
@@ -116,14 +114,14 @@
           const bVal = state.arr[state.compareIndex];
           const op = aVal <= bVal ? '<' : '>';
           if (aVal < bVal) {
-            desc.textContent = `${aVal} < ${bVal}? Yes, shifting ${bVal} to the right.`;
+            desc.textContent = `${aVal} < ${bVal}? Yes, need to shift ${bVal} to the right.`;
           } else {
             desc.textContent = `${aVal} < ${bVal}? No, placing key element.`;
           }
           break;
         }
         case 'shift':
-          desc.textContent = 'Shifting element to the right.';
+          desc.textContent = 'Shifted element to the right.';
           break;
         case 'placed':
           if (state.sortedCount === state.arr.length) {
@@ -148,7 +146,7 @@
         floatingKey.style.width  = `${target.width}px`;
         floatingKey.style.height = `${target.height}px`;
         floatingKey.style.left   = `${target.left - parent.left}px`;
-        floatingKey.style.top    = `${target.top - parent.top + 100}px`;
+        floatingKey.style.top    = `${target.top - parent.top + 70}px`;
         floatLayer.appendChild(floatingKey);
       } else {
         floatLayer.innerHTML = '';

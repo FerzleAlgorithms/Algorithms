@@ -22,16 +22,11 @@
   <h1>Insertion Sort</h1>
 
   
-    <h2>Problem Statement</h2>
+    <h2>Problem Solved</h2>
     <p>Insertion Sort solves the 
 	<a class="problem" href="?path=Problems%2F1_Foundational%2FSorting">Sorting</a>  problem.
 	</p>
-    <strong>Example:</strong>
-    <pre><code>Input:  [5, 3, 8, 1, 2]
-Output: [1, 2, 3, 5, 8]</code></pre>
- 
-
-
+   
     <h2>Design and Strategy</h2>
 	
 	
@@ -45,36 +40,34 @@ With each step, the sorted portion grows by one, and the unsorted portion shrink
 until the entire array becomes sorted. 
 Thus, Insertion Sort is considered a <b>decrease-and-conquer</b> algorithm.
 </p>
-
+<p>More formally, the algorithm works as follows:</p>
 <ol>
   <li>
-    Initially, consider the first element of the array (index 0) as the sorted portion. 
+    Initially, consider the first element of the array (index 0) as the sorted portion.
   </li>
   <li>
-	Select the first element from the unsorted portion as the key element.
+    Select the first element from the unsorted portion as the key element.
   </li>
   <li>
-    Compare the key element with the elements in the sorted portion, moving leftward through the array, 
-	until an element <i>s</i> with a value less than or equal to the key element is found. 
-	The correct insertion position for the key element is the space right after <i>s</i>. 
+    Starting from the end of the sorted portion, scan leftward through the array.
+    As long as the current element is greater than the key, shift it one position to the right.
+    Let <i>s</i> be the index of the last element compared that is less than or equal to the key,
+    or -1 if no such element is found.
   </li>
   <li>
-    From right to left, shift each element that is to the right of <i>s</i> in the sorted portion of the array 
-	one position to the right to make room for insertion.
+    Insert the key into position <i>s + 1</i>.
   </li>
   <li>
-    Insert the key element into the empty position created in the sorted portion.
-  </li>
-  <li>
-    Move the boundary separating the sorted and unsorted portions one position to the right, 
-	and repeat steps 2-5 until the unsorted portion is empty, resulting in a fully sorted array.
+    Move the boundary separating the sorted and unsorted portions one position to the right,
+    and repeat steps 2–5 until the array is fully sorted.
   </li>
 </ol>
- 
 
-
- 
-  <object type="text/html" data="../Demos/Insertion Sort Demo.html" style="width:100%; height:400px; border:none;"></object>
+  <object type="text/html" 
+	  data="../Demos/Insertion Sort Demo.html" 
+	  style="width:100%; 
+	  height:360px; 
+	  border:none;"></object>
  
 
   
@@ -190,29 +183,21 @@ to verify it’s in the correct position. There are no shifts required:
 </ul>
 
 <p>
-Thus, in the best case, the total number of comparisons is exactly:
+Thus, in the best case, the total number of comparisons is exactly <i>(n - 1) = O(n)</i>.
 </p>
-
-<pre>
-(n - 1) = O(n)
-</pre>
 
 <p>
 This linear complexity in the best case makes Insertion Sort efficient for nearly sorted 
 datasets, outperforming algorithms like Bubble Sort in such scenarios. Nevertheless, the 
 average complexity remains quadratic, <i>O(n²)</i>, making Insertion Sort generally less 
-efficient than more advanced sorting methods (e.g., mergesort, quicksort) for large datasets.
+efficient than more advanced sorting methods (e.g., Merge Sort, Quicksort) for large datasets.
 </p>
 
 <p>
 <b>Space Complexity:</b> Insertion Sort is an in-place sorting algorithm, requiring only 
 a constant amount of extra space to hold variables for indexing and temporary storage during 
-shifts. Hence, its space complexity is:
+shifts. Hence, its space complexity is <i>O(1)</i>.
 </p>
-
-<pre>
-O(1)
-</pre>
 
 
   <div class="section">
@@ -228,7 +213,7 @@ O(1)
   </ol>
 
   <button id="toggleAnswers" class="show-answer" aria-expanded="false">Show Answers</button>
-  <div id="answers" class="answer" hidden>
+  <div id="answers" class="answer"  style="display: none;">
     <ol>
       <li><strong>Answer:</strong> O(n²), when the input is in reverse order (each new element shifts past all sorted items).</li>
       <li><strong>Answer:</strong> O(n), when the input is already sorted (no shifts, only one comparison per element).</li>
@@ -266,21 +251,5 @@ O(1)
       <li>Integrate binary search to optimize comparisons.</li>
     </ol>
   </div>
-
-<script>
-  document.addEventListener("DOMContentLoaded", function() {
-      hljs.highlightAll();
-    });
-document.addEventListener('DOMContentLoaded', () => {
-   
-      document.getElementById('toggleAnswers').addEventListener('click', () => {
-        const ans = document.getElementById('answers');
-        const btn = document.getElementById('toggleAnswers');
-        const shown = ans.style.display === 'block';
-        ans.style.display = shown ? 'none' : 'block';
-        btn.textContent = shown ? 'Show Answers' : 'Hide Answers';
-      });
-    });
-	</script>
 </body>
 </html>

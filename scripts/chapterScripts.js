@@ -35,23 +35,38 @@ window.onload = function() {
     p.style.display = 'none';
     p.style.minHeight = maxH + 'px';
   });
-  
-  
-  //This gives the show answers functionality
-	   // Show/Hide Answers toggle
-  const toggleBtn = document.getElementById('toggleAnswers');
-  const answers  = document.getElementById('answers');
-  if (toggleBtn && answers) {
-    toggleBtn.addEventListener('click', () => {
-      const isVisible = answers.style.display === 'block';
-      answers.style.display       = isVisible ? 'none' : 'block';
-      toggleBtn.textContent       = isVisible ? 'Show Answers' : 'Hide Answers';
-      toggleBtn.setAttribute('aria-expanded', String(!isVisible));
-    });
-  }
 
   const lang = getLanguageFromUrl();
   const validLangs = ['java', 'cpp', 'python'];
   const defaultLang = validLangs.includes(lang) ? lang : 'java';
   document.getElementById(`tab-${defaultLang}`).click();
 };
+
+document.addEventListener('DOMContentLoaded', () => {
+  hljs.highlightAll();
+
+  // Tab switching logic
+  const defaultLang = ['java', 'cpp', 'python'].includes(getLanguageFromUrl()) ? getLanguageFromUrl() : 'java';
+  document.getElementById(`tab-${defaultLang}`)?.click();
+
+  // Equalize code panel heights
+  const panels = Array.from(document.querySelectorAll('.code-container'));
+  panels.forEach(p => p.style.display = 'block');
+  const maxH = panels.reduce((h, p) => Math.max(h, p.offsetHeight), 0);
+  panels.forEach(p => {
+    p.style.display = 'none';
+    p.style.minHeight = maxH + 'px';
+  });
+
+  // Show/Hide Answers button
+  const btn = document.getElementById('toggleAnswers');
+  const ans = document.getElementById('answers');
+  if (btn && ans) {
+    btn.addEventListener('click', () => {
+      const shown = ans.style.display === 'block';
+      ans.style.display = shown ? 'none' : 'block';
+      btn.textContent = shown ? 'Show Answers' : 'Hide Answers';
+      btn.setAttribute('aria-expanded', String(!shown));
+    });
+  }
+});

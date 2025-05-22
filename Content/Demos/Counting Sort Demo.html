@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Counting Sort Demo</title>
+  <script src="../../scripts/demoScripts.js" defer></script>
+  <link rel="stylesheet" href="../../style.css">
+  <style>
+    #controls, #buttons { margin: 10px 0; }
+    #description { margin-top: 10px; font-style: italic; }
+    #phase-label, #minmax-label { margin: 10px 0; font-weight: bold; }
+    .count-wrapper { display: flex; flex-direction: column; align-items: center; }
+    .count-label { font-size: 0.8em; margin-top: 4px; }
+    /* Arrow indicator under input */
+    #input-container { position: relative; }
+	.array-container { margin-bottom: 30px}
+    .arrow { position: absolute; font-size: 1.2em; display: none; text-align: center; transform: translateX(-50%); }
+  </style>
+</head>
+<body>
+  <h1>Counting Sort Demo</h1>
+
+  <div id="controls">
+    <label>Size:
+      <input type="number" id="arraySize" min="1" max="20" value="10" size="2">
+    </label>
+    <button id="generate">Random Array</button>
+    <input type="text" id="customArray" placeholder="e.g. 4,1,3,2,5" size="40">
+    <button id="useCustom">Create Array</button>
+  </div>
+
+  <div id="buttons">
+    <button id="prev-step" disabled>Previous</button>
+    <button id="next-step" disabled>Next</button>
+  </div>
+
+  <div id="phase-label"><strong>Phase:</strong> <span id="phase-name">Initialization</span></div>
+  <div id="minmax-label"><strong>Range:</strong> <span id="min-value"></span> to <span id="max-value"></span> (size <span id="range-size"></span>)</div>
+
+  <div id="input-label"><strong>Input Array:</strong></div>
+  <div class="array-container" id="input-container">
+    <div id="input-arrow" class="arrow">↑</div>
+  </div>
+
+  <div id="count-label"><strong>Count Array:</strong></div>
+  <div class="array-container" id="count-container"></div>
+
+  <div id="output-label"><strong>Output Array:</strong></div>
+  <div class="array-container" id="output-container"></div>
+
+  <div id="description">Press "Next" to begin.</div>
+
+
+
+  <script>
+    let steps = [], cur = 0;
+    const phaseNames = {
+      init:            'Initialization',
+      count:           'Counting Occurrences',
+      count_end:       'Counting Complete',
+      prefix_select:   'Select Prefix Inputs',
+      prefix_calc:     'Perform Summation',
+      prefix_end:      'Prefix Complete',
+      output_input:    'Select Element',
+      output_count:    'Determine Position',
+      output_place:    'Place Element',
+      output_end:      'Output Complete',
+      done:            'Complete'
+    };
+
+    function record(state) {
+      steps.push({
+        input:  state.input.slice(),
+        count:  state.count.slice(),
+        output: state.output.slice(),
+        phase:  state.phase,
+        index:  state.index,
+        value:  state.value,
+        outPos: state.outPos,
+        min:    state.min
+      });
+    }
+
+    function generateSteps(arr) {
+      const input = arr.slice();
+      const min = Math.min(...input), max = Math.max(...input);
+      const count = Array(max - min + 1).fill(0);
+      const output = Array(input.length).fill(null);
+      steps = [];
+      record({ input, count, output, phase: 'init', min });
+      // Counting
+      input.forEach((v, i) => {
+        
+        record({ input, count, output, phase: 'count', index: i, value: v, min });
+		count[v - min]++;
+		 record({ input, count, output, phase: 'count', index: i, value: v, min });
+      });
+      record({ input, count, output, phase: 'count_end', min });
+      // Prefix sum split
+      for (let i = 1; i < count.length; i++) {
+        record({ input, count, output, phase: 'prefix_select', index: i, min });
+        count[i] += count[i - 1];
+        record({ input, count, output, phase: 'prefix_calc', index: i, min });
+      }
+      record({ input, count, output, phase: 'prefix_end', min });
+      // Output Build split into three steps
+      for (let i = input.length - 1; i >= 0; i--) {
+        const v = input[i];
+        record({ input, count, output, phase: 'output_input', index: i, value: v, min });
+        record({ input, count, output, phase: 'output_count', index: i, value: v, min });
+        const pos = --count[v - min];
+        output[pos] = v;
+        record({ input, count, output, phase: 'output_place', index: i, outPos: pos, value: v, min });
+      }
+      record({ input, count, output, phase: 'output_end', min });
+      record({ input, count, output, phase: 'done', min });
+      return steps;
+    }
+
+    function positionInputArrow(i) {
+  const arrow     = document.getElementById('input-arrow');
+  const container = document.getElementById('input-container');
+  const cells     = container.querySelectorAll('.element');
+
+  if (i >= 0 && i < cells.length) {
+    const target = cells[i].getBoundingClientRect();
+    const parent = container.getBoundingClientRect();
+
+    // calculate target’s horizontal center relative to the container:
+    const centerX = (target.left - parent.left) + (target.width  / 2);
+    const    topY = (target.bottom - parent.top)  +   2;  // little gap
+
+    arrow.style.left    = `${centerX}px`;
+    arrow.style.top     = `${topY}px`;
+    arrow.style.display = 'block';
+  } else {
+    arrow.style.display = 'none';
+  }
+}
+
+// after you define positionInputArrow, add:
+window.addEventListener('resize', () => {
+  // make sure there's a current step and it has an index
+  const st = steps[cur];
+  if (st && typeof st.index === 'number') {
+    positionInputArrow(st.index);
+  }
+});
+
+
+
+    function render() {
+      const inpC = document.getElementById('input-container');
+      const cntC = document.getElementById('count-container');
+      const outC = document.getElementById('output-container');
+      const desc = document.getElementById('description');
+      const phaseLabel = document.getElementById('phase-name');
+      const minEl = document.getElementById('min-value');
+      const maxEl = document.getElementById('max-value');
+      const rangeEl = document.getElementById('range-size');
+      inpC.innerHTML = '<div id="input-arrow" class="arrow">↑</div>';
+      cntC.innerHTML = '';
+      outC.innerHTML = '';
+      if (!steps.length) return;
+      const st = steps[cur];
+      phaseLabel.textContent = phaseNames[st.phase] || st.phase;
+      minEl.textContent = st.min;
+      maxEl.textContent = st.min + st.count.length - 1;
+      rangeEl.textContent = st.count.length;
+      // render input
+      st.input.forEach(v => {
+        const d = document.createElement('div');
+        d.className = 'element';
+        d.textContent = v;
+        inpC.appendChild(d);
+      });
+      // render count
+      st.count.forEach((c, i) => {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'count-wrapper';
+        const d = document.createElement('div');
+        d.className = 'element';
+        d.textContent = c;
+        const lbl = document.createElement('div');
+        lbl.className = 'count-label';
+        lbl.textContent = st.min + i;
+        wrapper.appendChild(d);
+        wrapper.appendChild(lbl);
+        cntC.appendChild(wrapper);
+      });
+      // render output
+      st.output.forEach(v => {
+        const d = document.createElement('div');
+        d.className = 'element';
+        if (v !== null) d.textContent = v;
+        outC.appendChild(d);
+      });
+	  //Highlighting output
+	  st.output.forEach((v,i) => {
+        if (v !== null) outC.children[i].classList.add('finished');
+      });
+      // clear highlights
+      [inpC, cntC, outC].forEach(container =>
+        Array.from(container.children).forEach(c => c.classList.remove('comparing'))
+      );
+      // highlight based on phase
+      switch (st.phase) {
+        case 'init':
+          desc.textContent = 'Initial state.';
+          positionInputArrow(-1);
+          break;
+        case 'count':
+		const ccIdx = st.value-st.min;
+          desc.innerHTML = `Counting element ${st.value} at input index ${st.index}.<br>` + `value - min = countIndex<br>`+`Incrementing corresponding count index: ${st.value} - ${st.min} = ${ccIdx}`  ;
+          inpC.querySelectorAll('.element')[st.index].classList.add('comparing');
+          positionInputArrow(st.index);
+          cntC.children[st.value - st.min].querySelector('.element').classList.add('comparing');
+          break; 
+		
+        case 'count_end':
+          desc.textContent = 'Counting phase complete.';
+          positionInputArrow(-1);
+          break;
+        case 'prefix_select':
+          const cIdx = st.index, pIdx = st.index - 1;
+          desc.textContent = `Selecting count[${st.min + pIdx}] and count[${st.min + cIdx}] to sum.`;
+          positionInputArrow(-1);
+          cntC.children[cIdx].querySelector('.element').classList.add('comparing');
+          cntC.children[pIdx].querySelector('.element').classList.add('comparing');
+          break;
+        case 'prefix_calc':
+          desc.textContent = `Updating count[${st.min + st.index}] to ${st.count[st.index]} (sum of previous + current).`;
+          positionInputArrow(-1);
+          cntC.children[st.index].querySelector('.element').classList.add('comparing');
+          break;
+        case 'prefix_end':
+          desc.textContent = 'Prefix summation complete.';
+          positionInputArrow(-1);
+          break;
+        case 'output_input':
+          desc.textContent = `Selecting input element ${st.value} at index ${st.index}.`;
+          inpC.querySelectorAll('.element')[st.index].classList.add('comparing');
+          positionInputArrow(st.index);
+          break;
+        case 'output_count':
+          desc.textContent = `Determining position from count[${st.value - st.min}] (current count = ${st.count[st.value - st.min]}).`;
+          inpC.querySelectorAll('.element')[st.index].classList.add('comparing');
+          positionInputArrow(st.index);
+          cntC.children[st.value - st.min].querySelector('.element').classList.add('comparing');
+          break;
+        case 'output_place':
+    desc.textContent = `Placing value ${st.value} at output index ${st.outPos}.`;
+    // highlight only the current input & count lookup
+    inpC.children[st.index+1].classList.add('comparing');
+    positionInputArrow(st.index);
+    cntC.children[st.value - st.min]
+        .querySelector('.element')
+        .classList.add('comparing');
+    // permanently mark this output slot as sorted
+    outC.children[st.outPos].classList.add('finished');
+    break;
+        case 'output_end':
+          desc.textContent = 'Output building complete.';
+          positionInputArrow(-1);
+          break;
+        case 'done':
+          desc.textContent = 'Counting Sort complete!';
+          positionInputArrow(-1);
+          break;
+      }
+    }
+
+    function updateButtons() {
+      document.getElementById('prev-step').disabled = (cur === 0);
+      document.getElementById('next-step').disabled = (cur === steps.length - 1);
+    }
+
+    function goToStep(i) {
+      cur = i;
+      render();
+      updateButtons();
+    }
+
+    document.getElementById('prev-step').addEventListener('click', () => {
+      if (cur > 0) goToStep(cur - 1);
+    });
+
+    document.getElementById('next-step').addEventListener('click', () => {
+      if (cur < steps.length - 1) goToStep(cur + 1);
+    });
+
+    document.getElementById('generate').addEventListener('click', () => {
+      const n = parseInt(document.getElementById('arraySize').value, 10);
+      if (isNaN(n) || n < 1 || n > 20) {
+        return alert('Size must be between 1 and 20');
+      }
+      const arr = Array.from({ length: n }, () => Math.floor(Math.random() * 10));
+      document.getElementById('customArray').value = arr.join(',');
+      generateSteps(arr);
+      goToStep(0);
+    });
+
+    document.getElementById('useCustom').addEventListener('click', () => {
+      const txt = document.getElementById('customArray').value.trim();
+      if (!txt) return;
+      const arr = txt.split(',').map(s => parseInt(s.trim(), 10));
+      if (arr.some(isNaN) || arr.length < 1 || arr.length > 20) {
+        return alert('Please enter 1–20 comma-separated numbers.');
+      }
+      generateSteps(arr);
+      goToStep(0);
+    });
+
+    document.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('generate').click();
+    });
+  </script>
+</body>
+</html>
