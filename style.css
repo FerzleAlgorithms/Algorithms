@@ -1,143 +1,133 @@
+/*
+ * style.css — updated: expanded page width & restored menu-collapse
+ */
+
+/* 0) Global reset for all documents */
+html, body {
+  margin: 0;
+  padding: 5px;
+}
+
+/* 1) Base body styling (applies everywhere) */
 body {
   font-family: 'Times New Roman', Times, serif;
-  margin: 0px 10px;
-  padding: 0;
   background-color: #f7f9fc;
 }
 
-#pageWrapper {
-  max-width: 1200px;  /* Set your desired max-width */
-  margin: 0 auto;     /* Centers the whole page horizontally */
-  box-shadow: 0 0 12px rgba(0,0,0,0.1); /* Optional visual depth */
-  background-color: white; /* Ensures content is on white background */
-  min-height: 100vh; /* Ensures full vertical height */
+/* 2) Site layout (only on <body class="mainSite">) */
+body.mainSite {
+  margin: 0 10px;              /* side gutters */
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
 }
-
-/* style for inline “problem” links */
-a.problem {
-  color: #0366d6;               /* a medium-dark blue for good contrast */
-  text-decoration: none;        /* remove the default underline */
-  border-bottom: 2px solid #8bbde0; /* subtle light-blue underline echoing your node fill */
-  padding-bottom: 1px;          /* give the underline a little breathing room */
-  transition: color 0.2s, border-color 0.2s;
+body.mainSite #pageWrapper {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  width: 100%;                 /* full available width */
+  /* remove max-width or set larger if desired */
+  max-width: 1050px; 
+  margin: 0 auto;
+  background: #fff;
 }
-
-a.problem:hover {
-  color: #024f9a;               /* darken text on hover */
-  border-color: #559ecb;        /* slightly deeper accent underline */
-}
-
-header {
+body.mainSite header {
+  flex: 0 0 auto;
+  padding: 8px 0;
   background-color: #334155;
-  color: white;
+  color: #fff;
   text-align: center;
 }
-
-#container {
+body.mainSite #container {
   display: flex;
-  max-width: 1050;      /* Adjust as needed */
-  margin: 0 auto;         /* Centers horizontally */
-  height: calc(100vh - 100px);
-  background-color: #ffffff; /* Optional for clear layout */
-  box-shadow: 0 0 10px rgba(0,0,0,0.1); /* Optional shadow for depth */
+  flex: 1;
+  overflow: hidden;
 }
-
-/* Styles to override when full width is needed */
-body.fullWidth #pageWrapper,
-body.fullWidth #container {
-  max-width: none !important;
-  width: 100% !important;
-  box-shadow: none;
-}
-
-/* nav menu */
-nav#menu {
-  width: 250px;
+body.mainSite nav#menu {
+  flex: 0 0 220px;
   background-color: #e2e8f0;
-  padding: 0px;
+  padding: 0.5em;
+  box-sizing: border-box;
   overflow-y: auto;
 }
-
-nav#menu ul {
+body.mainSite nav#menu ul {
   list-style: none;
-  padding-left: 0px;
+  padding-left: 0;
+  margin: 0;
 }
-
-nav#menu li {
-  cursor: pointer;
-  user-select: none;
-}
-
-/* make the heading spans inline-flex so the arrow and text are aligned line-by-line */
-nav#menu li span {
-  display: inline-flex;
-  align-items: flex-start;   /* align arrow to the first line of text */
-  gap: 0.4em;                /* space between arrow and text */
-  cursor: pointer;
-}
-
-/* turn off the old absolute‐positioned arrow */
-nav#menu li span::before {
-  /* remove position, left, top, padding adjustments */
-  content: "▶";              /* right-pointing arrow */
-  flex-shrink: 0;            /* don’t let it get squished */
-  line-height: 1;            /* keep it tight to its font size */
-  transition: transform 0.15s ease;
-  transform-origin: center;
-}
-
-/* rotate down when open */
-nav#menu li.open > span::before {
-  transform: rotate(90deg);
-}
-
-nav#menu li span:hover {
-  background-color: #94a3b8;
-}
-
-nav#menu ul ul {
-  display: none;
-  padding-left: 10px;
-}
-
-nav#menu li.open > ul {
-  display: block;
-}
-
-nav#menu a {
-  text-decoration: none;
-  color: #1e293b;
-}
-
-nav#menu a:hover {
-  text-decoration: underline;
-}
-
-
-/* menu */
-#menu ul {
-  list-style-type: none;
+body.mainSite nav#menu ul ul {
+  display: none;              /* hide submenus */
   padding-left: 1em;
 }
 
-#menu ul ul {
-  margin-left: 1em;
-}
-
-#menu li {
+/* restore a bit of breathing room between menu items */
+body.mainSite nav#menu li {
   margin-bottom: 0.3em;
-  padding: 0.1em 0.1em;
-  border-radius: 4px;
-  transition: background 0.2s;
-}
-#menu li:hover {
-  background: #f1f5f9;
 }
 
+body.mainSite nav#menu li.open > ul {
+  display: block;             /* show when open */
+}
+body.mainSite nav#menu li span {
+  display: inline-flex;
+  align-items: flex-start;
+  gap: 0.4em;
+  cursor: pointer;
+}
+body.mainSite nav#menu li span::before {
+  content: "▶";
+  flex-shrink: 0;
+  line-height: 1;
+  transition: transform 0.15s ease;
+  transform-origin: center;
+}
+body.mainSite nav#menu li.open > span::before {
+  transform: rotate(90deg);
+}
+body.mainSite nav#menu li:hover span {
+  background-color: #94a3b8;
+}
+body.mainSite nav#menu a {
+  color: #1e293b;
+  text-decoration: none;
+}
+body.mainSite nav#menu a:hover {
+  text-decoration: underline;
+}
 
+body.mainSite #content {
+  flex: 1;
+  border: 1px solid #ccc;
+  box-sizing: border-box;
+}
+body.mainSite #errorMessage {
+  flex: 0 0 auto;
+  align-self: flex-start;
+  margin: 0.5em;
+}
 
+/* 3) Full-width override utility */
+body.fullWidth body.mainSite #pageWrapper,
+body.fullWidth body.mainSite #container {
+  max-width: none !important;
+  width: 100% !important;
+  box-shadow: none !important;
+}
 
+/* 4) Problem-link styling (global) */
+a.problem {
+  color: #0366d6;
+  text-decoration: none;
+  border-bottom: 2px solid #8bbde0;
+  padding-bottom: 1px;
+  transition: color 0.2s, border-color 0.2s;
+}
+a.problem:hover {
+  color: #024f9a;
+  border-color: #559ecb;
+}
 
+/* 5) Error message (global) */
 .error {
   padding: 1em;
   background-color: #fdd;
@@ -147,168 +137,126 @@ nav#menu a:hover {
   margin-top: 1em;
 }
 
-#errorMessage {
-  align-self: flex-start;   /* only this child opts out of stretching */
-}
-
-
-
-#content {
-  flex-grow: 1;
-  border: none;
-  width: 100%;
-  height: 100%;
-}
-
-/* Buttons and input cells in demos */
-button { 
-    margin: 5px; 10px 10px; 
-    padding: 5px 5px; 5px;
-}
-/* Buttons and input cells in demos */
-input { 
-    margin: 5px; 5px; 
-    padding: 5px 5px; 5px;
-}
-
-/* For array based demos */
-.array-container { 
-    display: flex; 
-    gap: 10px; 
-    align-items: flex-start; 
-    justify-content: flex-start;
-    margin-top: 10px; 
-    margin-bottom: 100px;      
-    font-size: 18px;      
-    position: relative;    
-    }
-	
-	/* For Legends */
- .legend {
-      margin-top: 30px; /* added buffer from buttons */
-      margin-bottom: 20px;
-      text-align: left;
-    }
-	
-.legend-box {
-      display: inline-block;
-      width: 15px;
-      height: 15px;
-      vertical-align: middle;
-      margin-right: 1px;
-      margin-left: 10px;
-      border-radius: 4px;
-	  border: 1px solid #333;
-	  background-color: transparent;
-    }
-	
-	/* For code display? */
-.tabs {   
-    overflow: hidden;  
-	background-color: #eaeaea;  
-	display: inline-flex;  
-	border-radius: 5px 5px 0 0;
-	}
-.tabs button {  
-    background-color: inherit; 
-	padding: 8px 12px; 
-	cursor: pointer; 
-	transition: background-color 0.3s ease; 
-    color: #333; 
-	border: none; 
-	outline: none; 
-	font-size: 14px;
-	}
-.tabs button:hover, .tabs button.active {  
-    background-color: #d4d4d4;
-}
-.code-container { 
-    background-color: white;   
-	width:500px;
-	border-radius: 0 5px 5px 5px; 
-	border: 1px solid #ccc; 
-	overflow-x: auto;
-}
- 
- 
-.element { /* For a cell of an array based demo */
-    width: 40px; 
-    height: 40px; 
-    line-height: 40px; 
-    text-align: center; 
-    border: 1px solid #333; 
-    background-color: #cce3ff; 
-    position: relative;
-}
-.default { background-color: #cce3ff; border: 1px solid; }
-
-.key { background-color: #1f77b4; }
-
-.finished { background-color: lightgreen; }
-   	
-.blank{
-	background-color:white;
-}
-
-.right-partition{
-	background-color:#1e90ff;
-}
-
-.left-partition{
-	background-color: lightsalmon;
-}
-.pivot{
-	 background-color: lightgreen;
-}
-.comparing {  /* A cell that is being compared to another one */
-    background-color: yellow;
-}
-.swap {  /* A cell that is about to be swapped with another one */
-    background-color: #b2f2bb;
-}
-.sorted {  /* A cell that is in its final position */
-    background-color: orange;
-}
-.empty { background-color: transparent; border: 1px dashed #ccc; }
-
-.arrow {  /* An arrow pointing into a cell */
-    position: absolute;  
-    top: 50px;  
-    width: 100%;  
-    text-align: center;  
-    font-weight: bold;
-}
-
-/* For demos */
+/* 6) Demo container & iframe styling */
 .embeddedDemoContainer {
-    width: 100%;                 /* container takes full width */
-    display: flex;               /* enable flexible positioning */
-    justify-content: flex-start; /* aligns content to left */
-    margin-left: -10px;          /* adjust this value as needed to nudge left */
-    box-sizing: border-box;      /* ensures padding doesn't affect total width */
+  width: 100%;
+  display: flex;
+  justify-content: flex-start;
+  box-sizing: border-box;
 }
-
 .embeddedDemo {
-    width: 100%;                 /* occupy full available width */
-    height: 400px;               /* OVERRODE THIS IN YOUR FILE IF YOU NEED IT DIFFERENT! */
-    border: none;                /* remove borders */
+  width: 100%;
+  height: 400px;
+  border: none;
 }
 
-.example-box strong.example-title {
-    color: #1a73e8; /* Adjust this color as desired */
-    font-style: italic;
+/* 7) Button and input defaults (demos) */
+button, input {
+  margin: 5px;
+  padding: 5px;
 }
 
+/* 8) Array-based demo layout */
+.array-container {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  margin: 10px 0 100px;
+  font-size: 18px;
+  position: relative;
+}
+
+/* 9) Legend boxes */
+.legend {
+  margin: 30px 0 20px;
+  text-align: left;
+}
+.legend-box {
+  display: inline-block;
+  width: 15px;
+  height: 15px;
+  vertical-align: middle;
+  margin: 0 0 0 10px;
+  border-radius: 4px;
+  border: 1px solid #333;
+  background-color: transparent;
+}
+
+/* 10) Code tabs & containers */
+.tabs {
+  overflow: hidden;
+  background-color: #eaeaea;
+  display: inline-flex;
+  border-radius: 5px 5px 0 0;
+}
+.tabs button {
+  background-color: inherit;
+  padding: 8px 12px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  color: #333;
+  border: none;
+  outline: none;
+  font-size: 14px;
+}
+.tabs button:hover,
+.tabs button.active {
+  background-color: #d4d4d4;
+}
+.code-container {
+  background-color: #fff;
+  width: 100%;
+  max-width: 500px;
+  border-radius: 0 5px 5px 5px;
+  border: 1px solid #ccc;
+  overflow-x: auto;
+}
+
+/* 11) Array-cell styles */
+.element {
+  width: 40px;
+  height: 40px;
+  line-height: 40px;
+  text-align: center;
+  border: 1px solid #333;
+  background-color: #cce3ff;
+  position: relative;
+}
+
+/* state classes */
+.default        { background-color: #cce3ff; }
+.key            { background-color: #1f77b4; }
+.finished       { background-color: lightgreen; }
+.blank          { background-color: #fff; }
+.right-partition{ background-color: #1e90ff; }
+.left-partition { background-color: lightsalmon; }
+.pivot          { background-color: lightgreen; }
+.comparing      { background-color: yellow; }
+.swap           { background-color: #b2f2bb; }
+.sorted         { background-color: orange; }
+.empty          { background-color: transparent; border: 1px dashed #ccc; }
+
+.arrow {
+  position: absolute;
+  top: 50px;
+  width: 100%;
+  text-align: center;
+  font-weight: bold;
+}
+
+/* 12) Example boxes & tables */
 .example-box {
-    display: inline-block;
+  display: inline-block;
   vertical-align: top;
-    border: 1px solid #888;
-    background-color: #f0f8ff;
-    padding: 10px;
-    margin-bottom: 10px;
+  border: 1px solid #888;
+  background-color: #f0f8ff;
+  padding: 10px;
+  margin-bottom: 10px;
 }
-
-/* Example table styling */
+.example-box strong.example-title {
+  color: #1a73e8;
+  font-style: italic;
+}
 .example-table {
   width: 100%;
   border-collapse: collapse;
@@ -316,7 +264,6 @@ input {
   font-size: 0.95rem;
   line-height: 1.4;
 }
-
 .example-table th {
   background-color: #f2f2f2;
   font-weight: 600;
@@ -324,18 +271,13 @@ input {
   text-align: left;
   border-bottom: 2px solid #ddd;
 }
-
 .example-table td {
-  /*padding: 0.75em;*/
   border-bottom: 1px solid #eee;
   text-align: center;
 }
-
 .example-table tbody tr:nth-child(even) {
   background-color: #fafafa;
 }
-
 .example-table tbody tr:hover {
   background-color: #f5f5f5;
 }
-

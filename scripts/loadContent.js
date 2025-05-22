@@ -3,7 +3,11 @@
 // 1) Build the sidebar menu from chapters.json
 function buildMenu(chapters, basePath = "") {
   const menu = document.querySelector("#menu ul");
-  menu.innerHTML = "";
+    menu.innerHTML = `
+    <li>
+      <a href="?path=home">Home</a>
+    </li>
+  `;
 
   function buildList(items, parentUl, currentPath, isDemo) {
     for (const item of items) {
