@@ -58,13 +58,36 @@ resetting <i>j</i> to the start of the array, and beginning the next pass.
 
 <h2>Implementation in Java, C++, Python</h2>
 <div class="tab-group">
-<div class="tabs">
-  <button class="tablink active" onclick="openTab(event, 'java')" id="tab-java">Java</button>
-  <button class="tablink" onclick="openTab(event, 'cpp')" id="tab-cpp">C++</button>
-  <button class="tablink" onclick="openTab(event, 'python')" id="tab-python">Python</button>
-</div>
-
-<div id="java" class="code-container" style="display:block;">
+<div class="tabs" role="tablist">
+   <button
+    id="tab-java"
+    class="tablink active"
+    data-lang="java"
+    role="tab"
+    aria-controls="java"
+    aria-selected="true">
+    Java
+  </button>
+   <button
+    id="tab-cpp"
+    class="tablink"
+    data-lang="cpp"
+    role="tab"
+    aria-controls="c++"
+    aria-selected="true">
+    C++
+  </button>
+   <button
+    id="tab-python"
+    class="tablink"
+    data-lang="python"
+    role="tab"
+    aria-controls="python"
+    aria-selected="true">
+    Python
+  </button>
+  </div>
+  <div id="java" class="code-container active" role="tabpanel"  aria-labelledby="tab-java">
 <pre><code class="language-java">void bubbleSort(int[] arr) {
     int n = arr.length;
     for (int i = n - 1; i &gt; 0; i--) {
@@ -76,11 +99,10 @@ resetting <i>j</i> to the start of the array, and beginning the next pass.
             }
         }
     }
-}
-</code></pre>
+}</code></pre>
 </div>
 
-<div id="cpp" class="code-container">
+  <div id="cpp" class="code-container active" role="tabpanel"  aria-labelledby="tab-cpp">
 <pre><code class="language-cpp">void bubbleSort(int arr[], int n) {
     for (int i = n - 1; i &gt; 0; i--) {
         for (int j = 0; j &lt; i; j++) {
@@ -91,18 +113,16 @@ resetting <i>j</i> to the start of the array, and beginning the next pass.
             }
         }
     }
-}
-</code></pre>
+}</code></pre>
 </div>
 
-<div id="python" class="code-container">
+  <div id="python" class="code-container active" role="tabpanel"  aria-labelledby="tab-python">
 <pre><code class="language-python">def bubble_sort(arr):
     n = len(arr)
     for i in range(n - 1, 0, -1):
         for j in range(i):
             if arr[j] &gt; arr[j + 1]:
-                arr[j], arr[j + 1] = arr[j + 1], arr[j]
-</code></pre>
+                arr[j], arr[j + 1] = arr[j + 1], arr[j]</code></pre>
 </div>
 </div>
   

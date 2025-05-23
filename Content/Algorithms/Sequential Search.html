@@ -11,7 +11,6 @@
   <link rel="stylesheet" href="../../style.css">
 
   <!-- MathJax for LaTeX rendering -->
-  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
   <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
   <style>
     #toggleAnswers { margin-top: 10px; padding: 5px 10px; }
@@ -57,13 +56,36 @@
 	
     <h2>Implementation in Java, C++, Python</h2>
 <div class="tab-group">
- <div class="tabs">
-  <button id="tab-java"   class="tablink active" onclick="openTab(event, 'java')">Java</button>
-  <button id="tab-cpp"    class="tablink" onclick="openTab(event, 'cpp')">C++</button>
-  <button id="tab-python" class="tablink" onclick="openTab(event, 'python')">Python</button>
-</div>
-
-    <div id="java" class="code-container">
+<div class="tabs" role="tablist">
+   <button
+    id="tab-java"
+    class="tablink active"
+    data-lang="java"
+    role="tab"
+    aria-controls="java"
+    aria-selected="true">
+    Java
+  </button>
+   <button
+    id="tab-cpp"
+    class="tablink"
+    data-lang="cpp"
+    role="tab"
+    aria-controls="c++"
+    aria-selected="true">
+    C++
+  </button>
+   <button
+    id="tab-python"
+    class="tablink"
+    data-lang="python"
+    role="tab"
+    aria-controls="python"
+    aria-selected="true">
+    Python
+  </button>
+  </div>
+  <div id="java" class="code-container active" role="tabpanel"  aria-labelledby="tab-java">
 <pre><code class="language-java">public int sequentialSearch(int[] A, int target) {
   for (int i = 0; i < A.length; i++) {
     if (A[i] == target) {
@@ -74,7 +96,7 @@
 }</code></pre>
     </div>
 
-    <div id="cpp" class="code-container">
+  <div id="cpp" class="code-container active" role="tabpanel"  aria-labelledby="tab-cpp">
 <pre><code class="language-cpp">int sequentialSearch(int A[], int n, int target) {
   for (int i = 0; i < n; i++) {
     if (A[i] == target) {
@@ -85,7 +107,7 @@
 }</code></pre>
     </div>
 
-    <div id="python" class="code-container">
+  <div id="python" class="code-container active" role="tabpanel"  aria-labelledby="tab-python">
 <pre><code class="language-python">def sequential_search(A, target):
   for i, value in enumerate(A):
     if value == target:
@@ -122,32 +144,28 @@ did <em>m</em> comparisons.
  
   <p> <b>Space Complexity:</b> The iterative sequential search uses only a fixed number of additional variables:
   The loop index <code>i</code>, the space for the <code>target</code>, and the return value.
-  and a few constant‐size temporaries (if any). Thus, the space complexity is <em>O(1)</em>.</p>
-</div>
-  </div>
-
- 
+  and a few constant‐size temporaries (if any). Thus, the space complexity is <em>O(1)</em>.</p> 
   
-    <h2>Reading Comprehension Questions</h2>
-    <ol>
-      <li><strong>Q1:</strong> What is the best-case time complexity for Sequential Search, and when does it occur?</li>
-      <li><strong>Q2:</strong> What is the worst-case time complexity for Sequential Search, and when does it occur?</li>
-      <li><strong>Q3:</strong> What algorithm technique does Sequential Search use, how do you know?</li>
-      <li><strong>Q4:</strong> If the array contains multiple copies of the target, which index will this implementation return?</li>
-      <li><strong>Q5:</strong> What is the space complexity of this algorithm?</li>
-      <li><strong>Q6:</strong> How would you modify the algorithm to return all indices where the target occurs?</li>
-    </ol>
-    <button id="toggleAnswers" class="show-answer" aria-expanded="false">Show Answers</button>
-    <div id="answers" class="answer" hidden>
-      <ol>
-        <li><strong>Answer:</strong> <code>O(1)</code>, when the target is at index 0.</li>
-        <li><strong>Answer:</strong> <code>O(n)</code>, when the target is at the last position or not present.</li>
-        <li><strong>Answer:</strong> Brute Force because it checks every element until it either finds the target or reaches the end.</li>
-        <li><strong>Answer:</strong> It returns the index of the first matching element found.</li>
-        <li><strong>Answer:</strong> <code>O(1)</code>, since it only uses a constant amount of extra space.</li>
-        <li><strong>Answer:</strong> Collect matches in a list as you scan and return that list instead of stopping early.</li>
-      </ol>
-    </div>
+<h2>Reading Comprehension Questions</h2>
+<ol>
+  <li><strong>Q1:</strong> What is the best-case time complexity for Sequential Search, and when does it occur?</li>
+  <li><strong>Q2:</strong> What is the worst-case time complexity for Sequential Search, and when does it occur?</li>
+  <li><strong>Q3:</strong> What algorithm technique does Sequential Search use, how do you know?</li>
+  <li><strong>Q4:</strong> If the array contains multiple copies of the target, which index will this implementation return?</li>
+  <li><strong>Q5:</strong> What is the space complexity of this algorithm?</li>
+  <li><strong>Q6:</strong> How would you modify the algorithm to return all indices where the target occurs?</li>
+</ol>
+<button id="toggleAnswers" class="show-answer" aria-expanded="false">Show Answers</button>
+<div id="answers" class="answer" hidden>
+  <ol>
+    <li><strong>Answer:</strong> <code>O(1)</code>, when the target is at index 0.</li>
+    <li><strong>Answer:</strong> <code>O(n)</code>, when the target is at the last position or not present.</li>
+    <li><strong>Answer:</strong> Brute Force because it checks every element until it either finds the target or reaches the end.</li>
+    <li><strong>Answer:</strong> It returns the index of the first matching element found.</li>
+    <li><strong>Answer:</strong> <code>O(1)</code>, since it only uses a constant amount of extra space.</li>
+    <li><strong>Answer:</strong> Collect matches in a list as you scan and return that list instead of stopping early.</li>
+  </ol>
+</div>
   
 
  <h2>In-Class Activities</h2>
@@ -172,17 +190,7 @@ did <em>m</em> comparisons.
   then compare its performance (number of comparisons and code branches) against the standard implementation.
   Discuss any drawbacks of this approach.</li>
 </ol>
-  
-<script>
-       // Toggle answers
-	   
-      document.getElementById('toggleAnswers').addEventListener('click', () => {
-        const ans = document.getElementById('answers');
-        const btn = document.getElementById('toggleAnswers');
-        const shown = ans.style.display === 'block';
-        ans.style.display = shown ? 'none' : 'block';
-        btn.textContent = shown ? 'Show Answers' : 'Hide Answers';
-      });
-</script>
+
+
 </body>
 </html>

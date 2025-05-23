@@ -74,76 +74,57 @@
 
   <h2>Implementation in Java, C++, Python</h2>
 <div class="tab-group">
-  <div class="tabs">
-    <button class="tablink active" onclick="openTab(event, 'java')" id="tab-java">Java</button>
-    <button class="tablink" onclick="openTab(event, 'cpp')" id="tab-cpp">C++</button>
-    <button class="tablink" onclick="openTab(event, 'python')" id="tab-python">Python</button>
+ <div class="tabs" role="tablist">
+   <button
+    id="tab-java"
+    class="tablink active"
+    data-lang="java"
+    role="tab"
+    aria-controls="java"
+    aria-selected="true">
+    Java
+  </button>
+   <button
+    id="tab-cpp"
+    class="tablink"
+    data-lang="cpp"
+    role="tab"
+    aria-controls="c++"
+    aria-selected="true">
+    C++
+  </button>
+   <button
+    id="tab-python"
+    class="tablink"
+    data-lang="python"
+    role="tab"
+    aria-controls="python"
+    aria-selected="true">
+    Python
+  </button>
   </div>
-
-  <div id="java" class="code-container">
-    <pre><code class="language-java">
-  public class QuickSortDemo {
-    public static void quickSort(int[] A, int lo, int hi) {
-      if (lo < hi) {
-        int p = partition(A, lo, hi);
-        quickSort(A, lo, p);
-        quickSort(A, p + 1, hi);
-      }
-    }
-  
-    static int partition(int[] A, int lo, int hi) {
-      int pivot = A[lo];
-      int i = lo - 1;
-      int j = hi + 1;
-      while (true) {
-        i++;
-        while (i <= hi && A[i] < pivot) {
-          i++;
-        }
-        j--;
-        while (j >= lo && A[j] > pivot) {
-          j--;
-        }
-        if (i >= j) {
-          return j;
-        }
-        swap(A, i, j);
-      }
-    }
-  
-    static void swap(int[] A, int i, int j) {
-      int tmp = A[i];
-      A[i] = A[j];
-      A[j] = tmp;
-    }
-  }</code></pre>
-  </div>
-  
-  <div id="cpp" class="code-container" style="display:none">
-    <pre><code class="language-cpp">
-  #include <vector>
-  using namespace std;
-  
-  void quickSort(vector<int>& A, int lo, int hi) {
+  <div id="java" class="code-container active" role="tabpanel"  aria-labelledby="tab-java">
+    <pre><code class="language-java">public class QuickSortDemo {
+  public static void quickSort(int[] A, int lo, int hi) {
     if (lo < hi) {
       int p = partition(A, lo, hi);
       quickSort(A, lo, p);
       quickSort(A, p + 1, hi);
     }
   }
-  
-  int partition(vector<int>& A, int lo, int hi) {
+
+  static int partition(int[] A, int lo, int hi) {
     int pivot = A[lo];
     int i = lo - 1;
     int j = hi + 1;
     while (true) {
-      ++i;
+      i++;
       while (i <= hi && A[i] < pivot) {
-        ++i;
+        i++;
       }
-      --j;
+      j--;
       while (j >= lo && A[j] > pivot) {
-        --j;
+        j--;
       }
       if (i >= j) {
         return j;
@@ -151,36 +132,75 @@
       swap(A, i, j);
     }
   }
-  
-  void swap(vector<int>& A, int i, int j) {
+
+  static void swap(int[] A, int i, int j) {
     int tmp = A[i];
     A[i] = A[j];
     A[j] = tmp;
-  }</code></pre>
+  }
+}</code></pre>
   </div>
   
-  <div id="python" class="code-container" style="display:none">
-    <pre><code class="language-python">
-  def quick_sort(A, lo, hi):
+  <div id="cpp" class="code-container active" role="tabpanel"  aria-labelledby="tab-cpp">
+    <pre><code class="language-cpp">#include <vector>
+using namespace std;
+
+void quickSort(vector<int>& A, int lo, int hi) {
+  if (lo < hi) {
+    int p = partition(A, lo, hi);
+    quickSort(A, lo, p);
+    quickSort(A, p + 1, hi);
+  }
+}
+  
+int partition(vector<int>& A, int lo, int hi) {
+  int pivot = A[lo];
+  int i = lo - 1;
+  int j = hi + 1;
+  while (true) {
+    ++i;
+    while (i <= hi && A[i] < pivot) {
+      ++i;
+    }
+    --j;
+    while (j >= lo && A[j] > pivot) {
+      --j;
+    }
+    if (i >= j) {
+      return j;
+    }
+    swap(A, i, j);
+  }
+}
+
+void swap(vector<int>& A, int i, int j) {
+  int tmp = A[i];
+  A[i] = A[j];
+  A[j] = tmp;
+}</code></pre>
+  </div>
+  
+  <div id="python" class="code-container active" role="tabpanel"  aria-labelledby="tab-python">
+    <pre><code class="language-python">def quick_sort(A, lo, hi):
       if lo < hi:
           p = partition(A, lo, hi)
           quick_sort(A, lo, p)
           quick_sort(A, p + 1, hi)
   
-  def partition(A, lo, hi):
-      pivot = A[lo]
-      i = lo - 1
-      j = hi + 1
-      while True:
-          i += 1
-          while i <= hi and A[i] < pivot:
-              i += 1
-          j -= 1
-          while j >= lo and A[j] > pivot:
-              j -= 1
-          if i >= j:
-              return j
-          A[i], A[j] = A[j], A[i]</code></pre>
+def partition(A, lo, hi):
+    pivot = A[lo]
+    i = lo - 1
+    j = hi + 1
+    while True:
+        i += 1
+        while i <= hi and A[i] < pivot:
+            i += 1
+        j -= 1
+        while j >= lo and A[j] > pivot:
+            j -= 1
+        if i >= j:
+            return j
+        A[i], A[j] = A[j], A[i]</code></pre>
   </div>
   </div>
 

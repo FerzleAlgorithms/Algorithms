@@ -1,9 +1,11 @@
 
 
-
+//--------------------------------------------------------
+// The fullscreen button
 document.addEventListener('DOMContentLoaded', () => {
-  // 1) Create & style the button
+// Create button
   const btn = document.createElement('button');
+  // Style button
   btn.textContent = '⤢ Fullscreen';
   Object.assign(btn.style, {
     position:  'fixed',
@@ -13,9 +15,10 @@ document.addEventListener('DOMContentLoaded', () => {
     cursor:    'pointer',
     zIndex:    9999
   });
+  // Put the button on the page.
   document.body.appendChild(btn);
-
-btn.addEventListener('click', () => {
+  // add listener so it does the fullscreen.
+  btn.addEventListener('click', () => {
     const html = document.documentElement;
     if (!document.fullscreenElement) {
       html.requestFullscreen().catch(console.error);
@@ -23,8 +26,8 @@ btn.addEventListener('click', () => {
       document.exitFullscreen();
     }
   });
-  
 });
+//--------------------------------------------------------
 
 // demoScripts.js
 // This script wires playback controls (Prev/Next/Play/Pause/Speed) for any demo
@@ -49,13 +52,23 @@ btn.addEventListener('click', () => {
   }
 
   document.addEventListener('DOMContentLoaded', () => {
-    const prevBtn = document.getElementById('prev');
+    const controls = ['prev','next','play','pause','speed','generate','useCustom']
+      .map(id => document.getElementById(id));
+
+    if (controls.some(el => el === null)) {
+      return;  // at least one required control is missing
+    }
+    
+    const [prevBtn, nextBtn, playBtn, pauseBtn, speedSelect, genBtn, useCustomBtn] = controls;
+
+   /* const prevBtn = document.getElementById('prev');
     const nextBtn = document.getElementById('next');
     const playBtn = document.getElementById('play');
     const pauseBtn = document.getElementById('pause');
     const speedSelect = document.getElementById('speed');
     const genBtn = document.getElementById('generate');
     const useCustomBtn = document.getElementById('useCustom');
+    */
 
     prevBtn.onclick = () => {
       clearInterval(timer);

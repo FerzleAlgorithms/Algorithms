@@ -219,20 +219,12 @@ button, input {
   background-color: #d4d4d4;
 }
 .code-container {
-  /*display: inline-block;    */   /* ← here */
+  display: inline-block;       /* ← here */
   vertical-align: top;         /* so multiple groups line up nicely */
   background-color: #fff;
   border-radius: 0 5px 5px 5px;
   border: 1px solid #ccc;
   overflow-x: auto;
-}
-/* once JS runs, hide all panels by default… */
-.js-enabled .code-container {
-  display: none;
-}
-/* …but show only the one with “active” */
-.js-enabled .code-container.active {
-  display: block;
 }
 
 /* 14) Array-cell styles */

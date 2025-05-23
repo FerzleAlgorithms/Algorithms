@@ -100,13 +100,36 @@ By placing elements in reverse order, equal values retain their original relativ
 
   <h2>Code Implementations</h2>
 <div class="tab-group">
-  <div class="tabs">
-    <button class="tablink active" onclick="openTab(event, 'java')" id="tab-java">Java</button>
-    <button class="tablink" onclick="openTab(event, 'cpp')" id="tab-cpp">C++</button>
-    <button class="tablink" onclick="openTab(event, 'python')" id="tab-python">Python</button>
+<div class="tabs" role="tablist">
+   <button
+    id="tab-java"
+    class="tablink active"
+    data-lang="java"
+    role="tab"
+    aria-controls="java"
+    aria-selected="true">
+    Java
+  </button>
+   <button
+    id="tab-cpp"
+    class="tablink"
+    data-lang="cpp"
+    role="tab"
+    aria-controls="c++"
+    aria-selected="true">
+    C++
+  </button>
+   <button
+    id="tab-python"
+    class="tablink"
+    data-lang="python"
+    role="tab"
+    aria-controls="python"
+    aria-selected="true">
+    Python
+  </button>
   </div>
-
-  <div id="java" class="code-container">
+  <div id="java" class="code-container active" role="tabpanel"  aria-labelledby="tab-java">
     <pre><code class="language-java">public void countingSort(int[] A) {
     int n = A.length;
     int k = 0;
@@ -129,7 +152,7 @@ By placing elements in reverse order, equal values retain their original relativ
 }</code></pre>
   </div>
 
-  <div id="cpp" class="code-container">
+  <div id="cpp" class="code-container active" role="tabpanel"  aria-labelledby="tab-cpp">
     <pre><code class="language-cpp">void countingSort(vector<int>& A) {
     int n = A.size();
     int k = *max_element(A.begin(), A.end());
@@ -145,7 +168,7 @@ By placing elements in reverse order, equal values retain their original relativ
 }</code></pre>
   </div>
 
-  <div id="python" class="code-container">
+  <div id="python" class="code-container active" role="tabpanel"  aria-labelledby="tab-python">
     <pre><code class="language-python">def counting_sort(A):
     n = len(A)
     if n == 0: return A

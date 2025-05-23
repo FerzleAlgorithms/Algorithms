@@ -1,0 +1,258 @@
+// scripts/loadContent.js
+
+// 1) Build the sidebar menu from chapters.json
+function buildMenu(chapters, basePath = "") {
+  const menu = document.querySelector("#menu ul");
+    menu.innerHTML = `
+    <li>
+      <a href="?path=home">Home</a>
+    </li>
+  `;
+
+  function buildList(items, parentUl, currentPath, isDemo) {
+    for (const item of items) {
+      const li = document.createElement("li");
+
+      if (typeof item === "string") {
+        // leaf: an HTML page
+        //const name = item.replace(/\.html$/, "").replace(/_/g, " ");
+        const a = document.createElement("a");
+		// leaf: an HTML page
+		const raw = item.replace(/\.html$/, "");
+		const stripped = raw.replace(/^\d+_/, "");       // remove leading "2_"
+		const name   = stripped.replace(/_/g, " ");      // then spaces
+		a.textContent = isDemo
+		  ? name.replace(/Demo/g, "").trim()
+		  : name;
+
+        a.href = `?path=${encodeURIComponent(currentPath + raw)}`;
+        //a.textContent = isDemo
+        //  ? name.replace(/Demo/g, "").trim()
+        //  : name;
+        li.appendChild(a);
+
+      } else {
+        // subtree: a directory
+        for (const [dir, subItems] of Object.entries(item)) {
+          const span = document.createElement("span");
+          //span.textContent = dir.replace(/_/g, " ");
+		  const dirName  = dir.replace(/^\d+_/, "");        // strip "2_"
+		  span.textContent = dirName.replace(/_/g, " ");
+
+          span.onclick = () => li.classList.toggle("open");
+          li.appendChild(span);
+
+          const subUl = document.createElement("ul");
+          buildList(subItems, subUl, currentPath + dir + "/", isDemo);
+          li.appendChild(subUl);
+        }
+      }
+
+      parentUl.appendChild(li);
+    }
+  }
+
+  for (const [chap, contents] of Object.entries(chapters)) {
+    const li = document.createElement("li");
+    const span = document.createElement("span");
+    //span.textContent = chap.replace(/_/g, " ");
+	const chapRaw  = chap.replace(/^\d+_/, "");
+    span.textContent = chapRaw.replace(/_/g, " ");
+    span.onclick = () => li.classList.toggle("open");
+    li.appendChild(span);
+
+    const subUl = document.createElement("ul");
+    buildList(contents, subUl, chap + "/", chap === "Demos");
+    li.appendChild(subUl);
+
+    menu.appendChild(li);
+  }
+}
+
+//================================================================
+function loadContent(relativePath) {
+  const obj = document.getElementById("content");
+  const err = document.getElementById("errorMessage");
+
+  // build the URL we want to fetch
+  const urlBase = `Content/${relativePath}`;
+
+  return fetch(urlBase, { cache: "no-cache" })
+    .then(r => {
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      return r.text();
+    })
+    .then(() => {
+      // hide any old error, show the object
+      err.style.display = "none";
+      obj.style.display = "block";
+
+      // force the object to reload the new page
+      const bustUrl = `${urlBase}?_=${Date.now()}`;
+      obj.src = bustUrl;
+
+      // **once the object’s document is ready**, hook its links
+      obj.onload = () => {
+        const edoc = obj.contentDocument;
+        if (!edoc) return;
+
+        // a) Intercept internal ?path=… clicks
+        edoc.addEventListener("click", e => {
+          const a = e.target.closest('a[href]');
+          if (!a) return;
+
+          const href = a.getAttribute("href");
+          if (href.startsWith("?path=")) {
+            e.preventDefault();
+            const raw = new URLSearchParams(href.slice(1)).get("path");
+            if (!raw) return;
+
+            // normalize to match your filenames
+            const norm = raw
+              .split("/")
+              .map(decodeURIComponent)
+              .map(encodeURIComponent)
+              .join("/");
+            const htmlPath = `${norm}.html`;
+
+            // call the parent’s loader
+            parent.loadContent(htmlPath).catch(() => {});
+            parent.history.pushState({}, "", `?path=${raw}`);
+          }
+        });
+
+        // b) Force all other links to break out of the object
+        edoc.querySelectorAll('a[href]:not([href^="?path="])')
+          .forEach(a => {
+              a.setAttribute("target", "_top");
+            });
+        // --- cache-bust any embedded demos -------------------------
+        // This makes sure they reload every time instead of using a stale copy
+        edoc.querySelectorAll('iframe.embeddedDemo').forEach(frame => {
+          // strip off any old query, then append a fresh timestamp
+          const baseSrc = frame.getAttribute('src').split('?')[0];
+          frame.setAttribute('src', baseSrc + '?cb=' + Date.now());
+
+        });          
+          //-- Set the height.
+          edoc.querySelectorAll('iframe.embeddedDemo').forEach(frame => {
+            frame.setAttribute('scrolling','no');
+            frame.addEventListener('load', () => {
+              const doc = frame.contentDocument || frame.contentWindow.document;
+              // size it to fit all of its content:
+              frame.style.height = doc.documentElement.scrollHeight + 'px';
+            });
+          });
+
+    }; // end obj.onLoad = () => {
+    }) // end then(() => { 
+    .catch(e => {
+      console.error("loadContent error:", e);
+      // hide the <object>
+      obj.style.display = "none";
+
+      // show a descriptive error including the page name and HTTP status
+      err.textContent =
+        `Error loading content: Page "${relativePath}" could not be loaded (${e.message}).`;
+      err.style.display = "block";
+
+      // re-throw if you need upstream handlers to catch it, otherwise you can omit this
+      throw e;
+    });
+}
+
+
+//================================================================
+// 3) Handle back/forward and initial load
+function loadFromURLParams() {
+  const p = new URLSearchParams(window.location.search).get("path");
+  if (p) {
+    // normalize encoding
+    const norm = p
+      .split("/")
+      .map(decodeURIComponent)
+      .map(encodeURIComponent)
+      .join("/");
+    loadContent(`${norm}.html`).catch(() => {});
+  } else {
+    loadContent("credits.html").catch(() => {});
+  }
+}
+//================================================================
+window.addEventListener("popstate", loadFromURLParams);
+
+//================================================================
+// 4) DOMContentLoaded — fetch chapters, build menu, show first page,
+//    and install one delegated click listener
+document.addEventListener("DOMContentLoaded", () => {
+  fetch("scripts/chapters.json")
+    .then(r => r.json())
+    .then(chapters => {
+      buildMenu(chapters);
+      loadFromURLParams();
+    })
+    .catch(e => console.error("Error loading chapters.json:", e));
+
+  // delegate only links that start with "?path="
+  document.addEventListener("click", e => {
+    const a = e.target.closest('a[href^="?path="]');
+    if (!a) return;           // ignore everything else
+    e.preventDefault();
+
+    const raw = new URLSearchParams(a.getAttribute("href").slice(1)).get("path");
+    if (!raw) return;
+
+    const norm = raw
+      .split("/")
+      .map(decodeURIComponent)
+      .map(encodeURIComponent)
+      .join("/");
+    const htmlPath = `${norm}.html`;
+
+    loadContent(htmlPath).catch(() => {});
+    history.pushState({}, "", `?path=${raw}`);
+  });
+});
+
+//================================================================
+//-- Listen for fullscreen request
+
+window.addEventListener('message', e => {
+  if (e.data?.type === 'demo-fullscreen') {
+    // e.source is the demoPage’s Window
+    const obj = e.source.frameElement;  
+    if (obj && typeof obj.requestFullscreen === 'function') {
+      obj.requestFullscreen().catch(console.error);
+    }
+  }
+});
+
+//================================================================
+// resize demos?
+// Still messing with this.
+// If it is Monday or Tuesday, this is probably what you are looking for!
+// 5/23/25
+window.addEventListener('message', e => {
+  if (e.data?.type === 'demo-height') {
+    // e.source is the Window inside the iframe:
+    const frame = e.source.frameElement;
+    if (frame && frame.classList.contains('embeddedDemo')) {
+      frame.style.height = e.data.height + 'px';
+    }
+  }
+});
+
+
+
+
+//================================================================
+
+// To make the iframe take the whole height.
+// This makes it possible to have a single scrollbar.
+const iframe = document.getElementById('content');
+iframe.setAttribute('scrolling','no');
+iframe.addEventListener('load', () => {
+  const doc = iframe.contentDocument || iframe.contentWindow.document;
+  iframe.style.height = doc.documentElement.scrollHeight + 'px';
+});
+

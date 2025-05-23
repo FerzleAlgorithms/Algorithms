@@ -59,12 +59,36 @@
 
   <h2>Code Implementations</h2>
 <div class="tab-group">
-  <div class="tabs">
-    <button class="tablink active" onclick="openTab(event, 'java')" id="tab-java">Java</button>
-    <button class="tablink" onclick="openTab(event, 'cpp')" id="tab-cpp">C++</button>
-    <button class="tablink" onclick="openTab(event, 'python')" id="tab-python">Python</button>
+ <div class="tabs" role="tablist">
+   <button
+    id="tab-java"
+    class="tablink active"
+    data-lang="java"
+    role="tab"
+    aria-controls="java"
+    aria-selected="true">
+    Java
+  </button>
+   <button
+    id="tab-cpp"
+    class="tablink"
+    data-lang="cpp"
+    role="tab"
+    aria-controls="c++"
+    aria-selected="true">
+    C++
+  </button>
+   <button
+    id="tab-python"
+    class="tablink"
+    data-lang="python"
+    role="tab"
+    aria-controls="python"
+    aria-selected="true">
+    Python
+  </button>
   </div>
-  <div id="java" class="code-container">
+  <div id="java" class="code-container active" role="tabpanel"  aria-labelledby="tab-java">
     <pre><code class="language-java">public void radixSort(int[] A) {
     int n = A.length;
     int max = 0;
@@ -88,7 +112,7 @@
     }
 }</code></pre>
   </div>
-  <div id="cpp" class="code-container">
+  <div id="cpp" class="code-container active" role="tabpanel"  aria-labelledby="tab-cpp">
     <pre><code class="language-cpp">void radixSort(vector<int>& A) {
     int n = A.size();
     int maxv = *max_element(A.begin(), A.end());
@@ -108,7 +132,7 @@
     }
 }</code></pre>
   </div>
-  <div id="python" class="code-container">
+  <div id="python" class="code-container active" role="tabpanel"  aria-labelledby="tab-python">
     <pre><code class="language-python">def radix_sort(A):
     if not A: return A
     maxv = max(A)
