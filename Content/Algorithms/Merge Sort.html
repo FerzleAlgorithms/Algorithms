@@ -23,12 +23,38 @@
 
 <h2>Design and Strategy</h2>
 <p>
-  Merge Sort relies on the <strong>divide-and-conquer</strong> approach.  Rather than sorting the entire array in one go, you:
+  Merge Sort relies on the <strong>divide-and-conquer</strong> approach.  
+  Rather than sorting the entire array in one go, it proceeds as follows:
 </p>
 <ol>
   <li>
+    If the list has at most one item, it’s already sorted, so do nothing.
+  </li>
+  <li>
+    Otherwise, divide the list into two halves—a first half and a second half.
+  </li>
+  <li>
+    Sort each half independently, using Merge Sort, of course.
+  </li>
+  <li>
+    Take the two sorted halves and merge them together by always picking the 
+	smaller front item from either half. Once one half is empty, copy
+	the remaining elements of the other list to the end of the array.
+	An auxiliary array is needed for this step.
+  </li>
+</ol>
+
+<p>Before we can give a more formal description of the algorithm we must discuss how to
+accomplish the <em>merge</em> step.
+</p>
+<p>
+</p>
+
+
+<ol>
+  <li>
     <strong>Identify the simplest case:</strong>
-    When your subarray has zero or one element, it is by definition already sorted.  You stop recursing and return immediately.
+    When your subarray has zero or one element, it is by definition already sorted, so do nothing.
   </li>
   <li>
     <strong>Split the problem in half:</strong>
@@ -66,6 +92,7 @@
 
 
   <h2>Code Implementations</h2>
+<div class="tab-group">
   <div class="tabs">
     <button class="tablink active" onclick="openTab(event,'java')" id="tab-java">Java</button>
     <button class="tablink"        onclick="openTab(event,'cpp')"  id="tab-cpp">C++</button>
@@ -153,6 +180,8 @@ def merge(left, right):
     result.extend(right[j:])
     return result</code></pre>
   </div>
+  </div>
+
 
  <h2>Time/Space Analysis</h2>
 <div class="section">

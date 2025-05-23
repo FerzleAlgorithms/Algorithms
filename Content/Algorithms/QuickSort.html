@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Quick Sort</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js"></script>
+  <script src="../../scripts/chapterScripts.js"></script>
+  <link rel="stylesheet" href="../../style.css">
+  <script id="MathJax-script" async
+    src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script id="MathJax-script" async
+    src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
+  </script>
+  
+  <script>
+    window.MathJax = {
+      tex: {
+        packages: {
+          '[+]': ['ams']    // add the AMS package
+        },
+        inlineMath: [['\\(','\\)']],
+        displayMath: [['\\[','\\]'], ['$$','$$']]
+      },
+      options: {
+        skipHtmlTags: ['script','noscript','style','textarea']  // leave out <code> so math inside <code> can render if you want
+      }
+    };
+    </script>
+    <script async
+      id="MathJax-script"
+      src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
+    </script>
+    
+</head>
+<body>
+
+  <h1>Quick Sort</h1>
+
+  <h2>Problem Solved</h2>
+  <p>Quick Sort solves the
+    <a class="problem" href="?path=Problems%2F1_Foundational%2FSorting">Sorting</a>
+    problem.
+  </p>
+
+  <h2>Design and Strategy</h2>
+  <p>
+    Quick Sort is a <strong>divide-and-conquer</strong> algorithm: it picks a <strong>pivot</strong>,
+    partitions the array into elements <em>≤ pivot</em> and <em>> pivot</em>, then recursively sorts
+    each partition. This reduces the problem size at each recursive step.
+  </p>
+  <p>Typical steps:</p>
+  <ol>
+    <li>Choose a pivot (first, last, middle, or random element).</li>
+    <li>Partition the array so that elements ≤ pivot come before it, and > pivot come after it.</li>
+    <li>Recursively apply Quick Sort to the left and right partitions.</li>
+  </ol>
+  <p>
+    During partitioning, two pointers (<strong>i</strong> and <strong>j</strong>) scan inward from
+    the ends, swapping elements into the correct side. Because these swaps can reorder equal
+    elements around the pivot without preserving their original sequence, Quick Sort is not a
+    stable sorting algorithm.
+  </p>
+  
+  <div class="embeddedDemoContainer">
+    <object class="embeddedDemo"
+            type="text/html"
+            style="height: 900px"
+            data="../Demos/QuickSort Demo.html"></object>
+  </div>
+
+  <h2>Implementation in Java, C++, Python</h2>
+<div class="tab-group">
+  <div class="tabs">
+    <button class="tablink active" onclick="openTab(event, 'java')" id="tab-java">Java</button>
+    <button class="tablink" onclick="openTab(event, 'cpp')" id="tab-cpp">C++</button>
+    <button class="tablink" onclick="openTab(event, 'python')" id="tab-python">Python</button>
+  </div>
+
+  <div id="java" class="code-container">
+    <pre><code class="language-java">
+  public class QuickSortDemo {
+    public static void quickSort(int[] A, int lo, int hi) {
+      if (lo < hi) {
+        int p = partition(A, lo, hi);
+        quickSort(A, lo, p);
+        quickSort(A, p + 1, hi);
+      }
+    }
+  
+    static int partition(int[] A, int lo, int hi) {
+      int pivot = A[lo];
+      int i = lo - 1;
+      int j = hi + 1;
+      while (true) {
+        i++;
+        while (i <= hi && A[i] < pivot) {
+          i++;
+        }
+        j--;
+        while (j >= lo && A[j] > pivot) {
+          j--;
+        }
+        if (i >= j) {
+          return j;
+        }
+        swap(A, i, j);
+      }
+    }
+  
+    static void swap(int[] A, int i, int j) {
+      int tmp = A[i];
+      A[i] = A[j];
+      A[j] = tmp;
+    }
+  }</code></pre>
+  </div>
+  
+  <div id="cpp" class="code-container" style="display:none">
+    <pre><code class="language-cpp">
+  #include <vector>
+  using namespace std;
+  
+  void quickSort(vector<int>& A, int lo, int hi) {
+    if (lo < hi) {
+      int p = partition(A, lo, hi);
+      quickSort(A, lo, p);
+      quickSort(A, p + 1, hi);
+    }
+  }
+  
+  int partition(vector<int>& A, int lo, int hi) {
+    int pivot = A[lo];
+    int i = lo - 1;
+    int j = hi + 1;
+    while (true) {
+      ++i;
+      while (i <= hi && A[i] < pivot) {
+        ++i;
+      }
+      --j;
+      while (j >= lo && A[j] > pivot) {
+        --j;
+      }
+      if (i >= j) {
+        return j;
+      }
+      swap(A, i, j);
+    }
+  }
+  
+  void swap(vector<int>& A, int i, int j) {
+    int tmp = A[i];
+    A[i] = A[j];
+    A[j] = tmp;
+  }</code></pre>
+  </div>
+  
+  <div id="python" class="code-container" style="display:none">
+    <pre><code class="language-python">
+  def quick_sort(A, lo, hi):
+      if lo < hi:
+          p = partition(A, lo, hi)
+          quick_sort(A, lo, p)
+          quick_sort(A, p + 1, hi)
+  
+  def partition(A, lo, hi):
+      pivot = A[lo]
+      i = lo - 1
+      j = hi + 1
+      while True:
+          i += 1
+          while i <= hi and A[i] < pivot:
+              i += 1
+          j -= 1
+          while j >= lo and A[j] > pivot:
+              j -= 1
+          if i >= j:
+              return j
+          A[i], A[j] = A[j], A[i]</code></pre>
+  </div>
+  </div>
+
+  <h2>Time/Space Analysis</h2>
+
+  <div>
+    <p>
+     <b>Best/Average Case: </b> When Quick Sort consistently splits the array into two roughly equal halves, each of size about \( \tfrac{n}{2} \), the recurrence is:
+    </p>
+    <p>
+      \[
+        T(n) = 2\,T\!\bigl(\tfrac{n}{2}\bigr) + n
+      \]
+    </p>
+    <p>
+      where \(2T\!\bigl(\tfrac{n}{2}\bigr)\) is the cost of the two recursive calls (left and right partitions) and \(n\) is the cost of the partitioning step (e.g., Hoare’s partition).
+    </p>
+    <p>
+      By the Master Theorem (with <code>a=2</code>, <code>b=2</code>, <code>f(n)=n</code>, and <code>d=1</code>), since \(a = b^d\) (\(2 = 2^1\)), we are in the balanced case, yielding
+    </p>
+    <p>
+      \[
+        T(n) = O\bigl(n^d \log n\bigr) = O(n \log n).
+      \]
+    </p>
+  </div>
+  
+  <div>
+    <p>
+    <b>Worst case: </b> If the pivot choice is consistently poor — for example, always the smallest or 
+    largest element — one side of the partition is empty and the other has \(n-1\) elements. 
+    The recurrence becomes: <code>T(n) = T(n-1) + n</code>
+    </p>
+   
+    <p>
+      T(n) = T(n-1) + n
+    </p>
+    <p>Using the Iteration Method: </p>
+    <p>
+      \[
+        \begin{aligned}
+          T(n)
+            &= T(n-1) + n \\
+            &= T(n-2) + n + (n-1) \\
+            &= T(n-3) + n + (n-2) + (n-3) \\
+            &= T(n-4) + n + (n-3) + (n-4) \\
+            &\;\;\;\vdots \\
+            &= T(n-k) + \sum_{i=0}^{k-1}(n-i)\\        
+  
+        \end{aligned}
+      \]
+    </p>
+    <p>We need to find a <code>k</code> such that:  \( n - k = 1 \implies -k = 1 - n \implies k = n - 1 \)</p>
+    
+    <p>This yields: </p>
+    <p>
+      \[
+        \begin{aligned}
+          T(n) 
+          &= T(1) + \sum_{i=0}^{n-2} (n-i) \\ 
+          &= 1 + \sum_{i=0}^{n-2}n - \sum_{i=0}^{n-2}i \\
+          &= 1 + n(n-1) -\frac{n(n-1)}{2} \\ 
+          &= 1 + \frac{2n(n-1) - n(n-1)}{2} \\ 
+          &= 1 + \frac{n(n-1)}{2} \\ 
+          &= O(n^2).
+        \end{aligned}
+      \]
+    </p>
+
+
+    <p>
+      <strong>Space Complexity (Best and Average Case):</strong>
+      In the best and average cases—when the pivot consistently splits the array into two roughly equal halves—the recursive calls
+      in Quicksort form a balanced binary tree. Each call pushes a new frame onto the call stack until a base case (a subarray of
+      size 0 or 1) is reached; at that point the function returns and frames begin popping off the stack. Consequently, the
+      maximum number of simultaneous frames—the call stack depth—equals the height of this recursion tree, O(log n), yielding
+      a best-case and average-case space complexity of O(log n).
+    </p>
+
+    <p>
+      <strong>Space Complexity (Worst Case):</strong>
+      In the worst case—when the pivot is consistently chosen near the smallest or largest element—the recursive calls
+      in Quicksort form an unbalanced tree. Each call pushes a new frame onto the call stack until a base case (a subarray of
+      size 0 or 1) is reached; only then do frames begin popping off the stack. Because no balanced splits occur, the maximum
+      number of simultaneous frames—the call stack depth—grows linearly with n, yielding a worst-case space complexity of O(n).
+    </p>
+    
+  </div>
+    
+  </div>
+  
+  
+  <h2>Variations/Improvements</h2>
+
+<!-- 1. Pivot changes -->
+<h3>Pivot Selection Methods</h3>
+<ul>
+  <li><strong>Randomized Pivot</strong>: pick the pivot at random to avoid degenerate cases.</li>
+  <li><strong>Median-of-Three</strong>: choose the median of the first, middle and last elements as the pivot.</li>
+</ul>
+
+<!-- 2. Partitioning algorithms -->
+<h3>Partitioning Algorithms</h3>
+<ul>
+  <li><strong><a href="https://cusack.hope.edu/Algorithms/?path=Algorithms/Hoare%20Partition" target="_blank">Hoare’s Partition</a></strong>: two-pointer scheme that swaps out-of-place elements until the pointers cross.</li>
+  <li><strong>Lomuto’s Partition</strong>: single-index scheme that builds the “less-than” region and then places the pivot.</li>
+  <li><strong>Three-Way Partition (Dutch National Flag)</strong>: splits into &lt; pivot, = pivot and &gt; pivot regions to handle duplicates efficiently.</li>
+</ul>
+
+<!-- 3. Tail recursion elimination -->
+<h3>Tail Recursion Elimination</h3>
+<p>
+  To bound stack depth to O(log n), always recurse on the smaller subarray first and turn the other “recursive” call into an iterative loop.  
+  This simple transform eliminates one of the two recursive calls in each step, ensuring worst-case stack usage stays logarithmic.
+</p>
+
+<!-- 4. Base-case optimization -->
+<h3>Base-Case Optimization</h3>
+<ul>
+  <li><strong>Hybrid with Insertion Sort</strong>: for small subarrays (e.g., size &le; 10), switch to insertion sort (or another low-overhead algorithm).  
+  This reduces the cost of many tiny recursive calls and improves overall performance on nearly sorted or small partitions.</li>
+</ul>
+
+  <h2>Helpful Links and Resources</h2>
+  <ol>
+    <li><a href="https://visualgo.net/en/sorting">Visualgo – Sorting Visualizations</a></li>
+    <li><a href="https://www.geeksforgeeks.org/quick-sort/">GeeksforGeeks – Quick Sort</a></li>
+    <li><a href="https://en.wikipedia.org/wiki/Quicksort">Wikipedia – Quick Sort</a></li>
+  </ol>
+
+  <h2>Reading Comprehension Questions</h2>
+  <ol>
+    <li>What is the divide-and-conquer strategy in Quick Sort?</li>
+    <li>What are the average and worst-case time complexities?</li>
+    <li>Why is Quick Sort not stable?</li>
+    <li>Perform Quick Sort on \([46,89,8,34,33,77]\) using the first element as pivot.</li>
+    <li>What are some ways to reduce the chances of getting the worst-case time complexity scenario of Quick Sort?</li>
+  </ol>
+  
+  <button id="toggleAnswers" class="show-answer" aria-expanded="false" style="margin-top:10px;">
+    Show Answers
+  </button>
+  <div id="answers" class="answer" hidden style="margin-top:10px;">
+    <ol>
+      <li><strong>Answer:</strong> It splits the array around a pivot and recursively sorts each half.</li>
+      <li><strong>Answer:</strong> Average \(O(n\log n)\); worst \(O(n^2)\) when pivots are poorly chosen.</li>
+      <li><strong>Answer:</strong> Because its in-place partitioning can swap equal elements across the pivot, 
+        identical keys may end up in a different order than they started.</li>
+      <li><strong>Answer:</strong> Look at demo.</li>
+      <li><strong>Answer:</strong> By choosing pivots to avoid poor splits—e.g., 
+        using randomized pivot selection or median-of-three pivot; by employing three-way partitioning for duplicates; 
+        and by switching to a low-overhead algorithm (like insertion sort) on small subarrays—you can dramatically reduce 
+        the chance of hitting the \(O(n^2)\) worst case.</li>
+    </ol>
+  </div>
+  
+  <h2>In-class Activities</h2>
+  <ol>
+    <li>Compare pivot choices: first-element vs random vs median-of-three.</li>
+    <li>Discuss in-place vs out-of-place sorting (Quick vs Merge Sort).</li>
+    <li>Explore tail-recursion elimination for space optimization.</li>
+    <li>Go over some example of Quicksort being performed on some arrays.</li>
+    <li>Go over the space and time complexity for Quicksort.</li>
+  </ol>
+
+
+  <div class="section">
+    <h2>Problems</h2>
+    <ol>
+      <li>
+        Perform Quicksort on the given list of chars <code>['q', 'u', 'i', 'c', 'k', 's', 'o', 'r', 't']</code>  
+        and show the necessary work to sort this.
+      </li>
+      <li>
+        Custom Comparator Sort
+        <p>You have a list of records <code>(name, score, timestamp)</code>. Design an in-place Quicksort that orders records by:</p>
+        <ol>
+          <li>Descending score, then</li>
+          <li>Ascending timestamp.</li>
+        </ol>
+        <p>Explain how your comparator integrates into the partitioning step.</p>
+      </li>
+      <li>
+        Classic Nuts and Bolts Matching
+        <p><code>Input:</code> n nuts and n bolts.</p>
+        <p><code>Comparator:</code> <code>compare(nut, bolt)</code> returns &lt;0 if nut is too small, &gt;0 if too large, and 0 if they fit.</p>
+        <p><code>Goal:</code> Match each nut with its corresponding bolt.</p>
+        <p><em>Hint:</em> Pick a random nut as pivot, partition the bolts around it, then use the matched bolt to partition the nuts, and recurse on subproblems.</p>
+      </li>
+      <li>
+        Performance Comparison of Quicksort Variants
+        <p>Write a program that:</p>
+        <ol>
+          <li>Uses a fixed random seed to generate one initial array of <code>100,000,000</code> integers.</li>
+          <li>Makes four identical copies of that array so each sort sees the same data.</li>
+          <li>Sorts each copy with a different Quicksort implementation:
+            <ul>
+              <li>Standard Quicksort (e.g. last‐element pivot)</li>
+              <li>Median-of-three pivot Quicksort</li>
+              <li>Random‐pivot Quicksort</li>
+              <li>Quicksort that switches to selection sort for subarrays of size ≤ 10</li>
+            </ul>
+          </li>
+          <li>Measures and records the wall-clock time taken by each variant.</li>
+          <li>Summarizes and comments on the relative performance of all four methods.</li>
+        </ol>
+      </li>
+      
+    </ol>
+  </div>
+  
+  
+
+</body>
+</html>

@@ -220,9 +220,9 @@ button, input {
   background-color: #d4d4d4;
 }
 .code-container {
+  display: inline-block;       /* ← here */
+  vertical-align: top;         /* so multiple groups line up nicely */
   background-color: #fff;
-  width: 100%;
-  max-width: 500px;
   border-radius: 0 5px 5px 5px;
   border: 1px solid #ccc;
   overflow-x: auto;

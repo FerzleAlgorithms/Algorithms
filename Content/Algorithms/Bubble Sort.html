@@ -57,6 +57,7 @@ resetting <i>j</i> to the start of the array, and beginning the next pass.
 
 
 <h2>Implementation in Java, C++, Python</h2>
+<div class="tab-group">
 <div class="tabs">
   <button class="tablink active" onclick="openTab(event, 'java')" id="tab-java">Java</button>
   <button class="tablink" onclick="openTab(event, 'cpp')" id="tab-cpp">C++</button>
@@ -102,6 +103,7 @@ resetting <i>j</i> to the start of the array, and beginning the next pass.
             if arr[j] &gt; arr[j + 1]:
                 arr[j], arr[j + 1] = arr[j + 1], arr[j]
 </code></pre>
+</div>
 </div>
   
 <h2>Time/Space Analysis</h2>
@@ -267,7 +269,7 @@ to <code>O(n)</code>, as it no longer unnecessarily completes additional passes.
     <li><strong>Answer:</strong> no swaps occur during a complete pass</li>
     <li><strong>Answer:</strong> d) Brute force</li>
     <li><strong>Answer:</strong> b) Brute force, c) Decrease-and-conquer</li>
-    <li><strong>Answer:</strong> Its quadratic O(n²) time complexity<a href="https://chatgpt.com/s/m_682c8de6bf008191815d0d6314f6b1f3">.</a></li>
+    <li><strong>Answer:</strong> Its quadratic O(n²) time complexity.</li>
   </ol>
 </div>
 

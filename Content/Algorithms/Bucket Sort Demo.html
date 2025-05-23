@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Bucket Sort Demo</title>
+  <link rel="stylesheet" href="../../style.css">
+  <style>
+
+    /* allow the arrow to escape the .element box */
+.array-container .element {
+  position: relative;
+  overflow: visible;    /* so the absolutely-positioned arrow shows up outside */
+}
+
+/* drop the arrow down, center it, below the box by 4px */
+.array-container .element .arrow {
+  position: absolute;
+  top: 100%;            /* right below the bottom edge of the box */
+  left: 50%;
+  transform: translateX(-50%);
+  margin-top: 22px;      /* a little extra breathing room */
+}
+
+    /* Section labels */
+    .section-label {
+      font-weight: bold;
+      margin: 12px 0 4px;
+      font-size: 14px;
+    }
+    /* Bucket range styling */
+    /* default bucket‐range (you probably already have this) */
+    .element.bucket-range {
+      background-color: #ffd700;
+      white-space: nowrap;
+      font-size: 0.82em;
+      /* make sure you have at least a 1px border by default */
+      border: 1px solid #333;
+      padding: 2px 4px;
+    }
+
+    /* when the bucket is being sorted, bump up the border thickness */
+    .element.bucket-range.highlight {
+      border-width: 3px;
+      border-style: solid;
+      border-color: #000;
+    }
+    /* Legend box for bucket range */
+    .legend-box.bucket-range {
+      background-color: #ffd700;
+    }
+    /* Improved arrow styling (vertical) */
+    .bucket-arrow, .arrow {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      font-weight: bold;
+      color: #333;
+      margin: 4px 0;
+      width: 16px;
+      height: 16px;
+    }
+    /* Bucket container horizontal layout */
+    #buckets {
+      display: flex;
+      flex-direction: row;
+      align-items: flex-start;
+      margin: 10px 0;
+      overflow-x: auto;
+    }
+    /* Each bucket block vertical layout */
+    .bucket-block {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-right: 16px;
+    }
+    .bucket-block .element {
+      margin: 4px 0;
+    }
+
+
+    .legend-box.comparing-insert {
+  background-color: #1f77b4;
+}
+
+
+
+  </style>
+</head>
+<body>
+  <h2>Bucket Sort Demo</h2>
+
+  <div id="controls">
+    <label>Size:
+      <input type="number" id="arraySize" min="8" max="20" value="10" size="2">
+    </label>
+    <button id="generate">Random Array</button>
+    <input type="text" id="customArray" placeholder="12,34,56,78" size="40">
+    <button id="useCustom">Create Array</button>
+
+    <!-- single bucket-size + set-buckets control -->
+    <label style="margin-left:1em">
+      Buckets:
+      <input
+        type="number"
+        id="bucketSize"
+        min="1" max="15"
+        value="10"
+        size="2"
+      >
+    </label>
+    <button id="setBuckets">Set Buckets</button>
+  </div>
+
+
+  <div style="margin:10px 0;">
+    <button id="prev-step">Previous</button>
+    <button id="next-step">Next</button>
+  </div>
+
+  <!-- Main array label -->
+  <div class="section-label">Main Array:</div>
+  <div class="array-container" id="boxes"></div>
+
+  <!-- Buckets label -->
+  <div class="section-label">Buckets:</div>
+  <div id="buckets"></div>
+
+  <div id="step-desc" class="step-comment"></div>
+
+  <div class="legend">
+    <strong>Legend:</strong>
+    <span class="legend-box default"></span> Unprocessed
+    <span class="legend-box comparing"></span> Distributing
+    <span class="legend-box swap"></span> Bucketed
+    <span class="legend-box sorted"></span> Placed
+    <span class="legend-box comparing-insert"></span> Comparing (insertion-sort)
+    <span class="legend-box bucket-range"></span> Bucket Range
+    <span class="bucket-arrow">↓</span> Bucket Arrow
+  </div>
+
+  <script>
+    let originalArray = [], steps = [], cur = 0;
+    function record(state) { steps.push(JSON.parse(JSON.stringify(state))); }
+
+
+    function generateSteps(A) {
+  steps = [];
+  originalArray = [...A];
+  const max = Math.max(...A);
+
+  // read & clamp bucket‐count input (1 ≤ buckets ≤ 15, default 10)
+  const bInput = document.getElementById('bucketSize');
+  let bucketCount = parseInt(bInput.value, 10) || 10;
+  bucketCount = Math.max(1, Math.min(bucketCount, 15));
+  bInput.value = bucketCount;  // reflect clamped value in the UI
+
+  // initialize empty buckets
+  let buckets = Array.from({ length: bucketCount }, () => []);
+
+  // ─── initial “ready to distribute” snapshot ───
+  record({
+    A: [...A],                                    // main array untouched
+    buckets: JSON.parse(JSON.stringify(buckets)), // all buckets empty
+    phase: 'distribute',                          // reuse your existing distribute renderer
+    i: 0,                                         // arrow at first element
+    bucketIndex: null,
+    desc: 'Ready to start distributing'           // custom message
+  });
+
+  // 1) Distribute phase
+  for (let i = 0; i < A.length; i++) {
+    const bucketIndex = Math.floor(A[i] * bucketCount / (max + 1));
+    buckets[bucketIndex].push(A[i]);
+    record({
+      A: [...A],
+      buckets: JSON.parse(JSON.stringify(buckets)),
+      phase: 'bucketed',
+      i,
+      bucketIndex,
+      desc: `Placed element ${A[i]} at index ${i} into bucket ${bucketIndex}`
+    });
+  }
+
+  // 2) Sort buckets internally (via insertion sort), with descriptive comments
+  for (let b = 0; b < buckets.length; b++) {
+    const raw = buckets[b].slice();
+    const insSteps = generateInsertionSteps(raw);
+
+    insSteps.forEach(state => {
+      // build a human-readable description matching Insertion Sort Demo
+      let descText;
+      switch (state.stage) {
+        case 'init':
+          descText = `Bucket ${b}: beginning insertion sort.`;
+          break;
+        case 'newKey':
+          descText = `${state.keyVal} is the new key in bucket ${b}.`;
+          break;
+        case 'comparing': {
+          const compVal = state.arr[state.compareIndex];
+          if (state.keyVal < compVal) {
+            descText = `${state.keyVal} < ${compVal}? Yes, shift ${compVal} right.`;
+          } else {
+            descText = `${state.keyVal} < ${compVal}? No, place the key now.`;
+          }
+          break;
+        }
+        case 'shift':
+          descText = `Shifted element to the right in bucket ${b}.`;
+          break;
+        case 'placed':
+          if (state.sortedCount === state.arr.length) {
+            descText = `Bucket ${b} is now fully sorted.`;
+          } else {
+            descText = `Placed key ${state.keyVal} at index ${state.keyIndex}.`;
+          }
+          break;
+        default:
+          descText = '';
+      }
+
+      record({
+        A: [...A],
+        buckets: buckets.map((x, i) => i === b ? state.arr.slice() : x.slice()),
+        phase: 'insertion',
+        bucketIndex: b,
+        insertion: state,
+        desc: descText
+      });
+    });
+
+    // commit the sorted result back into our buckets array
+    buckets[b] = insSteps[insSteps.length - 1].arr.slice();
+  }
+
+  // 3) Collect phase: visit each bucket then place every element
+  let pos = 0;
+  for (let b = 0; b < buckets.length; b++) {
+    // highlight even empty buckets
+    record({
+      A: [...A],
+      buckets: JSON.parse(JSON.stringify(buckets)),
+      phase: 'collect',
+      bucketIndex: b,
+      i: pos,
+      desc: buckets[b].length
+        ? `Visiting bucket ${b}`
+        : `Visiting empty bucket ${b}`
+    });
+
+    // place each element back into A
+    for (let bucketPos = 0; bucketPos < buckets[b].length; bucketPos++) {
+      const val = buckets[b][bucketPos];
+      A[pos] = val;
+      record({
+        A: [...A],
+        buckets: JSON.parse(JSON.stringify(buckets)),
+        phase: 'collect',
+        bucketIndex: b,
+        bucketPos,
+        i: pos,
+        desc: `Placing element ${val} from bucket ${b} at index ${pos}`
+      });
+      pos++;
+    }
+  }
+
+  // 4) Final done
+  record({
+    A: [...A],
+    buckets: JSON.parse(JSON.stringify(buckets)),
+    phase: 'done',
+    desc: 'Bucket sort complete'
+  });
+
+  return steps;
+}
+
+function render() {
+  const box             = document.getElementById('boxes');
+  const bucketContainer = document.getElementById('buckets');
+  box.innerHTML         = '';
+  bucketContainer.innerHTML = '';
+
+  const st        = steps[cur];
+  const values    = st.A;
+  const buckets   = st.buckets;
+  const maxVal    = Math.max(...originalArray);
+  const rangeSize = (maxVal + 1) / buckets.length;
+
+  // ─── 0) Build permanent‐sorted sets ───
+  const permMainSorted   = new Set(),
+        permBucketSorted = new Set();
+
+  for (let k = 0; k <= cur; k++) {
+    const s = steps[k];
+    if (s.phase === 'collect') {
+      if (s.i != null) permMainSorted.add(s.i);
+      if (s.bucketIndex != null && s.bucketPos != null) {
+        permBucketSorted.add(`${s.bucketIndex}-${s.bucketPos}`);
+      }
+    }
+    if (s.phase === 'done') {
+      // mark all main‐array slots
+      steps[k].A.forEach((_, idx) => permMainSorted.add(idx));
+      // mark all bucket slots
+      buckets.forEach((bucketArr, b) =>
+        bucketArr.forEach((_, j) =>
+          permBucketSorted.add(`${b}-${j}`)
+        )
+      );
+    }
+  }
+
+  // ─── 1) Insertion‐sort sub‐step ───
+  if (st.phase === 'insertion') {
+    const bIdx = st.bucketIndex;
+    const ins  = st.insertion;
+
+    // 1a) Render main array (with permanent orange highlights + i‐arrow)
+    for (let i = 0; i < values.length; i++) {
+      const div = document.createElement('div');
+      div.className = 'element';
+      div.textContent = values[i];
+      if (permMainSorted.has(i)) div.classList.add('sorted');
+      if (i === st.i) {
+        div.innerHTML = `<div class="bucket-arrow">↓</div>` + div.textContent;
+      }
+      box.appendChild(div);
+    }
+
+    // 1b) Render each bucket’s snapshot (highlighting only the active one)
+    for (let b = 0; b < buckets.length; b++) {
+      const snapshot = (b === bIdx ? ins.arr : buckets[b]);
+      const bucketDiv = document.createElement('div');
+      bucketDiv.className = 'bucket-block';
+
+      // range label
+      const lower  = Math.floor(b * rangeSize);
+      const upper  = Math.floor((b + 1) * rangeSize) - 1;
+      const rangeEl = document.createElement('div');
+      rangeEl.className = 'element bucket-range';
+      rangeEl.textContent = `${lower}-${upper}`;
+      if (b === bIdx) rangeEl.classList.add('highlight');
+      bucketDiv.appendChild(rangeEl);
+
+      // ← arrow for active bucket during insertion
+      if (snapshot.length > 0) {
+        const arrowEl = document.createElement('div');
+        arrowEl.className = 'bucket-arrow';
+        arrowEl.textContent = '↓';
+        bucketDiv.appendChild(arrowEl);
+      }
+
+      // bucket contents with insertion‐sort coloring
+      snapshot.forEach((val, idx) => {
+        const el = document.createElement('div');
+        el.className = 'element';
+        el.textContent = val;
+        if (b === bIdx) {
+          if (idx < ins.sortedCount)                     el.classList.add('sorted');
+          if (ins.stage === 'newKey'   && idx === ins.keyIndex)    el.classList.add('key');
+          if (ins.stage === 'comparing' && idx === ins.compareIndex) {
+            el.classList.add('comparing');
+            el.classList.remove('sorted');
+          }
+          if (ins.stage === 'shift'     && idx === ins.firstShiftIndex) {
+            el.classList.add('shift');
+          }
+          if (ins.stage === 'placed'    && idx === ins.keyIndex)    el.classList.add('sorted');
+        }
+        bucketDiv.appendChild(el);
+      });
+
+      bucketContainer.appendChild(bucketDiv);
+    }
+    // ←— insert this line right here, just before you exit the insertion block
+    document.getElementById('step-desc').textContent = st.desc || '';
+    return;  // done with insertion pass
+  }
+
+  // ─── 2) Main array + “i” arrow + permanent sorted highlights ───
+  for (let i = 0; i < values.length; i++) {
+    const div = document.createElement('div');
+    div.className = 'element';
+    div.textContent = values[i];
+
+    if (permMainSorted.has(i)) div.classList.add('sorted');
+
+    if ((st.phase === 'distribute' ||
+         st.phase === 'bucketed'   ||
+         st.phase === 'collect') && i === st.i) {
+      div.innerHTML = `<div class="arrow">↑<br>i</div>` + div.textContent;
+      if (st.phase === 'distribute') div.classList.add('comparing');
+      if (st.phase === 'bucketed')   div.classList.add('swap');
+    }
+
+    box.appendChild(div);
+  }
+
+  // ─── 3) Buckets: distribution/collection view ───
+  for (let b = 0; b < buckets.length; b++) {
+  const bucketDiv = document.createElement('div');
+  bucketDiv.className = 'bucket-block';
+
+  // range label
+  const lower  = Math.floor(b * rangeSize);
+  const upper  = Math.floor((b + 1) * rangeSize) - 1;
+  const rangeEl = document.createElement('div');
+  rangeEl.className = 'element bucket-range';
+  rangeEl.textContent = `${lower}-${upper}`;
+  // → highlight the range during the collect (placed) phase
+  if (st.phase === 'collect' && b === st.bucketIndex) {
+    rangeEl.classList.add('highlight');
+  }
+  bucketDiv.appendChild(rangeEl);
+
+  // → only draw a pointer arrow:
+  //    • when bucketed phase is touching this bucket, or
+  //    • permanently for any bucket with contents
+  if ((st.phase === 'bucketed' && b === st.bucketIndex) ||
+       buckets[b].length > 0) {
+    const arrowEl = document.createElement('div');
+    arrowEl.className = 'bucket-arrow';
+    arrowEl.textContent = '↓';
+    bucketDiv.appendChild(arrowEl);
+  }
+    // bucket cells: exact‐slot coloring via permBucketSorted
+    buckets[b].forEach((val, j) => {
+      const div = document.createElement('div');
+      div.className = 'element';
+      div.textContent = val;
+      if (st.phase === 'done' || permBucketSorted.has(`${b}-${j}`)) {
+        div.classList.add('sorted');
+      }
+      bucketDiv.appendChild(div);
+    });
+
+    bucketContainer.appendChild(bucketDiv);
+  }
+
+  // ─── 4) Step description ───
+  document.getElementById('step-desc').textContent = st.desc || '';
+}
+
+// from Insertion Sort Demo…
+function generateInsertionSteps(arr) {
+  const states = [];
+  let a = arr.slice();
+  states.push({ arr: a.slice(), sortedCount: 1, stage: 'init', i: 1 });
+  for (let i = 1; i < a.length; i++) {
+    const key = a[i];
+    let kArr = a.slice();
+    let j = i - 1;
+    states.push({ arr: kArr.slice(), sortedCount: i, stage: 'newKey', keyIndex: i, keyVal: key, i });
+    while (j >= 0) {
+      states.push({ arr: kArr.slice(), sortedCount: i, stage: 'comparing', keyIndex: i, compareIndex: j, keyVal: key, i });
+      if (a[j] <= key) break;
+      kArr[j + 1] = kArr[j];
+      states.push({ arr: kArr.slice(), sortedCount: i, stage: 'shift', keyIndex: i, keyVal: key, firstShiftIndex: j + 1, i });
+      j--;
+    }
+    kArr[j + 1] = key;
+    states.push({ arr: kArr.slice(), sortedCount: i + 1, stage: 'placed', keyIndex: j + 1, keyVal: key, i });
+    a = kArr.slice();
+  }
+  return states;
+}
+
+
+    function initDemo() {
+      const nInput = document.getElementById('arraySize');
+      let n = parseInt(nInput.value) || 10;
+      n = Math.max(8, Math.min(n, 20)); nInput.value = n;
+      const arr = Array.from({length: n}, () => Math.floor(Math.random() * 100));
+      generateSteps([...arr]); cur = 0; render();
+    }
+
+    document.getElementById('generate').onclick = initDemo;
+    document.getElementById('prev-step').onclick = () => { if (cur > 0) cur--; render(); };
+    document.getElementById('next-step').onclick = () => { if (cur < steps.length - 1) cur++; render(); };
+    document.getElementById('useCustom').onclick = () => {
+      const inputStr = document.getElementById('customArray').value;
+      const values = inputStr.split(',').map(x=>parseInt(x.trim())).filter(x=>!isNaN(x));
+      if (values.length >= 2) { generateSteps([...values]); cur = 0; render(); }
+      else alert("Please enter at least 2 valid integers separated by commas.");
+    };
+    // 1) Clamp bucket-size input on edit
+const bucketInput = document.getElementById('bucketSize');
+bucketInput.addEventListener('change', () => {
+  let v = parseInt(bucketInput.value, 10) || 10;
+  v = Math.max(1, Math.min(15, v));
+  bucketInput.value = v;
+});
+
+// 2) When “Set Buckets” is clicked, re-generate on the same array
+document.getElementById('setBuckets').addEventListener('click', () => {
+  // re-clamp
+  let bc = parseInt(bucketInput.value, 10) || 10;
+  bc = Math.max(1, Math.min(15, bc));
+  bucketInput.value = bc;
+
+  // regenerate & reset playback
+  generateSteps([...originalArray]);
+  cur = 0;
+  render();
+});
+    initDemo();
+  </script>
+</body>
+</html>

@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Merge</title>
+  <link rel="stylesheet" href="../../../style.css" />
+</head>
+<body>
+  <h1>Merge</h1>
+
+  <section>
+    <h2>Problem Description</h2>
+    <p>
+      Given two lists that are each already sorted, the goal is to weave them together
+      into a single list that remains sorted. 
+    </p>
+
+    <h3>Input</h3>
+    <p>
+      Two sorted lists, <code>List A</code> and <code>List B</code>, containing elements
+      drawn from the same ordered set. There may be duplicates.
+    </p>
+
+    <h3>Output</h3>
+    <p>
+      A single sorted list containing all elements of <code>List A</code> and
+      <code>List B</code>, in non-decreasing order.
+    </p>
+  </section>
+
+  <section>
+    <h2>Motivation/Applications</h2>
+    <p>
+      Merging is the essential final step of Merge Sort, a powerful divide-and-conquer
+      sorting method. It’s also used whenever you need to combine multiple sorted
+      data streams (for example, merging log files by timestamp or merging database
+      query results).
+    </p>
+  </section>
+
+  <section>
+    <h2>Examples</h2>
+
+    <div class="example-box">
+      <strong class="example-title">Example 1</strong><br>
+      <strong>Input:</strong><br>
+      <code>List A = [1, 3, 5]</code><br>
+      <code>List B = [2, 4, 6]</code><br>
+      <strong>Output:</strong><br>
+      <code>[1, 2, 3, 4, 5, 6]</code>
+    </div>
+    <br>
+    <div class="example-box">
+      <strong class="example-title">Example 2</strong><br>
+      <strong>Input:</strong><br>
+      <code>List A = [1, 2, 7]</code><br>
+      <code>List B = [3, 5, 6]</code><br>
+      <strong>Output:</strong><br>
+      <code>[1, 2, 3, 5, 6, 7]</code>
+    </div>
+  </section>
+
+  <section>
+    <h2>Common Algorithms/Techniques</h2>
+    <ul>
+      <li>Two-pointer (front pointers for each list)</li>
+      <li>Use of “sentinel” values to avoid checks at list ends</li>
+	  <li>Copy the left half forward and the right half backward, 
+	  then merge back by comparing elements starting from each end.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Variants/Related Problems</h2>
+    <ul>
+      <li>K-way merge (merging more than two sorted lists at once)</li>
+      <li>In-place array merge without extra memory</li>
+    </ul>
+  </section>
+</body>
+</html>

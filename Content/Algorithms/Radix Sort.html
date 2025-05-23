@@ -56,6 +56,7 @@
   </div>
 
   <h2>Code Implementations</h2>
+<div class="tab-group">
   <div class="tabs">
     <button class="tablink active" onclick="openTab(event, 'java')" id="tab-java">Java</button>
     <button class="tablink" onclick="openTab(event, 'cpp')" id="tab-cpp">C++</button>
@@ -126,6 +127,7 @@
         A = B[:]
     return A</code></pre>
   </div>
+  </div>
 
  <h2>Time/Space Analysis</h2>
 <ul>
@@ -168,47 +170,95 @@
     </ul>
   </li>
 </ul>
+<h2>Variations &amp; Improvements</h2>
+<p>
+The standard LSD Radix Sort processes digits from least to most significant, but an alternative is the <b>MSD (Most Significant Digit)</b> variant.  
+MSD Radix Sort partitions the array by the highest‐order digit first and then recursively sorts each bucket on the next digit.  
+This can naturally handle variable-length keys and may terminate early on buckets whose elements share identical prefixes.
+</p>
+
+<p>
+Another key optimization is choosing the <b>radix</b> (base) to balance the number of passes <i>d</i> against the bucket-array size <i>k</i>.  
+Using a power-of-two radix (e.g. 2⁸ or 2¹⁶) lets you replace expensive division and modulus operations with fast bit-shifts and masks.
+</p>
+
+<p>
+To reduce memory overhead, you can implement an <b>in-place cycle leader permutation</b> instead of the usual copy-back from the temporary output array.  
+By computing each element’s final index and rotating cycles of elements into place, you eliminate the Θ(n) copy step at the cost of more complex index bookkeeping.
+</p>
+
+<ul>
+  <li>Implement the MSD variant to sort variable-length strings or keys, stopping recursion on singleton buckets.</li>
+  <li>Use a radix of 2^m (e.g., 256) to extract m bits at a time via bitwise operations.</li>
+  <li>Apply cycle-leader permutation to perform placement in-place and avoid the extra output buffer.</li>
+  <li>Parallelize counting and placement phases across threads or distributed nodes to improve throughput on large datasets.</li>
+</ul>
+
+<h2>Links to Resources</h2>
+<ul>
+  <li><a href="https://www.geeksforgeeks.org/radix-sort/">GeeksforGeeks: Radix Sort</a></li>
+  <li><a href="https://visualgo.net/en/sorting">VisuAlgo: Radix Sort Visualization</a></li>
+  <li><a href="https://en.wikipedia.org/wiki/Radix_sort">Wikipedia: Radix Sort</a></li>
+  <li><a href="https://www.cs.usfca.edu/~galles/visualization/RadixSort.html">USFCA: Radix Sort Demo</a></li>
+</ul>
 
   <div class="section">
-    <h2>Reading Comprehension Questions</h2>
+  <h2>Reading Comprehension Questions</h2>
+  <ol>
+    <li>What property must the intermediate sort satisfy for Radix Sort to work correctly?</li>
+    <li>How does the number of digits <i>d</i> affect the running time?</li>
+    <li>Why is Radix Sort not a comparison-based algorithm?</li>
+    <li>What trade-offs arise when choosing a larger radix?</li>
+    <li>How would you adapt Radix Sort to sort strings of equal length?</li>
+    <li>Under what conditions does Radix Sort outperform comparison-based sorting algorithms like Quick Sort?</li>
+    <li>How would you adapt Radix Sort to sort keys of variable lengths (e.g., strings of different lengths)?</li>
+    <li>What are the differences between LSD (Least Significant Digit) and MSD (Most Significant Digit) Radix Sort variants?</li>
+  </ol>
+  <button id="toggleAnswers" class="show-answer" aria-expanded="false">Show Answers</button>
+  <div id="answers" class="answer" hidden>
     <ol>
-      <li>What property must the intermediate sort satisfy for Radix Sort to work correctly?</li>
-      <li>How does the number of digits <i>d</i> affect the running time?</li>
-      <li>Why is Radix Sort not a comparison-based algorithm?</li>
-      <li>What trade-offs arise when choosing a larger radix?</li>
-      <li>How would you adapt Radix Sort to sort strings of equal length?</li>
-    </ol>
-    <button id="toggleAnswers" class="show-answer" aria-expanded="false">Show Answers</button>
-    <div id="answers" class="answer" hidden>
-      <ol>
-        <li><strong>Answer:</strong> It must be <i>stable</i>, preserving the order of equal keys.</li>
-        <li><strong>Answer:</strong> Running time is linear in <i>d</i>, so more digits increase total passes linearly.</li>
-        <li><strong>Answer:</strong> It sorts by digit extraction and counting rather than element comparisons.</li>
-        <li><strong>Answer:</strong> Larger radix reduces <i>d</i> but increases <i>k</i>, affecting both time and space for the count array.</li>
-        <li><strong>Answer:</strong> Treat each character as a digit, convert to numeric codes, and apply LSD Radix Sort.</li>
-      </ol>
-    </div>
-  </div>
-
-  <div class="section">
-    <h2>In-Class Activities</h2>
-    <ul>
-      <li>Visualize each digit pass by grouping cards or tokens according to the current digit.</li>
-      <li>Explore how stability affects sorting order by comparing stable vs unstable intermediate sorts.</li>
-      <li>Compare performance for different radices (e.g., base-10 vs base-256) on large datasets.</li>
-      <li>Implement a digit-extraction function in pairs and test its correctness on diverse inputs.</li>
-    </ul>
-  </div>
-
-  <div class="section">
-    <h2>Problems</h2>
-    <ol>
-      <li>Analyze the performance of MSD vs LSD Radix Sort on strings of fixed and variable lengths.</li>
-      <li>Modify Radix Sort to handle negative integers.</li>
-      <li>Design a hybrid Radix-QuickSort algorithm and discuss scenarios where it outperforms each individual algorithm.</li>
-      <li>Implement an in-place Radix Sort variant that uses O(1) additional space.</li>
+      <li><strong>Answer:</strong> It must be <i>stable</i>, preserving the order of equal keys.</li>
+      <li><strong>Answer:</strong> Running time is linear in <i>d</i>, so more digits increase total passes linearly.</li>
+      <li><strong>Answer:</strong> It sorts by digit extraction and counting rather than element-to-element comparisons.</li>
+      <li><strong>Answer:</strong> Larger radix reduces the number of passes (<i>d</i>) but increases <i>k</i> (and memory for the count array), affecting both time and space.</li>
+      <li><strong>Answer:</strong> Treat each character as a digit, map to numeric codes, and apply LSD Radix Sort over those codes.</li>
+      <li><strong>Answer:</strong> When keys are fixed-length and <i>d</i> (digits) is small relative to log <i>n</i>, radix sort’s Θ(<i>d</i>(<i>n</i>+<i>k</i>)) can outperform comparison sorts’ Ω(<i>n</i> log <i>n</i>), e.g. sorting integers or fixed-length strings.</li>
+      <li><strong>Answer:</strong> You can pad shorter keys with leading zeros (or lowest-value symbols) to equalize lengths for LSD radix, or use MSD Radix Sort, which recursively groups by most significant digit and naturally handles variable lengths.</li>
+      <li><strong>Answer:</strong> LSD processes from least to most significant digit in fixed passes and is simple and stable; MSD processes from most significant digit down, handles variable-length keys and prefix grouping but requires recursion and dynamic bucket management.</li>
     </ol>
   </div>
+</div>
+
+
+  <div class="section">
+  <h2>In-Class Activities</h2>
+  <ol>
+    <li>Visualize each digit pass by grouping cards or tokens according to the current digit.</li>
+    <li>Explore how stability affects sorting order by comparing stable vs unstable intermediate sorts.</li>
+    <li>Compare performance for different radices (e.g., base-10 vs base-256) on large datasets.</li>
+    <li>Implement a digit-extraction function in pairs and test its correctness on diverse inputs.</li>
+    <li>Manually simulate Radix Sort with physical number cards and bucket bins, documenting the count and output arrays after each pass.</li>
+    <li>In pairs, write a Radix Sort script that logs intermediate count and output arrays per digit pass; then swap and interpret each other’s logs.</li>
+    <li>Experiment with different input distributions (random, sorted, reverse) and observe how the count array evolves on each pass.</li>
+    <li>Challenge: Design and sketch on the whiteboard an in-place Radix Sort variant, detailing the index arithmetic needed to avoid a separate output array.</li>
+  </ol>
+</div>
+
+
+  <div class="section">
+  <h2>Problems</h2>
+  <ol>
+    <li>Analyze the performance of MSD vs LSD Radix Sort on strings of fixed and variable lengths.</li>
+    <li>Modify Radix Sort to handle negative integers.</li>
+    <li>Design a hybrid Radix-QuickSort algorithm and discuss scenarios where it outperforms each individual algorithm.</li>
+    <li>Implement an in-place Radix Sort variant that uses O(1) additional space.</li>
+    <li>Experiment with different radix bases (e.g., 2, 10, 256) and analyze the impact on time and space usage.</li>
+    <li>Design and analyze a parallel Radix Sort using multi-threading or distributed computing, and evaluate its scalability.</li>
+    <li>Extend Radix Sort to sort floating-point numbers by properly handling sign, exponent, and mantissa.</li>
+    <li>Implement an external-memory Radix Sort for datasets larger than main memory, optimizing for I/O efficiency.</li>
+  </ol>
+</div>
+
 
 </body>
 </html>
