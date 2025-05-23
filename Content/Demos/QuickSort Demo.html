@@ -6,6 +6,12 @@
   <script src="../../scripts/demoScripts.js"></script>
   <link rel="stylesheet" href="../../style.css">
   <style>
+    html, body {
+      height: auto !important;
+      overflow: visible !important;
+      margin: 0;
+      padding: 0;
+    }
     .subarray-container { display: flex; flex-direction: column; gap: 10px; margin-top: 5px; }
     .subarray-row {
       display: flex;
@@ -85,6 +91,7 @@
     const color = label.startsWith('Left') ? 'orange' : '#1e90ff';
     record({
       type: 'draw-subarray',
+      A: [...arr],
       label,
       values: [...arr],
       depth,
@@ -377,6 +384,28 @@
 
   initDemo();
 })();
+</script>
+  <script>
+  // send our height to the parent whenever we load or change
+  function reportHeight() {
+    const h = document.documentElement.scrollHeight;
+    window.parent.postMessage({
+      type: 'demo-height',
+      id: window.name || document.location.pathname,
+      height: h
+    }, '*');
+  }
+
+  window.addEventListener('load', reportHeight);
+  // watch for DOM mutations (e.g. new elements, animation)
+  new MutationObserver(reportHeight)
+    .observe(document.documentElement, {
+      subtree: true,
+      childList: true,
+      attributes: true
+    });
+  // also on resize, in case your demo resizes itself
+  window.addEventListener('resize', reportHeight);
 </script>
 </body>
 </html>

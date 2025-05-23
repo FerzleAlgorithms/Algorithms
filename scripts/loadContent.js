@@ -68,6 +68,8 @@ function buildMenu(chapters, basePath = "") {
     menu.appendChild(li);
   }
 }
+
+//================================================================
 function loadContent(relativePath) {
   const obj = document.getElementById("content");
   const err = document.getElementById("errorMessage");
@@ -120,22 +122,30 @@ function loadContent(relativePath) {
         });
 
         // b) Force all other links to break out of the object
-        edoc
-          .querySelectorAll('a[href]:not([href^="?path="])')
+        edoc.querySelectorAll('a[href]:not([href^="?path="])')
           .forEach(a => {
-            a.setAttribute("target", "_top");
-          });
+              a.setAttribute("target", "_top");
+            });
         // --- cache-bust any embedded demos -------------------------
         // This makes sure they reload every time instead of using a stale copy
         edoc.querySelectorAll('iframe.embeddedDemo').forEach(frame => {
-        // strip off any old query, then append a fresh timestamp
-        const baseSrc = frame.getAttribute('src').split('?')[0];
-        frame.setAttribute('src', baseSrc + '?cb=' + Date.now());
-});
-// ------------------------------------------------------------------
+          // strip off any old query, then append a fresh timestamp
+          const baseSrc = frame.getAttribute('src').split('?')[0];
+          frame.setAttribute('src', baseSrc + '?cb=' + Date.now());
 
-      };
-    })
+        });          
+          //-- Set the height.
+          edoc.querySelectorAll('iframe.embeddedDemo').forEach(frame => {
+            frame.setAttribute('scrolling','no');
+            frame.addEventListener('load', () => {
+              const doc = frame.contentDocument || frame.contentWindow.document;
+              // size it to fit all of its content:
+              frame.style.height = doc.documentElement.scrollHeight + 'px';
+            });
+          });
+
+    }; // end obj.onLoad = () => {
+    }) // end then(() => { 
     .catch(e => {
       console.error("loadContent error:", e);
       // hide the <object>
@@ -152,6 +162,7 @@ function loadContent(relativePath) {
 }
 
 
+//================================================================
 // 3) Handle back/forward and initial load
 function loadFromURLParams() {
   const p = new URLSearchParams(window.location.search).get("path");
@@ -167,8 +178,10 @@ function loadFromURLParams() {
     loadContent("credits.html").catch(() => {});
   }
 }
+//================================================================
 window.addEventListener("popstate", loadFromURLParams);
 
+//================================================================
 // 4) DOMContentLoaded — fetch chapters, build menu, show first page,
 //    and install one delegated click listener
 document.addEventListener("DOMContentLoaded", () => {
@@ -201,6 +214,7 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 });
 
+//================================================================
 //-- Listen for fullscreen request
 
 window.addEventListener('message', e => {
@@ -213,7 +227,25 @@ window.addEventListener('message', e => {
   }
 });
 
+//================================================================
+// resize demos?
+// Still messing with this.
+// If it is Monday or Tuesday, this is probably what you are looking for!
+// 5/23/25
+window.addEventListener('message', e => {
+  if (e.data?.type === 'demo-height') {
+    // e.source is the Window inside the iframe:
+    const frame = e.source.frameElement;
+    if (frame && frame.classList.contains('embeddedDemo')) {
+      frame.style.height = e.data.height + 'px';
+    }
+  }
+});
 
+
+
+
+//================================================================
 
 // To make the iframe take the whole height.
 // This makes it possible to have a single scrollbar.

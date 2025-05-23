@@ -1,10 +1,13 @@
 {
   "Algorithms": [
     "Bubble Sort.html",
+    "Bucket Sort Demo.html",
     "Counting Sort.html",
     "Hoare Partition.html",
     "Insertion Sort.html",
     "Merge Sort.html",
+    "Merge.html",
+    "QuickSort.html",
     "Radix Sort.html",
     "Selection Sort.html",
     "Sequential Search.html"
@@ -19,11 +22,11 @@
     "Huffman Encoding Demo.html",
     "Insertion Sort Demo.html",
     "Kruskals Algorithm Demo.html",
+    "Merge Demo.html",
     "Merge Sort Demo.html",
     "Prims Algorithm Demo.html",
     "QuickSort Demo.html",
     "Radix Sort Demo.html",
-    "Radix Sort.html",
     "Selection Sort Demo.html",
     "Sequential Search Demo.html",
     "Subset Sum Demo.html"
@@ -35,6 +38,7 @@
         "Array Partition.html",
         "Exponentiation.html",
         "Matrix Multiplication.html",
+        "Merge.html",
         "Nth Order Statistic.html",
         "Polynomial Evaluation.html",
         "Searching.html",

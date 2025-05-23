@@ -6,6 +6,13 @@
   <script src="../../scripts/demoScripts.js"></script>
   <link rel="stylesheet" href="../../style.css">
   <style>
+  /* Let the demo measure its *true* content height: */
+  html, body {
+    height: auto !important;
+    overflow: visible !important;
+    margin: 0;
+    padding: 0;
+  }
     .found { background: #8bc34a; }
     .arrow {
 	  width: auto !important;
@@ -168,5 +175,28 @@
     // initialize
     randomArray();
   </script>
+  <script>
+  // send our height to the parent whenever we load or change
+  function reportHeight() {
+    const h = document.documentElement.scrollHeight;
+    window.parent.postMessage({
+      type: 'demo-height',
+      id: window.name || document.location.pathname,
+      height: h
+    }, '*');
+  }
+
+  window.addEventListener('load', reportHeight);
+  // watch for DOM mutations (e.g. new elements, animation)
+  new MutationObserver(reportHeight)
+    .observe(document.documentElement, {
+      subtree: true,
+      childList: true,
+      attributes: true
+    });
+  // also on resize, in case your demo resizes itself
+  window.addEventListener('resize', reportHeight);
+</script>
+
 </body>
 </html>
