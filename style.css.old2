@@ -1,45 +1,45 @@
 /*
- * style.css — updated: single‐scroll container + side‐by‐side menu & content
+ * style.css — updated: expanded page width & restored menu-collapse
  */
 
 /* 0) Global reset for all documents */
-html {
-  box-sizing: border-box;
-  height: 100%;
-  margin: 0;
-  padding: 0;
-  overflow: auto;            /* no page‐level scroll */
-}
-*, *::before, *::after {
-  box-sizing: inherit;
-}
 body {
   font-family: 'Times New Roman', Times, serif;
   background-color: #f7f9fc;
-  height: 100%;
   margin: 0;
-  padding: 0 5px;              /* horizontal gutters */
+  padding: 0 5px;
+}
+html  {
+  margin: 0;
+  padding: 0;
 }
 
-/* 1) Site layout (only on <body class="mainSite">) */
+html, body {
+  height: 100%;
+  overflow: hidden;            /* no page-level scroll */
+}
+
+nav#menu {
+  overflow: visible;           /* it just grows taller inside #container */
+}
+
+/* 2) Site layout (only on <body class="mainSite">) */
 body.mainSite {
+  margin: 0 10px;              /* side gutters */
   display: flex;
   flex-direction: column;
-  height: 100%;                /* fill the viewport */
-  margin: 0 10px;              /* inner side gutters */
+  min-height: 100vh;
 }
-
 body.mainSite #pageWrapper {
   display: flex;
   flex-direction: column;
-  flex: 1 1 auto;              /* fill available space */
-  width: 100%;
-  max-width: 1050px;           /* or whatever you prefer */
+  flex: 1;
+  width: 100%;                 /* full available width */
+  /* remove max-width or set larger if desired */
+  max-width: 1050px; 
   margin: 0 auto;
   background: #fff;
 }
-
-/* header stays its own size */
 body.mainSite header {
   flex: 0 0 auto;
   padding: 8px 0;
@@ -47,37 +47,40 @@ body.mainSite header {
   color: #fff;
   text-align: center;
 }
-
-/* 2) Container holds menu + content and is the *only* scrollable area */
 body.mainSite #container {
-  display: flex;               /* row by default */
-  flex: 1 1 auto;              /* fill remaining space under header */
-  min-height: 0;       /* allow children to shrink */
-  overflow-y: auto;            /* ← single scrollbar lives here */
+  /*display: flex;
+  flex: 1;
+  overflow: hidden;
+  display: flex;*/
+  
+  flex-direction: column;      /* or: flex-direction: row; height: 100%; */
+  height: 100vh;               /* fill the viewport */
+  overflow-y: auto;            /* ← your one scrollbar lives here */
 }
-
-/* 3) Sidebar menu */
 body.mainSite nav#menu {
-  flex: 0 0 220px;             /* fixed width */
+  flex: 0 0 220px;
   background-color: #e2e8f0;
   padding: 0.5em;
-  overflow-y: auto;            /* scroll if menu is too tall */
+  box-sizing: border-box;
+  overflow-y: auto;
 }
-
 body.mainSite nav#menu ul {
   list-style: none;
   padding-left: 0;
   margin: 0;
 }
 body.mainSite nav#menu ul ul {
-  display: none;               /* hide submenus */
+  display: none;              /* hide submenus */
   padding-left: 1em;
 }
+
+/* restore a bit of breathing room between menu items */
 body.mainSite nav#menu li {
   margin-bottom: 0.3em;
 }
+
 body.mainSite nav#menu li.open > ul {
-  display: block;              /* show when open */
+  display: block;             /* show when open */
 }
 body.mainSite nav#menu li span {
   display: inline-flex;
@@ -106,23 +109,18 @@ body.mainSite nav#menu a:hover {
   text-decoration: underline;
 }
 
-/* 4) Main content area (iframe) */
 body.mainSite #content {
-  flex: 1 1 auto;              /* fill remaining width */
+  flex: 1;
   border: 1px solid #ccc;
   box-sizing: border-box;
-  overflow: hidden;            /* no internal scroll */
-  min-height: 0;               /* allow shrinking in flex context */
 }
-
-/* 5) Error message below iframe (if shown) */
 body.mainSite #errorMessage {
   flex: 0 0 auto;
   align-self: flex-start;
   margin: 0.5em;
 }
 
-/* 6) Full-width override utility */
+/* 3) Full-width override utility */
 body.fullWidth body.mainSite #pageWrapper,
 body.fullWidth body.mainSite #container {
   max-width: none !important;
@@ -130,7 +128,7 @@ body.fullWidth body.mainSite #container {
   box-shadow: none !important;
 }
 
-/* 7) Problem-link styling (global) */
+/* 4) Problem-link styling (global) */
 a.problem {
   color: #0366d6;
   text-decoration: none;
@@ -143,7 +141,7 @@ a.problem:hover {
   border-color: #559ecb;
 }
 
-/* 8) Error message (global) */
+/* 5) Error message (global) */
 .error {
   padding: 1em;
   background-color: #fdd;
@@ -153,7 +151,7 @@ a.problem:hover {
   margin-top: 1em;
 }
 
-/* 9) Demo container & iframe styling */
+/* 6) Demo container & iframe styling */
 .embeddedDemoContainer {
   width: 100%;
   display: flex;
@@ -166,13 +164,13 @@ a.problem:hover {
   border: none;
 }
 
-/* 10) Button and input defaults (demos) */
+/* 7) Button and input defaults (demos) */
 button, input {
   margin: 5px;
   padding: 5px;
 }
 
-/* 11) Array-based demo layout */
+/* 8) Array-based demo layout */
 .array-container {
   display: flex;
   gap: 10px;
@@ -182,7 +180,7 @@ button, input {
   position: relative;
 }
 
-/* 12) Legend boxes */
+/* 9) Legend boxes */
 .legend {
   margin: 30px 0 20px;
   text-align: left;
@@ -192,13 +190,13 @@ button, input {
   width: 15px;
   height: 15px;
   vertical-align: middle;
-  margin-left: 10px;
+  margin: 0 0 0 10px;
   border-radius: 4px;
   border: 1px solid #333;
   background-color: transparent;
 }
 
-/* 13) Code tabs & containers */
+/* 10) Code tabs & containers */
 .tabs {
   overflow: hidden;
   background-color: #eaeaea;
@@ -228,7 +226,7 @@ button, input {
   overflow-x: auto;
 }
 
-/* 14) Array-cell styles */
+/* 11) Array-cell styles */
 .element {
   width: 40px;
   height: 40px;
@@ -238,18 +236,19 @@ button, input {
   background-color: #cce3ff;
   position: relative;
 }
+
 /* state classes */
-.default         { background-color: #cce3ff; }
-.key             { background-color: #1f77b4; }
-.finished        { background-color: lightgreen; }
-.blank           { background-color: #fff; }
-.right-partition { background-color: #1e90ff; }
-.left-partition  { background-color: lightsalmon; }
-.pivot           { background-color: lightgreen; }
-.comparing       { background-color: yellow; }
-.swap            { background-color: #b2f2bb; }
-.sorted          { background-color: orange; }
-.empty           { background-color: transparent; border: 1px dashed #ccc; }
+.default        { background-color: #cce3ff; }
+.key            { background-color: #1f77b4; }
+.finished       { background-color: lightgreen; }
+.blank          { background-color: #fff; }
+.right-partition{ background-color: #1e90ff; }
+.left-partition { background-color: lightsalmon; }
+.pivot          { background-color: lightgreen; }
+.comparing      { background-color: yellow; }
+.swap           { background-color: #b2f2bb; }
+.sorted         { background-color: orange; }
+.empty          { background-color: transparent; border: 1px dashed #ccc; }
 
 .arrow {
   position: absolute;
@@ -259,7 +258,7 @@ button, input {
   font-weight: bold;
 }
 
-/* 15) Example boxes & tables */
+/* 12) Example boxes & tables */
 .example-box {
   display: inline-block;
   vertical-align: top;

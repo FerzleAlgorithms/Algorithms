@@ -25,7 +25,7 @@ function buildMenu(chapters, basePath = "") {
 		  ? name.replace(/Demo/g, "").trim()
 		  : name;
 
-        a.href = `?path=${encodeURIComponent(currentPath + name)}`;
+        a.href = `?path=${encodeURIComponent(currentPath + raw)}`;
         //a.textContent = isDemo
         //  ? name.replace(/Demo/g, "").trim()
         //  : name;
@@ -212,3 +212,15 @@ window.addEventListener('message', e => {
     }
   }
 });
+
+
+
+// To make the iframe take the whole height.
+// This makes it possible to have a single scrollbar.
+const iframe = document.getElementById('content');
+iframe.setAttribute('scrolling','no');
+iframe.addEventListener('load', () => {
+  const doc = iframe.contentDocument || iframe.contentWindow.document;
+  iframe.style.height = doc.documentElement.scrollHeight + 'px';
+});
+
