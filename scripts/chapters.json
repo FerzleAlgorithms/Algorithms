@@ -1,7 +1,6 @@
 {
   "Algorithms": [
     "Bubble Sort.html",
-    "Bucket Sort Demo.html",
     "Counting Sort.html",
     "Hoare Partition.html",
     "Insertion Sort.html",
@@ -17,6 +16,7 @@
   ],
   "Demos": [
     "Bubble Sort Demo.html",
+    "Bucket Sort Demo.html",
     "Counting Sort Demo.html",
     "Hoare Partition Demo.html",
     "Huffman Encoding Demo.html",

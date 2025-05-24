@@ -5,10 +5,10 @@
   <title>ALGORITHM NAME</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github.min.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js"></script>
-  <script id="MathJax-script" async
-    src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
   <script src="../../scripts/chapterScripts.js"></script>
-  <link rel="stylesheet" href="../../style.css">
+  <link rel="stylesheet" href="../../css/style.css">
+  <link rel="stylesheet" href="../../css/chapter.css">
 </head>
 <body>
 
@@ -30,7 +30,7 @@ CONTENT
           src="../Demos/ALGORITHM NAME Demo.html"
           allowfullscreen
           allow="fullscreen"
-          style="width:100%; height:400px; border:none;"> <!-- Update height-->
+          name="ALGORITHM_NAME-demo">
   </iframe>
 </div>
 
@@ -38,27 +38,47 @@ CONTENT
 
 <h2>Implementation in Java, C++, Python</h2>
 <div class="tab-group">
-<div class="tabs">
-  <button class="tablink active" onclick="openTab(event, 'java')" id="tab-java">Java</button>
-  <button class="tablink" onclick="openTab(event, 'cpp')" id="tab-cpp">C++</button>
-  <button class="tablink" onclick="openTab(event, 'python')" id="tab-python">Python</button>
-</div>
+<div class="tabs" role="tablist">
+   <button
+    id="tab-java"
+    class="tablink active"
+    data-lang="java"
+    role="tab"
+    aria-controls="java"
+    aria-selected="true">
+    Java
+  </button>
+   <button
+    id="tab-cpp"
+    class="tablink"
+    data-lang="cpp"
+    role="tab"
+    aria-controls="c++"
+    aria-selected="true">
+    C++
+  </button>
+   <button
+    id="tab-python"
+    class="tablink"
+    data-lang="python"
+    role="tab"
+    aria-controls="python"
+    aria-selected="true">
+    Python
+  </button>
+  </div>
+  <div id="java" class="code-container active" role="tabpanel"  aria-labelledby="tab-java">
+<pre><code class="language-java">JAVA CODE</code></pre>
+    </div>
 
-<div id="java" class="code-container" style="display:block;">
-<pre><code class="language-java">JAVA CODE
-</code></pre>
-</div>
+  <div id="cpp" class="code-container active" role="tabpanel"  aria-labelledby="tab-cpp">
+<pre><code class="language-cpp">C++ CODE</code></pre>
+    </div>
 
-<div id="cpp" class="code-container">
-<pre><code class="language-cpp">C++ CODE
-</code></pre>
-</div>
-
-<div id="python" class="code-container">
-<pre><code class="language-python">PYTHON CODE
-</code></pre>
-</div>
-</div>
+  <div id="python" class="code-container active" role="tabpanel"  aria-labelledby="tab-python">
+<pre><code class="language-python">PYTHON CODE</code></pre>
+    </div>
+	</div>
   
 <h2>Time/Space Analysis</h2>
 <p>

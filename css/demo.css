@@ -1,0 +1,64 @@
+
+
+/* 10) Button and input defaults (demos) */
+button, input {
+  margin: 5px;
+  padding: 5px;
+}
+
+/* 11) Array-based demo layout */
+.array-container {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  margin: 10px 0 100px;
+  font-size: 18px;
+  position: relative;
+}
+
+/* 12) Legend boxes */
+.legend {
+  margin: 30px 0 20px;
+  text-align: left;
+}
+.legend-box {
+  display: inline-block;
+  width: 15px;
+  height: 15px;
+  vertical-align: middle;
+  margin-left: 10px;
+  border-radius: 4px;
+  border: 1px solid #333;
+  background-color: transparent;
+}
+
+/* 14) Array-cell styles */
+.element {
+  width: 40px;
+  height: 40px;
+  line-height: 40px;
+  text-align: center;
+  border: 1px solid #333;
+  background-color: #cce3ff;
+  position: relative;
+}
+/* state classes */
+.default         { background-color: #cce3ff; }
+.key             { background-color: #1f77b4; }
+.finished        { background-color: lightgreen; }
+.blank           { background-color: #fff; }
+.right-partition { background-color: #1e90ff; }
+.left-partition  { background-color: lightsalmon; }
+.pivot           { background-color: lightgreen; }
+.comparing       { background-color: yellow; }
+.swap            { background-color: #b2f2bb; }
+.sorted          { background-color: orange; }
+.empty           { background-color: transparent; border: 1px dashed #ccc; }
+
+.arrow {
+  position: absolute;
+  top: 50px;
+  width: 100%;
+  text-align: center;
+  font-weight: bold;
+}

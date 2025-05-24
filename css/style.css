@@ -1,0 +1,172 @@
+/*
+ * style.css — updated: single‐scroll container + side‐by‐side menu & content
+ */
+
+
+
+/* 0) Global reset for all documents */
+html {
+  box-sizing: border-box;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: auto;            /* no page‐level scroll */
+}
+*, *::before, *::after {
+  box-sizing: inherit;
+}
+body {
+  font-family: 'Times New Roman', Times, serif;
+  background-color: #f7f9fc;
+  height: 100%;
+  margin: 0;
+  padding: 0 5px;              /* horizontal gutters */
+}
+
+/* 1) Site layout (only on <body class="mainSite">) */
+body.mainSite {
+  display: flex;
+  flex-direction: column;
+  height: 100%;                /* fill the viewport */
+  margin: 0 10px;              /* inner side gutters */
+}
+
+body.mainSite #pageWrapper {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;              /* fill available space */
+  width: 100%;
+  max-width: 1050px;           /* or whatever you prefer */
+  margin: 0 auto;
+  background: #fff;
+}
+
+/*-------------- header -----------------*/
+header h1,
+header h2,
+header h3 {
+  color: #DDDDDD;
+  margin-top: 0.2em;    /* shrink the space above */
+  margin-bottom: 0.2em; /* shrink the space below */
+  padding: 0;           /* remove any extra padding */
+}
+header h3 {
+  font-style: italic;
+}
+/* header stays its own size */
+body.mainSite header {
+  flex: 0 0 auto;
+  padding: 8px 0;
+  background-color: #4F7AA1;
+  color: #fff;
+  text-align: center;
+}
+/*---------------------------------------*/
+
+/* 2) Container holds menu + content and is the *only* scrollable area */
+body.mainSite #container {
+  display: flex;               /* row by default */
+  flex: 1 1 auto;              /* fill remaining space under header */
+  min-height: 0;       /* allow children to shrink */
+  overflow-y: auto;            /* ← single scrollbar lives here */
+}
+
+/* 3) Sidebar menu */
+body.mainSite nav#menu {
+  flex: 0 0 190;             /* fixed width */
+  background-color: #e2e8f0;
+  padding: 0.5em;
+  overflow-y: auto;            /* scroll if menu is too tall */
+}
+
+body.mainSite nav#menu ul {
+  list-style: none;
+  padding-left: 0;
+  margin: 0;
+}
+body.mainSite nav#menu ul ul {
+  display: none;               /* hide submenus */
+  padding-left: 1em;
+}
+body.mainSite nav#menu li {
+  margin-bottom: 0.3em;
+}
+body.mainSite nav#menu li.open > ul {
+  display: block;              /* show when open */
+}
+body.mainSite nav#menu li span {
+  display: inline-flex;
+  align-items: flex-start;
+  gap: 0.4em;
+  cursor: pointer;
+}
+body.mainSite nav#menu li span::before {
+  content: "▶";
+  flex-shrink: 0;
+  line-height: 1;
+  transition: transform 0.15s ease;
+  transform-origin: center;
+}
+body.mainSite nav#menu li.open > span::before {
+  transform: rotate(90deg);
+}
+body.mainSite nav#menu li:hover span {
+  background-color: #94a3b8;
+}
+body.mainSite nav#menu a {
+  color: #1e293b;
+  text-decoration: none;
+}
+body.mainSite nav#menu a:hover {
+  text-decoration: underline;
+}
+
+/* 4) Main content area (iframe) */
+body.mainSite #content {
+  flex: 1 1 auto;              /* fill remaining width */
+  border: 1px solid #ccc;
+  box-sizing: border-box;
+  overflow: hidden;            /* no internal scroll */
+  min-height: 0;               /* allow shrinking in flex context */
+}
+
+/* 5) Error message below iframe (if shown) */
+body.mainSite #errorMessage {
+  flex: 0 0 auto;
+  align-self: flex-start;
+  margin: 0.5em;
+}
+
+/* 6) Full-width override utility */
+body.fullWidth body.mainSite #pageWrapper,
+body.fullWidth body.mainSite #container {
+  max-width: none !important;
+  width: 100% !important;
+  box-shadow: none !important;
+}
+
+/* 8) Error message (global) */
+.error {
+  padding: 1em;
+  background-color: #fdd;
+  color: #900;
+  border: 1px solid #900;
+  border-radius: 5px;
+  margin-top: 1em;
+}
+
+/* 7) Problem-link styling (global) */
+a.problem {
+  color: #0366d6;
+  text-decoration: none;
+  border-bottom: 2px solid #8bbde0;
+  padding-bottom: 1px;
+  transition: color 0.2s, border-color 0.2s;
+}
+a.problem:hover {
+  color: #024f9a;
+  border-color: #559ecb;
+}
+
+
+

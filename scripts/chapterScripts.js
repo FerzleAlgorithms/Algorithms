@@ -22,26 +22,6 @@
   btn.classList.add('active');
 }
 
- /*
-function openTab(evt, lang) {
-  const btn = evt.currentTarget;
-  const group = btn.closest('.tab-group');
-  if (!group) return;
-
-  // hide every panel in this group
-  group.querySelectorAll('.code-container')
-       .forEach(panel => panel.style.display = 'none');
-  // deactivate every tab in this group
-  group.querySelectorAll('.tablink')
-       .forEach(tab => tab.classList.remove('active'));
-
-  // show the one we clicked
-  const panel = group.querySelector(`.code-container#${lang}`);
-  if (panel) panel.style.display = 'block';
-  btn.classList.add('active');
-  
-}*/
-
 /**
  * For each .tab-group, measure all panels, lock in their size,
  * hide them, and then “open” the default tab.
@@ -50,12 +30,12 @@ function initTabGroups() {
   document.querySelectorAll('.tab-group').forEach(group => {
     const panels = Array.from(group.querySelectorAll('.code-container'));
 
-    // 1) Temporarily show them so we can measure
-    panels.forEach(p => {
-      p.style.display  = 'inline-block';
-      p.style.width    = 'auto';
-      p.style.maxWidth = 'none';
-    });
+      // 1) Temporarily show them so we can measure
+      panels.forEach(p => {
+        p.style.display  = 'inline-block';
+        p.style.width    = 'auto';
+        p.style.maxWidth = 'none';
+      });
 
     let maxH = 0, maxW = 0;
     panels.forEach(p => {
@@ -66,40 +46,20 @@ function initTabGroups() {
       }
     });
 
-// …measurement done…
-
-// 1a) Remove the temporary inline styles so CSS can hide/show by class
-panels.forEach(p => {
-  p.style.removeProperty('display');
-  p.style.removeProperty('maxWidth');
-});
-
-// 1b) Then remove “active” so CSS will hide non-active panels
-panels.forEach(p => p.classList.remove('active'));
-
-// 2) Lock dimensions as before…
-panels.forEach(p => {
-  p.style.minHeight = maxH + 'px';
-  p.style.width     = maxW + 'px';
-});
-
-/*
-    // just remove “active” so CSS will hide it
+    // 1a) Remove the temporary inline styles so CSS can hide/show by class
+    panels.forEach(p => {
+      p.style.removeProperty('display');
+      p.style.removeProperty('maxWidth');
+    });
+    
+    // 1b) Then remove “active” so CSS will hide non-active panels
     panels.forEach(p => p.classList.remove('active'));
-    // still lock widths/heights as before…
+
+    // 2) Lock dimensions as before…
     panels.forEach(p => {
       p.style.minHeight = maxH + 'px';
       p.style.width     = maxW + 'px';
     });
-*/
-/*
-    // 2) Hide & lock dimensions
-    panels.forEach(p => {
-      p.style.display   = 'none';
-      p.style.minHeight = `${maxH}px`;
-      p.style.width     = `${maxW}px`;
-    });
-    */
 
     // wire up all .tablink buttons by data-lang
     document.querySelectorAll('.tablink').forEach(btn => {
@@ -108,7 +68,6 @@ panels.forEach(p => {
         openTab({ currentTarget: btn }, lang);
       });
     });
-
 
     // 3) “Click” the default tab
     const btn = group.querySelector('.tablink.active') || group.querySelector('.tablink');

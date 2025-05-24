@@ -1,0 +1,53 @@
+/* 13) Code tabs & containers */
+.tabs {
+  overflow: hidden;
+  background-color: #eaeaea;
+  display: inline-flex;
+  border-radius: 5px 5px 0 0;
+}
+.tabs button {
+  background-color: inherit;
+  padding: 8px 12px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  color: #333;
+  border: none;
+  outline: none;
+  font-size: 14px;
+}
+.tabs button:hover,
+.tabs button.active {
+  background-color: #d4d4d4;
+}
+.code-container {
+  vertical-align: top;         /* so multiple groups line up nicely */
+  background-color: #fff;
+  border-radius: 0 5px 5px 5px;
+  border: 1px solid #ccc;
+  overflow-x: auto;
+}
+
+/* once JS runs, hide all panels by default… */
+.js-enabled .code-container {
+  display: none;
+}
+/* …but show only the one with “active” */
+.js-enabled .code-container.active {
+  display: block;
+}
+
+/* 9) Demo container & iframe styling */
+.embeddedDemoContainer {
+  width: 100%;
+  display: flex;
+  justify-content: flex-start;
+  box-sizing: border-box;
+  border: 2px solid #888;       /* ? border around the whole demo block */
+  padding: 8px;                 /* ? optional inner spacing */
+  border-radius: 4px;           /* ? optional rounding */
+}
+.embeddedDemo {
+  display: block;      /* so it always fills the full row */
+  width: 100%;
+  border: none;
+}
