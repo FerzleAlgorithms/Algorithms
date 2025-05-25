@@ -39,27 +39,37 @@ function hookIframeContent(obj) {
     parent.history.pushState({}, "", "?path=" + raw);
   });
 
-  // b) External links open at top
-  innerDoc.querySelectorAll('a[href]:not([href^="?path="])')
-    .forEach(function(a) { a.target = "_top"; });
+    // b) External links open at top
+    innerDoc.querySelectorAll('a[href]:not([href^="?path="])')
+      .forEach(function(a) { a.target = "_top"; });
 
-  // c) Embedded demos: cache-bust & auto-resize
-  innerDoc.querySelectorAll('iframe.embeddedDemo')
-    .forEach(function(frame) {
-      var base = frame.src.split('?')[0];
+    // c) Embedded demos: cache-bust & auto-resize
+    innerDoc.querySelectorAll('iframe.embeddedDemo').forEach(frame => {
+      const base = frame.src.split('?')[0];
       frame.src = base + '?cb=' + Date.now();
       frame.scrolling = 'no';
-      // Update iframe's height?
-      frame.addEventListener('load', function() {
-          const d = frame.contentDocument || frame.contentWindow.document;
-          // 1) reset to let it shrink
+    
+      frame.addEventListener('load', () => {
+        const d = frame.contentDocument || frame.contentWindow.document;
+    
+        // resize function
+        function resize() {
           frame.style.height = 'auto';
-          // 2) then measure the new content’s height
-          const h = 50+Math.max(
+          const h = Math.max(
             d.documentElement.scrollHeight,
             d.body.scrollHeight
           );
           frame.style.height = h + 'px';
+        }
+    
+        // 1) initial sizing
+        resize();
+    
+        // 2) watch for dynamic changes inside the demo
+        new MutationObserver(resize).observe(
+          d.documentElement,
+          { childList: true, subtree: true, attributes: true }
+        );
       });
     });
 }
