@@ -1,9 +1,5 @@
 // scripts/loadContent.js
 
-// ============================================
-// Helpers
-// ============================================
-
 /**
  * Normalize a slash-delimited path by decoding and re-encoding each segment.
  * @param {string} path
@@ -14,8 +10,7 @@ function normalizePath(path) {
     .split("/")
     .map(function(segment) {
       return encodeURIComponent(decodeURIComponent(segment));
-    })
-    .join("/");
+    }).join("/");
 }
 
 /**
@@ -26,8 +21,8 @@ function normalizePath(path) {
  * @param {HTMLObjectElement} obj
  */
 function hookIframeContent(obj) {
-  var innerDoc = obj.contentDocument;
-  if (!innerDoc) return;
+   const innerDoc = obj.contentDocument;
+   if (!innerDoc) return;
 
   // a) Internal navigation
   innerDoc.addEventListener("click", function onInnerClick(event) {
@@ -54,13 +49,20 @@ function hookIframeContent(obj) {
       var base = frame.src.split('?')[0];
       frame.src = base + '?cb=' + Date.now();
       frame.scrolling = 'no';
+      // Update iframe's height?
       frame.addEventListener('load', function() {
-        var d = frame.contentDocument || frame.contentWindow.document;
-        frame.style.height = d.documentElement.scrollHeight + 'px';
+          const d = frame.contentDocument || frame.contentWindow.document;
+          // 1) reset to let it shrink
+          frame.style.height = 'auto';
+          // 2) then measure the new content’s height
+          const h = 50+Math.max(
+            d.documentElement.scrollHeight,
+            d.body.scrollHeight
+          );
+          frame.style.height = h + 'px';
       });
     });
 }
-
 // ============================================
 // 1) Build the sidebar menu from chapters.json
 // ============================================
@@ -126,6 +128,8 @@ function buildMenu(chapters) {
  */
 async function loadContent(relativePath) {
   var obj = document.getElementById('content');
+  
+  
   var err = document.getElementById('errorMessage');
   var url = 'Content/' + relativePath;
 
@@ -137,8 +141,44 @@ async function loadContent(relativePath) {
     err.style.display = 'none';
     obj.style.display = 'block';
     obj.src = url + '?_=' + Date.now();
-    obj.onload = function() { hookIframeContent(obj); };
+       
+    obj.onload = function() {
+      // 1) Hook in your internal links / demos
+      hookIframeContent(obj);
 
+      //---Deal with height issues-----
+      // your existing resize function…
+      function resizeIframe() {
+        // 1) capture the current scroll position
+        //const prevScroll = container.scrollTop; // nope. it's using the window's scrollbars?
+        const prevY = window.pageYOffset;
+        obj.style.height = 'auto';
+        const d = obj.contentDocument || obj.contentWindow.document;
+        obj.style.height = (50+Math.max(d.documentElement.scrollHeight, d.body.scrollHeight))+'px';
+        
+        // 4) restore scroll
+        window.scrollTo(0, prevY);
+        //container.scrollTop = prevScroll; // nope. it's using the window's scrollbars?
+      }
+    
+      // 1) initial size
+      resizeIframe();
+    
+      // 2) watch for internal changes (you already have this)
+      new MutationObserver(resizeIframe).observe(
+        obj.contentDocument.documentElement,
+        { subtree: true, childList: true, attributes: true }
+      );
+      
+      // 3a) listen to window resizes
+      window.addEventListener('resize', resizeIframe);
+    
+      // —or— 3b) use a ResizeObserver on the iframe itself
+      //    (fires whenever the iframe’s rendered size changes)
+      //const ro = new ResizeObserver(resizeIframe);
+      //ro.observe(obj);
+      //---END Deal with height issues-----
+    };
   } catch (e) {
     console.error('loadContent error:', e);
     obj.style.display = 'none';
@@ -210,24 +250,7 @@ document.addEventListener('DOMContentLoaded', function initApp() {
         frame.requestFullscreen().catch(console.error);
       }
     }
-    // Height adjustment request from demo iframe
-    if (msg && msg.type === 'demo-height') {
-      var demoFrame = event.source.frameElement;
-      if (demoFrame && demoFrame.classList.contains('embeddedDemo')) {
-        demoFrame.style.height = msg.height + 'px';
-      }
-    }
   });
 
-  // 3d) Auto-resize the main content iframe to fit its document height
-  var mainObj = document.getElementById('content');
-  // Disable internal scrollbars
-  mainObj.scrolling = 'no';
-  // On each load, adjust height to match inner document
-  mainObj.addEventListener('load', function onMainLoad() {
-    var doc = mainObj.contentDocument || mainObj.contentWindow.document;
-    if (doc && doc.documentElement) {
-      mainObj.style.height = doc.documentElement.scrollHeight + 'px';
-    }
-  });
+
 });

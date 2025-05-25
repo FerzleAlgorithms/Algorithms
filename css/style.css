@@ -10,7 +10,10 @@ html {
   height: 100%;
   margin: 0;
   padding: 0;
-  overflow: auto;            /* no page‐level scroll */
+  /*overflow: auto;    */        /* no page‐level scroll */
+  
+  height: auto;
+  overflow: visible;
 }
 *, *::before, *::after {
   box-sizing: inherit;
@@ -21,24 +24,8 @@ body {
   height: 100%;
   margin: 0;
   padding: 0 5px;              /* horizontal gutters */
-}
-
-/* 1) Site layout (only on <body class="mainSite">) */
-body.mainSite {
-  display: flex;
-  flex-direction: column;
-  height: 100%;                /* fill the viewport */
-  margin: 0 10px;              /* inner side gutters */
-}
-
-body.mainSite #pageWrapper {
-  display: flex;
-  flex-direction: column;
-  flex: 1 1 auto;              /* fill available space */
-  width: 100%;
-  max-width: 1050px;           /* or whatever you prefer */
-  margin: 0 auto;
-  background: #fff;
+  height: auto;
+  overflow: visible;
 }
 
 /*-------------- header -----------------*/
@@ -53,6 +40,27 @@ header h3 {
 header h3 {
   font-style: italic;
 }
+
+/* 1) Site layout (only on <body class="mainSite">) */
+body.mainSite {
+  display: flex;
+  flex-direction: column;
+  height: 100%;                /* fill the viewport */
+  margin: 0 10px;              /* inner side gutters */
+  height: auto;
+  overflow: visible;
+}
+
+body.mainSite #pageWrapper {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;              /* fill available space */
+  width: 100%;
+  max-width: 1050px;           /* or whatever you prefer */
+  margin: 0 auto;
+  background: #fff;
+}
+
 /* header stays its own size */
 body.mainSite header {
   flex: 0 0 auto;
@@ -63,12 +71,22 @@ body.mainSite header {
 }
 /*---------------------------------------*/
 
+
 /* 2) Container holds menu + content and is the *only* scrollable area */
 body.mainSite #container {
   display: flex;               /* row by default */
   flex: 1 1 auto;              /* fill remaining space under header */
   min-height: 0;       /* allow children to shrink */
   overflow-y: auto;            /* ← single scrollbar lives here */
+}
+
+/* 4) Main content area (iframe) */
+body.mainSite #content {
+  flex: 1 1 auto;              /* fill remaining width */
+  border: 1px solid #ccc;
+  box-sizing: border-box;
+  overflow: hidden;            /* no internal scroll */
+  min-height: 0;               /* allow shrinking in flex context */
 }
 
 /* 3) Sidebar menu */
@@ -121,28 +139,11 @@ body.mainSite nav#menu a:hover {
   text-decoration: underline;
 }
 
-/* 4) Main content area (iframe) */
-body.mainSite #content {
-  flex: 1 1 auto;              /* fill remaining width */
-  border: 1px solid #ccc;
-  box-sizing: border-box;
-  overflow: hidden;            /* no internal scroll */
-  min-height: 0;               /* allow shrinking in flex context */
-}
-
 /* 5) Error message below iframe (if shown) */
 body.mainSite #errorMessage {
   flex: 0 0 auto;
   align-self: flex-start;
   margin: 0.5em;
-}
-
-/* 6) Full-width override utility */
-body.fullWidth body.mainSite #pageWrapper,
-body.fullWidth body.mainSite #container {
-  max-width: none !important;
-  width: 100% !important;
-  box-shadow: none !important;
 }
 
 /* 8) Error message (global) */

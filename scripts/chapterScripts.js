@@ -103,6 +103,6 @@ document.addEventListener('DOMContentLoaded', () => {
   if (window.hljs && typeof hljs.highlightAll === 'function') {
     hljs.highlightAll();
   }
-
   initTabGroups();
+
 });
