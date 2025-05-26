@@ -6,6 +6,21 @@ button, input {
   padding: 5px;
 }
 
+h1,
+h2,
+h3 {
+  margin-top: 0px;    /* shrink the space above */
+  margin-bottom: 5px; /* shrink the space below */
+  padding: 0;         /* remove any extra padding */
+}
+
+/* So the demo is inset a little bit. */
+/* I only want this for fullscreen mode, but so far no luck getting it to work. */
+html, body {
+    padding: 8px;
+}
+
+
 /* 11) Array-based demo layout */
 .array-container {
   display: flex;

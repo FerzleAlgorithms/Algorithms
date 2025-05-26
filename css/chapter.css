@@ -43,7 +43,7 @@
   justify-content: flex-start;
   box-sizing: border-box;
   border: 2px solid #888;       /* ? border around the whole demo block */
-  padding: 8px;                 /* ? optional inner spacing */
+  padding: 0px;                 /* ? optional inner spacing */
   border-radius: 4px;           /* ? optional rounding */
   
   

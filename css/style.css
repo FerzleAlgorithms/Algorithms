@@ -7,11 +7,8 @@
 /* 0) Global reset for all documents */
 html {
   box-sizing: border-box;
-  height: 100%;
   margin: 0;
   padding: 0;
-  /*overflow: auto;    */        /* no page‐level scroll */
-  
   height: auto;
   overflow: visible;
 }
@@ -168,5 +165,4 @@ a.problem:hover {
   color: #024f9a;
   border-color: #559ecb;
 }
-
 

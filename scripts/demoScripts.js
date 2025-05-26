@@ -9,15 +9,25 @@ document.addEventListener('DOMContentLoaded', () => {
   btn.textContent = '⤢ Fullscreen';
   Object.assign(btn.style, {
     position:  'fixed',
-    top:       '10px',
+    top:       '0px',
     right:     '10px',
-    padding:   '0.5em 1em',
+    padding:   '0em 1em',
     cursor:    'pointer',
     zIndex:    9999
   });
   // Put the button on the page.
   document.body.appendChild(btn);
   // add listener so it does the fullscreen.
+  /*
+  btn.addEventListener('click', () => {
+    const container = document.getElementById('demoContainer');
+    if (!document.fullscreenElement) {
+      container.requestFullscreen().catch(console.error);
+    } else {
+      document.exitFullscreen();
+    }
+    });
+  */
   btn.addEventListener('click', () => {
     const html = document.documentElement;
     if (!document.fullscreenElement) {
@@ -26,11 +36,14 @@ document.addEventListener('DOMContentLoaded', () => {
       document.exitFullscreen();
     }
   });
+  
 });
 //--------------------------------------------------------
 
 // demoScripts.js
 // This script wires playback controls (Prev/Next/Play/Pause/Speed) for any demo
+
+/*
 (function() {
   let steps = [];
   let idx = 0;
@@ -60,15 +73,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     const [prevBtn, nextBtn, playBtn, pauseBtn, speedSelect, genBtn, useCustomBtn] = controls;
-
-   /* const prevBtn = document.getElementById('prev');
-    const nextBtn = document.getElementById('next');
-    const playBtn = document.getElementById('play');
-    const pauseBtn = document.getElementById('pause');
-    const speedSelect = document.getElementById('speed');
-    const genBtn = document.getElementById('generate');
-    const useCustomBtn = document.getElementById('useCustom');
-    */
 
     prevBtn.onclick = () => {
       clearInterval(timer);
@@ -128,3 +132,4 @@ document.addEventListener('DOMContentLoaded', () => {
     genBtn.click();
   });
 })();
+*/
