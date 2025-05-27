@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="../../style.css">
+  <link rel="stylesheet" href="../../css/demo.css">
+   <script src="../../scripts/demoScriptsCopy.js"></script>
+  <title>Merge Sort Demo</title>
+  <style>
+    .array-container { display: flex; gap: 12px; margin-bottom: 10px; }
+    .left { background-color: #ffcc00; }
+    .right { background-color: #1f77b4; }
+    .compare { background: #f99; }
+    .merged { background: #9f9; }
+    .active-subarray { background-color: rgba(128, 0, 128, 0.2); border-radius: 4px; padding: 4px; }
+    #aux-label, #main-label { font-weight: bold; margin-bottom: 8px; }
+    #aux-container { margin-bottom: 20px; }
+    #main-label { margin-top: 20px; }
+    #subarrays { margin-bottom: 20px; }
+    #description { margin-top: 10px; font-style: italic; }
+    #buttons { margin: 10px 0; }
+    #buttons button, #buttons select, #buttons label { margin-right: 8px; }
+  </style>
+</head>
+<body>
+  <h1>Merge Sort Demo</h1>
+  <div id="controls">
+    <label>Size:<input type="number" id="size" min="5" max="20" value="10" /></label>
+    <button id="generate">Random Array</button>
+    <input type="text" id="customArray" placeholder="12,6,10,5,3,8,1,20,13" size="30" />
+    <button id="useCustom">Use Custom Array</button>
+  </div>
+  <div id="buttons">
+    <button id="prev" disabled>Previous</button>
+    <button id="next" disabled>Next</button>
+    <button id="play">Play</button>
+    <button id="pause" disabled>Pause</button>
+    <label for="speed">Speed:</label>
+    <select id="speed">
+      <option value="1">1x</option>
+      <option value="2">2x</option>
+      <option value="4">4x</option>
+    </select>
+  </div>
+  <div id="legend" class="legend">
+    <strong>Legend:</strong>
+    <span><span class="legend-box compare"></span> Compare</span>
+    <span><span class="legend-box merged"></span> Placed</span>
+    <span><span class="legend-box left"></span> Left subarray</span>
+    <span><span class="legend-box right"></span> Right subarray</span>
+    <span><span class="legend-box active-subarray"></span> Active subarray</span>
+  </div>
+  <div id="aux-label">Auxiliary Array:</div>
+  <div id="aux-container" class="array-container"></div>
+  <div id="main-label">Sorting Array:</div>
+  <div id="visualization" class="array-container"></div>
+  <div id="subarrays"></div>
+  <div id="description">Press "Next" to begin.</div>
+
+  <script>
+    window.onGenerate = function(isCustom) {
+      if (isCustom) {
+        return document.getElementById('customArray').value
+          .split(',').map(x => parseInt(x.trim(), 10));
+      }
+      const n = parseInt(document.getElementById('size').value, 10);
+      return Array.from({ length: n }, () => Math.floor(Math.random() * 90) + 10);
+    };
+    window.genSteps = function(arr) {
+      let a = arr.slice(), records = [];
+      const record = (type, meta={}) => records.push({ a: a.slice(), type, ...meta });
+      function mergeSort(l,r) {
+        if(l>=r) return;
+        const m = Math.floor((l+r)/2);
+        record('split',{l,m,r}); record('recurseLeft',{l,m,r}); mergeSort(l,m);
+        record('recurseRight',{l,m,r}); mergeSort(m+1,r);
+        record('mergeStep',{l,m,r}); merge(l,m,r);
+        record('mergeEnd',{l,m,r}); record('copyToAux',{l,r});
+      }
+      function merge(l,m,r) {
+        const L=a.slice(l,m+1), R=a.slice(m+1,r+1);
+        let i=0,j=0,k=l;
+        while(i<L.length&&j<R.length){
+          record('compare',{valueL:L[i],valueR:R[j],l,m,r});
+          const v=L[i]<=R[j]?L[i++]:R[j++]; a[k]=v;
+          record('placed',{k,newValue:v,l,m,r}); k++; }
+        while(i<L.length){const v=L[i++]; a[k]=v; record('placed',{k,newValue:v,l,m,r}); k++;}
+        while(j<R.length){const v=R[j++]; a[k]=v; record('placed',{k,newValue:v,l,m,r}); k++;}
+      }
+      record('init'); mergeSort(0,arr.length-1); record('done'); return records;
+    };
+    window.setupAux = function(original,n){
+      const aux=document.getElementById('aux-container'); aux.innerHTML='';
+      original.forEach(v=>{const el=document.createElement('div');el.className='element';el.textContent=v;aux.appendChild(el);});
+    };
+    window.renderStep = function(steps,idx,original){
+      const main=document.getElementById('visualization'), aux=document.getElementById('aux-container'), sub=document.getElementById('subarrays'), desc=document.getElementById('description');
+      main.innerHTML=''; sub.innerHTML=''; window.setupAux(original,original.length);
+      steps.slice(0,idx+1).forEach(st=>{if(st.type==='copyToAux'){for(let k=st.l;k<=st.r;k++){aux.children[k].textContent=st.a[k];aux.children[k].classList.add('merged');}}});
+      Array.from(aux.children).forEach(el=>el.classList.remove('compare'));
+      if(!steps.length) return; const st=steps[idx];
+      st.a.forEach((v,i)=>{const c=document.createElement('div');c.className='element';c.textContent=v;if(st.type==='placed'&&st.k===i)c.classList.add('merged');main.appendChild(c);});
+      const active=[];
+      steps.slice(0,idx+1).forEach(s=>{if(s.type==='split')active.push(s);if(s.type==='mergeEnd')active.pop();});
+      active.forEach(sp=>{
+        const {l,m,r}=sp;
+        const row=document.createElement('div');row.className='array-container';
+        for(let p=0;p<l;p++){const ph=document.createElement('div');ph.className='element';ph.style.visibility='hidden';row.appendChild(ph);}        
+        const leftWrap=document.createElement('div');leftWrap.className='array-container';
+        // highlight only the current subarray
+        if(st.l===l && st.m===m && ['recurseLeft','mergeStep','compare','placed','mergeEnd'].includes(st.type)) leftWrap.classList.add('active-subarray');
+        for(let i=l;i<=m;i++){const ce=document.createElement('div');ce.className='element left';ce.textContent=st.a[i];leftWrap.appendChild(ce);}row.appendChild(leftWrap);
+        const rightWrap=document.createElement('div');rightWrap.className='array-container';
+        if(st.l===l && st.m===m && ['recurseRight','mergeStep','compare','placed','mergeEnd'].includes(st.type)) rightWrap.classList.add('active-subarray');
+        for(let i=m+1;i<=r;i++){const ce=document.createElement('div');ce.className='element right';ce.textContent=st.a[i];rightWrap.appendChild(ce);}row.appendChild(rightWrap);
+        sub.appendChild(row);
+      });
+      switch(st.type){case'init':desc.textContent='Initial array.';break;case'split':desc.textContent=`Split [${st.l},${st.m}] & [${st.m+1},${st.r}]`;break;case'recurseLeft':desc.textContent=`Sorting left [${st.l},${st.m}]`;break;case'recurseRight':desc.textContent=`Sorting right [${st.m+1},${st.r}]`;break;case'mergeStep':desc.textContent=`Merging [${st.l},${st.r}]`;break;case'compare':{const iL=Array.from(aux.children).findIndex(e=>e.textContent==st.valueL),iR=Array.from(aux.children).findIndex(e=>e.textContent==st.valueR);if(iL>-1)aux.children[iL].classList.add('compare');if(iR>-1)aux.children[iR].classList.add('compare');desc.textContent=`Compare ${st.valueL} & ${st.valueR}`;break;}case'placed':desc.textContent=`Placed ${st.newValue} at index ${st.k}`;break;case'mergeEnd':desc.textContent=`Merged segment [${st.l},${st.r}]`;break;case'copyToAux':desc.textContent=`Copied [${st.l},${st.r}] to auxiliary`;break;case'done':desc.textContent='Array fully sorted!';break;}
+    };
+  </script>
+ 
+</body>
+</html>

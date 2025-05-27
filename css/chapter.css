@@ -53,3 +53,16 @@
   width: 100%;
   border: none;
 }
+
+/* Applied to any UL or OL with class="spaced" */
+ul.spaced,
+ol.spaced {
+  margin: 1em 0;         /* space above & below the list */
+  line-height: 1.25;      /* spacing within each item */
+}
+
+/* Add a bit of breathing room after each list item */
+ul.spaced > li,
+ol.spaced > li {
+  margin-bottom: 0.5em;
+}

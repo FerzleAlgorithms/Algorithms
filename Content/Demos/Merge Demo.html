@@ -1,20 +1,134 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Merge Demo</title>  
-  <script src="../../scripts/demoScripts.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="stylesheet" href="../../css/style.css">
   <link rel="stylesheet" href="../../css/demo.css">
+  <script src="../../scripts/demoScriptsCopy.js"></script>
+  <title>Merge Step Demo</title>
+  <style>
+    .array-container { display: flex; gap: 12px; margin-bottom: 10px; }
+    .left { background-color: #ffcc00; }
+    .right { background-color: #1f77b4; }
+    .compare { background: #f99; }
+    .merged { background: #9f9; }
+    .active-subarray { background-color: rgba(128, 0, 128, 0.2); border-radius: 4px; padding: 4px; }
+    #aux-label, #main-label { font-weight: bold; margin-bottom: 8px; }
+    #aux-container { margin-bottom: 20px; }
+    #main-label { margin-top: 20px; }
+    #subarrays { margin-bottom: 20px; }
+    #description { margin-top: 10px; font-style: italic; }
+    #buttons { margin: 10px 0; }
+    #buttons button, #buttons select, #buttons label { margin-right: 8px; }
+  </style>
 </head>
 <body>
-<div id="demoContainer">
-<h2>Merge Demo</h2>
+  <h1>Merge Step Demo</h1>
+  <div id="controls">
+    <button id="generate">Default Arrays</button>
+    <input type="text" id="leftArray" placeholder="Left array (e.g. 2,5,8)" size="20" />
+    <input type="text" id="rightArray" placeholder="Right array (e.g. 3,6,7)" size="20" />
+    <button id="useCustom">Use Custom Arrays</button>
+  </div>
+  <div id="buttons">
+    <button id="prev" disabled>Previous</button>
+    <button id="next" disabled>Next</button>
+    <button id="play">Play</button>
+    <button id="pause" disabled>Pause</button>
+    <label for="speed">Speed:</label>
+    <select id="speed">
+      <option value="1">1x</option>
+      <option value="2">2x</option>
+      <option value="4">4x</option>
+    </select>
+  </div>
+  <div id="legend" class="legend">
+    <strong>Legend:</strong>
+    <span><span class="legend-box compare"></span> Compare</span>
+    <span><span class="legend-box merged"></span> Placed</span>
+    <span><span class="legend-box left"></span> Left subarray</span>
+    <span><span class="legend-box right"></span> Right subarray</span>
+    <span><span class="legend-box active-subarray"></span> Active subarray</span>
+  </div>
+  <div id="aux-label">Auxiliary Array:</div>
+  <div id="aux-container" class="array-container"></div>
+  <div id="main-label">Current Array:</div>
+  <div id="visualization" class="array-container"></div>
+  <div id="subarrays"></div>
+  <div id="description">Press "Default Arrays" to begin.</div>
 
-Implement me!
+  <script>
+    // Configure generation of default or custom arrays
+    window.onGenerate = function(isCustom) {
+      let left, right;
+      if (!isCustom) {
+        left = [2, 5, 8];
+        right = [3, 6, 7];
+        document.getElementById('leftArray').value = left.join(',');
+        document.getElementById('rightArray').value = right.join(',');
+      } else {
+        left = document.getElementById('leftArray').value
+          .split(',').map(x => parseInt(x.trim(), 10));
+        right = document.getElementById('rightArray').value
+          .split(',').map(x => parseInt(x.trim(), 10));
+      }
+      window.splitIndex = left.length - 1;
+      return left.concat(right);
+    };
 
-<script>
-</script>
-</div>
+    // Generate only the merge step
+    window.genSteps = function(arr) {
+      let a = arr.slice(), records = [];
+      const record = (type, meta = {}) => records.push(Object.assign({ a: a.slice(), type }, meta));
+      function mergeImpl(l, m, r) {
+        const L = a.slice(l, m + 1), R = a.slice(m + 1, r + 1);
+        let i = 0, j = 0, k = l;
+        while (i < L.length && j < R.length) {
+          record('compare', { valueL: L[i], valueR: R[j], l, m, r });
+          if (L[i] <= R[j]) {
+            a[k] = L[i++];
+          } else {
+            a[k] = R[j++];
+          }
+          record('placed', { k, newValue: a[k], l, m, r }); k++;
+        }
+        while (i < L.length) {
+          record('compare', { valueL: L[i], valueR: null, l, m, r });
+          a[k] = L[i++]; record('placed', { k, newValue: a[k], l, m, r }); k++;
+        }
+        while (j < R.length) {
+          record('compare', { valueL: null, valueR: R[j], l, m, r });
+          a[k] = R[j++]; record('placed', { k, newValue: a[k], l, m, r }); k++;
+        }
+      }
+      const l = 0, r = arr.length - 1, m = window.splitIndex;
+      record('init');
+      record('split', { l, m, r });
+      record('mergeStep', { l, m, r });
+      mergeImpl(l, m, r);
+      record('mergeEnd', { l, m, r });
+      record('copyToAux', { l, r });
+      record('done');
+      return records;
+    };
+
+    // Setup auxiliary display
+    window.setupAux = function(original) {
+      const aux = document.getElementById('aux-container'); aux.innerHTML = '';
+      original.forEach(v => {
+        const el = document.createElement('div');
+        el.className = 'element'; el.textContent = v; aux.appendChild(el);
+      });
+    };
+
+    // Keep demo's renderStep from demoScriptsCopy.js
+    window.renderStep = window.renderStep;
+
+    // Automatically trigger default generation on page load
+    document.addEventListener('DOMContentLoaded', function() {
+      document.getElementById('generate').click();
+    });
+  </script>
 </body>
 </html>

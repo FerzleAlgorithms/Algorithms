@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Credits</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    /* Example inline styles—you can move these to style.css */
+    .contributors {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 1.5rem;
+      list-style: none;
+      padding: 0;
+    }
+    .contributor {
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 1rem;
+      text-align: center;
+    }
+    .contributor img {
+      width: 120px;
+      height: 120px;
+      object-fit: cover;
+      border-radius: 50%;
+      margin-bottom: 0.75rem;
+    }
+    .contributor h4 {
+      margin: 0.5rem 0 0.25rem;
+      font-size: 1.1rem;
+    }
+    .contributor .title {
+      font-style: italic;
+      color: #555;
+      margin-bottom: 0.5rem;
+    }
+    .contributor .bio {
+      font-size: 0.95rem;
+      line-height: 1.4;
+    }
+  </style>
+</head>
+<body>
+  <h1>Credits</h1>
+
+  <section>
+    <h2>Contributors</h2>
+    <ul class="contributors">
+      <li class="contributor">
+        <img src="/Algorithms/images/charles_cusack.png" alt="Charles Cusack">
+        <h4>Charles Cusack</h4>
+        <div class="title">Primary Author &amp; Editor</div>
+        <p class="bio">Charles is a professor of mathematics and computer science at Hope College, 
+		specializing in combinatorics and algorithmic art. He leads the development of our open-source algorithms textbook.</p>
+      </li>
+      <li class="contributor">
+        <img src="/Algorithms/images/caiden_sunlin.png" alt="Caiden Sunlin">
+        <h4>Caiden Sunlin</h4>
+        <div class="title">Major Contributor</div>
+        <p class="bio">Caiden helped design interactive demos and contributed key examples for the graph theory 
+		and sorting algorithm chapters.</p>
+      </li>
+      <li class="contributor">
+        <img src="/Algorithms/images/connor_vachon.png" alt="Connor Vachon">
+        <h4>Connor Vachon</h4>
+        <div class="title">Major Contributor</div>
+        <p class="bio">Connor helped design interactive demos and contributed key examples for the graph theory 
+		and sorting algorithm chapters.</p>
+      </li>
+      <li class="contributor">
+        <img src="/Algorithms/images/chatgpt.png" alt="ChatGPT">
+        <h4>ChatGPT</h4>
+        <div class="title">Major Contributor</div>
+        <p class="bio">ChatGPT provided drafting assistance, refinements, and code samples throughout 
+		the textbook development process. It also was instrumental in creating the algorithm demos and
+		provided a lot of assistance in creating the look and feel of the website.</p>
+      </li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Funding &amp; Acknowledgments</h2>
+    <ul>
+      <li>
+        <strong>Howard R. &amp; Margaret E. Sluyter Faculty Development Fund, Hope College</strong><br>
+        Supported the initial research and prototyping of interactive algorithm visualizations.
+      </li>
+      <!-- Add additional grants or acknowledgments here -->
+    </ul>
+  </section>
+</body>
+</html>

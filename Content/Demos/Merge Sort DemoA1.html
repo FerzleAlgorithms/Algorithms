@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script src="../../scripts/demoScripts.js"></script>
+  <link rel="stylesheet" href="../../style.css">
+
+  <title>Merge Sort Demo</title>
+  <style>
+    .array-container { display: flex; gap: 12px; margin-bottom: 10px; }
+    .left { background-color: #ffcc00; }
+    .right { background-color: #1f77b4; }
+    .compare { background: #f99; }
+    .merged { background: #9f9; }
+    .active-subarray { background-color: rgba(128, 0, 128, 0.2); border-radius: 4px; padding: 4px; }
+    #aux-label, #main-label { font-weight: bold; margin-bottom: 8px; }
+    #aux-container { margin-bottom: 20px; }
+    #main-label { margin-top: 20px; }
+    #subarrays { margin-bottom: 20px; }
+    #description { margin-top: 10px; font-style: italic; }
+    #buttons { margin: 10px 0; }
+    #buttons button, #buttons select, #buttons label { margin-right: 8px; }
+  </style>
+</head>
+<body>
+  <h1>Merge Sort Demo</h1>
+  <div id="controls">
+    <label>Size:<input type="number" id="size" min="5" max="20" value="16" /></label>
+    <button id="generate">Random Array</button>
+    <input type="text" id="customArray" placeholder="12,6,10,5,3,8,1,20,13" size="30" />
+    <button id="useCustom">Use Custom Array</button>
+  </div>
+  <div id="buttons">
+    <button id="prev" disabled>Previous</button>
+    <button id="next" disabled>Next</button>
+    <button id="play">Play</button>
+    <button id="pause" disabled>Pause</button>
+    <label for="speed">Speed:</label>
+    <select id="speed">
+      <option value="1">1x</option>
+      <option value="2">2x</option>
+      <option value="4">4x</option>
+    </select>
+  </div>
+  <div id="legend" class="legend">
+    <strong>Legend:</strong>
+    <span><span class="legend-box compare"></span> Compare</span>
+    <span><span class="legend-box merged"></span> Placed</span>
+    <span><span class="legend-box left"></span> Left subarray</span>
+    <span><span class="legend-box right"></span> Right subarray</span>
+    <span><span class="legend-box active-subarray"></span> Active subarray</span>
+  </div>
+  <div id="aux-label">Auxiliary Array:</div>
+  <div id="aux-container" class="array-container"></div>
+  <div id="main-label">Sorting Array:</div>
+  <div id="visualization" class="array-container"></div>
+  <div id="subarrays"></div>
+  <div id="description">Press "Next" to begin.</div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const sizeInput = document.getElementById('size');
+      const customInput = document.getElementById('customArray');
+      const prevBtn = document.getElementById('prev');
+      const nextBtn = document.getElementById('next');
+      const genBtn = document.getElementById('generate');
+      const useCustomBtn = document.getElementById('useCustom');
+      const playBtn = document.getElementById('play');
+      const pauseBtn = document.getElementById('pause');
+      const speedSelect = document.getElementById('speed');
+      const main = document.getElementById('visualization');
+      const aux = document.getElementById('aux-container');
+      const sub = document.getElementById('subarrays');
+      const desc = document.getElementById('description');
+
+      let steps = [], idx = 0, autoPlayInterval = null;
+      const baseInterval = 800;
+      let original = [];
+
+      function genSteps(arr) {
+        original = arr.slice();
+        let a = arr.slice();
+        const records = [];
+        function record(type, meta = {}) {
+          records.push({ a: a.slice(), type, ...meta });
+        }
+        function mergeSort(l, r) {
+          if (l >= r) return;
+          const m = Math.floor((l + r) / 2);
+          record('split', { l, m, r });
+          record('recurseLeft', { l, m, r }); mergeSort(l, m);
+          record('recurseRight', { l, m, r }); mergeSort(m + 1, r);
+          record('mergeStep', { l, m, r }); merge(l, m, r);
+          record('mergeEnd', { l, m, r });
+          record('copyToAux', { l, r });
+        }
+        function merge(l, m, r) {
+          const L = a.slice(l, m + 1);
+          const R = a.slice(m + 1, r + 1);
+          let i = 0, j = 0, k = l;
+          while (i < L.length && j < R.length) {
+            record('compare', { valueL: L[i], valueR: R[j], l, m, r });
+            const v = (L[i] <= R[j] ? L[i++] : R[j++]);
+            a[k] = v; record('placed', { k, newValue: v, l, m, r }); k++;
+          }
+          while (i < L.length) { const v = L[i++]; a[k] = v; record('placed', { k, newValue: v, l, m, r }); k++; }
+          while (j < R.length) { const v = R[j++]; a[k] = v; record('placed', { k, newValue: v, l, m, r }); k++; }
+        }
+        record('init'); mergeSort(0, a.length - 1); record('done');
+        return records;
+      }
+
+      function setupAux(n) {
+        aux.innerHTML = '';
+        for (let i = 0; i < n; i++) {
+          const el = document.createElement('div');
+          el.className = 'element';
+          el.textContent = original[i];
+          aux.appendChild(el);
+        }
+      }
+
+      function updateButtons() {
+        prevBtn.disabled = idx === 0;
+        nextBtn.disabled = idx === steps.length - 1;
+      }
+
+      function go(n) {
+        idx = n; render(); updateButtons();
+      }
+
+      function render() {
+        main.innerHTML = '';
+        sub.innerHTML = '';
+        setupAux(original.length);
+        for (let j = 0; j <= idx; j++) {
+          const prev = steps[j];
+          if (prev.type === 'copyToAux') {
+            for (let k = prev.l; k <= prev.r; k++) {
+              aux.children[k].textContent = prev.a[k];
+              aux.children[k].classList.add('merged');
+            }
+          }
+        }
+        Array.from(aux.children).forEach(c => c.classList.remove('compare'));
+        if (!steps.length) return;
+        const st = steps[idx];
+        // main array
+        st.a.forEach((v, i) => {
+          const cell = document.createElement('div');
+          cell.className = 'element';
+          cell.textContent = v;
+          if (st.type === 'placed' && st.k === i) cell.classList.add('merged');
+          main.appendChild(cell);
+        });
+        // subarrays
+        const active = [];
+        steps.slice(0, idx + 1).forEach(s => {
+          if (s.type === 'split') active.push(s);
+          if (s.type === 'mergeEnd') active.pop();
+        });
+        active.forEach(sp => {
+          const { l, m, r } = sp;
+          const row = document.createElement('div'); row.className = 'array-container';
+          // left gap
+          for (let p = 0; p < l; p++) {
+            const ph = document.createElement('div'); ph.className = 'element'; ph.style.visibility = 'hidden'; row.appendChild(ph);
+          }
+          // left subarray
+          const leftWrap = document.createElement('div'); leftWrap.className = 'array-container';
+          if (['recurseLeft','mergeStep','compare','placed','mergeEnd'].includes(st.type)) leftWrap.classList.add('active-subarray');
+          for (let i = l; i <= m; i++) {
+            const c = document.createElement('div'); c.className = 'element left'; c.textContent = st.a[i]; leftWrap.appendChild(c);
+          }
+          row.appendChild(leftWrap);
+          // right subarray
+          const rightWrap = document.createElement('div'); rightWrap.className = 'array-container';
+          if (['recurseRight','mergeStep','compare','placed','mergeEnd'].includes(st.type)) rightWrap.classList.add('active-subarray');
+          for (let i = m + 1; i <= r; i++) {
+            const c = document.createElement('div'); c.className = 'element right'; c.textContent = st.a[i]; rightWrap.appendChild(c);
+          }
+          row.appendChild(rightWrap);
+          sub.appendChild(row);
+        });
+        // commentary
+        switch (st.type) {
+          case 'init': desc.textContent = 'Initial array.'; break;
+          case 'split': desc.textContent = `Split [${st.l},${st.m}] & [${st.m+1},${st.r}]`; break;
+          case 'recurseLeft': desc.textContent = `Sorting left [${st.l},${st.m}]`; break;
+          case 'recurseRight': desc.textContent = `Sorting right [${st.m+1},${st.r}]`; break;
+          case 'mergeStep': desc.textContent = `Merging [${st.l},${st.r}]`; break;
+          case 'compare': {
+            // highlight in aux
+            const idxL = aux.children.findIndex ? aux.children.findIndex(e => e.textContent == st.valueL) : Array.from(aux.children).findIndex(e => e.textContent == st.valueL);
+            const idxR = aux.children.findIndex ? aux.children.findIndex(e => e.textContent == st.valueR) : Array.from(aux.children).findIndex(e => e.textContent == st.valueR);
+            if (idxL > -1) aux.children[idxL].classList.add('compare');
+            if (idxR > -1) aux.children[idxR].classList.add('compare');
+            desc.textContent = `Compare ${st.valueL} & ${st.valueR}`; break;
+          }
+          case 'placed': desc.textContent = `Placed ${st.newValue} at index ${st.k}`; break;
+          case 'mergeEnd': desc.textContent = `Merged segment [${st.l},${st.r}]`; break;
+          case 'copyToAux': desc.textContent = `Copied [${st.l},${st.r}] to auxiliary`; break;
+          case 'done': desc.textContent = 'Array fully sorted!';
+            if (autoPlayInterval) { clearInterval(autoPlayInterval); playBtn.disabled = false; pauseBtn.disabled = true; }
+            break;
+        }
+      }
+
+      // event listeners
+      prevBtn.addEventListener('click', () => { if (autoPlayInterval) { clearInterval(autoPlayInterval); pauseBtn.disabled=true; playBtn.disabled=false; } if (idx>0) go(idx-1); });
+      nextBtn.addEventListener('click', () => { if (autoPlayInterval) { clearInterval(autoPlayInterval); pauseBtn.disabled=true; playBtn.disabled=false; } if (idx<steps.length-1) go(idx+1); });
+      playBtn.addEventListener('click', () => {
+        playBtn.disabled = true; pauseBtn.disabled = false;
+        const speed = parseInt(speedSelect.value,10)||1;
+        const delay = baseInterval / speed;
+        autoPlayInterval = setInterval(() => { if (idx < steps.length-1) go(idx+1); else { clearInterval(autoPlayInterval); playBtn.disabled=false; pauseBtn.disabled=true; } }, delay);
+      });
+      pauseBtn.addEventListener('click', () => { clearInterval(autoPlayInterval); pauseBtn.disabled=true; playBtn.disabled=false; });
+      genBtn.addEventListener('click', () => {
+        const n = parseInt(sizeInput.value,10);
+        if (isNaN(n)||n<5||n>20) return alert('Size must be 5–20');
+        const arr = Array.from({length:n},()=>Math.floor(Math.random()*90)+10);
+        customInput.value = arr.join(','); steps = genSteps(arr); idx=0; setupAux(arr.length); render(); updateButtons();
+      });
+      useCustomBtn.addEventListener('click', () => {
+        const arr = customInput.value.split(',').map(x=>parseInt(x.trim(),10));
+        if (arr.some(isNaN)||arr.length<5||arr.length>20) return alert('Array must have 5–20 numbers');
+        steps = genSteps(arr); idx=0; setupAux(arr.length); render(); updateButtons();
+      });
+
+      // initialize
+      genBtn.click();
+    });
+  </script>
+</body>
+</html>
