@@ -24,12 +24,19 @@
     "Kruskals Algorithm Demo.html",
     "Merge Demo.html",
     "Merge Sort Demo.html",
+    "Merge Sort DemoA1.html",
+    "Merge Sort DemoA2.html",
+    "Merge Sort DemoA3.html",
     "Prims Algorithm Demo.html",
     "QuickSort Demo.html",
     "Radix Sort Demo.html",
     "Selection Sort Demo.html",
     "Sequential Search Demo.html",
     "Subset Sum Demo.html"
+  ],
+  "More": [
+    "credits.html",
+    "links.html"
   ],
   "Problems": [
     "0_Problem List.html",
@@ -79,5 +86,6 @@
         "Travelling Salesman.html"
       ]
     }
-  ]
+  ],
+  "Techniques": []
 }

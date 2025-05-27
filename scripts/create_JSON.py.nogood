@@ -1,0 +1,111 @@
+#!/usr/bin/env python3
+import os
+import json
+import re
+
+# -------------------------------
+# Utility functions
+# -------------------------------
+def strip_ext(name):
+    """
+    Remove .html extension if present.
+    """
+    return name[:-5] if name.lower().endswith('.html') else name
+
+
+def extract_prefix(raw_name):
+    """
+    If raw_name starts with digits_ (e.g., '2_Algorithms'),
+    return (2, 'Algorithms'). Otherwise, return (None, raw_name).
+    """
+    m = re.match(r"^(\d+?)_(.+)$", raw_name)
+    if m:
+        return int(m.group(1)), m.group(2)
+    return None, raw_name
+
+
+# -------------------------------
+# Core scanning & mapping
+# -------------------------------
+def scan_dir(path):
+    """
+    Recursively scan `path`, auto-prefixing any unnumbered folder or .html file
+    with the next available integer. Returns a nested list/dict structure.
+    """
+    entries = sorted(os.listdir(path), key=str.lower)
+    items = []
+
+    # First pass: collect existing numeric prefixes
+    used_nums = set()
+    for entry in entries:
+        raw = strip_ext(entry)
+        num, _ = extract_prefix(raw)
+        if num is not None:
+            used_nums.add(num)
+
+    # Second pass: assign numbers to unprefixed entries
+    next_num = 1
+    for entry in entries:
+        raw = strip_ext(entry)
+        num, plain = extract_prefix(raw)
+        if num is not None:
+            mapped = raw
+        else:
+            # find the next free number
+            while next_num in used_nums:
+                next_num += 1
+            mapped = f"{next_num}_{plain}"
+            used_nums.add(next_num)
+            next_num += 1
+
+        full_path = os.path.join(path, entry)
+        if os.path.isdir(full_path):
+            children = scan_dir(full_path)
+            items.append({mapped: children})
+        elif entry.lower().endswith('.html'):
+            items.append(f"{mapped}.html")
+    return items
+
+
+def build_chapters_json(base_dir):
+    """
+    Build a chapters.json mapping top-level folders (with auto-prefixing)
+    to their scanned content.
+    """
+    # Gather only directories
+    top_entries = [d for d in sorted(os.listdir(base_dir), key=str.lower)
+                   if os.path.isdir(os.path.join(base_dir, d))]
+
+    # Collect existing prefixes
+    used_nums = set()
+    for entry in top_entries:
+        raw = strip_ext(entry)
+        num, _ = extract_prefix(raw)
+        if num is not None:
+            used_nums.add(num)
+
+    next_num = 1
+    chapters = {}
+    for entry in top_entries:
+        raw = strip_ext(entry)
+        num, plain = extract_prefix(raw)
+        if num is not None:
+            mapped = raw
+        else:
+            while next_num in used_nums:
+                next_num += 1
+            mapped = f"{next_num}_{plain}"
+            used_nums.add(next_num)
+            next_num += 1
+
+        chapters[mapped] = scan_dir(os.path.join(base_dir, entry))
+
+    with open('chapters.json', 'w') as f:
+        json.dump(chapters, f, indent=2)
+    print("chapters.json generated.")
+
+
+if __name__ == '__main__':
+    # Adjust this path to your actual content directory
+    BASE_DIR = os.path.join(os.path.dirname(__file__), '..', 'Content')
+    build_chapters_json(BASE_DIR)

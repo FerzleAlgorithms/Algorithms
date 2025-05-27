@@ -1,5 +1,17 @@
 // scripts/loadContent.js
 
+// Specify the exact order you want, using the *plain* names:
+const TOP_LEVEL_ORDER = [
+  "Home",
+  "Problems",
+  "Data Structures",
+  "Techniques",
+  "Algorithms",
+  "Demos",
+  "More"
+  // …anything else
+];
+
 /**
  * Normalize a slash-delimited path by decoding and re-encoding each segment.
  * @param {string} path
@@ -114,6 +126,30 @@ function buildMenu(chapters) {
     });
   }
 
+    TOP_LEVEL_ORDER.forEach(plainName => {
+      // 1) find the "raw" key in your JSON:
+      const rawKey = Object.keys(chapters)
+        .find(key => key.replace(/^\d+_/, '') === plainName);
+      if (!rawKey) return;          // skip if that section doesn't exist
+    
+      const contents = chapters[rawKey];
+      const li = document.createElement('li');
+    
+      // build the <span> header:
+      const span = document.createElement('span');
+      span.textContent = plainName;
+      span.onclick = () => li.classList.toggle('open');
+      li.appendChild(span);
+    
+      // build the nested <ul>:
+      const ul = document.createElement('ul');
+      buildList(contents, ul, rawKey + '/', rawKey === 'Demos');
+      li.appendChild(ul);
+    
+      // append to the menu:
+      document.querySelector('#menu ul').appendChild(li);
+    });
+/*
   Object.entries(chapters).forEach(function([chap, contents]) {
     var li = document.createElement('li');
     var span = document.createElement('span');
@@ -126,6 +162,7 @@ function buildMenu(chapters) {
     li.appendChild(ul);
     menu.appendChild(li);
   });
+  */
 }
 
 // ============================================

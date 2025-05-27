@@ -1,4 +1,4 @@
-#!/usr/bin/env python4 
+#!/usr/bin/env python3 
 import os, json
 
 # Set working directory explicitly to the script's directory
