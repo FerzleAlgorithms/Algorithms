@@ -239,11 +239,11 @@ async function loadContent(relativePath) {
 // ============================================
 /**
  * Reads the '?path=' parameter from the URL and loads the corresponding content.
- * If no '?path' is present, defaults to 'credits.html'.
+ * If no '?path' is present, defaults to 'home.html'.
  */
 function loadFromURLParams() {
   // Grab the 'path' parameter (e.g., '?path=Chapter1/Intro').
-  var pathParam = new URLSearchParams(window.location.search).get('path') || 'credits';
+  var pathParam = new URLSearchParams(window.location.search).get('path') || 'home';
   // Normalize each path segment to ensure consistent encoding.
   var normalizedPath = normalizePath(pathParam);
   // Load the HTML page (appending '.html').

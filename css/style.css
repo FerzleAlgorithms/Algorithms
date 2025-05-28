@@ -166,3 +166,19 @@ a.problem:hover {
   border-color: #559ecb;
 }
 
+
+/* 9) Resource-list link styling in main content */
+.resource-list a {
+  color: #0366d6;
+  text-decoration: none;
+  border-bottom: 2px solid #8bbde0;
+  padding-bottom: 1px;
+  transition: color 0.2s ease, border-color 0.2s ease;
+  line-height: 1.5;      /* spacing within each item */
+}
+.resource-list a:hover {
+  color: #024f9a;
+  border-color: #559ecb;
+}
+
+
