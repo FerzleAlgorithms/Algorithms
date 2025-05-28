@@ -97,6 +97,7 @@ function buildMenu(chapters) {
   var menu = document.querySelector("#menu ul");
   menu.innerHTML = "<li><a href='?path=home'>Home</a></li>";
 
+  // Helper function used below to build the menu
   function buildList(items, container, pathPrefix, isDemo) {
     items.forEach(function(item) {
       var li = document.createElement('li');
@@ -125,44 +126,45 @@ function buildMenu(chapters) {
       container.appendChild(li);
     });
   }
-
-    TOP_LEVEL_ORDER.forEach(plainName => {
-      // 1) find the "raw" key in your JSON:
-      const rawKey = Object.keys(chapters)
-        .find(key => key.replace(/^\d+_/, '') === plainName);
-      if (!rawKey) return;          // skip if that section doesn't exist
-    
-      const contents = chapters[rawKey];
-      const li = document.createElement('li');
-    
-      // build the <span> header:
-      const span = document.createElement('span');
-      span.textContent = plainName;
-      span.onclick = () => li.classList.toggle('open');
-      li.appendChild(span);
-    
-      // build the nested <ul>:
-      const ul = document.createElement('ul');
-      buildList(contents, ul, rawKey + '/', rawKey === 'Demos');
-      li.appendChild(ul);
-    
-      // append to the menu:
-      document.querySelector('#menu ul').appendChild(li);
+  //Helper function usd below after the menu is built to make it 
+  // so that only one menu item can be open at a time.
+  function initMenuToggle() {
+    const spans = document.querySelectorAll('nav#menu li > span');
+    spans.forEach(span => {
+      span.onclick = function () {
+        const parentLi = this.parentElement;
+        const parentUl = parentLi.parentElement;
+        parentUl.querySelectorAll(':scope > li.open').forEach(openLi => {
+          if (openLi !== parentLi) openLi.classList.remove('open');
+        });
+        parentLi.classList.toggle('open');
+      };
     });
-/*
-  Object.entries(chapters).forEach(function([chap, contents]) {
-    var li = document.createElement('li');
-    var span = document.createElement('span');
-    span.textContent = chap.replace(/^\d+_/, '').replace(/_/g, ' ');
-    span.onclick = function() { li.classList.toggle('open'); };
+  }
+  TOP_LEVEL_ORDER.forEach(plainName => {
+    // 1) find the "raw" key in your JSON:
+    const rawKey = Object.keys(chapters)
+      .find(key => key.replace(/^\d+_/, '') === plainName);
+    if (!rawKey) return;          // skip if that section doesn't exist
+  
+    const contents = chapters[rawKey];
+    const li = document.createElement('li');
+  
+    // build the <span> header:
+    const span = document.createElement('span');
+    span.textContent = plainName;
+    span.onclick = () => li.classList.toggle('open');
     li.appendChild(span);
-
-    var ul = document.createElement('ul');
-    buildList(contents, ul, chap + '/', chap === 'Demos');
+  
+    // build the nested <ul>:
+    const ul = document.createElement('ul');
+    buildList(contents, ul, rawKey + '/', rawKey === 'Demos');
     li.appendChild(ul);
-    menu.appendChild(li);
+  
+    // append to the menu:
+    document.querySelector('#menu ul').appendChild(li);
   });
-  */
+  initMenuToggle();
 }
 
 // ============================================
@@ -249,10 +251,13 @@ function loadFromURLParams() {
   // Load the HTML page (appending '.html').
   loadContent(normalizedPath + '.html');
 }
+//=========================================================================
 
+//=========================================================================
 // Listen for browser history navigation (back/forward buttons)
 window.addEventListener('popstate', loadFromURLParams);
 
+//=========================================================================
 // Wait until the DOM is ready before binding events and initializing
 document.addEventListener('DOMContentLoaded', function initApp() {
   // 3a) Fetch and build the sidebar menu
@@ -298,6 +303,5 @@ document.addEventListener('DOMContentLoaded', function initApp() {
       }
     }
   });
-
-
 });
+//==============================================================

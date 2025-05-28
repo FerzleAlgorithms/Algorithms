@@ -86,12 +86,16 @@ body.mainSite #content {
   min-height: 0;               /* allow shrinking in flex context */
 }
 
+/*---------------------------------------------------------*/
 /* 3) Sidebar menu */
-body.mainSite nav#menu {
-  flex: 0 0 190;             /* fixed width */
+body.mainSite nav#menu { 
+  width: 190px;                 /* explicit width */
+  flex-shrink: 0;
+  box-sizing: border-box;
   background-color: #e2e8f0;
   padding: 0.5em;
   overflow-y: auto;            /* scroll if menu is too tall */
+  word-wrap: break-word;
 }
 
 body.mainSite nav#menu ul {
@@ -110,11 +114,17 @@ body.mainSite nav#menu li.open > ul {
   display: block;              /* show when open */
 }
 body.mainSite nav#menu li span {
-  display: inline-flex;
+  display: block;              /* so it fills the width */
+  width: 100%;
   align-items: flex-start;
   gap: 0.4em;
   cursor: pointer;
 }
+
+body.mainSite nav#menu li ul {
+  width: 100%;
+}
+
 body.mainSite nav#menu li span::before {
   content: "▶";
   flex-shrink: 0;
@@ -125,13 +135,20 @@ body.mainSite nav#menu li span::before {
 body.mainSite nav#menu li.open > span::before {
   transform: rotate(90deg);
 }
-body.mainSite nav#menu li:hover span {
+
+body.mainSite nav#menu li span:hover {
   background-color: #94a3b8;
 }
+
+/*body.mainSite nav#menu li:hover span {
+  background-color: #94a3b8;
+}
+*/
 body.mainSite nav#menu a {
   color: #1e293b;
   text-decoration: none;
 }
+
 body.mainSite nav#menu a:hover {
   text-decoration: underline;
 }
@@ -169,12 +186,11 @@ a.problem:hover {
 
 /* 9) Resource-list link styling in main content */
 .resource-list a {
-  color: #0366d6;
+  color: #038c7f;
   text-decoration: none;
-  border-bottom: 2px solid #8bbde0;
-  padding-bottom: 1px;
-  transition: color 0.2s ease, border-color 0.2s ease;
-  line-height: 1.5;      /* spacing within each item */
+  border-bottom: 2px solid #8bdcc9;
+  padding-bottom: 0px;
+  line-height: 1.75;      /* spacing within each item */
 }
 .resource-list a:hover {
   color: #024f9a;
