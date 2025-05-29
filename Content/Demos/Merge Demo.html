@@ -9,15 +9,12 @@
   <title>Merge Step Demo</title>
   <style>
     .array-container { display: flex; gap: 12px; margin-bottom: 10px; }
-    .left { background-color: #ffcc00; }
-    .right { background-color: #1f77b4; }
+    #current-container { display: flex; gap: 40px; margin-top: 20px; margin-bottom: 20px; }
+    .portion { display: flex; flex-direction: column; align-items: flex-start; }
     .compare { background: #f99; }
     .merged { background: #9f9; }
-    .active-subarray { background-color: rgba(128, 0, 128, 0.2); border-radius: 4px; padding: 4px; }
-    #aux-label, #main-label { font-weight: bold; margin-bottom: 8px; }
+    #aux-label, #left-label, #right-label { font-weight: bold; margin-bottom: 8px; }
     #aux-container { margin-bottom: 20px; }
-    #main-label { margin-top: 20px; }
-    #subarrays { margin-bottom: 20px; }
     #description { margin-top: 10px; font-style: italic; }
     #buttons { margin: 10px 0; }
     #buttons button, #buttons select, #buttons label { margin-right: 8px; }
@@ -46,38 +43,43 @@
   <div id="legend" class="legend">
     <strong>Legend:</strong>
     <span><span class="legend-box compare"></span> Compare</span>
-    <span><span class="legend-box merged"></span> Placed</span>
-    <span><span class="legend-box left"></span> Left subarray</span>
-    <span><span class="legend-box right"></span> Right subarray</span>
-    <span><span class="legend-box active-subarray"></span> Active subarray</span>
+    <span><span class="legend-box merged"></span> Placed → Auxiliary</span>
   </div>
   <div id="aux-label">Auxiliary Array:</div>
   <div id="aux-container" class="array-container"></div>
-  <div id="main-label">Current Array:</div>
-  <div id="visualization" class="array-container"></div>
-  <div id="subarrays"></div>
+
+  <div id="current-container">
+    <div class="portion">
+      <div id="left-label">Left Array:</div>
+      <div id="left-visualization" class="array-container"></div>
+    </div>
+    <div class="portion">
+      <div id="right-label">Right Array:</div>
+      <div id="right-visualization" class="array-container"></div>
+    </div>
+  </div>
+
   <div id="description">Press "Default Arrays" to begin.</div>
 
   <script>
-    // Configure generation of default or custom arrays
+    // Initialize default or custom arrays
     window.onGenerate = function(isCustom) {
       let left, right;
       if (!isCustom) {
-        left = [2, 5, 8];
-        right = [3, 6, 7];
+        const size = 8, half = size / 2;
+        left = Array.from({ length: half }, () => Math.floor(Math.random() * 100)).sort((a, b) => a - b);
+        right = Array.from({ length: half }, () => Math.floor(Math.random() * 100)).sort((a, b) => a - b);
         document.getElementById('leftArray').value = left.join(',');
         document.getElementById('rightArray').value = right.join(',');
       } else {
-        left = document.getElementById('leftArray').value
-          .split(',').map(x => parseInt(x.trim(), 10));
-        right = document.getElementById('rightArray').value
-          .split(',').map(x => parseInt(x.trim(), 10));
+        left = document.getElementById('leftArray').value.split(',').map(x => parseInt(x.trim(), 10));
+        right = document.getElementById('rightArray').value.split(',').map(x => parseInt(x.trim(), 10));
       }
       window.splitIndex = left.length - 1;
       return left.concat(right);
     };
 
-    // Generate only the merge step
+    // Generate only the merge step with index-based compares
     window.genSteps = function(arr) {
       let a = arr.slice(), records = [];
       const record = (type, meta = {}) => records.push(Object.assign({ a: a.slice(), type }, meta));
@@ -85,50 +87,82 @@
         const L = a.slice(l, m + 1), R = a.slice(m + 1, r + 1);
         let i = 0, j = 0, k = l;
         while (i < L.length && j < R.length) {
-          record('compare', { valueL: L[i], valueR: R[j], l, m, r });
-          if (L[i] <= R[j]) {
-            a[k] = L[i++];
-          } else {
-            a[k] = R[j++];
-          }
+          // record actual positions in subarrays
+          record('compare', { idxLeft: i, idxRight: j, valueL: L[i], valueR: R[j], l, m, r });
+          if (L[i] <= R[j]) a[k] = L[i++]; else a[k] = R[j++];
           record('placed', { k, newValue: a[k], l, m, r }); k++;
         }
         while (i < L.length) {
-          record('compare', { valueL: L[i], valueR: null, l, m, r });
+          record('compare', { idxLeft: i, idxRight: null, valueL: L[i], valueR: null, l, m, r });
           a[k] = L[i++]; record('placed', { k, newValue: a[k], l, m, r }); k++;
         }
         while (j < R.length) {
-          record('compare', { valueL: null, valueR: R[j], l, m, r });
+          record('compare', { idxLeft: null, idxRight: j, valueL: null, valueR: R[j], l, m, r });
           a[k] = R[j++]; record('placed', { k, newValue: a[k], l, m, r }); k++;
         }
       }
       const l = 0, r = arr.length - 1, m = window.splitIndex;
       record('init');
-      record('split', { l, m, r });
-      record('mergeStep', { l, m, r });
       mergeImpl(l, m, r);
-      record('mergeEnd', { l, m, r });
-      record('copyToAux', { l, r });
       record('done');
       return records;
     };
 
-    // Setup auxiliary display
+    // Auxiliary setup with blank placeholders
     window.setupAux = function(original) {
       const aux = document.getElementById('aux-container'); aux.innerHTML = '';
-      original.forEach(v => {
-        const el = document.createElement('div');
-        el.className = 'element'; el.textContent = v; aux.appendChild(el);
+      original.forEach(_ => {
+        const el = document.createElement('div'); el.className = 'element'; el.textContent = '';
+        aux.appendChild(el);
       });
     };
+    document.addEventListener('DOMContentLoaded', () => document.getElementById('generate').click());
 
-    // Keep demo's renderStep from demoScriptsCopy.js
-    window.renderStep = window.renderStep;
-
-    // Automatically trigger default generation on page load
-    document.addEventListener('DOMContentLoaded', function() {
-      document.getElementById('generate').click();
-    });
+    // Render steps using index-based highlighting
+    window.renderStep = function(steps, idx, original) {
+      const aux = document.getElementById('aux-container'),
+            leftVis = document.getElementById('left-visualization'),
+            rightVis = document.getElementById('right-visualization'),
+            desc = document.getElementById('description');
+      const st = steps[idx];
+      if (idx === 0) {
+        leftVis.innerHTML = ''; rightVis.innerHTML = ''; const l = 0, m = window.splitIndex;
+        for (let i = l; i <= m; i++) {
+          const c = document.createElement('div'); c.className = 'element'; c.textContent = original[i]; leftVis.appendChild(c);
+        }
+        for (let i = m + 1; i < original.length; i++) {
+          const c = document.createElement('div'); c.className = 'element'; c.textContent = original[i]; rightVis.appendChild(c);
+        }
+      }
+      window.setupAux(original);
+      steps.slice(0, idx + 1).forEach(s => {
+        if (s.type === 'placed') {
+          aux.children[s.k].textContent = s.newValue;
+          aux.children[s.k].classList.add('merged');
+        }
+      });
+      // clear previous highlights
+      Array.from(leftVis.children).forEach(el => el.classList.remove('compare'));
+      Array.from(rightVis.children).forEach(el => el.classList.remove('compare'));
+      if (st.type === 'compare') {
+        if (st.idxLeft !== null) {
+          leftVis.children[st.idxLeft].classList.add('compare');
+        }
+        if (st.idxRight !== null) {
+          rightVis.children[st.idxRight].classList.add('compare');
+        }
+      }
+      switch (st.type) {
+        case 'init': desc.textContent = 'Initial setup: two sorted subarrays ready to merge.'; break;
+        case 'compare':
+          if (st.valueL !== null && st.valueR !== null) desc.textContent = `Comparing left (${st.valueL}) with right (${st.valueR}).`;
+          else if (st.valueR === null) desc.textContent = `Right exhausted. Next: ${st.valueL}.`;
+          else desc.textContent = `Left exhausted. Next: ${st.valueR}.`;
+          break;
+        case 'placed': desc.textContent = `Placed ${st.newValue} into auxiliary at index ${st.k}.`; break;
+        case 'done': desc.textContent = 'All elements merged in auxiliary!'; break;
+      }
+    };
   </script>
 </body>
 </html>

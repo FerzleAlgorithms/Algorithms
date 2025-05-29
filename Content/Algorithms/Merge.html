@@ -261,62 +261,66 @@ output a sorted array that combined the two input arrays.</p>
   
 
 <h2>Time/Space Analysis</h2>
-  <p>
-  <b>Time complexity:</b>
-  <p>
-    Although some elements may be compared multiple times—as the algorithm repeatedly checks the current element of each half—the total number of comparisons never exceeds
-    <code>2n &minus; 1</code>, where <code>n = right &minus; left + 1</code>.  
-    Each of the <code>n</code> elements is copied once into the auxiliary buffer and once back into the original array, so the overall work is
-    <code>&Theta;(n)</code>.
+  <h2>Merge Procedure Analysis</h2>
+
+  <p><b>Time Complexity:</b>
+    Although some elements may be compared multiple times—as the algorithm repeatedly checks
+    the current element of each half—the total number of comparisons never exceeds 
+    \( 2n - 1 \), where 
+    \( n = \text{right} - \text{left} + 1 \).
+    Each of the \( n \) elements is copied once into the auxiliary buffer
+    and once back into the original array, so the overall work is 
+    \( \Theta(n) \).
   </p>
 
   <p>
-    Let's be a little more detailed with the analysis. 
-	If we let <code>n</code> = <code>right &minus; left + 1</code> denote the total number of elements being merged, then the work breaks down into three main passes:
+    Let’s be more detailed with the analysis. Let 
+    \( n = \text{right} - \text{left} + 1 \) denote the total number of elements
+    being merged. The work breaks down into three main passes:
   </p>
+
   <ol>
     <li>
-      <strong>Main merge pass:</strong>
-      Repeatedly compare the next unused element from each half and copy the smaller into the temp buffer. 
-	  This loop runs at most <code>n</code> times.
+      <strong>Main merge pass:</strong> Repeatedly compare the next unused element from each half 
+      and copy the smaller into the temporary buffer. This loop runs at most 
+      \( n \) times.
     </li>
     <li>
-      <strong>Remainder copy pass:</strong>
-      Once one side is exhausted, copy the remaining <code>k</code> elements (<code>k</code> &le; <code>n</code>) 
-	  from the other half—at most <code>n</code> constant-time copies.
+      <strong>Remainder copy pass:</strong> Once one side is exhausted, copy the remaining 
+      \( k \leq n \) elements from the other half—at most 
+      \( n \) constant-time copies.
     </li>
     <li>
-      <strong>Write-back pass:</strong>
-      Copy all <code>n</code> elements from the temp buffer back into <code>A[left…right]</code>, 
-	  another <code>n</code> assignments.
+      <strong>Write-back pass:</strong> Copy all 
+      \( n \) elements from the temporary buffer back into 
+      \( A[\text{left}\ldots\text{right}] \), 
+      which requires another \( n \) assignments.
     </li>
   </ol>
 
   <p>
-    Each of these passes is linear in <code>n</code>. If we let 
-	<code>c<sub>1</sub></code>, <code>c<sub>2</sub></code>, and <code>c<sub>3</sub></code> be the per‐element costs of each pass, then
-    <code>
-      T(n) = c<sub>1</sub>n + c<sub>2</sub>n + c<sub>3</sub>n
-           = (c<sub>1</sub> + c<sub>2</sub> + c<sub>3</sub>)n
-           = O(n).
-    </code>
-   In actuality, there are exactly <code>n</code> elements copied during the first 2 passes combined, so 
-   the constants involved are slightly smaller than is suggested by this analysis. In any case,
-   the complexity is <code>O(n)</code>.
+    Each of these passes is linear in \( n \). 
+    If we let \( c_1 \), \( c_2 \), and 
+    \( c_3 \) be the per-element costs of each pass, then:
   </p>
+
+  <div>
+    \[
+    T(n) = c_1 n + c_2 n + c_3 n = (c_1 + c_2 + c_3)n = O(n)
+    \]
+  </div>
+
   <p>
-    <b>Space complexity:</b> We allocate one temporary array of size <code>n</code>, 
-	plus a few index variables (<code>i, j, k</code>) in constant space.  Hence the merge algorithm uses 
-    <code>Θ(n)</code> auxiliary space.
+    In actuality, there are exactly \( n \) elements copied during the first
+    two passes combined, so the constants involved are slightly smaller than this
+    upper-bound analysis suggests. In any case, the time complexity remains 
+    \( \Theta(n) \).
   </p>
-  <p>
-    <em>Summary:</em>
-    <ul>
-      <li><strong>Time complexity:</strong> Θ(n).</li>
-      <li><strong>Space complexity:</strong> Θ(n).</li>
-    </ul>
+  <p><B>Space Complexity:</b>
+    We allocate one temporary array of size \( n \), plus a few index variables
+    (\( i \), \( j \), \( k \)) in constant space. Hence, the merge algorithm uses
+    \( \Theta(n) \) auxiliary space.
   </p>
-</section>
 
 
 <h2>Variations/Improvements</h2>

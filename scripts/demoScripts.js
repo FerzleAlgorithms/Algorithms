@@ -39,11 +39,30 @@ document.addEventListener('DOMContentLoaded', () => {
   
 });
 //--------------------------------------------------------
+/*
+function generateRandomArray(sizeInput,inputValues) {
+  size = +sizeInput.value;
+  const minV = parseInt(sizeInput.min);
+  const maxV = parseInt(sizeInput.max);
+  if(size < minV) {
+      size = minV;
+      sizeInput.value = minV;
+  }
+  if(size > maxV) {
+     size = maxV;
+     sizeInput.value = maxV;
+  }
+
+  array = Array.from({length: size}, () => Math.floor(Math.random() * 100));
+  inputValues.value = array.join(',');
+}
+*/
+//--------------------------------------------------------
 
 // demoScripts.js
 // This script wires playback controls (Prev/Next/Play/Pause/Speed) for any demo
 
-/*
+
 (function() {
   let steps = [];
   let idx = 0;
@@ -132,4 +151,3 @@ document.addEventListener('DOMContentLoaded', () => {
     genBtn.click();
   });
 })();
-*/

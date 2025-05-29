@@ -67,7 +67,7 @@
   <div class="array-container" id="boxes"></div>
 
   <!-- Header for recursive visualization -->
-  <h3>Recursive Steps</h3>
+  <h3>Recursive Steps (not real arrays--conceptual)</h3>
   <div class="subarray-container" id="subarrays"></div>
 
   <div id="step-desc" class="step-comment"></div>
@@ -291,9 +291,9 @@
   function quickSort(A, low, high, depth = 0) {
     if (low < high) {
       const pi = runPartition(A, low, high, depth);
-      queueSubarrayStep(A.slice(low, pi), `Left of ${A[pi]}`, depth+1);
+      //queueSubarrayStep(A.slice(low, pi), `Left of ${A[pi]}`, depth+1);
       quickSort(A, low, pi - 1, depth+1);
-      queueSubarrayStep(A.slice(pi+1, high+1), `Right of ${A[pi]}`, depth+1);
+      //queueSubarrayStep(A.slice(pi+1, high+1), `Right of ${A[pi]}`, depth+1);
       quickSort(A, pi + 1, high, depth+1);
     }
     else{

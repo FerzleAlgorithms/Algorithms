@@ -2,57 +2,75 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Quick Sort</title>
+  <title>Quicksort</title>
   <link rel="stylesheet" href="../../css/style.css">
   <link rel="stylesheet" href="../../css/chapter.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github.min.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js"></script>
   <script src="../../scripts/chapterScripts.js"></script>
   <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-  
-  <script>
-    window.MathJax = {
-      tex: {
-        packages: {
-          '[+]': ['ams']    // add the AMS package
-        },
-        inlineMath: [['\\(','\\)']],
-        displayMath: [['\\[','\\]'], ['$$','$$']]
-      },
-      options: {
-        skipHtmlTags: ['script','noscript','style','textarea']  // leave out <code> so math inside <code> can render if you want
-      }
-    };
-    </script>
-    
 </head>
 <body>
 
-  <h1>Quick Sort</h1>
+  <h1>Quicksort</h1>
 
   <h2>Problem Solved</h2>
-  <p>Quick Sort solves the
+  <p>Quicksort solves the
     <a class="problem" href="?path=Problems%2F1_Foundational%2FSorting">Sorting</a>
     problem.
   </p>
 
   <h2>Design and Strategy</h2>
   <p>
-    Quick Sort is a <strong>divide-and-conquer</strong> algorithm: it picks a <strong>pivot</strong>,
-    partitions the array into elements <em>≤ pivot</em> and <em>> pivot</em>, then recursively sorts
-    each partition. This reduces the problem size at each recursive step.
+    Quicksort is a <strong>divide-and-conquer</strong> algorithm: it picks a <strong>pivot</strong>,
+    partitions the array into elements less than or equal to <em>pivot</em> and 
+    greater than <em>pivot</em>, with <em>pivot</em> being placed in its proper location. 
+    This is referred to as the partition step, and involves an algorithm like 
+    <a class="problem" href="?path=Algorithms%2FHoare%20Partition">Hoare's Partition</a>.
+    If you are not already familiar with Hoare's Partition, you should read that section before continuing.
+    Then Quicksort recursively sorts each half of the array. 
+    This reduces the problem size at each recursive step.
   </p>
-  <p>Typical steps:</p>
+  <p>More formally, Quicksort operates as follows:
+  </p>
   <ol>
-    <li>Choose a pivot (first, last, middle, or random element).</li>
-    <li>Partition the array so that elements ≤ pivot come before it, and > pivot come after it.</li>
-    <li>Recursively apply Quick Sort to the left and right partitions.</li>
+    <li>
+      <strong>Base case:</strong>  
+      If there are fewer than two elements in the segment, it’s already sorted; return.
+    </li>
+    <li>
+      Otherwise:
+      <ol type="a">
+        <li>
+          <strong>Pick a pivot:</strong>  
+          Choose one element (e.g., first, last, middle, or random).
+        </li>
+        <li>
+          <strong>Partition the segment</strong> 
+          (e.g. using <a class="problem" href="?path=Algorithms%2FHoare%20Partition">Hoare's Partition</a>)
+          The array now has three regions:
+          <ul>
+            <li>The elements on the left part are all less than or equal to the pivot, but may be out of order.</li>
+            <li>The pivot is in the correct location \(p\).</li>
+            <li>The elements on the right part are all greater than the pivot, but may be out of order.</li>
+          </ul>
+        </li>
+        <li>
+          <strong>Recurse on left:</strong>  
+          QuickSort the subarray before the pivot (indices \(lo \ldots p-1\)).
+        </li>
+        <li>
+          <strong>Recurse on right:</strong>  
+          QuickSort the subarray after the pivot (indices \(p+1 \ldots hi\)).
+        </li>
+      </ol>
+    </li>
   </ol>
+
   <p>
-    During partitioning, two pointers (<strong>i</strong> and <strong>j</strong>) scan inward from
-    the ends, swapping elements into the correct side. Because these swaps can reorder equal
-    elements around the pivot without preserving their original sequence, Quick Sort is not a
-    stable sorting algorithm.
+    Because the swaps during the partition process can reorder equal
+    elements around the pivot without preserving their original order, 
+    Quicksort is generally not a stable sorting algorithm.
   </p>
   
   <div class="embeddedDemoContainer">
@@ -95,240 +113,357 @@
   </button>
   </div>
   <div id="java" class="code-container active" role="tabpanel"  aria-labelledby="tab-java">
-    <pre><code class="language-java">public class QuickSortDemo {
-  public static void quickSort(int[] A, int lo, int hi) {
+    <pre><code class="language-java">public static void quickSort(int[] A, int lo, int hi) {
     if (lo < hi) {
-      int p = partition(A, lo, hi);
-      quickSort(A, lo, p);
-      quickSort(A, p + 1, hi);
+        int p = partition(A, lo, hi);
+        quickSort(A, lo, p-1);      // sort left side 
+        quickSort(A, p + 1, hi);    // sort right side
     }
-  }
+}
 
-  static int partition(int[] A, int lo, int hi) {
+private static int partition(int[] A, int lo, int hi) {
     int pivot = A[lo];
-    int i = lo - 1;
-    int j = hi + 1;
+    int i = lo + 1;
+    int j = hi;
     while (true) {
-      i++;
-      while (i <= hi && A[i] < pivot) {
+        while (i < hi && A[i] <= pivot) i++;
+        while (j > lo && A[j] >= pivot) j--;
+        if (j <= i) {
+            swap(A, lo, j);
+            return j;
+        }
+        swap(A, i, j);
         i++;
-      }
-      j--;
-      while (j >= lo && A[j] > pivot) {
         j--;
-      }
-      if (i >= j) {
-        return j;
-      }
-      swap(A, i, j);
     }
-  }
+}
 
-  static void swap(int[] A, int i, int j) {
+private static void swap(int[] A, int i, int j) {
     int tmp = A[i];
     A[i] = A[j];
     A[j] = tmp;
-  }
 }</code></pre>
   </div>
   
   <div id="cpp" class="code-container active" role="tabpanel"  aria-labelledby="tab-cpp">
-    <pre><code class="language-cpp">#include <vector>
-using namespace std;
-
-void quickSort(vector<int>& A, int lo, int hi) {
-  if (lo < hi) {
-    int p = partition(A, lo, hi);
-    quickSort(A, lo, p);
-    quickSort(A, p + 1, hi);
-  }
-}
-  
-int partition(vector<int>& A, int lo, int hi) {
-  int pivot = A[lo];
-  int i = lo - 1;
-  int j = hi + 1;
-  while (true) {
-    ++i;
-    while (i <= hi && A[i] < pivot) {
-      ++i;
+    <pre><code class="language-cpp">void quickSort(int A[], int lo, int hi) {
+    if (lo < hi) {
+        int p = partition(A, lo, hi);
+        quickSort(A, lo, p-1);
+        quickSort(A, p + 1, hi);
     }
-    --j;
-    while (j >= lo && A[j] > pivot) {
-      --j;
-    }
-    if (i >= j) {
-      return j;
-    }
-    swap(A, i, j);
-  }
 }
 
-void swap(vector<int>& A, int i, int j) {
-  int tmp = A[i];
-  A[i] = A[j];
-  A[j] = tmp;
+int partition(int A[], int lo, int hi) {
+    int pivot = A[lo];
+    int i = lo + 1;
+    int j = hi;
+    while (true) {
+        while (i < hi && A[i] <= pivot) i++;
+        while (j > lo && A[j] >= pivot) j--;
+        if (j <= i) {
+            swap(A, lo, j);
+            return j;
+        }
+        swap(A, i, j);
+        i++;
+        j--;
+    }
+}
+
+void swap(int[] A, int i, int j) {
+    int tmp = A[i];
+    A[i] = A[j];
+    A[j] = tmp;
 }</code></pre>
   </div>
   
   <div id="python" class="code-container active" role="tabpanel"  aria-labelledby="tab-python">
     <pre><code class="language-python">def quick_sort(A, lo, hi):
-      if lo < hi:
-          p = partition(A, lo, hi)
-          quick_sort(A, lo, p)
-          quick_sort(A, p + 1, hi)
-  
+    if lo < hi:
+        p = partition(A, lo, hi)
+        quick_sort(A, lo, p-1)
+        quick_sort(A, p + 1, hi)
+        
 def partition(A, lo, hi):
     pivot = A[lo]
-    i = lo - 1
-    j = hi + 1
+    i = lo + 1
+    j = hi
     while True:
-        i += 1
-        while i <= hi and A[i] < pivot:
+        while i < hi and A[i] <= pivot:
             i += 1
-        j -= 1
-        while j >= lo and A[j] > pivot:
+        while j > lo and A[j] >= pivot:
             j -= 1
-        if i >= j:
+        if j <= i:
+            A[lo], A[j] = A[j], A[lo]
             return j
-        A[i], A[j] = A[j], A[i]</code></pre>
+        A[i], A[j] = A[j], A[i]
+        i += 1
+        j -= 1
+
+</code></pre>
   </div>
   </div>
 
   <h2>Time/Space Analysis</h2>
 
-  <div>
+  <p>
+  <b>Time Complexity</b>
+  Define \(T(n)\) as the running time required to sort an array of size \(n\) using Quicksort.
+  As we saw in the <a class="problem" href="?path=Algorithms%2FHoare%20Partition">Hoare's Partition</a>
+  section, the partitioning procedure requires \(O(n)\) time.
+ In the best case, each pivot divides the array into two subarrays of size 
+  approximately \(\tfrac{n}{2}\), the recursive calls to Quicksort will take 
+  \(2\,T\!\bigl(\tfrac{n}{2}\bigr)\) time.
+  Therefore, the total running time satisfies the recurrence relation
+  \[
+    T(n) \;=\; 2\,T\!\bigl(\tfrac{n}{2}\bigr) \;+\; O(n).
+  \]
+</p>
     <p>
-     <b>Best/Average Case: </b> When Quick Sort consistently splits the array into two roughly equal halves, each of size about \( \tfrac{n}{2} \), the recurrence is:
-    </p>
-    <p>
-      \[
-        T(n) = 2\,T\!\bigl(\tfrac{n}{2}\bigr) + n
-      \]
-    </p>
-    <p>
-      where \(2T\!\bigl(\tfrac{n}{2}\bigr)\) is the cost of the two recursive calls (left and right partitions) and \(n\) is the cost of the partitioning step (e.g., Hoare’s partition).
-    </p>
-    <p>
-      By the Master Theorem (with <code>a=2</code>, <code>b=2</code>, <code>f(n)=n</code>, and <code>d=1</code>), since \(a = b^d\) (\(2 = 2^1\)), we are in the balanced case, yielding
+      By the Master Theorem (with \(a=2\), \(b=2\), and \(f(n)=O(n)\), so that \(d=1\)), 
+	  since \(a = b^d\) (\(2 = 2^1\)), by the second case, we get
     </p>
     <p>
       \[
         T(n) = O\bigl(n^d \log n\bigr) = O(n \log n).
       \]
     </p>
-  </div>
-  
-  <div>
     <p>
-    <b>Worst case: </b> If the pivot choice is consistently poor — for example, always the smallest or 
-    largest element — one side of the partition is empty and the other has \(n-1\) elements. 
-    The recurrence becomes: <code>T(n) = T(n-1) + n</code>
+    In the worst case, the pivot choice is consistently poor (for example, always the smallest or 
+    largest element) and one side of the partition is empty and the other has \(n-1\) elements. 
+    The recurrence becomes: \(T(n) = T(n-1) + n\)
     </p>
-   
-    <p>
-      T(n) = T(n-1) + n
-    </p>
-    <p>Using the Iteration Method: </p>
+    <p>We can solve this recurrence using the Iteration Method as follows: </p>
     <p>
       \[
         \begin{aligned}
           T(n)
             &= T(n-1) + n \\
-            &= T(n-2) + n + (n-1) \\
-            &= T(n-3) + n + (n-2) + (n-3) \\
-            &= T(n-4) + n + (n-3) + (n-4) \\
+            &= T(n-2) + (n-1) + n\\
+            &= T(n-3) + (n-2) + (n-1) + n\\
+            &= T(n-4) + (n-3) + (n-2) + (n-1) + n\\
             &\;\;\;\vdots \\
             &= T(n-k) + \sum_{i=0}^{k-1}(n-i)\\        
   
         \end{aligned}
       \]
     </p>
-    <p>We need to find a <code>k</code> such that:  \( n - k = 1 \implies -k = 1 - n \implies k = n - 1 \)</p>
-    
-    <p>This yields: </p>
+    <p>We need to find a \(k\) such that:  \( n - k = 1\) so that we can apply the base case 
+	(\(T(1)=1\) since Quicksort just returns if the array has one element).
+	This implies that \(k = n - 1 \). Applying this to the above, we obtain</p>
     <p>
-      \[
-        \begin{aligned}
-          T(n) 
-          &= T(1) + \sum_{i=0}^{n-2} (n-i) \\ 
-          &= 1 + \sum_{i=0}^{n-2}n - \sum_{i=0}^{n-2}i \\
-          &= 1 + n(n-1) -\frac{n(n-1)}{2} \\ 
-          &= 1 + \frac{2n(n-1) - n(n-1)}{2} \\ 
-          &= 1 + \frac{n(n-1)}{2} \\ 
-          &= O(n^2).
-        \end{aligned}
-      \]
+	\[
+	\begin{aligned}
+	T(n) 
+	&= T(1) + \sum_{i=0}^{n-2} (n - i) \\[6pt]
+	&= 1 + \sum_{i=0}^{n-2}n \;-\;\sum_{i=0}^{n-2}i \\[6pt]
+	&= 1 + n(n-1) \;-\;\frac{(n-2)(n-1)}{2} \\[6pt]
+	&= 1 + \frac{2\,n(n-1)\;-\;(n-2)(n-1)}{2} \\[6pt]
+	&= 1 + \frac{(n-1)\bigl(2n - (n-2)\bigr)}{2} \\[6pt]
+	&= 1 + \frac{(n-1)(n+2)}{2} \\[6pt]
+	&= \frac{2 + (n-1)(n+2)}{2} \\[6pt]
+	&= \frac{n^2 + n}{2} \\[6pt]
+	&= O(n^2).
+	\end{aligned}
+	\]
     </p>
 
+  <p>
+  Assuming the pivot element is chosen at random, Quicksort has an average case complexity
+  of <span class="math">\( \Theta(n \log n) \)</span>. The proof is a bit involved, but
+  it is a good example of why you (hopefully) took a discrete mathematics course!
+    This proof is based on the one presented in Section 8.4 of
+    <em>Introduction to Algorithms</em> by Cormen, Leiserson, and Rivest.
+  </p>
+
+  <div class="theorem">
+    <p>
+      Let <span class="math">\( T(n) \)</span> be the average case runtime of
+      <code>Quicksort</code> on an array of size <span class="math">\( n \)</span>. Then
+    </p>
+    <p class="math">
+      \[ T(n) = \frac{2}{n} \sum_{k=1}^{n-1} T(k) + \Theta(n) \]
+    </p>
+
+    <div class="proof">
+	Since the pivot element is chosen randomly, it is equally likely that
+	it ends up at any of the <span class="math">\( n \)</span> positions in the array.
+	If it ends up at position <span class="math">\( i \)</span> 
+	(where the left subarray has size <span class="math">\( i \)</span> and the right has size <span class="math">\( n - i - 1 \)</span>), 
+	the recursive calls are made on subarrays of those sizes. Averaging over all possible pivot positions, we obtain
+	the following recurrence relation:
+      \[
+      \begin{aligned}
+        T(n) &= \frac{1}{n} \sum_{k=0}^{n-1} \left(T(k) + T(n-k-1)\right) + \Theta(n) \\
+             &= \frac{1}{n} \sum_{k=0}^{n-1} T(k) + \frac{1}{n} \sum_{k=0}^{n-1} T(n-k-1) + \Theta(n) \\
+             &= \frac{1}{n} \sum_{k=0}^{n-1} T(k) + \frac{1}{n} \sum_{k=0}^{n-1} T(k) + \Theta(n) \\
+             &= \frac{2}{n} \sum_{k=0}^{n-1} T(k) + \Theta(n) \\
+             &= \frac{2}{n} \sum_{k=1}^{n-1} T(k) + \Theta(n) \quad \text{(since } T(0) = 0\text{)}
+      \end{aligned}
+      \]
+    </div>
+  </div>
+
+  <p>We will need the following result in order to determine a closed form fo the recurrence relation.</p>
+  
+  <div class="lemma">
+    <p>For any <span class="math">\( n \geq 3 \)</span>:</p>
+    <p class="math">
+      \[ \sum_{k=2}^{n-1} k \log k \leq \frac{1}{2} n^2 \log n - \frac{1}{8} n^2 \]
+    </p>
+
+    <div class="proof">
+      We split the sum:
+      \[
+      \sum_{k=2}^{n-1} k \log k =
+      \sum_{k=2}^{\lceil n/2 \rceil - 1} k \log k +
+      \sum_{k=\lceil n/2 \rceil}^{n-1} k \log k
+      \]
+      In the first sum, we bound \( \log k \leq \log(n/2) = \log n - 1 \), and in
+      the second, \( \log k \leq \log n \):
+
+      \[
+      \begin{aligned}
+        \sum_{k=2}^{n-1} k \log k &\leq
+        \sum_{k=2}^{\lceil n/2 \rceil - 1} k (\log n - 1) +
+        \sum_{k=\lceil n/2 \rceil}^{n-1} k \log n \\
+        &= (\log n - 1) \sum_{k=2}^{\lceil n/2 \rceil - 1} k +
+           \log n \sum_{k=\lceil n/2 \rceil}^{n-1} k \\
+        &= \log n \sum_{k=2}^{n-1} k - \sum_{k=2}^{\lceil n/2 \rceil - 1} k \\
+        &\leq \log n \sum_{k=1}^{n-1} k - \sum_{k=1}^{\lceil n/2 \rceil - 1} k \\
+        &\leq \log n \cdot \frac{1}{2}(n-1)n - \frac{1}{2}\left(\frac{n}{2} - 1\right)\frac{n}{2} \\
+        &= \frac{1}{2} n^2 \log n - \frac{n}{2} \log n - \frac{1}{8} n^2 + \frac{n}{4} \\
+        &\leq \frac{1}{2} n^2 \log n - \frac{1}{8} n^2
+      \end{aligned}
+      \]
+
+      The last step holds since 
+      \( \frac{n}{4} \leq \frac{n}{2} \log n \) for \( n \geq 3 \).
+    </div>
+  </div>
+
+  <div class="theorem">
+    <p>
+      Let <span class="math">\( T(n) \)</span> be the average-case runtime of
+      <code>Quicksort</code> on an array of size <span class="math">\( n \)</span>. Then
+    \( T(n) = \Theta(n \log n) \)</p>
+
+    <div class="proof">
+      We show that \( T(n) = O(n \log n) \), and leave showing that
+	  \( T(n) = \Omega(n \log n) \) to the reader.
+      <br>
+	  
+	  <p>To prove that <span class="math">\( T(n) = O(n \log n) \)</span>, 
+	  we will show that for some constant <span class="math">\( a \)</span>,
+		\( T(n) \leq a n \log n \quad \text{for all } n \geq 2. \)
+		</p>
+
+		<p>
+		We pick 2 for the base case since <span class="math">\( n \log n = 0 \)</span> when <span class="math">\( n = 1 \)</span>, 
+		so we cannot make the inequality hold. 
+		(Another option would be to show <span class="math">\( T(n) \leq a n \log n + b \)</span> 
+		and choose <span class="math">\( b \)</span> so that the inequality holds for <span class="math">\( n = 1 \)</span>.)
+		</p>
+
+		<p>
+		When <span class="math">\( n = 2 \)</span>, we have <span class="math">\( a n \log n = a \cdot 2 \log 2 = 2a \)</span>, so we can choose <span class="math">\( a \)</span> large enough that <span class="math">\( T(2) \leq 2a \)</span>.
+		Thus, the inequality holds for the base case.
+		</p>
+
+
+      Now, assume \( T(k) \leq a k \log k \,\)  for all  \( \, 2 &lt; k &lt; n \). Then:
+      \[
+      \begin{aligned}
+        T(n) &= \frac{2}{n} \sum_{k=1}^{n-1} T(k) + \Theta(n) \\
+             &\leq \frac{2}{n} \left( T(1) + \sum_{k=2}^{n-1} a k \log k \right) + \Theta(n) \\
+             &= \frac{2C}{n} + \frac{2a}{n} \sum_{k=2}^{n-1} k \log k + \Theta(n) \\
+             &\leq \frac{2a}{n} \left( \frac{1}{2}n^2 \log n - \frac{1}{8}n^2 \right) + C + \Theta(n) \\
+             &= a n \log n - \frac{a}{4}n + C + \Theta(n) \\
+             &= a n \log n + \left( \Theta(n) + C - \frac{a}{4}n \right)\\
+			 &\leq a n \log n
+      \end{aligned}
+      \]
+
+      assuming we choose \( a \) so that \( \Theta(n) + C \leq \frac{a}{4} n \).
+
+      Hence, \( T(n) = O(n \log n) \).
+    </div>
+  </div>
+
 
     <p>
-      <strong>Space Complexity (Best and Average Case):</strong>
-      In the best and average cases—when the pivot consistently splits the array into two roughly equal halves—the recursive calls
+      <b>Space Complexity:</b>
+	  Each call to Quicksort uses only a constant amount of extra space, so the total space complexity
+	  is proportional to the depth of the deepest recursive call.
+      In the best and average cases 
+	  (when the pivot consistently splits the array into two roughly equal halves) the recursive calls
       in Quicksort form a balanced binary tree. Each call pushes a new frame onto the call stack until a base case (a subarray of
       size 0 or 1) is reached; at that point the function returns and frames begin popping off the stack. Consequently, the
-      maximum number of simultaneous frames—the call stack depth—equals the height of this recursion tree, O(log n), yielding
-      a best-case and average-case space complexity of O(log n).
+      maximum number of simultaneous frames—the call stack depth—equals the height of this recursion tree, 
+	  which should be about \(O(\log n)\), yielding a best-case and average-case space complexity of \(O(\log n)\).
     </p>
 
     <p>
-      <strong>Space Complexity (Worst Case):</strong>
-      In the worst case—when the pivot is consistently chosen near the smallest or largest element—the recursive calls
-      in Quicksort form an unbalanced tree. Each call pushes a new frame onto the call stack until a base case (a subarray of
-      size 0 or 1) is reached; only then do frames begin popping off the stack. Because no balanced splits occur, the maximum
-      number of simultaneous frames—the call stack depth—grows linearly with n, yielding a worst-case space complexity of O(n).
+      In the worst case (when the pivot is consistently chosen near the smallest or largest element)
+	  the recursive calls
+      in Quicksort form an unbalanced tree with a tree depth that can grow linearly with n, 
+	  yielding a worst-case space complexity of \(O(n)\).
     </p>
-    
-  </div>
-    
-  </div>
-  
   
   <h2>Variations/Improvements</h2>
 
 <!-- 1. Pivot changes -->
 <h3>Pivot Selection Methods</h3>
+There are various ways to improve the pivot selection for Quicksort to avoid the worst-case quadratic complexity.
 <ul>
   <li><strong>Randomized Pivot</strong>: pick the pivot at random to avoid degenerate cases.</li>
-  <li><strong>Median-of-Three</strong>: choose the median of the first, middle and last elements as the pivot.</li>
+  <li><strong>Middle Pivot</strong>: pick the element near the middle of the array to avoid degenerate cases.</li>
+  <li><strong>Median-of-Three</strong>: choose the median of the first, middle, and last elements as the pivot.</li>
+  <li><strong>Median-of-Medians</strong>: A guaranteed linear-time algorithm to find the approximate median of 
+  an array in linear time that can be used in the partition process that guarantees Quicksort's complexity
+  will be \(O(\log n)\).</li>
 </ul>
 
 <!-- 2. Partitioning algorithms -->
-<h3>Partitioning Algorithms</h3>
+<h3>Partitioning Algorithm Options</h3>
 <ul>
-  <li><strong><a href="https://cusack.hope.edu/Algorithms/?path=Algorithms/Hoare%20Partition" target="_blank">Hoare’s Partition</a></strong>: two-pointer scheme that swaps out-of-place elements until the pointers cross.</li>
-  <li><strong>Lomuto’s Partition</strong>: single-index scheme that builds the “less-than” region and then places the pivot.</li>
-  <li><strong>Three-Way Partition (Dutch National Flag)</strong>: splits into &lt; pivot, = pivot and &gt; pivot regions to handle duplicates efficiently.</li>
+  <li><strong><a class="problem" href="?path=Algorithms/Hoare%20Partition" target="_blank">Hoare’s Partition</a></strong>: two-pointer scheme that swaps out-of-place elements until the pointers cross.</li>
+  <li>
+  <strong>Lomuto’s Partition Scheme</strong>: Throughout execution, the array is divided into three contiguous regions—elements known to be less than the pivot, unexamined elements, and elements known to be greater than or equal to the pivot—and the partitioning gradually moves items from the unknown region into the other two.
+</li>
+<li><strong>Three-Way Partition (Dutch National Flag)</strong>: 
+splits into three regions: less than pivot, equal to pivot and greater than pivot to handle duplicates efficiently.</li>
 </ul>
 
 <!-- 3. Tail recursion elimination -->
-<h3>Tail Recursion Elimination</h3>
-<p>
+<h3>Other Optimizations</h3>
+<ul>
+  <li>
+  <strong>Tail Recursion Elimination:</strong>
   To bound stack depth to O(log n), always recurse on the smaller subarray first and turn the other “recursive” call into an iterative loop.  
   This simple transform eliminates one of the two recursive calls in each step, ensuring worst-case stack usage stays logarithmic.
-</p>
-
-<!-- 4. Base-case optimization -->
-<h3>Base-Case Optimization</h3>
-<ul>
+</li>
   <li><strong>Hybrid with Insertion Sort</strong>: for small subarrays (e.g., size &le; 10), switch to insertion sort (or another low-overhead algorithm).  
   This reduces the cost of many tiny recursive calls and improves overall performance on nearly sorted or small partitions.</li>
+  <li><strong>Array Randomization:</strong> Randomize the array before sorting to essentially eliminate the worst-case behavior
+  (e.g. if the array happens to already be sorted). </li>
 </ul>
 
   <h2>Helpful Links and Resources</h2>
   <ol>
+    <li><a href="https://en.wikipedia.org/wiki/Quicksort">Wikipedia – Quicksort</a></li>
     <li><a href="https://visualgo.net/en/sorting">Visualgo – Sorting Visualizations</a></li>
-    <li><a href="https://www.geeksforgeeks.org/quick-sort/">GeeksforGeeks – Quick Sort</a></li>
-    <li><a href="https://en.wikipedia.org/wiki/Quicksort">Wikipedia – Quick Sort</a></li>
+    <li><a href="https://www.geeksforgeeks.org/quick-sort/">GeeksforGeeks – Quicksort</a></li>
   </ol>
 
   <h2>Reading Comprehension Questions</h2>
   <ol>
-    <li>What is the divide-and-conquer strategy in Quick Sort?</li>
-    <li>What are the average and worst-case time complexities?</li>
-    <li>Why is Quick Sort not stable?</li>
-    <li>Perform Quick Sort on \([46,89,8,34,33,77]\) using the first element as pivot.</li>
-    <li>What are some ways to reduce the chances of getting the worst-case time complexity scenario of Quick Sort?</li>
+    <li>How does Quicksort employ the divide-and-conquer technique?</li>
+    <li>What are the average and worst-case time complexities of Quicksort, and when might they occur?</li>
+    <li>Is Quicksort stable? Explain.</li>
+    <li>Perform Quicksort on \([46,89,8,34,33,77]\) using the first element as pivot.</li>
+    <li>What are some ways to reduce the chances of getting the worst-case time complexity scenario of Quicksort?</li>
   </ol>
   
   <button id="toggleAnswers" class="show-answer" aria-expanded="false" style="margin-top:10px;">
@@ -337,24 +472,24 @@ def partition(A, lo, hi):
   <div id="answers" class="answer" hidden style="margin-top:10px;">
     <ol>
       <li><strong>Answer:</strong> It splits the array around a pivot and recursively sorts each half.</li>
-      <li><strong>Answer:</strong> Average \(O(n\log n)\); worst \(O(n^2)\) when pivots are poorly chosen.</li>
+      <li><strong>Answer:</strong> Average \(O(n\log n)\); worst \(O(n^2)\) when pivots are poorly chosen
+	  or the array is already sorted or mostly sorted.</li>
       <li><strong>Answer:</strong> Because its in-place partitioning can swap equal elements across the pivot, 
         identical keys may end up in a different order than they started.</li>
-      <li><strong>Answer:</strong> Look at demo.</li>
+      <li><strong>Answer:</strong> Check your answer by comparing with the demo.</li>
       <li><strong>Answer:</strong> By choosing pivots to avoid poor splits—e.g., 
-        using randomized pivot selection or median-of-three pivot; by employing three-way partitioning for duplicates; 
-        and by switching to a low-overhead algorithm (like insertion sort) on small subarrays—you can dramatically reduce 
-        the chance of hitting the \(O(n^2)\) worst case.</li>
+        using randomized pivot selection or median-of-three pivot; by employing three-way partitioning for duplicates.</li>
     </ol>
   </div>
   
   <h2>In-class Activities</h2>
   <ol>
-    <li>Compare pivot choices: first-element vs random vs median-of-three.</li>
-    <li>Discuss in-place vs out-of-place sorting (Quick vs Merge Sort).</li>
-    <li>Explore tail-recursion elimination for space optimization.</li>
     <li>Go over some example of Quicksort being performed on some arrays.</li>
-    <li>Go over the space and time complexity for Quicksort.</li>
+    <li>Compare pivot choices: first-element vs random vs median-of-three, etc.</li>
+    <li>Compare and contrast Quicksort and Merge Sort.</li>
+    <li>Explore tail-recursion elimination for space optimization.</li>
+    <li>Discuss the space and time complexity for Quicksort.</li>
+    <li>Can Quicksort be implemented so that it is stable?</li>
   </ol>
 
 
@@ -362,37 +497,31 @@ def partition(A, lo, hi):
     <h2>Problems</h2>
     <ol>
       <li>
-        Perform Quicksort on the given list of chars <code>['q', 'u', 'i', 'c', 'k', 's', 'o', 'r', 't']</code>  
-        and show the necessary work to sort this.
+        Perform Quicksort on <code>['q', 'u', 'i', 'c', 'k', 's', 'o', 'r', 't']</code>.
+        Draw a recursion tree (similar to the demo) to show the steps.
       </li>
+      <li><p><b>Classic Nuts and Bolts Matching</b>
+	  You are given a pile of \(n\) bolts, all of different sizes, and matching nuts.
+	  Devise an algorithm to pair every bolt with its matching nut.
+	  Your algorithm should be as efficient as possible.
+	  You may not compare bolts with bolts or nuts with nuts, but you can determine 
+	  whether a given nut is smaller than, equal to, or larger than a bolt, and vice-versa.
+	  Give the computational complexity of your algorithm.
+	  Hint: It is probably easier to think in terms of piles of nuts and bolts rather than an array.
+	  </p></li>
       <li>
-        Custom Comparator Sort
-        <p>You have a list of records <code>(name, score, timestamp)</code>. Design an in-place Quicksort that orders records by:</p>
-        <ol>
-          <li>Descending score, then</li>
-          <li>Ascending timestamp.</li>
-        </ol>
-        <p>Explain how your comparator integrates into the partitioning step.</p>
-      </li>
-      <li>
-        Classic Nuts and Bolts Matching
-        <p><code>Input:</code> n nuts and n bolts.</p>
-        <p><code>Comparator:</code> <code>compare(nut, bolt)</code> returns &lt;0 if nut is too small, &gt;0 if too large, and 0 if they fit.</p>
-        <p><code>Goal:</code> Match each nut with its corresponding bolt.</p>
-        <p><em>Hint:</em> Pick a random nut as pivot, partition the bolts around it, then use the matched bolt to partition the nuts, and recurse on subproblems.</p>
-      </li>
-      <li>
-        Performance Comparison of Quicksort Variants
-        <p>Write a program that:</p>
-        <ol>
-          <li>Uses a fixed random seed to generate one initial array of <code>100,000,000</code> integers.</li>
+        <p><b>Performance Comparison of Quicksort Variants</b>
+        Write a program that:
+		</p>
+        <ol type='a'>
+          <li>Uses a fixed random seed to generate one initial array of <code>1,000,000</code> integers.</li>
           <li>Makes four identical copies of that array so each sort sees the same data.</li>
           <li>Sorts each copy with a different Quicksort implementation:
             <ul>
-              <li>Standard Quicksort (e.g. last‐element pivot)</li>
-              <li>Median-of-three pivot Quicksort</li>
-              <li>Random‐pivot Quicksort</li>
-              <li>Quicksort that switches to selection sort for subarrays of size ≤ 10</li>
+              <li>Standard Quicksort (e.g. first element as pivot)</li>
+              <li>Median-of-three pivot</li>
+              <li>Random pivot </li>
+              <li>Standard Quicksort that switches to insertion sort for subarrays of size ≤ 10</li>
             </ul>
           </li>
           <li>Measures and records the wall-clock time taken by each variant.</li>

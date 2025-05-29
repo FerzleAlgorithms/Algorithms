@@ -19,76 +19,112 @@
 
   <h2>Problem Statement</h2>
   <p>Counting Sort solves the <a class="problem" href="?path=Problems%2F1_Foundational%2FSorting">Sorting</a> problem.</p>
-  <strong>Example:</strong>
-  <pre><code>Input:  [4, 2, 2, 8, 3, 3, 1]
-Output: [1, 2, 2, 3, 3, 4, 8]</code></pre>
-<h2>Design and Strategy</h2>
 
-
-<p>
-Counting sort is a <b>non-comparison-based</b> distribution sorting algorithm that leverages a <b>counting</b> 
-strategy to sort integers within a known range. 
-First, it tallies the frequency of each distinct 
-value in the input array into a “count” array of size <i>k</i> (where <i>k</i> = max_value – min_value + 1). 
-Next, it transforms the count array into a <b>prefix‐sum</b> array, so that each position in the count array indicates the final position of the corresponding value in the sorted output. This two-phase approach—counting and prefix accumulation—enables sorting in Θ(<i>n</i> + <i>k</i>) time.
-</p>
-
-
-<p>
-To implement counting sort, you allocate a count array indexed by value offset 
-(value – min_value). In the first pass, you iterate through the input (with index <i>i</i> from 0 to
- <i>n</i>–1), incrementing the appropriate slot in the count arrayfor each element. 
- In the second pass, you compute the prefix sums in-place over the count array 
- to determine the end positions for each value.
- Finally, to achieve <b>stability</b>, you traverse the original array backward (index <i>j</i> 
- from <i>n</i>–1 down to 0), decrement the count for the current element, 
- and place it at the position indicated by the updated count.
- This reverse traversal ensures that equal elements preserve their original 
- relative order. Here is the 
-</p>
-
-<p>Counting sort functions by distributing elements into three arrays:</p>
-<ul>
-  <li><b>Input Array</b> (<i>A</i>): The original array of <i>n</i> elements to be sorted.</li>
-  <li><b>Count Array</b> (<i>C</i>): An auxiliary array of size <i>k = max_value − min_value + 1</i>, initialized to zero, used to tally frequencies.</li>
-  <li><b>Output Array</b> (<i>B</i>): A new array of length <i>n</i>, initially empty, which will hold the sorted result.</li>
-</ul>
-
-<p>
-<b>Pass 1 – Counting:</b>  
-Iterate <i>i</i> from 0 to <i>n−1</i>.  
-Let <i>v = A[i]</i> and <i>idx = v − min_value</i>.  
-Increment <i>C[idx]</i>.  
-<br>
-After this pass, <i>C[j]</i> contains the number of times the value <i>min_value + j</i> appears in <i>A</i>.
+  <h2>Design and Strategy</h2>
+  <p>
+  Counting sort is a <strong>non-comparison-based</strong> algorithm that sorts integers by counting 
+  how many times each value occurs, rather than comparing elements. 
+  It is especially efficient when the input values lie within a reasonably small range.
 </p>
 
 <p>
-<b>Pass 2 – Prefix Sum:</b>  
-For each <i>j</i> from 1 to <i>k−1</i>, do <i>C[j] += C[j−1]</i>.  
-<br>
-Now each <i>C[j]</i> indicates the index in <i>B</i> immediately after the last occurrence of <i>min_value + j</i>.
+  The algorithm works in several passes. It first scans the input array \( A \) of length \( n \) 
+  to compute the minimum and maximum values, which define the range size 
+  \( k = \textit{max} - \textit{min} + 1 \). It then allocates a count array \( C \) of size \( k \) 
+  to record the frequency of each value. After transforming the count array into a prefix sum array, 
+  it places each element from \( A \) into its correct position in an output array \( B \), using \( C \) 
+  to track placement. This process requires two auxiliary arrays—one of size \( k \) and one of 
+  size \( n \)—and runs in \( \Theta(n + k) \) time.
 </p>
 
-<p>
-<b>Pass 3 – Placement (stable):</b>  
-Traverse <i>A</i> backwards from <i>j = n−1</i> down to 0.  
-For each <i>v = A[j]</i>, compute <i>idx = v − min_value</i>, then  
-<pre style="display:inline">C[idx]--; B[C[idx]] = v;</pre>  
-<br>
-By placing elements in reverse order, equal values retain their original relative positions.
-</p>
+  <p>
+    The algorithm proceeds in several structured passes:
+  </p>
 
-  <p>Counting Sort works by counting the number of occurrences of each unique key in the input array and using these counts to determine the positions of each key in the sorted output.</p>
   <ol>
-    <li>Find the maximum value <i>k</i> in the input array to determine the range of keys (0 to <i>k</i>).</li>
-    <li>Create a count array <code>C</code> of size <i>k+1</i>, initialized to zero.</li>
-    <li>Iterate over the input array <code>A</code>, and for each element <code>A[i]</code>, increment <code>C[A[i]]</code>.</li>
-    <li>Compute prefix sums in the count array: for <code>i</code> from 1 to <i>k</i>, set <code>C[i] += C[i-1]</code>. Now <code>C[i]</code> represents the number of elements ≤ <code>i</code>.</li>
-    <li>Allocate an output array <code>B</code> of the same length as <code>A</code>.</li>
-    <li>Iterate over <code>A</code> from right to left (to ensure stability): for each <code>A[i]</code>, place it at index <code>C[A[i]] - 1</code> in <code>B</code>, then decrement <code>C[A[i]]</code>.</li>
-    <li>Copy the sorted elements from <code>B</code> back into <code>A</code> if an in-place operation is desired.</li>
+    <li><strong>Pass 0 – Determine Range:</strong><br>
+      Scan the array once to compute \( \textit{min} \) and \( \textit{max} \).<br>
+      This allows dynamic determination of the range \( k = \textit{max} - \textit{min} + 1 \).
+    </li>
+
+    <li><strong>Pass 1 – Counting:</strong><br>
+    Allocate a count array \( C \) of size \( k \), initialized to zero.<br>
+	For each element \( A[i] \), compute its offset from the minimum:
+	\[
+	\text{idx} = A[i] - \textit{min}
+	\]
+	This maps the actual value into the range \( 0 \) to \( k - 1 \), so it can be used as a valid index in the count array \( C \).<br>
+	Then increment \( C[\text{idx}] \).<br>
+	After this pass, for each index \( j \) from \( 0 \) to \( k - 1 \), 
+	\( C[j] \) contains the number of times the value \( \textit{min} + j \) appears in \( A \).
+    </li>
+    <li><strong>Pass 2 – Prefix Sum:</strong><br>
+     For each \( j \) from 1 to \( k - 1 \), perform the update:
+	\[
+	C[j] \mathrel{+}= C[j - 1]
+	\]
+	This computes the prefix sum over the count array, so that \( C[j] \) now stores the total number of elements in \( A \) that are less than or equal to \( \textit{min} + j \).<br>
+	After this step, \( C[j] \) indicates the position in the output array \( B \) 
+	where the next occurrence of the value \( \textit{min} + j \) should be placed.
+    </li>
+    <li><strong>Pass 3 – Placement (stable):</strong><br>
+    Allocate an output array \( B \) of size \( n \).<br>
+	Traverse the original array \( A \) from right to left (i.e., from \( j = n - 1 \) down to 0).<br>
+	For each element \( v = A[j] \), compute its index relative to the count array:
+	\[
+	\text{idx} = v - \textit{min}
+	\]
+	Use \( C[\text{idx}] \) to determine the position where \( v \) should be placed in \( B \). 
+	Since \( C[\text{idx}] \) points to the index where the next copy of \( v \) belongs, 
+	we first decrement it, then assign:
+	\[
+	C[\text{idx}] \mathrel{-}= 1; \quad B[C[\text{idx}]] = v
+	\]
+	This reverse traversal ensures <em>stability</em>: when there are multiple occurrences of the same value, 
+	the one that appeared later in the input will be placed later in the output, 
+	preserving their original relative order.
+    </li>
+    <li><strong>Optional – Copy Back:</strong><br>
+      If in-place sorting is required, copy the elements from \( B \) back into \( A \).
+    </li>
   </ol>
+
+<p>In summary, here is the process</p>
+<ol>
+  <li><strong>Pass 0 – Determine Range:</strong><br>
+    Scan the array to compute \( \textit{min} \) and \( \textit{max} \), and set \( k = \textit{max} - \textit{min} + 1 \).
+  </li>
+  <li><strong>Pass 1 – Counting:</strong><br>
+    Allocate an array \( C \) of size \( k \).<br>
+    For each \( A[i] \), compute \( \text{idx} = A[i] - \textit{min} \) and increment \( C[\text{idx}] \).
+  </li>
+  <li><strong>Pass 2 – Prefix Sum:</strong><br>
+    For each \( j \) from 1 to \( k - 1 \), update \( C[j] \mathrel{+}= C[j - 1] \).
+  </li>
+  <li><strong>Pass 3 – Placement:</strong><br>
+    Allocate output array \( B \) of size \( n \).<br>
+    Traverse \( A \) from right to left.<br>
+    For each \( v = A[j] \), compute \( \text{idx} = v - \textit{min} \), 
+	decrement \( C[\text{idx}] \), and set \( B[C[\text{idx}]] = v \).
+  </li>
+  <li><strong>Optional – Copy Back:</strong><br>
+    Copy elements from \( B \) back into \( A \) if desired.
+  </li>
+</ol>
+<p>
+  Counting sort is fast, simple, and stable when applied to bounded-range integer inputs, 
+  making it ideal in scenarios where comparisons are unnecessary or expensive.
+</p>
+<p>
+  Counting Sort illustrates the <strong>transform and conquer</strong> strategy: 
+  it transforms the input into a frequency table and then reconstructs the sorted array based on 
+  that transformed structure. It also demonstrates a <strong>space-for-time tradeoff</strong>, 
+  using additional memory to achieve linear-time performance when the value range is small relative 
+  to the input size.
+</p>
+
+
+
 
 <div class="embeddedDemoContainer">
   <iframe class="embeddedDemo"
@@ -98,145 +134,192 @@ By placing elements in reverse order, equal values retain their original relativ
   </iframe>
 </div>
 
-  <h2>Code Implementations</h2>
+<h2>Code Implementations</h2>
 <div class="tab-group">
-<div class="tabs" role="tablist">
-   <button
-    id="tab-java"
-    class="tablink active"
-    data-lang="java"
-    role="tab"
-    aria-controls="java"
-    aria-selected="true">
-    Java
-  </button>
-   <button
-    id="tab-cpp"
-    class="tablink"
-    data-lang="cpp"
-    role="tab"
-    aria-controls="c++"
-    aria-selected="true">
-    C++
-  </button>
-   <button
-    id="tab-python"
-    class="tablink"
-    data-lang="python"
-    role="tab"
-    aria-controls="python"
-    aria-selected="true">
-    Python
-  </button>
+  <div class="tabs" role="tablist">
+    <button id="tab-java" class="tablink active" data-lang="java" role="tab" aria-controls="java" aria-selected="true">Java</button>
+    <button id="tab-cpp" class="tablink" data-lang="cpp" role="tab" aria-controls="c++" aria-selected="true">C++</button>
+    <button id="tab-python" class="tablink" data-lang="python" role="tab" aria-controls="python" aria-selected="true">Python</button>
   </div>
-  <div id="java" class="code-container active" role="tabpanel"  aria-labelledby="tab-java">
-    <pre><code class="language-java">public void countingSort(int[] A) {
+
+  <div id="java" class="code-container active" role="tabpanel" aria-labelledby="tab-java">
+<pre><code class="language-java">public void countingSort(int[] A) {
     int n = A.length;
-    int k = 0;
-    for (int i = 0; i < n; i++) {
-        if (A[i] > k) k = A[i];
+    if (n == 0) return;
+
+    // Pass 0: Determine min and max
+    int min = A[0], max = A[0];
+    for (int i = 1; i &lt; n; i++) {
+        if (A[i] &lt; min) min = A[i];
+        if (A[i] &gt; max) max = A[i];
     }
-    int[] C = new int[k+1];
+    int k = max - min + 1;
+
+    // Pass 1: Count occurrences
+    int[] C = new int[k];
     for (int value : A) {
-        C[value]++;
+        C[value - min]++;
     }
-    for (int i = 1; i <= k; i++) {
-        C[i] += C[i-1];
+
+    // Pass 2: Compute prefix sums
+    for (int i = 1; i &lt; k; i++) {
+        C[i] += C[i - 1];
     }
+
+    // Pass 3: Place into output array (stable)
     int[] B = new int[n];
-    for (int i = n-1; i >= 0; i--) {
-        B[C[A[i]] - 1] = A[i];
-        C[A[i]]--;
+    for (int i = n - 1; i &gt;= 0; i--) {
+        int idx = A[i] - min;
+        B[--C[idx]] = A[i];
     }
+
+    // Optional: Copy back
     System.arraycopy(B, 0, A, 0, n);
 }</code></pre>
   </div>
 
-  <div id="cpp" class="code-container active" role="tabpanel"  aria-labelledby="tab-cpp">
-    <pre><code class="language-cpp">void countingSort(vector<int>& A) {
-    int n = A.size();
-    int k = *max_element(A.begin(), A.end());
-    vector<int> C(k+1, 0);
-    for (int x : A) C[x]++;
-    for (int i = 1; i <= k; i++) C[i] += C[i-1];
-    vector<int> B(n);
-    for (int i = n-1; i >= 0; i--) {
-        B[C[A[i]] - 1] = A[i];
-        C[A[i]]--;
+  <div id="cpp" class="code-container active" role="tabpanel" aria-labelledby="tab-cpp">
+<pre><code class="language-cpp">void countingSort(int A[], int n) {
+    if (n == 0) return;
+
+    // Pass 0: Determine min and max
+    int min = A[0], max = A[0];
+    for (int i = 1; i &lt; n; i++) {
+        if (A[i] &lt; min) min = A[i];
+        if (A[i] &gt; max) max = A[i];
     }
-    A = B;
+    int k = max - min + 1;
+
+    // Pass 1: Count occurrences
+    int* C = new int[k]();
+    for (int i = 0; i &lt; n; i++) {
+        C[A[i] - min]++;
+    }
+
+    // Pass 2: Compute prefix sums
+    for (int i = 1; i &lt; k; i++) {
+        C[i] += C[i - 1];
+    }
+
+    // Pass 3: Place into output array (stable)
+    int* B = new int[n];
+    for (int i = n - 1; i &gt;= 0; i--) {
+        int idx = A[i] - min;
+        B[--C[idx]] = A[i];
+    }
+
+    // Optional: Copy back
+    for (int i = 0; i &lt; n; i++) {
+        A[i] = B[i];
+    }
+
+    delete[] C;
+    delete[] B;
 }</code></pre>
   </div>
 
-  <div id="python" class="code-container active" role="tabpanel"  aria-labelledby="tab-python">
-    <pre><code class="language-python">def counting_sort(A):
+  <div id="python" class="code-container active" role="tabpanel" aria-labelledby="tab-python">
+<pre><code class="language-python">def counting_sort(A):
     n = len(A)
-    if n == 0: return A
-    k = max(A)
-    C = [0] * (k+1)
-    for x in A:
-        C[x] += 1
-    for i in range(1, k+1):
-        C[i] += C[i-1]
+    if n == 0:
+        return A
+
+    # Pass 0: Determine min and max
+    min_val = min(A)
+    max_val = max(A)
+    k = max_val - min_val + 1
+
+    # Pass 1: Count occurrences
+    C = [0] * k
+    for value in A:
+        C[value - min_val] += 1
+
+    # Pass 2: Compute prefix sums
+    for i in range(1, k):
+        C[i] += C[i - 1]
+
+    # Pass 3: Place into output array (stable)
     B = [0] * n
-    for x in reversed(A):
-        B[C[x] - 1] = x
-        C[x] -= 1
-    return B</code></pre>
-  </div>
-  </div>
+    for i in range(n - 1, -1, -1):
+        idx = A[i] - min_val
+        C[idx] -= 1
+        B[C[idx]] = A[i]
 
-  <h2>Time/Space Analysis</h2>
-  <p>Counting Sort runs in <i>O(n + k)</i> time, where <i>n</i> is the number of elements and <i>k</i> is the range of input values. Its space complexity is also <i>O(n + k)</i> due to the count array and output array.</p>
-
-  <div class="section">
-    <h2>Reading Comprehension Questions</h2>
-    <ol>
-      <li>What is the time complexity of Counting Sort?</li>
-      <li>What is the space complexity of Counting Sort?</li>
-      <li>Why is Counting Sort not comparison-based?</li>
-      <li>When is Counting Sort most efficient?</li>
-      <li>How does Counting Sort achieve stability?</li>
-    </ol>
-    <button id="toggleAnswers" class="show-answer" aria-expanded="false">Show Answers</button>
-    <div id="answers" class="answer" hidden>
-      <ol>
-        <li><strong>Answer:</strong> <i>O(n + k)</i>.</li>
-        <li><strong>Answer:</strong> <i>O(n + k)</i>.</li>
-        <li><strong>Answer:</strong> It counts occurrences instead of comparing elements.</li>
-        <li><strong>Answer:</strong> When <i>k = O(n)</i>, i.e., the range of values is not significantly larger than the number of elements.</li>
-        <li><strong>Answer:</strong> By iterating from right to left when placing elements into the output array.</li>
-      </ol>
-    </div>
+    return B
+</code></pre>
   </div>
-
-  <div class="section">
-  <h2>In-Class Activities</h2>
-  <ul>
-    <li>Use physical tokens to count and place elements in order.</li>
-    <li>Discuss the stability of Counting Sort with varying input distributions.</li>
-    <li>Compare Counting Sort with comparison-based sorts on different datasets.</li>
-    <li>Work in pairs to write pseudocode for Counting Sort on the whiteboard, then peer-review each other’s approach.</li>
-    <li>Simulate the count and prefix-sum phases using colored cards or sticky notes to represent different values.</li>
-    <li>Measure and plot the running time of Counting Sort versus array size <i>n</i> and key range <i>k</i> using a simple script.</li>
-    </ul>
 </div>
 
+  <h2>Time/Space Analysis</h2>
+	<p>
+	Counting Sort runs in \( O(n + k) \) time, where \( n \) is the number of elements in the input array and \( k = \textit{max} - \textit{min} + 1 \) is the size of the value range. The algorithm performs a constant number of passes over the input and auxiliary arrays, and each pass is linear in either \( n \) or \( k \). In particular:
+	</p>
 
- <div class="section">
-  <h2>Problems</h2>
+	<ul>
+	  <li>Scanning the input to compute the range takes \( O(n) \) time.</li>
+	  <li>Counting occurrences and computing prefix sums take \( O(n + k) \) time.</li>
+	  <li>Placing elements in sorted order takes \( O(n) \) time.</li>
+	</ul>
+
+	<p>
+	  The space complexity is also \( O(n + k) \). This includes:
+	</p>
+
+	<ul>
+	  <li>An output array of size \( n \), used to build the sorted result.</li>
+	  <li>A count array of size \( k \), used to track frequencies and positions.</li>
+	</ul>
+
+<p>
+  Counting Sort is efficient when the range \( k \) is not significantly larger than \( n \), but it may become impractical if \( k \) is very large relative to the number of elements.
+</p>
+
+<div class="section">
+  <h2>Reading Comprehension Questions</h2>
   <ol>
-    <li>Implement Counting Sort for a range including negative integers.</li>
-	<li>Modify the algorithm on paper to handle non‐integer keys (e.g., strings) by mapping them to integer indices.</li>
-  
-    <li>Modify Counting Sort to work in-place without an extra output array.</li>
-    <li>Analyze memory usage for large <i>k</i> compared to <i>n</i>.</li>
-    <li>Prove the correctness and stability of Counting Sort, and derive its Θ(<i>n</i> + <i>k</i>) time complexity and Θ(<i>n</i> + <i>k</i>) space complexity.</li>
-    <li>Design a parallel Counting Sort variant that distributes the counting and prefix-sum phases across multiple processors, and analyze its parallel runtime and speedup.</li>
+    <li>What is the time complexity of Counting Sort in terms of both input size and range?</li>
+    <li>What contributes to the space complexity of Counting Sort?</li>
+    <li>Why is Counting Sort considered a non-comparison-based algorithm?</li>
+    <li>Under what conditions is Counting Sort most efficient?</li>
+    <li>How does Counting Sort ensure stable sorting?</li>
+  </ol>
+
+  <button id="toggleAnswers" class="show-answer" aria-expanded="false">Show Answers</button>
+  <div id="answers" class="answer" hidden>
+    <ol>
+      <li><strong>Answer:</strong> \( O(n + k) \), where \( n \) is the number of elements and \( k = \textit{max} - \textit{min} + 1 \) is the size of the value range.</li>
+      <li><strong>Answer:</strong> It requires \( O(k) \) space for the count array and \( O(n) \) space for the output array, giving total space complexity \( O(n + k) \).</li>
+      <li><strong>Answer:</strong> Because it does not compare elements to one another; instead, it counts the number of occurrences of each value.</li>
+      <li><strong>Answer:</strong> When the value range \( k \) is not significantly larger than the number of elements \( n \), i.e., when \( k = O(n) \).</li>
+      <li><strong>Answer:</strong> By traversing the input array from right to left during placement, ensuring that equal elements retain their original relative order.</li>
+    </ol>
+  </div>
+</div>
+
+<div class="section">
+  <h2>In-Class Activities</h2>
+  <ol>
+    <li>Simulate Counting Sort using physical tokens (e.g., colored chips or cards) to represent values—perform counting, prefix-sum, and placement phases in groups.</li>
+    <li>Demonstrate stability by sorting inputs with repeated values and annotated labels (e.g., “red 5”, “blue 5”)—observe how relative order is preserved.</li>
+    <li>Compare the behavior and runtime of Counting Sort versus comparison-based sorts (like Insertion or Merge Sort) on datasets with different sizes and value ranges.</li>
+    <li>In small groups, write pseudocode for Counting Sort on the whiteboard, emphasizing the key phases. Then rotate and review another group’s solution for correctness and clarity.</li>
+    <li>Run a scripted benchmark to measure Counting Sort’s runtime for varying values of \( n \) and \( k \), and graph the results to identify when it performs optimally.</li>
+    <li>Does Counting Sort handle negative integers in the input? Discuss why it does or update it to make it work with negative inputs.</li>
+
   </ol>
 </div>
 
+<div class="section">
+  <h2>Problems</h2>
+  <ol>
 
+    <li><strong>Generalization:</strong> Describe how Counting Sort could be applied to a dataset of strings or characters. Design a mapping strategy and discuss how stability can be maintained.</li>
+    <li><strong>In-Place Variant:</strong> Devise an in-place version of Counting Sort that avoids using an auxiliary output array. Discuss the challenges and evaluate its time and space complexity.</li>
+    <li><strong>Performance Bounds:</strong> Analyze how the performance of Counting Sort degrades when the key range \( k \) becomes much larger than \( n \). When does it become less efficient than comparison-based sorting?</li>
+    <li><strong>Formal Analysis:</strong> Prove that Counting Sort is stable and correct. Derive its worst-case time and space complexities using a step-by-step analysis.</li>
+    <li><strong>Parallelization:</strong> Design a parallel implementation of Counting Sort. Propose how counting and prefix-sum steps could be parallelized and analyze its theoretical speedup.</li>
+  </ol>
+</div>
 
 </body>
 </html>

@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <title>Bucket Sort Demo</title>
-  <script src="../../scripts/demoScripts.js"></script>
+  <script src="/Algorithms/scripts/demoScripts.js"></script>
   <link rel="stylesheet" href="../../css/style.css">
-  <link rel="stylesheet" href="../../css/demo.css">
+  <link rel="stylesheet" href="../..//css/demo.css">
   <style>
 
     /* allow the arrow to escape the .element box */
@@ -185,81 +185,61 @@
     });
   }
 
-  // 2) Sort buckets internally (via insertion sort), with descriptive comments
+    // 2+3) For each bucket: sort it, then immediately place it back
+    let pos = 0;
   for (let b = 0; b < buckets.length; b++) {
-    const raw = buckets[b].slice();
-    const insSteps = generateInsertionSteps(raw);
-
-    insSteps.forEach(state => {
-      // build a human-readable description matching Insertion Sort Demo
-      let descText;
+    // — a) insertion‐sort the bucket b —
+    const raw    = buckets[b].slice();
+    const insSts = generateInsertionSteps(raw);
+    insSts.forEach(state => {
+      let desc;
       switch (state.stage) {
-        case 'init':
-          descText = `Bucket ${b}: beginning insertion sort.`;
-          break;
-        case 'newKey':
-          descText = `${state.keyVal} is the new key in bucket ${b}.`;
-          break;
+        case 'init':     desc = `Bucket ${b}: beginning insertion sort.`;         break;
+        case 'newKey':   desc = `${state.keyVal} is the new key in bucket ${b}.`; break;
         case 'comparing': {
-          const compVal = state.arr[state.compareIndex];
-          if (state.keyVal < compVal) {
-            descText = `${state.keyVal} < ${compVal}? Yes, shift ${compVal} right.`;
-          } else {
-            descText = `${state.keyVal} < ${compVal}? No, place the key now.`;
-          }
+          const cv = state.arr[state.compareIndex];
+          desc = state.keyVal < cv
+               ? `${state.keyVal} < ${cv}? Yes, shift ${cv} right.`
+               : `${state.keyVal} < ${cv}? No, place the key now.`;
           break;
         }
-        case 'shift':
-          descText = `Shifted element to the right in bucket ${b}.`;
-          break;
+        case 'shift':    desc = `Shifted element to the right in bucket ${b}.`;  break;
         case 'placed':
-          if (state.sortedCount === state.arr.length) {
-            descText = `Bucket ${b} is now fully sorted.`;
-          } else {
-            descText = `Placed key ${state.keyVal} at index ${state.keyIndex}.`;
-          }
+          desc = state.sortedCount === state.arr.length
+               ? `Bucket ${b} is now fully sorted.`
+               : `Placed key ${state.keyVal} at index ${state.keyIndex}.`;
           break;
-        default:
-          descText = '';
       }
-
       record({
-        A: [...A],
-        buckets: buckets.map((x, i) => i === b ? state.arr.slice() : x.slice()),
-        phase: 'insertion',
+        A:       [...A],
+        buckets: buckets.map((x,i)=> i===b ? state.arr.slice() : x.slice()),
+        phase:   'insertion',
         bucketIndex: b,
-        insertion: state,
-        desc: descText
+        insertion:    state,
+        i:       pos,              // ← add this
+        desc
       });
     });
+    buckets[b] = insSts[insSts.length - 1].arr.slice();
 
-    // commit the sorted result back into our buckets array
-    buckets[b] = insSteps[insSteps.length - 1].arr.slice();
-  }
-
-  // 3) Collect phase: visit each bucket then place every element
-  let pos = 0;
-  for (let b = 0; b < buckets.length; b++) {
-    // highlight even empty buckets
+    // — b) collect that same bucket —
     record({
-      A: [...A],
+      A:       [...A],
       buckets: JSON.parse(JSON.stringify(buckets)),
-      phase: 'collect',
+      phase:   'collect',
       bucketIndex: b,
       i: pos,
       desc: buckets[b].length
         ? `Visiting bucket ${b}`
         : `Visiting empty bucket ${b}`
     });
-
-    // place each element back into A
     for (let bucketPos = 0; bucketPos < buckets[b].length; bucketPos++) {
       const val = buckets[b][bucketPos];
       A[pos] = val;
       record({
-        A: [...A],
+        A:       [...A],
         buckets: JSON.parse(JSON.stringify(buckets)),
-        phase: 'collect',
+        phase:   'collect',
         bucketIndex: b,
         bucketPos,
         i: pos,
@@ -322,62 +302,77 @@ function render() {
     const ins  = st.insertion;
 
     // 1a) Render main array (with permanent orange highlights + i‐arrow)
-    for (let i = 0; i < values.length; i++) {
-      const div = document.createElement('div');
-      div.className = 'element';
-      div.textContent = values[i];
-      if (permMainSorted.has(i)) div.classList.add('sorted');
-      if (i === st.i) {
-        div.innerHTML = `<div class="bucket-arrow">↓</div>` + div.textContent;
+for (let i = 0; i < values.length; i++) {
+  const div = document.createElement('div');
+  div.className = 'element';
+  div.textContent = values[i];
+  if (permMainSorted.has(i)) div.classList.add('sorted');
+
+  // new insertion‐phase arrow uses your existing .arrow CSS
+  if (i === st.i) {
+    div.innerHTML = `<div class="arrow">↑<br>i</div>` + div.textContent;
+    div.classList.add('comparing-insert'); // optional, if you want a special color
+  }
+
+  box.appendChild(div);
+}
+
+
+
+    // ─── 1b) Render each bucket’s snapshot ───
+for (let b = 0; b < buckets.length; b++) {
+  const snapshot  = (b === bIdx ? ins.arr : buckets[b]);
+  const bucketDiv = document.createElement('div');
+  bucketDiv.className = 'bucket-block';
+
+  // ── range label ──
+  const lower  = Math.floor(b * rangeSize);
+  const upper  = Math.floor((b + 1) * rangeSize) - 1;
+  const rangeEl = document.createElement('div');
+  rangeEl.className = 'element bucket-range';
+  rangeEl.textContent = `${lower}-${upper}`;
+  if (b === bIdx) rangeEl.classList.add('highlight');
+  bucketDiv.appendChild(rangeEl);
+
+
+  // ← add the ↓ arrow at the top of the **currently-sorting** bucket
+// draw arrows on every non-empty bucket, even in the sorting phase
+if (buckets[b].length > 0) {
+  const arrowEl      = document.createElement('div');
+  arrowEl.className  = 'bucket-arrow';
+  arrowEl.textContent = '↓';
+  bucketDiv.appendChild(arrowEl);
+}
+
+
+  // ── bucket contents ──
+  snapshot.forEach((val, idx) => {
+    const el = document.createElement('div');
+    el.className = 'element';
+    el.textContent = val;
+
+    if (b === bIdx) {
+      // insertion‐sort in‐flight styling
+      if (idx < ins.sortedCount)                             el.classList.add('sorted');
+      if (ins.stage === 'newKey'    && idx === ins.keyIndex)  el.classList.add('key');
+      if (ins.stage === 'comparing' && idx === ins.compareIndex) {
+        el.classList.add('comparing');
+        el.classList.remove('sorted');
       }
-      box.appendChild(div);
+      if (ins.stage === 'shift'     && idx === ins.firstShiftIndex) el.classList.add('shift');
+      if (ins.stage === 'placed'    && idx === ins.keyIndex)        el.classList.add('sorted');
+    }
+    else if (b < bIdx) {
+      // previously‐completed buckets stay orange
+      el.classList.add('sorted');
     }
 
-    // 1b) Render each bucket’s snapshot (highlighting only the active one)
-    for (let b = 0; b < buckets.length; b++) {
-      const snapshot = (b === bIdx ? ins.arr : buckets[b]);
-      const bucketDiv = document.createElement('div');
-      bucketDiv.className = 'bucket-block';
+    bucketDiv.appendChild(el);
+  });
 
-      // range label
-      const lower  = Math.floor(b * rangeSize);
-      const upper  = Math.floor((b + 1) * rangeSize) - 1;
-      const rangeEl = document.createElement('div');
-      rangeEl.className = 'element bucket-range';
-      rangeEl.textContent = `${lower}-${upper}`;
-      if (b === bIdx) rangeEl.classList.add('highlight');
-      bucketDiv.appendChild(rangeEl);
+  bucketContainer.appendChild(bucketDiv);
+}
 
-      // ← arrow for active bucket during insertion
-      if (snapshot.length > 0) {
-        const arrowEl = document.createElement('div');
-        arrowEl.className = 'bucket-arrow';
-        arrowEl.textContent = '↓';
-        bucketDiv.appendChild(arrowEl);
-      }
-
-      // bucket contents with insertion‐sort coloring
-      snapshot.forEach((val, idx) => {
-        const el = document.createElement('div');
-        el.className = 'element';
-        el.textContent = val;
-        if (b === bIdx) {
-          if (idx < ins.sortedCount)                     el.classList.add('sorted');
-          if (ins.stage === 'newKey'   && idx === ins.keyIndex)    el.classList.add('key');
-          if (ins.stage === 'comparing' && idx === ins.compareIndex) {
-            el.classList.add('comparing');
-            el.classList.remove('sorted');
-          }
-          if (ins.stage === 'shift'     && idx === ins.firstShiftIndex) {
-            el.classList.add('shift');
-          }
-          if (ins.stage === 'placed'    && idx === ins.keyIndex)    el.classList.add('sorted');
-        }
-        bucketDiv.appendChild(el);
-      });
-
-      bucketContainer.appendChild(bucketDiv);
-    }
     // ←— insert this line right here, just before you exit the insertion block
     document.getElementById('step-desc').textContent = st.desc || '';
     return;  // done with insertion pass
@@ -430,15 +425,25 @@ function render() {
     bucketDiv.appendChild(arrowEl);
   }
     // bucket cells: exact‐slot coloring via permBucketSorted
-    buckets[b].forEach((val, j) => {
-      const div = document.createElement('div');
-      div.className = 'element';
-      div.textContent = val;
-      if (st.phase === 'done' || permBucketSorted.has(`${b}-${j}`)) {
-        div.classList.add('sorted');
-      }
-      bucketDiv.appendChild(div);
-    });
+
+        // ─── 3) Buckets: distribution/collection view ───
+        buckets[b].forEach((val, j) => {
+  const div = document.createElement('div');
+  div.className = 'element';
+  div.textContent = val;
+
+  // ─── in collect-phase, any bucket up through the current one is fully orange ───
+  if (st.phase === 'collect' && b <= st.bucketIndex) {
+    div.classList.add('sorted');
+  }
+
+  // done-phase and permBucketSorted logic still applies if you need it…
+  if (st.phase === 'done' || permBucketSorted.has(`${b}-${j}`)) {
+    div.classList.add('sorted');
+  }
+
+  bucketDiv.appendChild(div);
+});
 
     bucketContainer.appendChild(bucketDiv);
   }
