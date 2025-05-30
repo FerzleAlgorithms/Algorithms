@@ -1,6 +1,7 @@
 {
   "Algorithms": [
     "Bubble Sort.html",
+    "Bucket Sort.html",
     "Counting Sort.html",
     "Hoare Partition.html",
     "Insertion Sort.html",
@@ -17,6 +18,7 @@
   "Demos": [
     "Bubble Sort Demo.html",
     "Bucket Sort Demo.html",
+    "Coin Row Demo.html",
     "Counting Sort Demo.html",
     "Hoare Partition Demo.html",
     "Huffman Encoding Demo.html",
@@ -24,9 +26,6 @@
     "Kruskals Algorithm Demo.html",
     "Merge Demo.html",
     "Merge Sort Demo.html",
-    "Merge Sort DemoA1.html",
-    "Merge Sort DemoA2.html",
-    "Merge Sort DemoA3.html",
     "Prims Algorithm Demo.html",
     "QuickSort Demo.html",
     "Radix Sort Demo.html",
