@@ -19,35 +19,98 @@
   <p>Radix Sort solves the <a class="problem" href="?path=Problems%2F1_Foundational%2FSorting">Sorting</a> problem.</p>
   
   <h2>Design and Strategy</h2>
-  <p>Radix Sort is a <b>non-comparison-based</b> distribution sorting algorithm that processes integer keys digit by digit from least significant to most significant (LSD), using a <b>stable</b> intermediate sort (commonly counting sort) for each digit position. Let <i>d</i> be the number of digits in the maximum key, and <i>k</i> the radix (base), typically 10 for decimal digits. Radix sort runs in Θ(<i>d</i>(<i>n</i> + <i>k</i>)) time.</p>
-  <p>The algorithm uses three arrays:</p>
-  <ul>
-    <li><b>Input Array</b> (<i>A</i>): The original array of <i>n</i> integer keys.</li>
-    <li><b>Count Array</b> (<i>C</i>): An auxiliary array of size <i>k</i>, initialized to zero, to count occurrences of each digit 0..<i>k</i>−1.</li>
-    <li><b>Output Array</b> (<i>B</i>): An array of length <i>n</i> to hold the sorted result after each digit pass.</li>
-  </ul>
-  <p>
-    <b>Pass</b> = one stable sort by digit:<br>
-    For each digit position <i>p</i> from 0 (least significant) to <i>d−1</i>:
-  </p>
-  <ol>
-    <li>
-      <b>Extract Digit and Count:</b>  
-      Initialize <i>C[0..k−1]</i> = 0. For each <i>i</i> in 0..<i>n−1</i>, let <i>d_i = (A[i] / k^p) mod k</i>, and increment <i>C[d_i]</i>.
-    </li>
-    <li>
-      <b>Prefix Sum:</b>  
-      For <i>j</i> from 1 to <i>k−1</i>, do <i>C[j] += C[j−1]</i>, so <i>C[j]</i> indicates the end position of digit <i>j</i> in <i>B</i>.
-    </li>
-    <li>
-      <b>Placement (stable):</b>  
-      Traverse <i>A</i> backwards from <i>i=n−1</i> down to 0. For each <i>A[i]</i>, compute <i>d_i</i> again, decrement <i>C[d_i]</i>, and set <i>B[C[d_i]] = A[i]</i>.
-    </li>
-    <li>
-      Copy <i>B</i> back to <i>A</i> for the next digit pass.
-    </li>
-  </ol>
 
+<p>
+Radix Sort is a <strong>non-comparison-based</strong> sorting algorithm that exploits a 
+<strong>space–time tradeoff</strong> to efficiently sort integers. 
+It processes keys digit by digit, from the least significant digit (LSD) to the most significant. 
+At each digit position, it uses a <strong>stable sort</strong>—usually 
+<a class="problem" href="?path=Algorithms/Counting%20Sort">Counting Sort</a>—to reorder 
+elements by that digit while preserving the order of elements with equal digits.
+Each pass is essentially a call to Counting Sort, applied not to the whole key, but to a single digit of each number.
+If you are not familiar with Counting Sort, you should read that section before continuing.
+</p>
+
+<p>
+Let \( n \) be the number of items to sort, \( d \) the number of digits in the largest key (in base \( k \)), and \( k \) the radix (e.g., 10 for decimal). The algorithm performs \( d \) passes—one for each digit position—by looping through \( p = 0 \) to \( d - 1 \).
+</p>
+
+<p>Each pass uses three arrays:</p>
+
+<ul>
+  <li><strong>Input Array</strong> \( A[0 \ldots n-1] \): the original array of keys</li>
+  <li><strong>Count Array</strong> \( C[0 \ldots k-1] \): counts occurrences of each digit</li>
+  <li><strong>Output Array</strong> \( B[0 \ldots n-1] \): stores the result after the current pass</li>
+</ul>
+<p>
+The algorithm works as follows:
+
+<ol>
+<li>
+
+For each digit position \( p = 0 \) to \( d - 1 \), do the following:
+  <ol type='a'><li>
+    <strong>Count Digit Occurrences:</strong>
+    <ul>
+      <li>Initialize \( C[0 \ldots k-1] = 0 \).</li>
+      <li>For each index \( i \) from \( 0 \) to \( n - 1 \):</li>
+      <ul>
+        <li>Compute the digit at position \( p \):<br>
+        \( d_i = \left\lfloor \frac{A[i]}{k^p} \right\rfloor \bmod k \)</li>
+        <li>Increment the corresponding count: \( C[d_i] = C[d_i] + 1 \)</li>
+      </ul>
+    </ul>
+  </li>
+  <li>
+    <strong>Prefix Sum:</strong><br>
+    For \( j = 1 \) to \( k-1 \), set \( C[j] = C[j] + C[j-1] \) to determine final positions.
+  </li>
+  <li>
+    <strong>Stable Placement:</strong><br>
+    Traverse \( A \) from right to left. For each \( A[i] \), compute \( d_i \), decrement \( C[d_i] \), and set \( B[C[d_i]] = A[i] \).
+  </li>
+  <li>
+    <strong>Prepare for Next Pass:</strong><br>
+    Copy \( B \) back to \( A \).
+  </li>
+</ol>
+</li>
+</ol>
+<p>As previously mentioned, steps <i>a</i> through <i>c</i> are just a modified version of Counting Sort.</p>
+<div class="example-box" style="width: 550px;">
+  <strong class="example-title">Example:</strong> Sort the array \( [329,\, 457,\, 657,\, 839,\, 436,\, 720,\, 355] \) in base 10.
+
+  <table class="example-table left-align" style="width: 500px;">
+    <thead>
+      <tr>
+        <th>Pass</th>
+        <th>Digit Position</th>
+        <th>Keys (sorted by current digit)</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>1</td>
+        <td>Units (digit 0)</td>
+        <td>\([720,\, 355,\, 436,\, 457,\, 657,\, 329,\, 839]\)</td>
+      </tr>
+      <tr>
+        <td>2</td>
+        <td>Tens (digit 1)</td>
+        <td>\([720,\, 329,\, 436,\, 839,\, 355,\, 457,\, 657]\)</td>
+      </tr>
+      <tr>
+        <td>3</td>
+        <td>Hundreds (digit 2)</td>
+        <td>\([329,\, 355,\, 436,\, 457,\, 657,\, 720,\, 839]\)</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p>
+    After three passes, the array is fully sorted. Because each digit is sorted stably, the effects of previous digit orders are preserved.
+  </p>
+</div>
   
   <div class="embeddedDemoContainer">
   <iframe class="embeddedDemo"
@@ -57,7 +120,8 @@
   </iframe>
   </div>
 
-  <h2>Code Implementations</h2>
+<h2>Implementation in Java, C++, Python</h2>
+Here are implementations using base \(k=10\) (base 10).
 <div class="tab-group">
  <div class="tabs" role="tablist">
    <button
@@ -91,200 +155,404 @@
   <div id="java" class="code-container active" role="tabpanel"  aria-labelledby="tab-java">
     <pre><code class="language-java">public void radixSort(int[] A) {
     int n = A.length;
-    int max = 0;
-    for (int x : A) max = Math.max(max, x);
-    int d = 0;
-    while ((int)Math.pow(10, d) <= max) d++;
+
+    // Find maximum value
+    int max = A[0];
+    for (int i = 1; i < n; i++) {
+        if (A[i] > max) max = A[i];
+    }
+
     int[] B = new int[n];
-    for (int p = 0; p < d; p++) {
+
+    // Process each digit using exp = 1, 10, 100, ...
+    for (int exp = 1; max / exp > 0; exp *= 10) {
         int[] C = new int[10];
-        int exp = (int)Math.pow(10, p);
+
+        // Phase 1: Count digit occurrences
         for (int i = 0; i < n; i++) {
             int digit = (A[i] / exp) % 10;
             C[digit]++;
         }
-        for (int i = 1; i < 10; i++) C[i] += C[i-1];
-        for (int i = n-1; i >= 0; i--) {
+
+        // Phase 2: Compute prefix sums
+        for (int i = 1; i < 10; i++) {
+            C[i] += C[i - 1];
+        }
+
+        // Phase 3: Stable placement into B
+        for (int i = n - 1; i >= 0; i--) {
             int digit = (A[i] / exp) % 10;
             B[--C[digit]] = A[i];
         }
+
+        // Copy back for next pass
         System.arraycopy(B, 0, A, 0, n);
     }
 }</code></pre>
   </div>
   <div id="cpp" class="code-container active" role="tabpanel"  aria-labelledby="tab-cpp">
-    <pre><code class="language-cpp">void radixSort(vector<int>& A) {
-    int n = A.size();
-    int maxv = *max_element(A.begin(), A.end());
-    int d = 0;
-    while (pow(10, d) <= maxv) d++;
-    vector<int> B(n);
-    for (int p = 0; p < d; p++) {
-        vector<int> C(10, 0);
-        int exp = pow(10, p);
-        for (int x : A) C[(x / exp) % 10]++;
-        for (int i = 1; i < 10; i++) C[i] += C[i-1];
-        for (int i = n-1; i >= 0; i--) {
+    <pre><code class="language-cpp">void radixSort(int A[], int n) {
+    // Find maximum value
+    int maxv = A[0];
+    for (int i = 1; i < n; i++) {
+        if (A[i] > maxv) maxv = A[i];
+    }
+
+    int* B = new int[n];
+
+    // Process each digit using exp = 1, 10, 100, ...
+    for (int exp = 1; maxv / exp > 0; exp *= 10) {
+        int C[10] = {0};
+
+        // Phase 1: Count digit occurrences
+        for (int i = 0; i < n; i++) {
+            int digit = (A[i] / exp) % 10;
+            C[digit]++;
+        }
+
+        // Phase 2: Compute prefix sums
+        for (int i = 1; i < 10; i++) {
+            C[i] += C[i - 1];
+        }
+
+        // Phase 3: Stable placement into B
+        for (int i = n - 1; i >= 0; i--) {
             int digit = (A[i] / exp) % 10;
             B[--C[digit]] = A[i];
         }
-        A = B;
+
+        // Copy back for next pass
+        for (int i = 0; i < n; i++) {
+            A[i] = B[i];
+        }
     }
+
+    delete[] B;
 }</code></pre>
   </div>
   <div id="python" class="code-container active" role="tabpanel"  aria-labelledby="tab-python">
     <pre><code class="language-python">def radix_sort(A):
-    if not A: return A
-    maxv = max(A)
-    d = len(str(maxv))
+    if not A:
+        return A
+
     n = len(A)
-    B = [0]*n
-    for p in range(d):
-        C = [0]*10
-        exp = 10**p
+
+    # Find maximum value
+    maxv = A[0]
+    for x in A:
+        if x > maxv:
+            maxv = x
+
+    B = [0] * n
+    exp = 1
+
+    # Process each digit using exp = 1, 10, 100, ...
+    while maxv // exp > 0:
+        C = [0] * 10
+
+        # Phase 1: Count digit occurrences
         for x in A:
-            C[(x // exp) % 10] += 1
-        for i in range(1, 10):
-            C[i] += C[i-1]
-        for x in reversed(A):
             digit = (x // exp) % 10
+            C[digit] += 1
+
+        # Phase 2: Compute prefix sums
+        for i in range(1, 10):
+            C[i] += C[i - 1]
+
+        # Phase 3: Stable placement into B
+        for i in range(n - 1, -1, -1):
+            digit = (A[i] // exp) % 10
             C[digit] -= 1
-            B[C[digit]] = x
+            B[C[digit]] = A[i]
+
+        # Copy back for next pass
         A = B[:]
+        exp *= 10
+
     return A</code></pre>
   </div>
   </div>
+  <h2>Time and Space Analysis</h2>
 
- <h2>Time/Space Analysis</h2>
+<p>
+Before analyzing Radix Sort’s performance, we introduce three key parameters:
+Let \(n\) be the number of keys to sort, \(k\) the radix (number of buckets per digit, e.g. 10 for decimal or 256 for byte-values),
+and \(d\) the number of digit positions in the largest key (for a maximum key of value \(M\), roughly \(\lfloor \log_{k} M\rfloor + 1\)).
+</p>
+
+<p>
+<b>Time Complexity:</b>
+Each pass of Radix Sort processes one digit position.  It consists of four phases, each touching either the input array \(A\) or the count array \(C\):
+</p>
+<ol>
+  <li>
+    <strong>Counting Phase:</strong>
+      Scan \(A[0\ldots n-1]\).  For each key, extract the current digit in \(O(1)\) and increment the corresponding bucket in \(C\).  
+      <br><em>Cost:</em> \(\Theta(n)\).
+  </li>
+  <li>
+    <strong>Prefix-Sum Phase:</strong>
+      Transform \(C[0\ldots k-1]\) into cumulative counts so each entry indicates its endpoint in the output array.  
+      <br><em>Cost:</em> \(\Theta(k)\).
+  </li>
+  <li>
+    <strong>Placement Phase:</strong>
+      Traverse \(A\) backwards, recompute each digit, decrement its count, and write the key into the output buffer \(B\), preserving stability.  
+      <br><em>Cost:</em> \(\Theta(n)\).
+  </li>
+  <li>
+    <strong>Copy-Back Phase:</strong>
+      Copy \(B[0\ldots n-1]\) back into \(A\) to prepare for the next digit pass.  
+      <br><em>Cost:</em> \(\Theta(n)\).
+  </li>
+</ol>
+<p>
+Summing these four phases gives \(\Theta(3n + k)\) work per pass, which simplifies to <strong>\(\Theta(n + k)\)</strong>.
+</p>
+
+<p>
+Radix Sort makes one such digit pass for each of the \(d\) digits in the largest key.  Therefore, the total running time is  
+<br>
+<strong>\(\Theta\bigl(d \times (n + k)\bigr)\)</strong>.
+</p>
+
+<p>
+<b>Space Complexity:</b>
+Aside from the input array, Radix Sort requires:
 <ul>
-  <li>
-    <b>Overall Time Complexity:</b> Θ(<i>d</i>·(<i>n</i> + <i>k</i>)), where  
-    <ul>
-      <li><i>n</i> = number of keys</li>
-      <li><i>k</i> = radix (number of buckets per digit, e.g. 10 for decimal)</li>
-      <li><i>d</i> = number of digit‐positions in the maximum key</li>
-    </ul>
-  </li>
-  <li>
-    <b>Per‐Pass Breakdown:</b>
-    <ol>
-      <li><b>Counting Phase:</b> Scan <i>A[0..n−1]</i>, extract digit in O(1) and increment <i>C[d_i]</i> ⇒ Θ(<i>n</i>).</li>
-      <li><b>Prefix‐Sum Phase:</b> Accumulate counts over <i>C[0..k−1]</i> ⇒ Θ(<i>k</i>).</li>
-      <li><b>Placement Phase:</b> Traverse <i>A</i> backwards, compute digit and place into <i>B</i> ⇒ Θ(<i>n</i>).</li>
-      <li><b>Copy Back:</b> Copy <i>B[0..n−1]</i> back into <i>A</i> ⇒ Θ(<i>n</i>).</li>
-    </ol>
-  </li>
-  <li>
-    <b>Aggregate per Digit Pass:</b> Θ(2·<i>n</i> + <i>k</i>) = Θ(<i>n</i> + <i>k</i>). Over <i>d</i> passes gives Θ(<i>d</i>·(<i>n</i> + <i>k</i>)).
-  </li>
-  <li>
-    <b>Space Complexity:</b>  
-    <ul>
-      <li><i>Output array B:</i> Θ(<i>n</i>) additional space</li>
-      <li><i>Count array C:</i> Θ(<i>k</i>) additional space</li>
-      <li><i>Auxiliary variables:</i> O(1)</li>
-    </ul>
-    Total = Θ(<i>n</i> + <i>k</i>).
-  </li>
-  <li>
-    <b>Trade‐Offs and Practical Notes:</b>
-    <ul>
-      <li>If <i>k</i> ≫ <i>n</i>, the Θ(<i>k</i>) term may dominate, making counting sort per pass inefficient.</li>
-      <li>Choosing a larger radix (e.g. base-256) reduces <i>d</i> but increases <i>k</i> and memory overhead.</li>
-      <li>Copy‐back step can be optimized in place at the cost of more complex indexing.</li>
-      <li>Cache‐friendly small <i>k</i> often outperforms theoretically “faster” parameters in practice.</li>
-    </ul>
-  </li>
+  <li>An output buffer \(B\) of size \(n\), for \(\Theta(n)\) extra space.</li>
+  <li>A count array \(C\) of size \(k\), for \(\Theta(k)\) extra space.</li>
+  <li>A constant number of scalar variables, for \(O(1)\) extra space.</li>
 </ul>
-<h2>Variations &amp; Improvements</h2>
-<p>
-The standard LSD Radix Sort processes digits from least to most significant, but an alternative is the <b>MSD (Most Significant Digit)</b> variant.  
-MSD Radix Sort partitions the array by the highest‐order digit first and then recursively sorts each bucket on the next digit.  
-This can naturally handle variable-length keys and may terminate early on buckets whose elements share identical prefixes.
+So the total auxiliary space needed is \(\Theta(n + k)\).
 </p>
 
-<p>
-Another key optimization is choosing the <b>radix</b> (base) to balance the number of passes <i>d</i> against the bucket-array size <i>k</i>.  
-Using a power-of-two radix (e.g. 2⁸ or 2¹⁶) lets you replace expensive division and modulus operations with fast bit-shifts and masks.
-</p>
-
-<p>
-To reduce memory overhead, you can implement an <b>in-place cycle leader permutation</b> instead of the usual copy-back from the temporary output array.  
-By computing each element’s final index and rotating cycles of elements into place, you eliminate the Θ(n) copy step at the cost of more complex index bookkeeping.
-</p>
-
+<h2>Variations/Improvements</h2>
 <ul>
-  <li>Implement the MSD variant to sort variable-length strings or keys, stopping recursion on singleton buckets.</li>
-  <li>Use a radix of 2^m (e.g., 256) to extract m bits at a time via bitwise operations.</li>
-  <li>Apply cycle-leader permutation to perform placement in-place and avoid the extra output buffer.</li>
-  <li>Parallelize counting and placement phases across threads or distributed nodes to improve throughput on large datasets.</li>
+<li><b>Trade-Offs and Practical Notes</b>
+  <ul>
+    <li>
+      <strong>Radix size vs. passes:</strong>  
+      A larger \(k\) (e.g. 256) reduces the number of passes \(d\) but increases the size of the count array \(C\) and may hurt cache performance.
+    </li>
+    <li>
+      <strong>Small-radix benefits:</strong>  
+      A small \(k\) (e.g. 10) often fits entirely in cache, improving real-world speed despite requiring more passes.
+    </li>
+<li>
+  <strong>When \(k\) is much larger than \(n\):</strong>
+  If the number of buckets \(k\) exceeds the number of keys \(n\), then the cost to initialize and scan the count array—\(\Theta(k)\)—can outweigh the work on the data itself (\(\Theta(n)\)). In that case, Radix Sort may perform worse than comparison-based algorithms like Quick Sort.
+</li>
+
+    <li>
+      <strong>Copy-back optimization:</strong>  
+      Alternating between two buffers or swapping pointers can eliminate the \(\Theta(n)\) copy-back cost per pass at the expense of more complex buffer management.
+    </li>
+    <li>
+      <strong>Stability requirement:</strong>  
+      Each pass relies on a stable sort of one digit (e.g.\ Counting Sort) to preserve the order of equal-digit keys and ensure correctness.
+    </li>
+  </ul>
+</li>
+<li><b>MSD (Most Significant Digit) Variant: </b>
+Instead of processing from least to most significant digit, the MSD approach  
+partitions the array by the most significant digit first, then recursively sorts  
+each bucket on the next digit. This naturally handles variable-length keys and  
+can terminate early on buckets whose elements share identical prefixes.
+</li>
+<li><b>Radix Selection: </b>
+Choosing the radix \(k\) involves a space–time trade-off:  
+using a power-of-two radix (e.g. \(2^8\) or \(2^{16}\)) lets you replace  
+division and modulus operations with fast bit-shifts and masks, but it also  
+increases the memory footprint of the count array.
+</li>
+<li><b>In-Place Cycle-Leader Permutation:</b>
+To eliminate the \(\Theta(n)\) copy-back step, you can compute each element’s  
+final index and rotate cycles of elements in place. This reduces auxiliary  
+space but requires careful index bookkeeping.
+</li>
+<li><b>Parallel Implementation:</b>
+Parallelize counting and placement phases across threads or distributed nodes to 
+improve throughput on large datasets.
+</li>
 </ul>
 
 <h2>Links to Resources</h2>
 <ul>
+  <li><a href="https://en.wikipedia.org/wiki/Radix_sort">Wikipedia: Radix Sort</a></li>
   <li><a href="https://www.geeksforgeeks.org/radix-sort/">GeeksforGeeks: Radix Sort</a></li>
   <li><a href="https://visualgo.net/en/sorting">VisuAlgo: Radix Sort Visualization</a></li>
-  <li><a href="https://en.wikipedia.org/wiki/Radix_sort">Wikipedia: Radix Sort</a></li>
   <li><a href="https://www.cs.usfca.edu/~galles/visualization/RadixSort.html">USFCA: Radix Sort Demo</a></li>
 </ul>
 
-  <div class="section">
+
+<div class="section">
   <h2>Reading Comprehension Questions</h2>
   <ol>
-    <li>What property must the intermediate sort satisfy for Radix Sort to work correctly?</li>
-    <li>How does the number of digits <i>d</i> affect the running time?</li>
-    <li>Why is Radix Sort not a comparison-based algorithm?</li>
-    <li>What trade-offs arise when choosing a larger radix?</li>
-    <li>How would you adapt Radix Sort to sort strings of equal length?</li>
-    <li>Under what conditions does Radix Sort outperform comparison-based sorting algorithms like Quick Sort?</li>
-    <li>How would you adapt Radix Sort to sort keys of variable lengths (e.g., strings of different lengths)?</li>
-    <li>What are the differences between LSD (Least Significant Digit) and MSD (Most Significant Digit) Radix Sort variants?</li>
+    <li>
+      <strong>Stability:</strong> Why must the intermediate sort in Radix Sort be <em>stable</em>, and what could go wrong if it isn’t?
+    </li>
+    <li>
+      <strong>Non-Comparison Basis:</strong> Explain in your own words why Radix Sort is <em>non-comparison-based</em> and how it leverages Counting Sort for each digit.
+    </li>
+    <li>
+      <strong>Complexity Derivation:</strong> Show how one pass costs \(\Theta(n + k)\) and derive the overall time bound \(\Theta(d\,(n + k))\).
+    </li>
+    <li>
+      <strong>Radix Choice:</strong> If you double the radix \(k\), how does that affect (a) the number of passes \(d\), and (b) the cost per pass?
+    </li>
+    <li>
+      <strong>Space vs Time:</strong> Describe the space complexity \(\Theta(n + k)\) and discuss the trade-off between extra memory and per-pass speed.
+    </li>
+    <li>
+      <strong>LSD vs MSD:</strong> Contrast the Least Significant Digit (LSD) and Most Significant Digit (MSD) variants in terms of recursion, handling of variable-length keys, and average work.
+    </li>
+    <li>
+      <strong>Bit-Grouping:</strong> For a 32-bit key, compare the effects of using radix \(k=2^8\) (byte-by-byte) versus \(k=2^{16}\) (half-word).
+    </li>
+    <li>
+      <strong>Input Distribution:</strong> How do “already sorted” or “reverse sorted” inputs affect the behavior of each pass’s count array?
+    </li>
   </ol>
-  <button id="toggleAnswers" class="show-answer" aria-expanded="false">Show Answers</button>
-  <div id="answers" class="answer" hidden>
-    <ol>
-      <li><strong>Answer:</strong> It must be <i>stable</i>, preserving the order of equal keys.</li>
-      <li><strong>Answer:</strong> Running time is linear in <i>d</i>, so more digits increase total passes linearly.</li>
-      <li><strong>Answer:</strong> It sorts by digit extraction and counting rather than element-to-element comparisons.</li>
-      <li><strong>Answer:</strong> Larger radix reduces the number of passes (<i>d</i>) but increases <i>k</i> (and memory for the count array), affecting both time and space.</li>
-      <li><strong>Answer:</strong> Treat each character as a digit, map to numeric codes, and apply LSD Radix Sort over those codes.</li>
-      <li><strong>Answer:</strong> When keys are fixed-length and <i>d</i> (digits) is small relative to log <i>n</i>, radix sort’s Θ(<i>d</i>(<i>n</i>+<i>k</i>)) can outperform comparison sorts’ Ω(<i>n</i> log <i>n</i>), e.g. sorting integers or fixed-length strings.</li>
-      <li><strong>Answer:</strong> You can pad shorter keys with leading zeros (or lowest-value symbols) to equalize lengths for LSD radix, or use MSD Radix Sort, which recursively groups by most significant digit and naturally handles variable lengths.</li>
-      <li><strong>Answer:</strong> LSD processes from least to most significant digit in fixed passes and is simple and stable; MSD processes from most significant digit down, handles variable-length keys and prefix grouping but requires recursion and dynamic bucket management.</li>
-    </ol>
-  </div>
+</div>
+<button id="toggleAnswers" class="show-answer" aria-expanded="false" style="margin-top: 10px;">
+  Show Answers
+</button>
+<div id="answers" class="answer" hidden style="margin-top: 10px;">
+  <ol>
+    <li>
+      <strong>Answer:</strong>
+      The intermediate sort must be <em>stable</em> because Radix Sort relies on preserving the relative order of keys that share the same digit at each pass.
+      If the sort on one digit were unstable, keys that compared equal at that digit could be reordered arbitrarily, and the information imposed by earlier
+      (less significant) passes would be lost—producing an incorrect final ordering.
+    </li>
+    <li>
+      <strong>Answer:</strong>
+      Radix Sort is <em>non-comparison-based</em> because it never compares two keys directly; instead, it extracts a digit from each key and uses Counting Sort
+      to bucket them by value of that digit. By repeating this process for each digit position, the algorithm achieves a full sort without any element-to-element comparisons.
+    </li>
+    <li>
+      <strong>Answer:</strong>
+      One digit pass has four phases:
+      <ul>
+        <li>Counting Phase: \(\Theta(n)\)</li>
+        <li>Prefix-Sum Phase: \(\Theta(k)\)</li>
+        <li>Placement Phase: \(\Theta(n)\)</li>
+        <li>Copy-Back Phase: \(\Theta(n)\)</li>
+      </ul>
+      Summing gives \(\Theta(3n + k) \approx \Theta(n + k)\). With \(d\) passes, the total cost is
+      <strong>\(\Theta\bigl(d \,(n + k)\bigr)\)</strong>.
+    </li>
+    <li>
+      <strong>Answer:</strong>
+      Doubling the radix \(k\) reduces the number of digits \(d\) because
+      \[
+        d \approx \bigl\lceil \log_{k} M \bigr\rceil
+      \]
+      decreases when \(k\) grows. However, each pass now costs \(\Theta(n + 2k)\)
+      instead of \(\Theta(n + k)\). Thus you trade fewer passes for more work per pass, and the optimal choice balances these two effects.
+    </li>
+    <li>
+      <strong>Answer:</strong>
+      Radix Sort uses auxiliary arrays of size \(n\) (output buffer) and \(k\) (count array), so extra space is \(\Theta(n + k)\). Larger \(k\)
+      can speed up sorting by reducing \(d\), but at the cost of more memory and potential cache misses; smaller \(k\) uses less memory but requires more passes.
+    </li>
+    <li>
+      <strong>Answer:</strong>
+      The <em>LSD</em> variant processes digits from least to most significant in a fixed loop of \(d\) passes and is simple and stable for fixed-length keys.
+      The <em>MSD</em> variant recurses on buckets sorted by the most significant digit first, naturally handling variable-length keys and allowing early
+      termination on uniform buckets—but incurs recursion overhead and dynamic bucket management.
+    </li>
+    <li>
+      <strong>Answer:</strong>
+      For 32-bit keys, using radix \(k = 2^8\) (bytes) gives 4 passes of cost \(\Theta(n + 256)\) each, while \(k = 2^{16}\) (half-words) gives 2 passes of cost \(\Theta(n + 65536)\).
+      The byte-based choice often wins in practice because 256-sized count arrays fit in cache, whereas 65536 do not.
+    </li>
+    <li>
+      <strong>Answer:</strong>
+      Whether the input is already sorted or reverse sorted has no effect on the number of operations—each pass still touches all \(n\) keys and all \(k\) buckets.
+      However, the count array’s values will reflect the particular digit distributions (e.g. skewed toward high or low buckets), which does not change the asymptotic cost.
+    </li>
+  </ol>
 </div>
 
 
-  <div class="section">
+
+
+<div class="section">
   <h2>In-Class Activities</h2>
   <ol>
-    <li>Visualize each digit pass by grouping cards or tokens according to the current digit.</li>
-    <li>Explore how stability affects sorting order by comparing stable vs unstable intermediate sorts.</li>
-    <li>Compare performance for different radices (e.g., base-10 vs base-256) on large datasets.</li>
-    <li>Implement a digit-extraction function in pairs and test its correctness on diverse inputs.</li>
-    <li>Manually simulate Radix Sort with physical number cards and bucket bins, documenting the count and output arrays after each pass.</li>
-    <li>In pairs, write a Radix Sort script that logs intermediate count and output arrays per digit pass; then swap and interpret each other’s logs.</li>
-    <li>Experiment with different input distributions (random, sorted, reverse) and observe how the count array evolves on each pass.</li>
-    <li>Challenge: Design and sketch on the whiteboard an in-place Radix Sort variant, detailing the index arithmetic needed to avoid a separate output array.</li>
+    <li>
+      <strong>Card-and-Bucket Simulation:</strong> Use index cards labeled with numbers and buckets labeled 0–9 to perform two full passes of Radix Sort by hand.
+    </li>
+    <li>
+      <strong>Radix Comparison:</strong> In small groups, run the demo with base-2, base-10, and base-256 on the same data and record the number of operations and memory used.
+    </li>
+    <li>
+      <strong>Stability Experiment:</strong> Replace the stable Counting Sort step with an unstable sort (e.g. swapping on ties) and observe how the final result changes.
+    </li>
+    <li>
+      <strong>Code Workshop:</strong> Pair up to implement the digit-extraction and count-array phases in your language of choice; test on various ranges of keys.
+    </li>
+    <li>
+      <strong>Pseudocode Review:</strong> Write pseudocode for the MSD variant and discuss how early termination on singleton buckets can save work.
+    </li>
+    <li>
+      <strong>Memory Trade-Off Debate:</strong> Discuss when it’s worth using a larger radix (more memory) versus more passes (more time)—cite cache behavior and real hardware.
+    </li>
+    <li>
+      <strong>In-Place Variant Design:</strong> Sketch on the whiteboard an in-place cycle-leader version, including how you’d detect and close each cycle.
+    </li>
+    <li>
+      <strong>Logging & Analysis:</strong> Augment the demo code to log the contents of \(C\) and \(B\) after each phase; swap logs with another group and explain their run.
+    </li>
+    <li>
+      <strong>Parameterization Exercise:</strong> Modify the provided code so that the radix \(k\) is passed as a function parameter rather than hard-coded.
+    </li>
+    <li>
+      <strong>Extension Challenge:</strong> Propose how you might parallelize the Counting and Placement phases on a multi-core processor, and outline synchronization points.
+    </li>
+	<li>
+      <strong>Negative Keys:</strong> How would you adapt the algorithm to sort an array containing both positive and negative integers?
+    </li>
   </ol>
 </div>
 
-
-  <div class="section">
+<div class="section">
   <h2>Problems</h2>
   <ol>
-    <li>Analyze the performance of MSD vs LSD Radix Sort on strings of fixed and variable lengths.</li>
-    <li>Modify Radix Sort to handle negative integers.</li>
-    <li>Design a hybrid Radix-QuickSort algorithm and discuss scenarios where it outperforms each individual algorithm.</li>
-    <li>Implement an in-place Radix Sort variant that uses O(1) additional space.</li>
-    <li>Experiment with different radix bases (e.g., 2, 10, 256) and analyze the impact on time and space usage.</li>
-    <li>Design and analyze a parallel Radix Sort using multi-threading or distributed computing, and evaluate its scalability.</li>
-    <li>Extend Radix Sort to sort floating-point numbers by properly handling sign, exponent, and mantissa.</li>
-    <li>Implement an external-memory Radix Sort for datasets larger than main memory, optimizing for I/O efficiency.</li>
+    <li>
+      <strong>Negative and Positive Integers:</strong> Implement Radix Sort to handle both negative and positive values in the same pass, and analyze its complexity.
+    </li>
+    <li>
+      <strong>In-Place Cycle-Leader Sort:</strong> Code an in-place variant using cycle-leader permutation. Prove its correctness and compare its memory use.
+    </li>
+    <li>
+      <strong>Empirical Radix Study:</strong> For \(n=10^5\), benchmark radix bases \(k=2\), \(10\), \(256\), and \(2^{16}\). Plot running time versus \(k\) and explain the results.
+    </li>
+    <li>
+      <strong>Hybrid Design:</strong> Design a hybrid Radix-QuickSort algorithm that switches to Quick Sort when subarrays become small. Argue where the crossover point should be.
+    </li>
+    <li>
+      <strong>MSD Recursion Depth:</strong> Analyze the worst-case recursion depth of the MSD variant on random strings of length \(d\) drawn from an alphabet of size \(k\).
+    </li>
+    <li>
+      <strong>Floating-Point Keys:</strong> Extend Radix Sort to IEEE-754 floats by handling sign, exponent, and mantissa correctly. Include both pseudocode and proof of total order preservation.
+    </li>
+    <li>
+      <strong>Parallel Radix Sort:</strong> Implement a multi-threaded version that divides Counting and Placement work across threads. Measure speedup on a multi-core machine.
+    </li>
+    <li>
+      <strong>Stability Proof:</strong> Formally prove that using a stable Counting Sort at each digit pass guarantees a correct overall sort.
+    </li>
+    <li>
+      <strong>Adaptive Radix Selection:</strong> Given input size \(n\) and maximum key \(M\), propose a heuristic to choose the optimal radix \(k\) that balances \(d\) and \(k\). Justify your heuristic experimentally.
+    </li>
+	<li><strong>Leveraging Bit Operations:</strong> Give the code/pseudocode for a version that uses \(k=2^a\) for some choice of \(a\). 
+	Your implementation should take advantage of the fact that the base being a powers of two allows a
+	more efficient implementation of some of the steps.</li>
   </ol>
 </div>
-
 
 </body>
 </html>

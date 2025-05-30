@@ -19,10 +19,33 @@
 Merge solves the
 <a class="problem" href="?path=Problems%2F1_Foundational%2FMerge">Merge</a> problem.
 </p>
-
 <h2>Design and Strategy</h2>
 <p>
-Imagine you have two lists of numbers already in order. You look at the first item in each list and pick the smaller one to place next in your combined list. Then you move forward in the list you took the item from and compare again. You keep doing this, taking the smaller of the two front items each time, until one list runs out. Finally, you append all remaining items from the other list. This simple "two‐finger" method runs in linear time and preserves sorted order.
+When merging two sorted lists, a natural strategy is to compare their front elements and repeatedly 
+select the smaller one. Think of it as using two fingers—one pointing to each list—advancing the finger 
+that pointed to the smaller item just added to the result. This continues until one list is exhausted, 
+at which point the remainder of the other list is appended. This elegant and efficient linear-time 
+technique not only preserves the overall sorted order but also exemplifies a classic <b>greedy</b> 
+design approach: at each step, it makes the locally optimal choice (the smallest remaining item), 
+which leads to a globally correct result.
+</p>
+<p>
+A slightly more formal step-through of the algorithm is as follows:
+</p>
+<p>
+<ol>
+  <li>Start with two sorted lists: List \(A\) and List \(B\), and an empty list \(C\).</li>
+  <li>
+    While neither list is empty:
+    <ol type='a'>
+      <li>Compare the first items of \(A\) and \(B\).</li>
+      <li>Add the smaller item to the end of \(C\) and remove the item from its list.</li>
+    </ol>
+  </li>
+  <li>When one list is empty, append the remaining items from the other list to \(C\).</li>
+</ol>
+<p>
+In actual implementations, we don’t remove elements from the original lists. Instead, we use pointers or indices to track our position in each list. This allows the algorithm to run efficiently in linear time without modifying the original data.
 </p>
 
 <div class="embeddedDemoContainer">

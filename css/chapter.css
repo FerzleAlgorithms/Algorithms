@@ -104,3 +104,44 @@ ol.spaced > li {
   font-weight: bold;
   font-style: normal;
 }
+
+/* 15) Example boxes & tables */
+.example-box {
+  display: inline-block;
+  vertical-align: top;
+  border: 1px solid #888;
+  background-color: #f0f8ff;
+  padding: 10px;
+  margin-bottom: 10px;
+}
+.example-box strong.example-title {
+  color: #1a73e8;
+  font-style: italic;
+}
+.example-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1em 0;
+  font-size: 0.95rem;
+  line-height: 1.4;
+}
+.example-table th {
+  background-color: #f2f2f2;
+  font-weight: 600;
+  padding: 0.75em;
+  text-align: left;
+  border-bottom: 2px solid #ddd;
+}
+.example-table td {
+  border-bottom: 1px solid #eee;
+  text-align: center;
+}
+.example-table tbody tr:nth-child(even) {
+  background-color: #fafafa;
+}
+.example-table tbody tr:hover {
+  background-color: #f5f5f5;
+}
+.example-table.left-align td {
+  text-align: left;
+}
