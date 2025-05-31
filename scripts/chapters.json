@@ -1,37 +1,87 @@
 {
   "Algorithms": [
-    "Bubble Sort.html",
-    "Bucket Sort.html",
-    "Counting Sort.html",
-    "Hoare Partition.html",
-    "Insertion Sort.html",
-    "Merge Sort.html",
-    "Merge.html",
-    "QuickSort.html",
-    "Radix Sort.html",
-    "Selection Sort.html",
-    "Sequential Search.html"
+    {
+      "Brute Force": [
+        "Bubble Sort.html",
+        "Fibonacci Naive.html",
+        "Selection Sort.html",
+        "Sequential Search.html"
+      ]
+    },
+    {
+      "Decrease-and-Conquer": [
+        "Hoare Partition.html",
+        "Insertion Sort.html"
+      ]
+    },
+    {
+      "Divide-and-Conquer": [
+        "Merge Sort.html",
+        "QuickSort.html"
+      ]
+    },
+    {
+      "Greedy": [
+        "Merge.html"
+      ]
+    },
+    {
+      "Space-Time Tradeoff": [
+        "Bucket Sort.html",
+        "Counting Sort.html",
+        "Radix Sort.html"
+      ]
+    }
   ],
   "Data Structures": [
     "Data Structure List.html"
   ],
   "Demos": [
-    "Bubble Sort Demo.html",
-    "Bucket Sort Demo.html",
-    "Coin Row Demo.html",
-    "Counting Sort Demo.html",
-    "Hoare Partition Demo.html",
-    "Huffman Encoding Demo.html",
-    "Insertion Sort Demo.html",
-    "Kruskals Algorithm Demo.html",
-    "Merge Demo.html",
-    "Merge Sort Demo.html",
-    "Prims Algorithm Demo.html",
-    "QuickSort Demo.html",
-    "Radix Sort Demo.html",
-    "Selection Sort Demo.html",
-    "Sequential Search Demo.html",
-    "Subset Sum Demo.html"
+    {
+      "Backtracking": [
+        "Subset Sum Demo.html"
+      ]
+    },
+    {
+      "Brute Force": [
+        "Bubble Sort Demo.html",
+        "Fibonacci Naive Demo.html",
+        "Selection Sort Demo.html",
+        "Sequential Search Demo.html"
+      ]
+    },
+    {
+      "Decrease-and-Conquer": [
+        "Hoare Partition Demo.html",
+        "Insertion Sort Demo.html"
+      ]
+    },
+    {
+      "Divide-and-Conquer": [
+        "Merge Sort Demo.html",
+        "QuickSort Demo.html"
+      ]
+    },
+    {
+      "Dynamic Programming": [
+        "Coin Row Demo.html"
+      ]
+    },
+    {
+      "Greedy": [
+        "Huffman Encoding Demo.html",
+        "Kruskals Algorithm Demo.html",
+        "Merge Demo.html",
+        "Prims Algorithm Demo.html"
+      ]
+    },
+    {
+      "Space-Time Tradeoff": [
+        "Bucket Sort Demo.html",
+        "Counting Sort Demo.html",
+        "Radix Sort Demo.html"
+      ]
+    }
   ],
   "More": [
     "credits.html",
@@ -79,6 +129,7 @@
     },
     {
       "5_Other": [
+        "Fibonacci.html",
         "Optimal Character Encoding.html",
         "String Matching.html",
         "Subset Sum.html",
@@ -86,5 +137,7 @@
       ]
     }
   ],
-  "Techniques": []
+  "Techniques": [
+    "Brute Force.html"
+  ]
 }
