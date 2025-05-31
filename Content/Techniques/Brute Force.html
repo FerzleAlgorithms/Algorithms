@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Technique: Brute Force</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js"></script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <script src="/Algorithms/scripts/chapterScripts.js"></script>
+  <link rel="stylesheet" href="/Algorithms/css/style.css">
+  <link rel="stylesheet" href="/Algorithms/css/chapter.css">
+</head>
+<body class="technique-page">
+  <h1>Brute Force</h1>
+  
+  <!-- Motivation & Introduction -->
+<section id="introduction">
+  <h2>Introduction</h2>
+  <p>
+    Brute Force algorithms use the most straightforward approach—implementing a solution exactly as defined 
+	in the problem without 
+	worrying about efficiency. By following the problem’s specification verbatim (for example, 
+	using the recursive formula for Fibonacci numbers or directly computing each term of a polynomial), 
+	you guarantee correct results and gain insight into the problem’s structure. 
+	Although this may involve redundant steps and doesn’t scale well for large inputs, 
+	it offers a simple solution that’s quick to implement and, by closely mirroring the specification, 
+	is less prone to errors than more complex techniques.
+  </p>
+</section>
+
+<!-- Applicability -->
+<section id="applicability">
+  <h2>When to Use</h2>
+  <ul>
+    <li>Input size is small enough so that a direct approach remains fast enough.</li>
+    <li>You want a low-risk implementation that follows the specification exactly.</li>
+    <li>Rapid prototyping or proof-of-concept to confirm correctness before exploring alternatives.</li>
+    <li>Clarity and maintainability are more important than raw performance.</li>
+  </ul>
+  <p><strong>Limitations:</strong> Because it may repeat work unnecessarily, this approach can degrade rapidly as problem size grows and become impractical for large or complex inputs.</p>
+</section>
+
+
+  <!-- Worked Examples -->
+  <section id="examples">
+    <h2>Worked Examples</h2>
+    <article class="example">
+      <h3>Example 1: Naive Fibonacci</h3>
+      <p>Compute the <em>n</em>th Fibonacci number directly:</p>
+      <pre><code>function fib(n):
+    if n <= 1:
+        return n
+    return fib(n-1) + fib(n-2)
+      </code></pre>
+      <p>This simple recursive call is clear to understand but runs in <em>O</em>(2<sup>n</sup>) time due to repeated work.</p>
+    </article>
+    <article class="example">
+      <h3>Example 2: Polynomial Evaluation</h3>
+      <p>Given coefficients <em>a</em><sub>0</sub>&hellip;<em>a</em><sub>d</sub> and a value <em>x</em>, evaluate:</p>
+      <p><em>P</em>(<em>x</em>) = a<sub>0</sub> + a<sub>1</sub>x + &hellip; + a<sub>d</sub>x<sup>d</sup></p>
+      <pre><code>function evalPoly(coeffs, x):
+    result = 0
+    for i from 0 to degree(coeffs):
+        term = coeffs[i]
+        for j from 1 to i:
+            term = term * x
+        result = result + term
+    return result
+      </code></pre>
+      <p>This naive approach runs in <em>O</em>(d<sup>2</sup>) time due to nested multiplications.</p>
+    </article>
+  </section>
+
+  <!-- Visualization -->
+  <section id="visualization">
+    <h2>Visualization</h2>
+    <p>Provide a simple recursion tree for naive Fibonacci and a step‑by‑step loop diagram for polynomial evaluation to illustrate the obvious steps being taken.</p>
+  </section>
+
+  <!-- Implementation Tips -->
+  <section id="tips">
+    <h2>Implementation Tips &amp; Common Pitfalls</h2>
+    <ul>
+      <li>Focus on clear base cases to prevent infinite loops or recursion.</li>
+      <li>Expect redundant work; consider caching or memoization later.</li>
+      <li>Double‑check loop boundaries to avoid off‑by‑one mistakes.</li>
+      <li>Remember that specialized methods (e.g., Horner’s Rule) can replace nested loops for polynomials.</li>
+    </ul>
+  </section>
+
+  <!-- Canonical Algorithms -->
+  <section id="algorithms">
+    <h2>Algorithms Using This Technique</h2>
+    <ul>
+      <li>Naive prime testing</li>
+      <li>Permutation generation</li>
+      <li>Simple pattern matching</li>
+      <li>Direct matrix multiplication</li>
+    </ul>
+  </section>
+
+  <!-- Real-World Applications -->
+  <section id="applications">
+    <h2>Real-World Applications</h2>
+    <ul>
+      <li>Initial prototyping or proofs of concept</li>
+      <li>Baseline benchmarks for optimization</li>
+      <li>Small-scale configuration or testing tasks</li>
+    </ul>
+  </section>
+
+  <!-- Summary -->
+  <section id="summary">
+    <h2>Summary &amp; Key Takeaways</h2>
+    <p>Brute Force means doing the most obvious thing first—simplicity and clarity at the expense of performance. Start here to ensure correctness before moving on to optimizations.</p>
+  </section>
+
+  <!-- Glossary -->
+  <section id="glossary">
+    <h2>Glossary</h2>
+    <dl>
+      <dt>Direct Method</dt><dd>The straightforward approach you try first.</dd>
+      <dt>Baseline</dt><dd>A simple solution used for comparison with optimized methods.</dd>
+      <dt>Redundant Work</dt><dd>Unnecessary repeated calculations common in naive solutions.</dd>
+    </dl>
+  </section>
+
+  <!-- Reading Comprehension Questions -->
+  <section id="reading-questions">
+    <h2>Reading Comprehension Questions</h2>
+    <ol>
+      <li>What makes the brute-force approach so simple yet potentially slow?</li>
+      <li>Why might you choose it before applying more advanced methods?</li>
+      <li>How could you transform the naive Fibonacci into a more efficient form?</li>
+    </ol>
+  </section>
+
+  <!-- In-Class Activities -->
+  <section id="activities">
+    <h2>In-Class Activities</h2>
+    <ul>
+      <li>Time the execution of <code>fib(n)</code> versus a memoized version.</li>
+      <li>List all subsets of a small set and discuss how obvious enumeration works.</li>
+      <li>Manually trace polynomial evaluation loops for different degrees.</li>
+    </ul>
+  </section>
+
+  <!-- Practice Problems -->
+  <section id="problems">
+    <h2>Practice Problems</h2>
+    <h3>Basic</h3>
+    <ul>
+      <li>Write a direct scan to find the minimum and maximum in an unsorted list.</li>
+    </ul>
+    <h3>Advanced</h3>
+    <ul>
+      <li>Implement brute-force substring search and compare to Knuth-Morris-Pratt.</li>
+      <li>Analyze when enumeration of all permutations is feasible and when it fails.</li>
+    </ul>
+  </section>
+
+</body>
+</html>

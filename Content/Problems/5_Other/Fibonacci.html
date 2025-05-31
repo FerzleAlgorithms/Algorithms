@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Computing Fibonacci Numbers</title>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <link rel="stylesheet" href="../../../css/style.css">
+  <link rel="stylesheet" href="../../../css/problem.css">
+</head>
+<body>
+
+  <h1>Computing Fibonacci Numbers</h1>
+
+
+  <section>
+  <h2>Problem Description</h2>
+    <p>
+      Given a non-negative integer \(n\), compute the \(n\)th Fibonacci number.  
+	  The Fibonacci sequence \(F_n\) is defined by:
+    </p>
+<p>
+  \[
+    F_{0} = 0,\quad
+    F_{1} = 1,\quad
+    F_{n} = F_{n-1} + F_{n-2}\quad\text{for }n \ge 2.
+  \]
+</p>
+<p>
+  An explicit “closed‐form” expression—often called <strong>Binet’s formula</strong>—is
+  \[
+    F_{n} \;=\; \frac{1}{\sqrt{5}}\left(\left(\frac{1 + \sqrt{5}}{2}\right)^{n} 
+	\;-\; \left(\frac{1 - \sqrt{5}}{2}\right)^{n}\right).
+  \]
+  This formula can be proven by induction on \(n\) or by using 
+  the characteristic polynomial method (with polynomial \(x^{2} - x - 1 = 0\)).
+</p>
+<p>
+  Despite the existence of this closed‐form, the problem remains of interest for two main reasons:
+  <ol>
+    <li>
+      Using Binet’s formula directly requires dealing with irrational (real) arithmetic—even though the true Fibonacci values are integers—which can lead to rounding or precision issues for large <em>n</em>.
+    </li>
+    <li>
+      Computing \(F_n\) can be approached via a variety of algorithmic techniques 
+	  (naïve recursion, dynamic programming, matrix exponentiation, fast doubling, etc.), making it a versatile demonstration problem for illustrating the trade‐offs among time complexity, space complexity, and numerical precision.
+    </li>
+  </ol>
+</p>
+  </section>
+
+  <section>
+    <h2>Motivation/Applications</h2>
+    <p>
+      Fibonacci numbers arise in many areas of computer science, mathematics, and natural phenomena:
+    </p>
+    <ul>
+      <li><strong>Algorithmic teaching:</strong>  The naïve recursive implementation is a classic example of exponential-time behavior, demonstrating why memoization or dynamic programming is essential.</li>
+      <li><strong>Divide &amp; conquer:</strong>  Fast doubling and matrix exponentiation illustrate how to reduce a seemingly linear recurrence to logarithmic time via exponentiation by squaring.</li>
+      <li><strong>Combinatorics:</strong>  Fibonacci numbers count certain lattice paths, tilings, and binary strings without consecutive 1's.</li>
+      <li><strong>Cryptography &amp; number theory:</strong>  Pisano periods 
+	  (periodicity of Fibonacci numbers modulo \(m\)) and relationships to Lucas sequences appear in primality testing and pseudorandom generation.</li>
+      <li><strong>Art &amp; nature:</strong>  The Fibonacci spiral approximates the golden ratio and appears in biological growth patterns, phyllotaxis (arrangement of leaves), and branching in trees.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Examples</h2>
+    <div class="example-box">
+      <strong class="example-title">Example 1</strong><br>
+      <p><strong>Input:</strong> 1<br>
+         <strong>Output:</strong> 1<br>
+         <strong>Explanation:</strong> \(F_{1} = 1\) by definition.</p>
+    </div>
+    <br>
+    <div class="example-box">
+      <strong class="example-title">Example 3</strong><br>
+      <p><strong>Input:</strong> 10<br>
+         <strong>Output:</strong> 55<br>
+         <strong>Explanation:</strong> The Fibonacci sequence begins 
+		 \(0, 1, 1, 2, 3, 5, 8, 13, 21, 34, 55,\ldots\) so \(F_{10} = 55\).</p>
+    </div>
+  </section>
+  <section>
+  <h2>Common Algorithms/Techniques</h2>
+  <ul>
+    <li>
+      <strong>Naïve Recursion:</strong> Implements <em>\(F_n = F_{n-1} + F_{n-2}\)</em> directly via recursion, but incurs exponential time due to redundant subproblem calls.
+    </li>
+    <li>
+      <strong>Memoization (Top-Down DP):</strong> Caches previously computed Fibonacci values in an array or map to avoid redundant recursion, yielding \(\,O(n)\,\) time and \(\,O(n)\,\) space.
+    </li>
+    <li>
+      <strong>Bottom-Up Dynamic Programming:</strong> Builds the sequence iteratively from <em>\(F_{0}\)</em> and <em>\(F_{1}\)</em> up to <em>\(F_{n}\)</em>, achieving \(\,O(n)\,\) time and \(\,O(n)\,\) space (reducible to \(\,O(1)\,\) by keeping only the last two values).
+    </li>
+    <li>
+      <strong>Space-Optimized Iteration:</strong> Maintains only the two most recent Fibonacci values in constant space, updating them in a loop until reaching <em>\(F_{n}\)</em>, thus running in \(\,O(n)\,\) time and \(\,O(1)\,\) space.
+    </li>
+	<li>
+  <strong>Fast Doubling:</strong> Uses the recurrence formulas
+  \[
+    F_{2k} \;=\; F_{k}\bigl(\,2\,F_{k+1} - F_{k}\bigr), 
+    \quad
+    F_{2k+1} \;=\; F_{k+1}^{2} + F_{k}^{2},
+  \]
+  to compute \(F_{n}\) in \(O(\log n)\) time by recursively halving the index.
+	</li>
+	<li>
+	  <strong>Matrix Exponentiation:</strong> Exponentiates the matrix
+	  <p>
+		\[
+		  \begin{pmatrix}
+			1 & 1 \\[4pt]
+			1 & 0
+		  \end{pmatrix}^{n}
+		  \;=\;
+		  \begin{pmatrix}
+			F_{n+1} & F_{n} \\[4pt]
+			F_{n}   & F_{n-1}
+		  \end{pmatrix}
+		\]
+	  </p>
+	  using exponentiation by squaring in \(O(\log n)\) time, yielding \(F_{n}\) from the top-right entry.
+	</li>
+    <li>
+      <strong>Binet’s Formula:</strong> Applies the closed-form expression
+      \[
+    F_{n} \;=\; \frac{1}{\sqrt{5}}\left(\left(\frac{1 + \sqrt{5}}{2}\right)^{n} 
+	\;-\; \left(\frac{1 - \sqrt{5}}{2}\right)^{n}\right).
+  \]
+      to compute \(F_{n}\), but it requires careful handling of floating-point precision.
+	  Depending on how it is implemented, it can take constant time (but not without loss of precision),
+	  \(O(\log n)\) time (by being clever about computing powers), or \(O(n)\) time.
+    </li>
+  </ul>
+</section>
+
+
+<section>
+  <h2>Variants/Related Problems</h2>
+  <ul>
+    <li>
+      <strong>Fibonacci Numbers Modulo \(m\) (“Pisano Period”)</strong><br>
+      Compute \(\;F_{n} \bmod m\). The Fibonacci sequence modulo \(m\) is periodic; the period (Pisano period) can be used to reduce large \(n\) before computing.
+    </li>
+    <li>
+      <strong>Fast Doubling for Large Indices</strong><br>
+      Use the fast doubling recurrence (above) to compute \(\;F_{n}\) in \(O(\log n)\) time, especially when \(n\) can be up to \(10^{18}\) or higher.
+    </li>
+	<li>
+	  <strong>Matrix Exponentiation in Practice</strong><br>
+	  Many problems can be framed as “find the \(n\)th term of a sequence defined by a linear recurrence.” For example, the Fibonacci sequence satisfies 
+	  \[
+		F_{n} = F_{n-1} + F_{n-2}.
+	  \]
+	  In general, any order-\(k\) recurrence can be represented by a \(k\times k\) companion matrix whose \(n\)th power yields the \(n\)th term. This matrix‐exponentiation technique therefore extends beyond Fibonacci to efficiently compute terms of higher-order recurrences.
+	</li>
+    <li>
+      <strong>Lucas Numbers</strong><br>
+      The Lucas sequence \(\,(L_{n})\) satisfies 
+      \(
+        L_{0} = 2, L_{1} = 1, L_{n} = L_{n-1} + L_{n-2}.
+      \)
+      Many Fibonacci‐related identities carry over to Lucas numbers.
+    </li>
+    <li>
+      <strong>Sum of Fibonacci Numbers</strong><br>
+      Interestingly, it can be shown that 
+      \[
+        \sum_{i=0}^{n} F_{i} \;=\; F_{n+2} - 1.
+      \]
+	  Thus, there is an interesting relationship between Fibonacci numbers and sums of Fibonacci numbers.
+    </li>
+    <li>
+      <strong>Generalized Fibonacci (<em>k</em>-step Recurrence)</strong><br>
+      “Tribonacci,” “Tetranacci,” etc., where
+      \[
+        T_{n} \;=\; T_{n-1} + T_{n-2} + \cdots + T_{n-k}.
+      \]
+      Techniques for matrix exponentiation or fast doubling generalize to these as well.
+    </li>
+    <li>
+      <strong>Fibonacci Heap</strong><br>
+      A priority-queue data structure that uses a collection of trees whose sizes are related to Fibonacci numbers; useful for amortized \(O(1)\) decrease-key operations.
+    </li>
+  </ul>
+</section>
+</body>
+</html>

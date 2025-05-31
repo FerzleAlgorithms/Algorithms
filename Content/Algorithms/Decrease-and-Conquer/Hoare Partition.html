@@ -173,11 +173,15 @@ Here is a step-by-step description.
 </ol>
 
 <p>
-Hoare’s algorithm exemplifies the <strong>decrease-and-conquer</strong> paradigm.
-As the pointers <code>i</code> and <code>j</code> move inward, elements are progressively 
-placed into their correct positions at the array's leftmost and rightmost ends, 
+Hoare’s algorithm kind of exemplifies the <strong>decrease-and-conquer</strong> paradigm since 
+as the pointers <code>i</code> and <code>j</code> move inward, elements are progressively 
+placed into their correct positions at the array's left and right portions, 
 shrinking the unsorted middle section with each iteration. 
 Thus, the size of the unsolved portion decreases with each iteration.
+But generally speaking, it is difficult to categorize on its own. 
+Because it is used in Quick Sort, which is a divide-and-conquer
+algorithm and Quick Select, which is a decrease-and-conquer algorithm, 
+I put it in the decrease-and-conquer category.
 </p>
 
 <div class="embeddedDemoContainer">

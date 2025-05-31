@@ -75,7 +75,7 @@ function generateRandomArray(sizeInput,inputValues) {
     nextBtn.disabled = idx === steps.length - 1;
   }
 
-  function go(n, prevBtn, nextBtn, playBtn, pauseBtn) {
+  function go(n, prevBtn, nextBtn, playBtn) {
     idx = n;
     if (typeof window.renderStep === 'function') {
       window.renderStep(steps, idx, original);
@@ -84,46 +84,49 @@ function generateRandomArray(sizeInput,inputValues) {
   }
 
   document.addEventListener('DOMContentLoaded', () => {
-    const controls = ['prev','next','play','pause','speed','generate','useCustom']
+    const controls = ['prev','next','play','speed','generate','useCustom']
       .map(id => document.getElementById(id));
 
     if (controls.some(el => el === null)) {
       return;  // at least one required control is missing
     }
     
-    const [prevBtn, nextBtn, playBtn, pauseBtn, speedSelect, genBtn, useCustomBtn] = controls;
+    const [prevBtn, nextBtn, playBtn,  speedSelect, genBtn, useCustomBtn] = controls;
 
     prevBtn.onclick = () => {
       clearInterval(timer);
-      playBtn.disabled = false;
-      pauseBtn.disabled = true;
-      if (idx > 0) go(idx - 1, prevBtn, nextBtn, playBtn, pauseBtn);
+      playBtn.textContent='Play';
+      timer = null;
+      if (idx > 0) go(idx - 1, prevBtn, nextBtn, playBtn);
     };
     nextBtn.onclick = () => {
       clearInterval(timer);
-      playBtn.disabled = false;
-      pauseBtn.disabled = true;
-      if (idx < steps.length - 1) go(idx + 1, prevBtn, nextBtn, playBtn, pauseBtn);
+      playBtn.textContent='Play';
+     timer = null;
+      if (idx < steps.length - 1) go(idx + 1, prevBtn, nextBtn, playBtn);
     };
     playBtn.onclick = () => {
-      playBtn.disabled = true;
-      pauseBtn.disabled = false;
-      const speed = parseInt(speedSelect.value, 10) || 1;
-      timer = setInterval(() => {
-        if (idx < steps.length - 1) {
-          go(idx + 1, prevBtn, nextBtn, playBtn, pauseBtn);
-        } else {
-          clearInterval(timer);
-          playBtn.disabled = false;
-          pauseBtn.disabled = true;
-        }
-      }, baseInterval / speed);
-    };
-    pauseBtn.onclick = () => {
-      clearInterval(timer);
-      playBtn.disabled = false;
-      pauseBtn.disabled = true;
-    };
+  if (timer) {
+    // ▶ currently playing → pause
+    clearInterval(timer);
+    timer = null;
+    playBtn.textContent = 'Play';
+  } else {
+    // ▶ currently paused → start playing
+    playBtn.textContent = 'Pause';
+    const speed = parseInt(speedSelect.value, 10) || 1;
+    timer = setInterval(() => {
+      if (idx < steps.length - 1) {
+        go(idx + 1, prevBtn, nextBtn, playBtn);
+      } else {
+        // reached the end → stop
+        clearInterval(timer);
+        timer = null;
+        playBtn.textContent = 'Play';
+      }
+    }, baseInterval / speed);
+  }
+};
 
     function start(arr) {
       original = arr.slice();
@@ -133,7 +136,7 @@ function generateRandomArray(sizeInput,inputValues) {
       if (typeof window.genSteps === 'function') {
         steps = window.genSteps(arr);
       }
-      go(0, prevBtn, nextBtn, playBtn, pauseBtn);
+      go(0, prevBtn, nextBtn, playBtn);
     }
 
     genBtn.onclick = () => {

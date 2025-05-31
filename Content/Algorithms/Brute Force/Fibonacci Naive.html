@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Naïve Recursive Fibonacci</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js"></script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <script src="/Algorithms/scripts/chapterScripts.js"></script>
+  <link rel="stylesheet" href="/Algorithms/css/style.css">
+  <link rel="stylesheet" href="/Algorithms/css/chapter.css">
+</head>
+<body>
+
+<h1>Naïve Recursive Fibonacci</h1>
+
+<h2>Problem Solved</h2>
+<p>
+  <strong>Naïve Recursive Fibonacci</strong> solves the 
+  <a class="problem" href="?path=Problems%2FOther%2FFibonacci">Fibonacci Number</a> 
+  problem: given a non-negative integer \(n\), compute the \(n\)th Fibonacci number defined by
+  \[
+    F_{0} = 0,\quad
+    F_{1} = 1,\quad
+    F_{n} = F_{n-1} + F_{n-2} \quad\text{for }n \ge 2.
+  \]
+</p>
+
+<h2>Design and Strategy</h2>
+<p>
+  The naïve recursive approach directly implements the recurrence: if \(n = 0\) or \(n = 1\), return \(n\). Otherwise, it recursively computes \(F_{n-1}\) and \(F_{n-2}\), then adds them to obtain \(F_{n}\). 
+  <br><br>
+  Structurally, this follows a <strong>divide-and-conquer</strong> pattern—each call splits into two smaller subproblems. However, because there is no caching or memoization, every overlapping subproblem is recomputed from scratch. As a result, the algorithm behaves like a <strong>brute-force</strong> solution, exhaustively exploring an exponentially large recursion tree.  
+  <br><br>
+  In practical terms, each call to \(fib(k)\) spawns calls to compute \(fib(k-1)\) 
+  and \(fib(k-2)\), and so on, leading to repeated work. 
+  The recursion tree therefore grows exponentially (as we shall see below), 
+  making this technique mainly pedagogical rather than an example of an efficient way to solve a problem.
+</p>
+
+<div class="embeddedDemoContainer">
+  <iframe class="embeddedDemo"
+          src="/Algorithms/Content/Demos/Fibonacci Naive Demo.html"
+          allow="fullscreen"
+          name="FibonacciRecursive-demo">
+  </iframe>
+</div> 
+
+<h2>Implementation in Java, C++, Python</h2>
+The implementations below return \(n\) whenever \(n \lt 2\) 
+since \(F_0=0\), \(F_1=1\), and \(F_n\) is undefined when \(n\lt 0\), 
+so we just return the (incorrect) input.
+<div class="tab-group">
+  <div class="tabs" role="tablist">
+    <button
+      id="tab-java"
+      class="tablink active"
+      data-lang="java"
+      role="tab"
+      aria-controls="java"
+      aria-selected="true">
+      Java
+    </button>
+    <button
+      id="tab-cpp"
+      class="tablink"
+      data-lang="cpp"
+      role="tab"
+      aria-controls="c++"
+      aria-selected="false">
+      C++
+    </button>
+    <button
+      id="tab-python"
+      class="tablink"
+      data-lang="python"
+      role="tab"
+      aria-controls="python"
+      aria-selected="false">
+      Python
+    </button>
+  </div>
+
+  <div id="java" class="code-container active" role="tabpanel" aria-labelledby="tab-java">
+<pre><code class="language-java">public static long fib(int n) {
+    if (n &lt; 2) {
+        return n;
+    } else {
+        return fib(n - 1) + fib(n - 2);
+    }
+}</code></pre>
+  </div>
+
+  <div id="cpp" class="code-container" role="tabpanel" aria-labelledby="tab-cpp">
+<pre><code class="language-cpp">public static long fib(int n) {
+    if (n &lt; 2) {
+        return n;
+    } else {
+        return fib(n - 1) + fib(n - 2);
+    }
+}</code></pre>
+  </div>
+
+  <div id="python" class="code-container" role="tabpanel" aria-labelledby="tab-python">
+<pre><code class="language-python">def fib(n):
+    if n &lt; 2:
+        return n
+    else: 
+        return fib(n - 1) + fib(n - 2)</code></pre>
+  </div>
+</div>
+
+
+<h2>Time/Space Analysis</h2>
+<p>
+  <strong>Time Complexity:</strong>
+  Let \(T(n)\) denote the number of basic operations (e.g., the number of additions or the recursion‐overhead) performed by <code>fib(n)</code>. We observe:
+  <ul>
+    <li>
+      For \(n = 0\) or \(n = 1\), the function returns immediately, so 
+      \[
+        T(0) = 1,\quad T(1) = 1.
+      \]
+    </li>
+    <li>
+      For \(n \ge 2\), the function makes two recursive calls—one to compute \(F_{n-1}\) and one to compute \(F_{n-2}\)—and then does one addition. Therefore:
+      \[
+        T(n) \;=\; T(n-1) \;+\; T(n-2) \;+\; 1.
+      \]
+    </li>
+  </ul>
+  If we focus on the dominant part of this recurrence (i.e., \(T(n) \approx T(n-1) + T(n-2)\)), we see it follows the same recurrence as the Fibonacci sequence:
+  \[
+    F_{n} = F_{n-1} + F_{n-2},\quad F_{0} = 0,\; F_{1} = 1.
+  \]
+  Moreover, the exact closed‐form (Binet’s formula) is
+  \[
+    F_{n} \;=\; \frac{\varphi^{\,n} \;-\; \psi^{\,n}}{\sqrt{5}}, 
+    \quad
+    \varphi = \frac{1 + \sqrt{5}}{2}, 
+    \quad 
+    \psi = \frac{1 - \sqrt{5}}{2}.
+  \]
+  Since \(\lvert \psi \rvert < 1\), for large \(n\) the term \(\psi^{n}\) becomes negligible, giving
+  \[
+    F_{n} = \Theta\bigl(\varphi^{\,n}\bigr).
+  \]
+  In other words, the naïve recursive algorithm runs in exponential time.
+  But it is actually just a bit worse than this! 
+  Let use now account for the “+1” term exactly by defining a new sequence 
+  \[
+    S(n) \;=\; T(n)\;+\;1.
+  \]
+  Since 
+  \[
+    T(n) \;=\; T(n-1) \;+\; T(n-2) \;+\; 1,
+    \quad
+    T(0)=1,\;T(1)=1,
+  \]
+  we have
+  \[
+    \begin{aligned}
+      S(n) 
+      &= T(n) + 1 \\[6pt]
+      &= \bigl[T(n-1) + T(n-2) + 1\bigr] + 1 \\[6pt]
+      &= \bigl[T(n-1) + 1\bigr] \;+\; \bigl[T(n-2) + 1\bigr] \\[6pt]
+      &= S(n-1) + S(n-2).
+    \end{aligned}
+  \]
+  with initial conditions 
+  \[
+    S(0) = T(0) + 1 = 2,\quad
+    S(1) = T(1) + 1 = 2.
+  \]
+  Notice that \(\{S(n)\}\) now follows the exact Fibonacci recurrence, but with different
+  base cases. It is not difficult to see that
+  \[
+    S(n) = 2\,F_{n+1}.
+  \]
+  Therefore,
+  \[
+    T(n) = S(n) - 1 
+         = 2\,F_{n+1} \;-\; 1.
+  \]
+  Since \(F_{n+1} = \Theta\bigl(\varphi^{\,n}\bigr)\), this confirms 
+  \[
+    T(n) = \Theta\bigl(\varphi^{\,n}\bigr).
+  \]
+</p>
+
+
+<p>
+  <strong>Space Complexity:</strong>
+  Each call to <code>fib(n)</code> either returns immediately (if \(n < 2\)) or makes two deeper calls. 
+  The deepest chain of calls occurs when each recursive step follows the “\(n-1\)” branch down to the base case. 
+  That chain has length \(n\), so the maximum recursion-stack depth is \(n\). Therefore, the 
+  space requirement is \(S(n) \;=\; O(n)\).
+</p>
+
+
+<h2>Variations/Improvements</h2>
+<p>
+  Because the naïve recursion repeats identical subproblems, it can be improved in several ways:
+  <ul>
+    <li>
+      <strong>Memoization (Top-Down DP):</strong> Store previously computed \(\;F_{k}\) in an array or hash map so each value is computed only once; reduces time to \(O(n)\).
+    </li>
+    <li>
+      <strong>Bottom-Up Dynamic Programming:</strong> Build \(\;F_{0}, F_{1}, \dots, F_{n}\) iteratively in a loop, using \(O(n)\) time and either \(O(n)\) or \(O(1)\) space.
+    </li>
+    <li>
+      <strong>Fast Doubling / Matrix Exponentiation:</strong> Use the fast-doubling formulas or exponentiate the 2×2 Fibonacci matrix in \(O(\log n)\) time, ideal for large \(n\).
+    </li>
+    <li>
+      <strong>Closed-Form (Binet’s Formula):</strong> Compute
+        \[
+    F_{n} \;=\; \frac{1}{\sqrt{5}}\left(\left(\frac{1 + \sqrt{5}}{2}\right)^{n} 
+	\;-\; \left(\frac{1 - \sqrt{5}}{2}\right)^{n}\right).
+  \]
+      in “constant time” using floating-point arithmetic, but precision loss limits its use to moderate \(n\).
+    </li>
+  </ul>
+</p>
+
+<h2>Links to Resources</h2>
+<ul>
+  <li><a href="https://en.wikipedia.org/wiki/Fibonacci_number" target="_blank" rel="noopener">Wikipedia: Fibonacci Number</a></li>
+  <li><a href="https://www.geeksforgeeks.org/program-for-nth-fibonacci-number/" target="_blank" rel="noopener">GeeksforGeeks: nth Fibonacci Number</a></li>
+  <li><a href="https://www.cs.usfca.edu/~galles/visualization/DPFib.html" target="_blank" rel="noopener">Galles’ Data Structure Visualizations: nth Fibonacci Number</a></li>
+</ul>
+
+<h2>Reading Comprehension Questions</h2>
+<ol>
+  <li>
+    Explain why the naïve recursive algorithm has exponential time complexity. What is the size of the recursion tree when computing \(F_{n}\)?
+  </li>
+  <li>
+    Identify the overlapping subproblems in the naïve recursion. Which Fibonacci values are recomputed multiple times?
+  </li>
+  <li>
+    Why does the recursion stack depth reach \(n\)? What happens if you call <code>fib(0)</code> or <code>fib(1)</code>?
+  </li>
+  <li>
+    For small \(n\) (e.g., \(n = 5\) or \(n = 6\)), draw the full recursion tree and label each node with its argument.
+  </li>
+</ol>
+
+<button id="toggleAnswers" class="show-answer" aria-expanded="false" style="margin-top: 10px;">
+  Show Answers
+</button>
+<div id="answers" class="answer" hidden style="margin-top: 10px;">
+  <ol>
+    <li>
+      <strong>Answer:</strong>  
+      Each call to <code>fib(n)</code> (for \(n \ge 2\)) spawns two recursive calls: <code>fib(n-1)</code> and <code>fib(n-2)</code>. This forms a binary recursion tree where many subproblems overlap. The total number of calls satisfies 
+      \[
+        T(n) = T(n-1) + T(n-2) + 1,
+      \]
+      which grows on the order of \(F_{n}\). Since \(F_{n} = \Theta(\varphi^{n})\), the recursion tree has \(\Theta(\varphi^{n})\) nodes, yielding exponential time.
+    </li>
+    <li>
+      <strong>Answer:</strong>  
+      For example, when computing <code>fib(5)</code>, <code>fib(3)</code> is computed in both <code>fib(5) → fib(4) → fib(3)</code> and 
+	  directly in <code>fib(5) → fib(3)</code>. In general, each <code>fib(k)</code> for \(k < n\) is recomputed multiple times
+	  (It turns out, about \(F_{n-k+1}\) times).
+    </li>
+    <li>
+      <strong>Answer:</strong>  
+      The deepest chain of calls occurs when each invocation follows the <code>fib(n-1)</code> branch repeatedly, yielding a call stack of length \(n\) (from <code>fib(n)</code> down to <code>fib(1)</code>). Thus, the maximum recursion depth is \(n\). If you call <code>fib(0)</code> or <code>fib(1)</code>, the function returns immediately, so the stack depth is 1.
+    </li>
+    <li>
+      <strong>Answer:</strong>  
+      For \(n=5\), the full recursion tree is:
+      <pre><code>
+            fib(5)
+           /      \
+      fib(4)      fib(3)
+       /   \      /    \
+  fib(3)  fib(2) fib(2) fib(1)
+   /   \    /  \
+fib(2)fib(1)fib(1)fib(0)
+  /   \
+fib(1)fib(0)
+      </code></pre>
+      In this tree, nodes like <code>fib(3)</code>, <code>fib(2)</code>, and <code>fib(1)</code> appear multiple times, illustrating overlapping subproblems.
+    </li>
+  </ol>
+</div>
+
+
+
+<h2>In-Class Activities</h2>
+<ol>
+  <li>
+    <strong>Trace the Recursion Tree:</strong> 
+    Distribute index cards labeled \(0,1,2,\dots,5\). Have students work in pairs to build the recursion tree for <code>fib(5)</code> using cards (one card per activation). They should count how many times each <code>fib(k)</code> is computed and compare with the theoretical counts.
+  </li>
+  <li>
+    <strong>Performance Measurement:</strong> 
+    In groups, write or use provided code to time <code>fib(n)</code> for increasing values of \(n\) (e.g., \(n=5,10,15,20,\ldots\)). 
+	Record run times and plot them versus \(n\) to observe exponential growth. What is the largest value that you can compute in a reasonable amount of time?
+  </li>
+  <li>
+    <strong>Explore Better Algorithms:</strong> 
+    In groups, have students discuss alternative algorithms to compute \(F_n\). Discuss them as a class, pointing out the good and bad aspects of each.
+  </li>
+</ol>
+
+<h2>Problems</h2>
+<ol>
+  <li>
+    <strong>Call-Count Measurement:</strong> Implement the naïve recursive Fibonacci and modify it to count how many recursive calls are made (e.g., increment a global counter each time <code>fib</code> is invoked). Measure these counts for \(n = 10, 15, 20\). Verify that the counts match the theoretical values \(2\,F_{n+1} - 1\).
+  </li>
+  <li>
+    <strong>Memoized Version:</strong> 
+	Modify your recursive code to use a global or static array (or map) for memoization. 
+	(Memoization is a technique where you store previously computed values so you can look them up instead of recomputing them.
+	You implemement it by checking if you have already computed a value before you make a recursive call.)
+	Demonstrate that for \(n = 10, 15, 20\), your implementation runs in linear time (measure both time and call count).
+  </li>
+  <li>
+    <strong>Proof by Induction:</strong> Prove by induction that the naïve recursion correctly computes \(F_{n}\) for all \(n \ge 0\). Outline the base cases and the inductive step.
+  </li>
+  <li>
+    <strong>Fast Doubling Implementation:</strong> Using the fast doubling formulas,
+    \[
+      F_{2k} = F_{k}\bigl(2\,F_{k+1} - F_{k}\bigr), 
+      \quad
+      F_{2k+1} = F_{k+1}^{2} + F_{k}^{2},
+    \]
+    implement an \(O(\log n)\) Fibonacci function. Compare its run time to the naïve version for \(n = 30, 35, 40\).
+  </li>
+</ol>
+
+
+</body>
+</html>
