@@ -112,8 +112,21 @@
         result = result + term
     return result
 </code></pre>
+<p>
+Here is a simple example that walks through the evaluation of a polynomial of degree 6
+using the algorithm.</p>
+    <div class="embeddedDemoContainer">
+      <iframe
+        class="embeddedDemo"
+        src="/Algorithms/Content/Demos/Brute Force/Polynomial Evaluation Demo.html"
+        allow="fullscreen"
+        name="BF-poly-eval-demo"
+        style="height: 450px; min-height: 450px;"
+      ></iframe>
+    </div>
     <p>
-      In this code, the inner loop multiplies \(\text{A}[i]\) by \(x\) exactly \(i\) times, 
+      Next, we determine the computational complexity of the algorithm.
+      Note that the inner loop multiplies \(\text{A}[i]\) by \(x\) exactly \(i\) times, 
       mirroring the definition of each power. 
       Because for each \(i\) (from \(0\) through \(n\)) you perform \(i\) multiplications, 
       the total work is on the order of

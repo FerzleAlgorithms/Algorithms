@@ -168,6 +168,7 @@
       events = [];
       let cumulative = 0;
       let rowIdx = -1;
+
       // Identify nonzero indices
       const nonzeroIndices = [];
       for (let i = 0; i < coefficients.length; i++) {
@@ -227,14 +228,14 @@
       // Final event: done with answer
       events.push({
         type: 'done',
-        final: events.length > 1 ? events[events.length - 2].total : 0,
-        desc: `All terms processed. Answer is ${events.length > 1 ? events[events.length - 2].total : 0}`
+        final: cumulative,
+        desc: `All terms processed. Answer is ${cumulative}`
       });
     }
 
     // Rebuild display up to current pointer
     function rebuildDisplay() {
-      // 1) CLEAR ALL EXISTING HIGHLIGHTS BEFORE REBUILDING ANY ROWS
+      // 1) CLEAR ALL EXISTING HIGHLIGHTS (table cells and polynomial terms)
       document.querySelectorAll('.highlight-cell').forEach(td => {
         td.classList.remove('highlight-cell');
       });
@@ -249,7 +250,7 @@
       const rows = [];
       let totalMult = 0;
       let totalAdd = 0;
-      let lastHighlight = null;   // we will re‐apply exactly one highlight at the end
+      let lastHighlight = null;   // we'll re‐apply one highlight at the end
 
       for (let idx = 0; idx <= pointer; idx++) {
         const ev = events[idx];
@@ -258,12 +259,12 @@
             const { rowIdx, termIdx, i, initialTerm } = ev;
 
             // 3a) Highlight the new polynomial term
-            document.querySelectorAll('.term.current').forEach(el =>
+            document.querySelectorAll('.term.current').forEach(el => 
               el.classList.remove('current')
             );
             termToSpan[termIdx].classList.add('current');
 
-            // 3b) Build the new <tr> (no intermediate highlight here)
+            // 3b) Build the new <tr> (no immediate highlight here)
             const tr = document.createElement('tr');
 
             // i cell
@@ -271,7 +272,7 @@
             tdI.textContent = i;
             tr.appendChild(tdI);
 
-            // term cell (coefficient) – we do NOT highlight here
+            // term cell (coefficient) – we will highlight at the very end
             const tdTerm = document.createElement('td');
             tdTerm.textContent = initialTerm;
             tr.appendChild(tdTerm);
@@ -294,7 +295,7 @@
             rows[rowIdx] = tr;
             stepTableBody.appendChild(tr);
 
-            // 3c) Remember to highlight this “term” cell at the very end:
+            // 3c) Remember to highlight THIS term cell later:
             lastHighlight = { rowIdx, cellIdx: 1 };
             break;
           }
@@ -306,7 +307,7 @@
             const tr = rows[rowIdx];
             const cells = tr.querySelectorAll('td');
 
-            // Update term text and #mult (no intermediate highlight)
+            // 3d) Update term text and #mult (no highlight yet)
             cells[1].textContent = term;
             cells[3].textContent = multCount;
 
@@ -322,7 +323,7 @@
             const tr = rows[rowIdx];
             const cells = tr.querySelectorAll('td');
 
-            // Update result text and #add (no intermediate highlight)
+            // 3e) Update result text and #add (no highlight yet)
             cells[2].textContent = total;
             cells[4].textContent = addCount;
 
@@ -332,21 +333,33 @@
           }
 
           case 'done':
+            // Nothing changes the table itself. lastHighlight still points
+            // to the previous updateAdd, but we will clear it if pointer is "done".
             break;
         }
       }
 
-      // 4) RE‐APPLY exactly ONE highlight (the one pointed to by lastHighlight)
-      if (lastHighlight) {
+      // 4) IF current event IS "done", clear ANY polynomial‐term highlight
+      //    and do NOT highlight any table cell. Otherwise, re‐apply the one highlight.
+      if (pointer >= 0 && events[pointer].type === 'done') {
+        // explicitly un‐highlight any polynomial term:
+        document.querySelectorAll('.term.current').forEach(el =>
+          el.classList.remove('current')
+        );
+        // do not highlight any <td> for "done"
+      } else if (lastHighlight) {
+        // Re‐apply exactly one highlight on the correct <td>
         const tr = rows[lastHighlight.rowIdx];
         const cell = tr.querySelectorAll('td')[ lastHighlight.cellIdx ];
         cell.classList.add('highlight-cell');
       }
 
+
       // 5) UPDATE COMMENT / STATS / BUTTONS
       if (pointer < 0) {
         commentDiv.innerHTML = '<br>';
       } else {
+        // This ensures the final "done" description is shown when pointer is on done
         commentDiv.innerHTML = events[pointer].desc + '<br>';
       }
       statsDiv.textContent = `Total multiplications: ${totalMult}, Total additions: ${totalAdd}`;
