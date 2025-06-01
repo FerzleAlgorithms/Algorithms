@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Naive Recursive Fibonacci Demo (n=5)</title>
+  <!-- Common CSS -->
+  <script src="/Algorithms/scripts/demoScripts.js"></script>
+  <link rel="stylesheet" href="/Algorithms/css/style.css">
+  <link rel="stylesheet" href="/Algorithms/css/demo.css">
+  <!-- Demo-specific styling for larger nodes and narrower panel -->
+  <style>
+    /* Node and link styling */
+    .link-line {
+      stroke: #777;
+      stroke-width: 2;
+    }
+    .node-circle {
+      stroke: #333;
+      fill: #fff;
+    }
+    .node-call {
+      fill: #f8d3d3;
+    }
+    .node-computed {
+      fill: #d3f8d3;
+    }
+    .node-current {
+      stroke: #ff0000;
+      stroke-width: 4;
+    }
+    /* Increased radius and font sizes */
+    .node-text {
+      font-size: 18px;           /* was 16px */
+      text-anchor: middle;
+      dominant-baseline: middle;
+      pointer-events: none;
+      font-family: sans-serif;
+    }
+    .node-label {
+      font-size: 16px;           /* was 14px */
+      text-anchor: end;
+      dominant-baseline: hanging;
+      pointer-events: none;
+      font-family: sans-serif;
+    }
+
+    /* Commentary below controls */
+    #commentary {
+      margin-top: 10px;
+      font-family: sans-serif;
+      font-style: italic;
+    }
+
+    /* Always-visible right-side call panel, narrowed to 215px */
+    #callPanel {
+      position: fixed;
+      top: 0;
+      right: 0;
+      width: 215px;              /* was 300px */
+      height: 100%;
+      background: #fff;
+      border-left: 1px solid #ccc;
+      box-shadow: -2px 0 5px rgba(0,0,0,0.1);
+      overflow-y: auto;
+      z-index: 1000;
+      padding: 10px;
+    }
+    #callPanel ul {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      font-family: sans-serif;
+      font-size: 14px;
+    }
+
+    /* Make room on the left so the SVG isn't completely underneath the panel */
+    body {
+      margin-right: 215px;       /* match panel width */
+    }
+  </style>
+</head>
+<body>
+  <h2>Naive Recursive Fibonacci Demo (n = 5)</h2>
+  <div id="controls">
+    <!-- Only a Play/Replay button -->
+    <button id="playBtn" class="demo-btn">Play</button>
+    <span id="nodeCount">Number of nodes: 0</span>
+    <div id="commentary"></div>
+  </div>
+
+  <svg
+    id="treeSvg"
+    viewBox="0 0 550 400"
+    preserveAspectRatio="xMidYMin meet"
+    style="width: 100%; height: 400px; min-height: 400px; display: block; margin: 0 auto; overflow: visible;"
+  >
+    <!-- Layer for links (edges) -->
+    <g id="linkLayer"></g>
+    <!-- Layer for nodes (circles, labels, values) -->
+    <g id="nodeLayer"></g>
+  </svg>
+
+  <div id="callPanel">
+    <ul id="callList"></ul>
+  </div>
+
+  <script>
+    // Node class
+    class FibNode {
+      constructor(n, id) {
+        this.n = n;
+        this.id = id;
+        this.left = null;
+        this.right = null;
+        this.parent = null;
+        this.value = null;
+        this.x = 0;
+        this.y = 0;
+        this.depth = 0;
+      }
+    }
+
+    // Globals
+    let root = null;
+    let allNodes = [];
+    let eventList = [];
+    let stepIndex = 0;
+    let svg = document.getElementById('treeSvg');
+    let svgNS = 'http://www.w3.org/2000/svg';
+    let createCount = 0;
+    let autoplayTimer = null;
+
+    // Build full tree structure (for layout and event generation)
+    function buildTree(n) {
+      let idCounter = 0;
+      allNodes = [];
+      function helper(k, parent = null, depth = 0) {
+        let node = new FibNode(k, idCounter++);
+        node.parent = parent;
+        node.depth = depth;
+        allNodes.push(node);
+        if (k >= 2) {
+          node.left = helper(k - 1, node, depth + 1);
+          node.right = helper(k - 2, node, depth + 1);
+        }
+        return node;
+      }
+      return helper(n, null, 0);
+    }
+
+    // Generate a flat list of “call” / “resume” / “return” events
+    function generateEvents(node) {
+      if (!node) return;
+      eventList.push({ type: 'call', node: node });
+      if (node.left) {
+        generateEvents(node.left);
+        eventList.push({ type: 'resume', node: node });
+      }
+      if (node.right) {
+        generateEvents(node.right);
+      }
+      eventList.push({ type: 'return', node: node });
+    }
+
+    // Assign x/y positions to each node
+    function assignPositions(root) {
+      let xCounter = 0;
+      const viewBoxWidth  = 550;
+      const levelHeight   = 60;       /* reduced to fit 300px height */
+      const radius        = 20;       /* increased radius */
+      const marginX       = radius + 10;
+      const usableWidth   = viewBoxWidth - 2 * marginX;
+      const total         = allNodes.length;
+
+      function inorder(node) {
+        if (!node) return;
+        inorder(node.left);
+
+        if (total > 1) {
+          node.x = marginX + xCounter * (usableWidth / (total - 1));
+        } else {
+          node.x = viewBoxWidth / 2;
+        }
+        node.y = node.depth * levelHeight + radius + 10; 
+        // +10 px top padding so root isn't flush to top
+
+        xCounter++;
+        inorder(node.right);
+      }
+      inorder(root);
+    }
+
+    // Clear the entire SVG and recreate link + node layers
+    function clearSvg() {
+      while (svg.firstChild) {
+        svg.removeChild(svg.firstChild);
+      }
+      let linkLayer = document.createElementNS(svgNS, 'g');
+      linkLayer.setAttribute('id', 'linkLayer');
+      svg.appendChild(linkLayer);
+      let nodeLayer = document.createElementNS(svgNS, 'g');
+      nodeLayer.setAttribute('id', 'nodeLayer');
+      svg.appendChild(nodeLayer);
+    }
+
+    // Remove any red-border highlights
+    function clearCurrentHighlights() {
+      allNodes.forEach(node => {
+        let circle = document.getElementById('circle-' + node.id);
+        if (circle) {
+          circle.classList.remove('node-current');
+        }
+      });
+    }
+
+    // Draw a link (edge) from node.parent to node
+    function drawLink(node) {
+      if (!node.parent) return;
+      const radius = 20;
+      const offset = 10;              /* adjusted for larger circle */
+      let parent = node.parent;
+
+      let x1 = parent.x + (parent.left === node ? -offset : offset);
+      let y1 = parent.y + radius-offset/2;
+      let x2 = node.x;
+      let y2 = node.y - radius;
+
+      let line = document.createElementNS(svgNS, 'line');
+      line.setAttribute('x1', x1);
+      line.setAttribute('y1', y1);
+      line.setAttribute('x2', x2);
+      line.setAttribute('y2', y2);
+      line.setAttribute('class', 'link-line');
+      line.setAttribute('id', 'link-' + node.id);
+
+      document.getElementById('linkLayer').appendChild(line);
+    }
+
+    // Draw a node: circle + label + (empty) text placeholder
+    function drawNode(node) {
+      clearCurrentHighlights();
+
+      let circle = document.createElementNS(svgNS, 'circle');
+      circle.setAttribute('cx', node.x);
+      circle.setAttribute('cy', node.y);
+      circle.setAttribute('r', 20);             /* increased radius */
+      circle.setAttribute('id', 'circle-' + node.id);
+      circle.setAttribute('class', 'node-circle node-call node-current');
+      document.getElementById('nodeLayer').appendChild(circle);
+
+      let label = document.createElementNS(svgNS, 'text');
+      label.setAttribute('x', node.x +  50 );       /*  node.x + 40 for radius 20 */
+      label.setAttribute('y', node.y + 14);            /* shift down for larger */
+      label.setAttribute('id', 'label-' + node.id);
+      label.setAttribute('class', 'node-label');
+      label.textContent = `F(${node.n})`;
+      document.getElementById('nodeLayer').appendChild(label);
+
+      let text = document.createElementNS(svgNS, 'text');
+      text.setAttribute('x', node.x);
+      text.setAttribute('y', node.y + 2);             /* center value in circle */
+      text.setAttribute('id', 'text-' + node.id);
+      text.setAttribute('class', 'node-text');
+      text.textContent = "";
+      document.getElementById('nodeLayer').appendChild(text);
+
+      createCount++;
+      document.getElementById('nodeCount').textContent = `Number of nodes: ${createCount}`;
+      updateCommentary(`Calling fib(${node.n})`);
+    }
+
+    // Compute node.value, highlight circle, and update commentary
+    function computeNode(node) {
+      clearCurrentHighlights();
+      if (node.n < 2) {
+        node.value = node.n;
+      } else {
+        node.value = node.left.value + node.right.value;
+      }
+
+      let circle = document.getElementById('circle-' + node.id);
+      let text   = document.getElementById('text-'   + node.id);
+      if (circle) {
+        circle.setAttribute('class', 'node-circle node-computed node-current');
+      }
+      if (text) {
+        text.textContent = node.value;
+      }
+
+      if (node.n < 2) {
+        updateCommentary(`Returning F(${node.n}) = ${node.value}`);
+      } else {
+        const L = node.left.n;
+        const Lv = node.left.value;
+        const R = node.right.n;
+        const Rv = node.right.value;
+        const N = node.n;
+        const Nv = node.value;
+        updateCommentary(
+          `Done computing F(${L}) = ${Lv} and F(${R}) = ${Rv}. Returning F(${N}) = ${Lv} + ${Rv} = ${Nv}`
+        );
+      }
+    }
+
+    // Remove a node’s circle/text/label/link from the SVG
+    function removeNode(node) {
+      let circle = document.getElementById('circle-' + node.id);
+      let text   = document.getElementById('text-'   + node.id);
+      let label  = document.getElementById('label-'  + node.id);
+      let link   = document.getElementById('link-'   + node.id);
+      if (circle) document.getElementById('nodeLayer').removeChild(circle);
+      if (text)   document.getElementById('nodeLayer').removeChild(text);
+      if (label)  document.getElementById('nodeLayer').removeChild(label);
+      if (link)   document.getElementById('linkLayer').removeChild(link);
+      createCount--;
+      document.getElementById('nodeCount').textContent = `Number of nodes: ${createCount}`;
+      updateCommentary(`Undo call fib(${node.n})`);
+    }
+
+    // Undo compute: revert fill & clear node.value
+    function undoCompute(node) {
+      clearCurrentHighlights();
+      let circle = document.getElementById('circle-' + node.id);
+      let text   = document.getElementById('text-'   + node.id);
+      if (circle) {
+        circle.setAttribute('class', 'node-circle node-call');
+      }
+      if (text) {
+        text.textContent = "";
+      }
+      node.value = null;
+      updateCommentary(`Undo return fib(${node.n})`);
+    }
+
+    // Update the commentary line under controls
+    function updateCommentary(message) {
+      document.getElementById('commentary').textContent = message;
+    }
+
+    // Clear the call-log panel
+    function clearCallList() {
+      document.getElementById('callList').innerHTML = '';
+    }
+
+    // Append one line to the call-log with indentation
+    function logCall(message, depth) {
+      const li = document.createElement('li');
+      li.textContent = message;
+      li.style.paddingLeft = (depth * 20) + 'px';
+      document.getElementById('callList').appendChild(li);
+    }
+
+    // Initialize everything for n=5
+    function initializeDemo() {
+      createCount = 0;
+      allNodes = [];
+      eventList = [];
+      stepIndex = 0;
+
+      root = buildTree(5);
+      generateEvents(root);
+      assignPositions(root);
+      clearSvg();
+
+      document.getElementById('nodeCount').textContent = `Number of nodes: 0`;
+      updateCommentary('');
+      clearCallList();
+    }
+
+    // Perform exactly one “step” in the eventList (call/resume/return)
+    function nextStep() {
+      if (stepIndex >= eventList.length) return;
+      let ev = eventList[stepIndex];
+
+      if (ev.type === 'call') {
+        drawLink(ev.node);
+        drawNode(ev.node);
+        logCall(`Call fib(${ev.node.n})`, ev.node.depth);
+      }
+      else if (ev.type === 'resume') {
+        clearCurrentHighlights();
+        let circle = document.getElementById('circle-' + ev.node.id);
+        if (circle) {
+          circle.classList.add('node-current');
+        }
+        const leftNode  = ev.node.left;
+        const leftN     = leftNode.n;
+        const leftValue = leftNode.value;
+        const rightN    = ev.node.right.n;
+        updateCommentary(
+          `Computed F(${leftN}) = ${leftValue}. Now need to compute F(${rightN}).`
+        );
+      }
+      else if (ev.type === 'return') {
+        computeNode(ev.node);
+        logCall(`Return fib(${ev.node.n}) = ${ev.node.value}`, ev.node.depth);
+      }
+
+      stepIndex++;
+    }
+
+    // Run through all steps automatically with a fixed interval
+    function runDemo() {
+      /*playBtn.disabled = true;*/
+      playBtn.textContent = 'Playing…';
+
+      initializeDemo();
+
+      autoplayTimer = setInterval(() => {
+        if (stepIndex < eventList.length) {
+          nextStep();
+        } else {
+          clearInterval(autoplayTimer);
+          playBtn.textContent = 'Replay';
+          /*playBtn.disabled = false;*/
+        }
+      }, 700);
+    }
+
+const playBtn = document.getElementById('playBtn');
+let isRunning = false;
+
+playBtn.addEventListener('click', () => {
+  if (isRunning) {
+    // ?? It’s currently animating ? pause
+    clearInterval(autoplayTimer);
+    isRunning = false;
+    playBtn.textContent = 'Play';
+  } else {
+    // ?? It’s not animating right now
+    // If the button says “Replay,” we need to reset to the beginning
+    if (playBtn.textContent === 'Replay') {
+      initializeDemo();
+    }
+    // Now start from the top (or from wherever stepIndex currently is)
+    playBtn.textContent = 'Pause';
+    isRunning = true;
+
+    autoplayTimer = setInterval(() => {
+      if (stepIndex < eventList.length) {
+        nextStep();
+      } else {
+        // We’ve reached the end ? stop automatically and switch to “Play”
+        clearInterval(autoplayTimer);
+        isRunning = false;
+        playBtn.textContent = 'Play';
+      }
+    }, 700);
+  }
+});
+
+/*
+    // Wire up Play button
+    const playBtn = document.getElementById('playBtn');
+    playBtn.addEventListener('click', () => {
+      if (playBtn.textContent === 'Replay') {
+        initializeDemo();
+      }
+      runDemo();
+    });
+    
+    
+let isRunning = false;
+
+playBtn.addEventListener('click', () => {
+  if (!isRunning) {
+    // Start
+    playBtn.textContent = 'Pause';
+    isRunning = true;
+    initializeDemo();
+    autoplayTimer = setInterval(() => {
+      if (stepIndex < eventList.length) {
+        nextStep();
+      } else {
+        clearInterval(autoplayTimer);
+        isRunning = false;
+        playBtn.textContent = 'Play';
+      }
+    }, 700);
+  } else {
+    // Pause
+    clearInterval(autoplayTimer);
+    isRunning = false;
+    playBtn.textContent = 'Play';
+  }
+});
+*/
+
+
+    // On first page load, build the static tree but don’t animate
+    window.addEventListener('load', () => {
+      initializeDemo();
+    });
+  </script>
+</body>
+</html>

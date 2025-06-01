@@ -1,0 +1,236 @@
+// File: scripts/loadContent.js
+
+// 1) Top-level menu order
+const TOP_LEVEL_ORDER = [
+  "Home",
+  "Problems",
+  "Data Structures",
+  "Techniques",
+  "Algorithms",
+  "Demos",
+  "More"
+];
+
+/**
+ * Normalize each path segment so there are no unencoded spaces/special chars.
+ * @param {string} path
+ * @returns {string} e.g. "Algorithms%2FBrute%20Force%2FBubble%20Sort"
+ */
+function normalizePath(path) {
+  return path
+    .split("/")
+    .map(seg => encodeURIComponent(decodeURIComponent(seg)))
+    .join("/");
+}
+
+/**
+ * Given a “relativePath.html”, fetch and inject it into the <object>.
+ * On failure, show a friendly error.
+ * @param {string} relativePath  e.g. "Chapter1/Intro.html"
+ */
+async function loadContent(relativePath) {
+  const obj = document.getElementById("content");
+  const err = document.getElementById("errorMessage");
+  const url = "Content/" + relativePath;
+
+  try {
+    const res = await fetch(url, { cache: "no-cache" });
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    await res.text(); // verify existence
+
+    err.style.display = "none";
+    obj.style.display = "block";
+    obj.src = url + "?_=" + Date.now(); // cache-bust
+
+    obj.onload = () => {
+      // Hook in-iframe navigation & embeddedDemo resizing
+      hookIframeContent(obj);
+      resizeAndWatch(obj);
+    };
+  } catch (e) {
+    console.error("loadContent error:", e);
+    obj.style.display = "none";
+
+    // Build a “nice name” from the file path, e.g. “Bubble Sort”
+    function getNiceName(p) {
+      let raw = p.replace(/\.html$/, "");
+      let segs = raw.split("/");
+      let last = segs[segs.length - 1];
+      return last.replace(/^\d+_/, "").replace(/_/g, " ");
+    }
+
+    const nice = getNiceName(relativePath);
+    err.innerHTML =
+      `<p>The page you are trying to load cannot be found. ` +
+      `It may still be under construction.</p>` +
+      `<p><strong>Page name:</strong> ${nice}</p>`;
+    err.style.display = "block";
+  }
+}
+
+/** 
+ * When an <object> finishes loading, watch for:
+ *  a) inside-page ?path=… clicks ? force a full reload
+ *  b) any <iframe.embeddedDemo> ? cache-bust & auto-resize
+ */
+function hookIframeContent(obj) {
+  const innerDoc = obj.contentDocument;
+  if (!innerDoc) return;
+
+  // a) Intercept any <a href="?path=…">
+  innerDoc.addEventListener("click", event => {
+    const anchor = event.target.closest('a[href]');
+    if (!anchor) return;
+
+    const href = anchor.getAttribute("href");
+    if (!href.startsWith("?path=")) return;
+    event.preventDefault();
+
+    // Get the friendly “raw” path (e.g. "Algorithms/Bubble_Sort")
+    const raw = new URLSearchParams(href.slice(1)).get("path");
+    if (!raw) return;
+
+    // Redirect to a full reload
+    const safe = normalizePath(raw);
+    parent.window.location.href = "?path=" + safe;
+  });
+
+  // b) Make any other plain <a> open at top level
+  innerDoc.querySelectorAll('a[href]:not([href^="?path="])')
+    .forEach(a => a.target = "_top");
+
+  // c) Cache-bust & auto-resize any <iframe class="embeddedDemo">
+  innerDoc.querySelectorAll("iframe.embeddedDemo").forEach(frame => {
+    const base = frame.src.split("?")[0];
+    frame.src = base + "?cb=" + Date.now();
+    frame.scrolling = "no";
+
+    frame.addEventListener("load", () => resizeEmbeddedFrame(frame));
+  });
+}
+
+/** 
+ * Resize an <iframe> to fit its content, then watch for changes:
+ */
+function resizeEmbeddedFrame(frame) {
+  const doc = frame.contentDocument || frame.contentWindow.document;
+  function resizeNow() {
+    frame.style.height = "auto";
+    const h = Math.max(doc.documentElement.scrollHeight, doc.body.scrollHeight);
+    frame.style.height = h + "px";
+  }
+  resizeNow();
+  new MutationObserver(resizeNow).observe(doc.documentElement, {
+    childList: true, subtree: true, attributes: true
+  });
+}
+
+/**
+ * On initial load (or any reload), read ?path= and inject content.
+ */
+function loadFromURLParams() {
+  const raw = new URLSearchParams(window.location.search).get("path") || "home";
+  const safe = normalizePath(raw);
+  loadContent(safe + ".html");
+}
+
+/**
+ * Build the sidebar menu (<nav id="menu"><ul>…</ul></nav>) from a JSON file.
+ */
+function buildMenu(chapters) {
+  const menu = document.querySelector("#menu ul");
+  menu.innerHTML = "<li><a href='?path=home'>Home</a></li>";
+
+  function buildList(items, container, prefix, isDemo) {
+    items.forEach(item => {
+      const li = document.createElement("li");
+      if (typeof item === "string") {
+        const raw = item.replace(/\.html$/, "");
+        const name = raw.replace(/^\d+_/, "").replace(/_/g, " ");
+        const a = document.createElement("a");
+        a.textContent = isDemo ? name.replace(/Demo/g, "").trim() : name;
+        a.href = "?path=" + encodeURIComponent(prefix + raw);
+        li.appendChild(a);
+      } else {
+        Object.entries(item).forEach(([dir, sub]) => {
+          const span = document.createElement("span");
+          span.textContent = dir.replace(/^\d+_/, "").replace(/_/g, " ");
+          span.onclick = () => li.classList.toggle("open");
+          li.appendChild(span);
+
+          const ul = document.createElement("ul");
+          buildList(sub, ul, prefix + dir + "/", isDemo);
+          li.appendChild(ul);
+        });
+      }
+      container.appendChild(li);
+    });
+  }
+
+  function initMenuToggle() {
+    document.querySelectorAll("nav#menu li > span").forEach(span => {
+      span.onclick = function () {
+        const parentLi = this.parentElement;
+        const parentUl = parentLi.parentElement;
+        parentUl.querySelectorAll(":scope > li.open").forEach(openLi => {
+          if (openLi !== parentLi) openLi.classList.remove("open");
+        });
+        parentLi.classList.toggle("open");
+      };
+    });
+  }
+
+  TOP_LEVEL_ORDER.forEach(plainName => {
+    const rawKey = Object.keys(chapters).find(k => k.replace(/^\d+_/, "") === plainName);
+    if (!rawKey) return;
+    const li = document.createElement("li");
+    const span = document.createElement("span");
+    span.textContent = plainName;
+    span.onclick = () => li.classList.toggle("open");
+    li.appendChild(span);
+
+    const ul = document.createElement("ul");
+    buildList(chapters[rawKey], ul, rawKey + "/", rawKey === "Demos");
+    li.appendChild(ul);
+
+    menu.appendChild(li);
+  });
+
+  initMenuToggle();
+}
+
+// --------------------
+//  DOMContentLoaded
+// --------------------
+document.addEventListener("DOMContentLoaded", function initApp() {
+  // Read ?path= (or default to “home”) and load it
+  loadFromURLParams();
+
+  // Build the sidebar menu
+  fetch("scripts/chapters.json")
+    .then(r => r.json())
+    .then(buildMenu)
+    .catch(console.error);
+
+  // Delegate ANY <a href="?path="> to a full page reload
+  document.addEventListener("click", function onNavClick(event) {
+    const anchor = event.target.closest('a[href^="?path="]');
+    if (!anchor) return;
+    event.preventDefault();
+
+    const rawPath = new URLSearchParams(anchor.getAttribute("href").slice(1)).get("path");
+    if (!rawPath) return;
+
+    const safe = normalizePath(rawPath);
+    window.location.href = "?path=" + safe;
+  });
+
+  // Handle postMessage from embedded demos (e.g. fullscreen)
+  window.addEventListener("message", event => {
+    const msg = event.data;
+    if (msg && msg.type === "demo-fullscreen") {
+      const frame = event.source.frameElement;
+      frame?.requestFullscreen?.().catch(console.error);
+    }
+  });
+});

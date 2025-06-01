@@ -49,9 +49,28 @@
       font-family: sans-serif;
       font-style: italic;
     }
+    
+    
+#callPanel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 300px;
+  height: 100%;
+  background: #fff;
+  border-left: 1px solid #ccc;
+  box-shadow: -2px 0 5px rgba(0,0,0,0.1);
+  transform: translateX(100%);
+  transition: transform 0.3s ease-out;
+  overflow-y: auto;
+  z-index: 1000;
+}
+#callPanel.open {
+  transform: translateX(0);
+}
+
+
   </style>
-  <!-- Common JS -->
-  <script src="../../scripts/demoScripts.js" defer></script>
 </head>
 <body>
   <h2>Naïve Recursive Fibonacci Demo</h2>
@@ -62,20 +81,26 @@
     <button id="prevBtn" disabled>Previous</button>
     <button id="nextBtn" disabled>Next</button>
     <span id="nodeCount">Number of nodes: 0</span>
+    <button id="toggleCalls">Show Calls</button>
     <div id="commentary"></div>
   </div>
+  
   <svg
     id="treeSvg"
     viewBox="0 0 800 400"
     preserveAspectRatio="xMidYMin meet"
-    style="width: 100%; height: 80vh; display: block; margin: 0 auto; overflow: visible;"
+    style="width: 100%; min-height: 600px; display: block; margin: 0 auto; overflow: visible;"
   >
     <!-- Layer for links (edges) -->
     <g id="linkLayer"></g>
     <!-- Layer for nodes (circles, labels, values) -->
     <g id="nodeLayer"></g>
   </svg>
-
+   
+  <div id="callPanel">
+    <ul id="callList"></ul>
+  </div>
+  
   <script>
     // Node class
     class FibNode {
@@ -245,6 +270,8 @@
     }
 
     function computeNode(node) {
+     // Remove any lingering highlights before drawing the parent
+      clearCurrentHighlights();
       if (node.n < 2) {
         node.value = node.n;
       } else {
@@ -320,8 +347,55 @@
       updateCommentary('');
       document.getElementById('nextBtn').disabled = false;
       document.getElementById('prevBtn').disabled = true;
+      clearCallList();
     }
 
+function nextStep() {
+  if (stepIndex >= eventList.length) return;
+  let ev = eventList[stepIndex];
+
+  if (ev.type === 'call') {
+    // draw the new node
+    drawLink(ev.node);
+    drawNode(ev.node);
+
+    // *** ADD THIS LINE ***
+    logCall(ev.node.n, ev.node.depth, `Call fib(${ev.node.n})`);
+
+    // Optional: commentary update is already there
+    // …
+  }
+  else if (ev.type === 'resume') {
+    clearCurrentHighlights();
+    let circle = document.getElementById('circle-' + ev.node.id);
+    if (circle) {
+      circle.classList.add('node-current');
+    }
+    const leftNode  = ev.node.left;
+    const leftN     = leftNode.n;
+    const leftValue = leftNode.value;
+    const rightN    = ev.node.right.n;
+    updateCommentary(
+      `Computed F(${leftN}) = ${leftValue}. Now need to compute F(${rightN}).`
+    );
+  }
+  else if (ev.type === 'return') {
+    // highlight and set the computed value
+    computeNode(ev.node);
+
+    // *** ADD THIS LINE ***
+    logCall(
+      ev.node.n,
+      ev.node.depth,
+      `Return fib(${ev.node.n}) = ${ev.node.value}`
+    );
+  }
+
+  stepIndex++;
+  updateButtons();
+}
+
+/*
     function nextStep() {
       if (stepIndex >= eventList.length) return;
       let ev = eventList[stepIndex];
@@ -347,7 +421,48 @@
       stepIndex++;
       updateButtons();
     }
+    */
 
+function prevStep() {
+  if (stepIndex <= 0) return;
+  stepIndex--;
+  let ev = eventList[stepIndex];
+
+  if (ev.type === 'call') {
+    // 1) remove the node from the SVG
+    removeNode(ev.node);
+
+    // 2) remove the LAST <li> from the callList, 
+    //    which corresponds to "Call fib(ev.node.n)"
+    const ul = document.getElementById('callList');
+    if (ul.lastElementChild) {
+      ul.removeChild(ul.lastElementChild);
+    }
+  }
+  else if (ev.type === 'resume') {
+    // resuming from a left‐child return: just undo the highlight.
+    let circle = document.getElementById('circle-' + ev.node.id);
+    if (circle) {
+      circle.classList.remove('node-current');
+    }
+    // (no change to callList because we never logged on "resume")
+  }
+  else if (ev.type === 'return') {
+    // 1) undo the “computed” highlight and clear node.value
+    undoCompute(ev.node);
+
+    // 2) remove the LAST <li> from the callList, 
+    //    which corresponds to "Return fib(ev.node.n) = ev.node.value"
+    const ul = document.getElementById('callList');
+    if (ul.lastElementChild) {
+      ul.removeChild(ul.lastElementChild);
+    }
+  }
+
+  updateButtons();
+}
+
+/*
     function prevStep() {
       if (stepIndex <= 0) return;
       stepIndex--;
@@ -364,6 +479,7 @@
       }
       updateButtons();
     }
+    */
 
     function updateButtons() {
       document.getElementById('prevBtn').disabled = (stepIndex === 0);
@@ -385,6 +501,55 @@
     window.addEventListener('load', () => {
       initializeDemo(5);
     });
-  </script>
+    
+    
+    
+    // 1) Panel toggle logic
+const toggleBtn = document.getElementById('toggleCalls');
+const panel    = document.getElementById('callPanel');
+
+toggleBtn.addEventListener('click', () => {
+  panel.classList.toggle('open');
+  toggleBtn.textContent = panel.classList.contains('open') ? 'Hide Calls' : 'Show Calls';
+});
+
+// 2) Logging helper
+function logCall(n, depth, type) {
+  const li = document.createElement('li');
+  /*li.textContent = `${type} fib(${n})`;*/
+  li.textContent = `${type}`;
+  li.style.paddingLeft = (depth * 20) + 'px';
+  document.getElementById('callList').appendChild(li);
+}
+
+// 3) Clear the list at the start of a new run
+function clearCallList() {
+  document.getElementById('callList').innerHTML = '';
+}
+
+// 4) Modified recursive traversal
+function traversePreorder(node, depth = 0) {
+  logCall(node.n, depth, 'Call');
+  // (Optional) highlight node here…
+  if (node.n < 2) {
+    node.value = node.n;
+  } else {
+    traversePreorder(node.left, depth + 1);
+    traversePreorder(node.right, depth + 1);
+    node.value = node.left.value + node.right.value;
+  }
+  logCall(node.n, depth, `Return fib(${node.n}) = ${node.value}`);
+  // (Optional) highlight computed node here…
+}
+
+// 5) Kick off the animation/log:
+function startDemo() {
+  clearCurrentHighlights();   // whatever existing setup you have
+  clearCallList();
+  traversePreorder(root, 0);
+  // …then animate or step through highlights as before…
+}
+</script>   
+
 </body>
 </html>
