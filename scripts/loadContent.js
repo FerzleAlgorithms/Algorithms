@@ -324,25 +324,22 @@ async function loadContent(relativePath) {
       window.addEventListener("resize", resizeIframe);
     };
   } catch (e) {
-    console.error("loadContent error:", e);
+     // Add back for debugging.
+    //console.error("loadContent error:", e);
     obj.style.display = "none";
 
-    // Compute a “nice” page name (strip off ".html", digits, underscores)
-    function getNiceName(pathWithHtml) {
-      var raw = pathWithHtml.replace(/\.html$/, "");
-      var segments = raw.split("/");
-      var last = segments[segments.length - 1];
-      return last.replace(/^\d+_/, "").replace(/_/g, " ");
-    }
-
-    var niceName = getNiceName(relativePath);
+    var rawPath = (history.state && history.state.path)
+      ? history.state.path
+      : new URLSearchParams(window.location.search).get("path") || "unknown";
+    
     err.innerHTML =
-      "<p>The page you are trying to load cannot be found. " +
-      "It is possible it is still being created. Please check back later.</p>" +
-      "<p><strong>Page name:</strong> " + niceName + "</p>";
-    err.style.display = "block";
+      "<p>The page you are trying to load cannot be found.<br>" +
+      "It is possible it is still being created.<br>"+
+      "Please check back later.</p>" +
+      "<p><strong>Page path:</strong> " + rawPath + "</p>";
+          err.style.display = "block";
 
-    throw e;
+    //throw e; // No need to throw. We handled it.
   }
 }
 

@@ -70,6 +70,11 @@
       ]
     },
     {
+      "Exhaustive Search": [
+        "Subset Sum Demo.html"
+      ]
+    },
+    {
       "Greedy": [
         "Huffman Encoding Demo.html",
         "Kruskals Algorithm Demo.html",
@@ -140,6 +145,7 @@
     }
   ],
   "Techniques": [
-    "Brute Force.html"
+    "Brute Force.html",
+    "Exhaustive Search.html"
   ]
 }
