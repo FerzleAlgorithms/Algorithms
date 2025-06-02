@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <script src="/Algorithms/scripts/demoScripts.js"></script>
-  <link rel="stylesheet" href="/Algorithms/css/style.css">
-  <link rel="stylesheet" href="/Algorithms/css/demo.css">
+  <script src="../../../scripts/demoScripts.js"></script>
+  <link rel="stylesheet" href="../../../css/style.css">
+  <link rel="stylesheet" href="../../../css/demo.css">
   <title>Merge Sort Demo</title>
   <style>
     .array-container { display: flex; gap: 12px; margin-bottom: 10px; }
@@ -68,21 +68,18 @@
   font-size: 18px;
   color: #333;
   pointer-events: none;
- 
   visibility: hidden;    /* start hidden until first compare */
 }
 
-	
-	.tight{
+.tight{
 	gap: 0;
-	}
+}
 	.auxElem{
 	margin:0;
 	border-width: 13px;
+  box-sizing: content-box;
 	}
 	
-	
-
 	.hidden{
 		background-color:transparent;
 		border-color:transparent;
@@ -123,9 +120,9 @@
   <div id="main-label">Sorting Array:</div>
   <div id="visualization" class="array-container"></div>
   <div id="aux-label">Auxiliary Array:</div>
-  <div id="aux-container" class="array-container"></div>
-  <div id="aux-arrow">↑</div>
-    <div id="aux-arrow2">↑</div>
+  <div id="aux-container" class="array-container" style="height: 80px;"></div>
+  <div id="aux-arrow"><b>↑<br>i</b></div>
+    <div id="aux-arrow2"><b>↑<br>j</b></div>
   <div id="other-label">Conceptual Arrays (these don't really exist):</div>
   <div id="subarrays"></div>
   <div id="description">Press "Next" to begin.</div>
@@ -172,10 +169,16 @@
 			const idxL = l + i;
 			const idxR = m + 1 + j;
 			record('compare', { idxL, idxR, valueL: L[i], valueR: R[j], l, m, r });
-			const v = L[i] <= R[j] ? L[i++] : R[j++];
-			a[k] = v;
+			if(L[i] <= R[j]) {
+			  const v= L[i++];
+			  a[k] = v;
+			  record('placedFromCompare-l', { k, newValue: v, l, m, r });
+			} else {
+			  const v = R[j++];
+			  a[k] = v;
+			  record('placedFromCompare-r', { k, newValue: v, l, m, r });
+			}
 			
-			record('placedFromCompare', { k, newValue: v, l, m, r });
 			k++;
 		  }
 		  // finish any leftovers
@@ -260,7 +263,7 @@ Array.from(aux.children).forEach(w => {
 	  if (s.type === 'copyToAux'||s.type ==='mergeEnd') {
 		placedSet.clear();          // clear highlights on each copy
 	  }
-	  if (s.type === 'placedFromCompare'||s.type === 'placeRightRemainder'||s.type === 'placeLeftRemainder') {
+	  if (s.type === 'placedFromCompare-l' || s.type === 'placedFromCompare-r' ||s.type === 'placeRightRemainder'||s.type === 'placeLeftRemainder') {
 	 
 		placedSet.add(s.k);         // remember any placed index
 	  }
@@ -315,7 +318,7 @@ Array.from(aux.children).forEach(w => {
 // then for each index in [l..r], un-hide and color its border
 arrow.style.visibility  = 'hidden';
 arrow2.style.visibility = 'hidden';
-if (['mergeStep','compare','copyToAux','placedFromCompare','placeLeftRemainder','placeRightRemainder'].includes(st.type)) {
+if (['mergeStep','compare','copyToAux','placedFromCompare-l','placedFromCompare-r','placeLeftRemainder','placeRightRemainder'].includes(st.type)) {
 if(st.type != 'mergeStep' && st.type != 'copyToAux'){
 
 arrow.style.visibility = 'visible';
@@ -333,7 +336,7 @@ arrow2.style.visibility = 'visible';
 }
 
 
-        if(st.l===l && st.m===m && ['recurseLeft','mergeStep','compare','placedFromCompare','placeLeftRemainder','placeRightRemainder','mergeEnd'].includes(st.type)) 
+        if(st.l===l && st.m===m && ['recurseLeft','mergeStep','compare','placedFromCompare-l','placedFromCompare-r','placeLeftRemainder','placeRightRemainder','mergeEnd'].includes(st.type)) 
 		leftWrap.classList.add('active-subarray');
         for(let i=l;i<=m;i++){
 		const ce=document.createElement('div');
@@ -342,7 +345,7 @@ arrow2.style.visibility = 'visible';
 		}
 		row.appendChild(leftWrap);
         const rightWrap=document.createElement('div');rightWrap.className='array-container';
-        if(st.l===l && st.m===m && ['recurseRight','mergeStep','compare','placedFromCompare','placeLeftRemainder','placeRightRemainder','mergeEnd'].includes(st.type)) rightWrap.classList.add('active-subarray');
+        if(st.l===l && st.m===m && ['recurseRight','mergeStep','compare','placedFromCompare-l','placedFromCompare-r','placeLeftRemainder','placeRightRemainder','mergeEnd'].includes(st.type)) rightWrap.classList.add('active-subarray');
         for(let i=m+1;i<=r;i++){const ce=document.createElement('div');ce.className='element right';ce.textContent=st.a[i];rightWrap.appendChild(ce);}row.appendChild(rightWrap);
         sub.appendChild(row);
       });
@@ -387,7 +390,7 @@ arrow2.style.visibility = 'visible';
 
   // ▶ arrow 1 under st.idxL
   const cell1   = aux.children[st.idxL].getBoundingClientRect();
-  const left1   = cell1.left + cell1.width/2 - auxRect.left + 17;
+  const left1   = cell1.left + cell1.width/2 - auxRect.left + 10;
   const top1    = cell1.bottom - auxRect.top  + 350;
   arrow.style.left       = `${left1}px`;
   arrow.style.top        = `${top1}px`;
@@ -395,7 +398,7 @@ arrow2.style.visibility = 'visible';
 
   // ▶ arrow2 under st.idxR
   const cell2   = aux.children[st.idxR].getBoundingClientRect();
-  const left2   = cell2.left + cell2.width/2 - auxRect.left + 17;
+  const left2   = cell2.left + cell2.width/2 - auxRect.left + 10;
   const top2    = cell2.bottom - auxRect.top  + 350;
   arrow2.style.left       = `${left2}px`;
   arrow2.style.top        = `${top2}px`;
@@ -406,16 +409,18 @@ arrow2.style.visibility = 'visible';
 
 
 
-  case 'placedFromCompare':
-  
-    desc.textContent = `Placed ${st.newValue} at index ${st.k}`;
+  case 'placedFromCompare-l':
+    desc.textContent = `Placed ${st.newValue} at index ${st.k}, i will increment`;
+    break;
+  case 'placedFromCompare-r':
+    desc.textContent = `Placed ${st.newValue} at index ${st.k}, j will increment`;
     break;
 case 'placeLeftRemainder': {
  const auxRect  = aux.getBoundingClientRect();
 const cell     = aux.children[st.idxL];
 
     const cellRect = cell.getBoundingClientRect();
-    const left = cellRect.left + cellRect.width/2 - auxRect.left +17;
+    const left = cellRect.left + cellRect.width/2 - auxRect.left +10;
     const top  = cellRect.bottom - auxRect.top + 350;
 
     arrow.style.left       = `${left}px`;
@@ -433,7 +438,7 @@ const cell     = aux.children[st.idxL];
     const auxRect  = aux.getBoundingClientRect();
     const cell     = aux.children[st.k];
     const cellRect = cell.getBoundingClientRect();
-    const left = cellRect.left + cellRect.width/2 - auxRect.left +17;
+    const left = cellRect.left + cellRect.width/2 - auxRect.left +10;
     const top  = cellRect.bottom - auxRect.top + 350;
 
     arrow2.style.left       = `${left}px`;

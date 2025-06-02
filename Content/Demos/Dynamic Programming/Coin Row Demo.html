@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <title>Coin Row (DP) Demo</title>
-  <script src="/Algorithms/scripts/demoScripts.js"></script>
-  <link rel="stylesheet" href="/Algorithms/css/style.css">
-  <link rel="stylesheet" href="/Algorithms/css/demo.css">
+  <script src="../../../scripts/demoScripts.js"></script>
+  <link rel="stylesheet" href="../../../css/style.css">
+  <link rel="stylesheet" href="../../../css/demo.css">
 
 
    <!-- put your custom demo-only CSS in a <style> block -->
@@ -33,7 +33,10 @@
       .written {
         background-color: lightgreen;
       }
-
+     .arrow {
+         top: 45px;
+		 line-height: 1.2;
+      }
       .comparing   { background-color: yellow; }
       .red-highlight { background-color: lightcoral; }
       .sorted      { background-color: orange; }
@@ -54,7 +57,17 @@
         line-height: 1.2;
         font-weight: bold;
       }
-
+	  .array-container {
+         margin: 10px 0 60px;
+      }
+	  .f-array-container {
+		    display: flex;
+		  gap: 10px;
+		  align-items: flex-start;
+		  font-size: 18px;
+		  position: relative;
+         margin: 10px 0 20px;
+      }
           /* index wrapper styles, from Merge Sort Demo :contentReference[oaicite:0]{index=0} */
     .element-wrapper {
       display: flex;
@@ -97,16 +110,16 @@
         </div>
         <div class="array-section">
           <div class="array-label">F (DP array)</div>
-          <div class="array-container" id="dpContainer"></div>
+          <div class="f-array-container" id="dpContainer"></div>
         </div>
   <div id="stepInfo"></div>
 
   <div class="legend">
     <strong>Legend:</strong>
     <span class="legend-box default"></span> Not computed
-    <span class="legend-box sorted" style="margin-left:15px;"></span> DP computed
     <span class="legend-box comparing" style="margin-left:15px;"></span> Choice 1 (c[i] + F[i−2])
     <span class="legend-box red-highlight" style="margin-left:15px;"></span> Choice 2 (F[i-1])
+    <span class="legend-box sorted" style="margin-left:15px;"></span> DP computed
     <span class="legend-box swap" style="margin-left:15px;"></span> Selected coin
   </div>
 
@@ -157,7 +170,7 @@
     dp: [...dp],
     i: 0,
     phase: 'init',
-    info: `Initialize F[0] = coins[0] = ${arr[0]}`
+    info: `Base Case 1: F[0] = Coins[0] = ${arr[0]}`
   });
 
   // Initialize F[1] = max(coins[0], coins[1])
@@ -168,7 +181,7 @@
       dp: [...dp],
       i: 1,
       phase: 'init',
-      info: `Initialize F[1] = max(coins[0], coins[1]) = ${dp[1]}`
+      info: `Base Case 2: F[1] = max{Coins[0], Coins[1]} = ${dp[1]}`
     });
   }
 
@@ -177,82 +190,104 @@
      // ── single “choice” step ──
   const includeVal = arr[i] + dp[i-2];
   const excludeVal = dp[i-1];
-  steps.push({
-    arr: [...arr],
-    dp: [...dp],
-    i,
-    phase: 'choice',
-  info: `F[${i}] = max(c[${i}] + F[${i-2}], F[${i-1}]) = ` +
-        `max(${arr[i]} + ${dp[i-2]}, ${dp[i-1]})\n` +
-        `exclude (${excludeVal}) is less than include (${includeVal}) → coin picked`
-  });
-
+  
   // ── compute & write ──
   dp[i] = Math.max(arr[i] + dp[i-2], dp[i-1]);
-  steps.push({
-    arr: [...arr],
-    dp: [...dp],
-    i,
-    phase: 'write',
-    info: `F[${i}] = ${dp[i]}`
-  });
+  
+  if(includeVal>excludeVal) {
+	  steps.push({
+		arr: [...arr],
+		dp: [...dp],
+		i,
+		phase: 'choice',
+	  info: `F[${i}] = max{ Coins[${i}] + F[${i-2}], F[${i-1}] } = ` +
+			`max{${arr[i]} + ${dp[i-2]}, ${dp[i-1]}} = ${includeVal} (coin taken!)`
+	  });
+  } else {
+	  steps.push({
+		arr: [...arr],
+		dp: [...dp],
+		i,
+		phase: 'choice',
+	  info: `F[${i}] = max{ Coins[${i}] + F[${i-2}], F[${i-1}] } = ` +
+			`max{${arr[i]} + ${dp[i-2]}, ${dp[i-1]}} = ${excludeVal} (coin not taken!)`
+	  });
+  }
 }
 
+// ── Backtracking to find which coins were chosen ──
+let selected = [];
+let i = n - 1;
 
+// 1) Start of backtracking
+steps.push({
+  arr: [...arr],
+  dp: [...dp],
+  phase: 'backtrack',
+  info: `Begin backtracking at i = ${i}, F[${i}] = ${dp[i]}`
+});
 
-  // Backtracking to find which coins were chosen
-  let selected = [];
-  let i = n - 1;
-  steps.push({
-    arr: [...arr],
-    dp: [...dp],
-    phase: 'backtrack',
-    info: 'Begin backtracking'
-  });
-  while (i > 0) {
-    if (dp[i] === dp[i - 1]) {
-      steps.push({
-        arr: [...arr],
-        dp: [...dp],
-        i,
-        phase: 'exclude',
-        info: `Backtrack: skip coin ${i}`
-      });
-      i--;
-    } else {
-      steps.push({
-        arr: [...arr],
-        dp: [...dp],
-        i,
-        phase: 'select',
-        info: `Backtrack: select coin ${i}`
-      });
-      selected.push(i);
-      i -= 2;
-    }
+while (i > 0) {
+  // Compute what “include” and “exclude” would have been at index i
+  const includeVal = arr[i] + (i - 2 >= 0 ? dp[i - 2] : 0);
+  const excludeVal = dp[i - 1];
+
+  if (dp[i] === excludeVal) {
+    // If F[i] == F[i-1], we know the coin at i was not taken
+    steps.push({
+      arr: [...arr],
+      dp: [...dp],
+      i,
+      phase: 'exclude',
+      info:
+        `At i = ${i}: F[${i}] = F[${i - 1}] = ${dp[i]}. ` +
+        `Skipping coin ${i} (value = ${arr[i]}). ` +
+        `Move to i = ${i - 1}.`
+    });
+    i--;
+  } else {
+    // Otherwise, we must have taken coin i
+    steps.push({
+      arr: [...arr],
+      dp: [...dp],
+      i,
+      phase: 'select',
+      info:
+        `At i = ${i}: F[${i}] = Coins[${i}] + F[${i - 2}] ` +
+        `= ${arr[i]} + ${dp[i - 2]} = ${dp[i]}. ` +
+        `Selecting coin ${i}. Move to i = ${i - 2}.`
+    });
+    selected.push(i);
+    i -= 2;
   }
+}
 
-   // ── NEW ── if we've fallen to i===0, that coin still needs to be selected
- if (i === 0) {
-   steps.push({
-     arr: [...arr],
-     dp: [...dp],
-     i: 0,
-     phase: 'select',
-     info: `Backtrack: select coin 0`
-   });
-   selected.push(0);
- }
-
-  selected.reverse();
-
-  // Final step
+// 2) If we reach i === 0, that coin must be selected
+if (i === 0) {
   steps.push({
     arr: [...arr],
     dp: [...dp],
-    phase: 'done',
-    info: `Done: max value = ${n > 0 ? dp[n - 1] : 0}, coins at [${selected.join(', ')}]`
+    i: 0,
+    phase: 'select',
+    info:
+      `At i = 0: Only coin 0 remains (value = ${arr[0]}). ` +
+      `Select coin 0.`
   });
+  selected.push(0);
+}
+
+selected.reverse();
+
+// 3) Final summary
+steps.push({
+  arr: [...arr],
+  dp: [...dp],
+  phase: 'done',
+  info:
+    `Done backtracking: max value = ${n > 0 ? dp[n - 1] : 0}. ` +
+    `Chosen coins at indices [${selected.join(', ')}].`
+});
+
 }
 
 function renderStep(idx) {
@@ -264,7 +299,7 @@ function renderStep(idx) {
   const permSelected = new Set();
   for (let k = 0; k <= idx; k++) {
     const s = steps[k];
-    if (s.i != null && ['init','choice','write'].includes(s.phase)) {
+    if (s.i != null && ['init','choice','write','select'].includes(s.phase)) {
       // any dp[j] with j ≤ s.i has been computed permanently
       for (let j = 0; j <= s.i; j++) permDP.add(j);
     }
@@ -292,7 +327,7 @@ function renderStep(idx) {
     dpHighBlue.add(i - 2); // F[i−2] → blue
     dpHighRed.add(i - 1);  // F[i−1] → red
   }
-  else if (phase === 'write') {
+  else if (phase === 'write' || phase==='select') {
     dpHighGreen.add(i);    // F[i] → green
   }
 
