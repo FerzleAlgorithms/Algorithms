@@ -170,9 +170,31 @@ nav#menu .menu-controls button {
   background-color: #cbd5e1;
 }
 
+
 nav#menu .menu-controls button:hover {
   background-color: #a8b7cc;
 }
+
+nav#menu .menu-controls button {
+  background: none;
+  border: none;
+  padding: 2px 4px;
+  font: inherit;
+  font-size: 0.9em;
+  color: #0366d6;               /* similar to .problem */
+  cursor: pointer;
+  border-radius: 3px;
+  transition: background-color 0.2s, color 0.2s;
+  text-decoration: none;       /* no underline */
+}
+
+nav#menu .menu-controls button:hover {
+  color: #024f9a;
+  background-color: #dbeafe;   /* subtle hover background */
+}
+
+
+
 
 /* 5) Error message below iframe (if shown) */
 body.mainSite #errorMessage {

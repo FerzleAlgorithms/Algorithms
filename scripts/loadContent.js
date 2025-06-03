@@ -83,8 +83,8 @@ function buildMenu(chapters) {
   const menuContainer = document.querySelector("#menu");
   menuContainer.innerHTML = `
     <div class="menu-controls">
-      <button id="expandAll">Expand All</button>
-      <button id="collapseAll">Collapse All</button>
+    <button id="expandAll" class="link-style">Expand All</button>
+    <button id="collapseAll" class="link-style">Collapse All</button>
     </div>
     <ul><li><a href='?path=home'>Home</a></li></ul>
   `;

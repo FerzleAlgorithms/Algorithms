@@ -14,6 +14,7 @@
   <h1>Exhaustive Search</h1>
   
   <!-- Motivation & Introduction -->
+  
   <section id="introduction">
     <h2>Introduction</h2>
     <p>
@@ -29,6 +30,9 @@
       making it feasible only for relatively small inputs or as a baseline 
       for comparison against more advanced techniques.
     </p>
+      <p>
+    At a high level, exhaustive search algorithms are easy to describe &mdash; phrases like "try every subset" or "check every permutation" capture the core idea in just a few words. In practice, however, writing code that actually "tries every subset" or "checks every arrangement" requires some thought: you must decide how to represent each candidate, how to iterate (or recurse) through all possibilities, and how to efficiently test each candidate against the problem's constraints. That implementation effort is where the real work lies, even though the overarching concept remains straightforward.
+  </p>
   </section>
 
   <section id="examples">
@@ -80,7 +84,7 @@
       <p>
        For more details about this algorithm see the <a class="problem" 
     href="?path=Algorithms/Exhaustive Search/Subset%20Sum">Subset-Sum (Exhaustive Search)</a>
-    page.
+    algorithm page.
       </p>
     </div>
     
@@ -96,79 +100,55 @@
         the N-Queens problem page before continuing.
         </p>
         <p>
-        It is not hard to see that in a valid solution, exactly one queen must occupy each row.
-        Given this, we represent a candidate placement by specifying which column the 
-        queen occupies in each row. We can do this by storing an array \(Q\) of \(N\) numbers 
-        ranging from 1 to \(N\), where \(Q[r]=c\) means that there is a queen at cell \([r,c]\)
-        (That is, in row \(r\) and column \(c\)).
-         A naive exhaustive search then considers all \(N^N\) possible arrays and rejects any 
-         assignment in which two queens share a column or lie on the same diagonal.
-         </p>
-         
-         <font style="color:red; font-size: 26px;">I am here!</font>
+  To generate all \(N^N\) assignments in a structured way, we build the array \(Q\) entry by entry, where each entry corresponds to a specific row. At step \(r\) (for \(r = 0, 1, \dots, N-1\)), we choose a single column \(c\) (from \(0\) to \(N-1\)) and set \(Q[r] = c\). Once \(Q[r]\) is set, we recurse to fill \(Q[r+1]\) through \(Q[N-1]\) in the same manner. After exploring every possible way to fill rows \(r+1\) through \(N-1\) with that fixed \(Q[r]\), we backtrack and try the next column value for \(Q[r]\). Only when \(Q[0]\) through \(Q[N-1]\) have all been assigned do we check the complete configuration for column or diagonal conflicts. This entry-by-entry, depth-first approach is exactly what the pseudocode below implements.
+  This version outputs all valid solutions. (It uses the Java-like <code>Math.abs()</code> function
+  that can be replaced with whatever method for computing absolute values your langauge has.)
+</p>
 
-<p>Pseudocode (recursive, exhaustive over all \(N^N\) assignments):</p>
 <pre><code>
-function exhaustiveNQueens(N):
-    // Q[r] will hold the column index of the queen in row r
-    let Q be a new array of length N
-    place(0, Q)
+// Start recursion to place queens on an NxN board
+void findAllQueenPlacements(int boardSize) {
+    int[] queenCols = new int[boardSize]; 
+    placeQueenInRow(0, queenCols, boardSize);
+}
 
-function place(r, Q):
-    if r = N then
-        // We have assigned a column to every row
-        if noConflicts(Q) then
-            output Q
-        end if
-        return
-    end if
+// Try each column for row currentRow, then recurse
+void placeQueenInRow(int currentRow, int[] queenCols, int boardSize) {
+    if (currentRow == boardSize) { // We have filled the board. Check it.
+        if (isValidConfiguration(queenCols, boardSize)) 
+            outputSolution(queenCols);
+    }
+    // The core of the algorithm: For each column of the board,
+    // place the queen in that column for this row and recursively
+    // try all possible placements for the rest of the rows.
+    for (int col = 0; col < boardSize; col++) {
+        queenCols[currentRow] = col;
+        placeQueenInRow(currentRow + 1, queenCols, boardSize);
+    }
+}
 
-    // Try every possible column for row r
-    for c from 0 to N - 1 do
-        Q[r] = c
-        place(r + 1, Q)
-    end for
+// Check no two queens share a column or diagonal
+boolean isValidConfiguration(int[] queenCols, int boardSize) {
+    for (int r1 = 0; r1 < boardSize; r1++) {
+        for (int r2 = r1 + 1; r2 < boardSize; r2++) {
+            int c1 = queenCols[r1], c2 = queenCols[r2];
+            if (c1 == c2 || Math.abs(r1 - r2) == Math.abs(c1 - c2)) 
+                return false;
+        }
+    }
+    return true;
+}
 </code></pre>
 
+<p>This brute-force approach tries all \(N^N\) possible assignments and performs an \(O(N)\) conflict check on each, yielding an overall time complexity of \(O(N \times N^N)=O(N^{N+1})\). 
+Because \(N^N\) grows so quickly, this method is only practical for very small \(N\).
+  For a more complete explanation and discussion of the algorithm, see the 
+  <a class="problem" href="?path=Algorithms/Exhaustive Search/N-Queens">
+    N-Queens (Exhaustive Search)
+  </a> algorithm page. 
+</p>
 
-      <p>Pseudocode (recursive, without pruning):</p>
-      <pre><code style="width: 300px;">function placeQueens(r, Q):
-    if r == N:
-        if noConflict(Q):
-            output Q
-        return
-    for c from 0 to N - 1:
-        Q[r] = c
-        placeQueens(r + 1, Q)
 
-// Initial call:
-placeQueens(0, new int[N])</code></pre>
-
-      <p>
-        Key points:
-        <ul>
-          <li>
-            The outer recursion has \(N\) levels (one per row). At each row \(r\), 
-            we try \(N\) columns. Total candidates = \(N^N\).
-          </li>
-          <li>
-            At \(r = N\), we have a full assignment \(Q[0..N-1]\). Checking for 
-            "no two queens attack each other" (columns+diagonals) takes \(O(N)\), 
-            so overall \(O(N \times N^N)\).
-          </li>
-          <li>
-            A more optimized brute force would enforce "one queen per row and column," 
-            reducing the search space to \(N!\) permutations. But the truly "naive" 
-            version visits all \(N^N\) assignments and filters out illegal ones.
-          </li>
-        </ul>
-      </p>
-      <p>
-        <em>Visualization:</em> Think of an \(N\)-ary tree of depth \(N\). At level \(r\), 
-        you choose a column for row \(r\). Leaf nodes at depth \(N\) represent 
-        complete candidate boards.
-      </p>
-    </div>
   </section>
 
   <!-- Real-World Applications -->
@@ -425,6 +405,7 @@ ots">
         <strong>Binary Hypercube Visualization:</strong> 
         Visualize all vertices of an \(n\)-dimensional hypercube (bitstrings of length \(n\)) 
         and label which bitstrings correspond    </li>
+        <li>Think of an N! version of the algorithm.</li>
   </ol>
 </section>
 
