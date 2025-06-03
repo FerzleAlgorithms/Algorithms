@@ -139,10 +139,22 @@ boolean isValidConfiguration(int[] queenCols, int boardSize) {
     return true;
 }
 </code></pre>
+<p>The following demonstration shows this exhaustive-search algorithm in action for \(3 \le N \le 8\). Even at the highest speed, you will need to wait quite a while before a valid solution appears for \(N = 7\) or \(N = 8\). This clearly illustrates how quickly the exhaustive search approach becomes impractical as \(N\) increases.
+</p>
 
-<p>This brute-force approach tries all \(N^N\) possible assignments and performs an \(O(N)\) conflict check on each, yielding an overall time complexity of \(O(N \times N^N)=O(N^{N+1})\). 
-Because \(N^N\) grows so quickly, this method is only practical for very small \(N\).
-  For a more complete explanation and discussion of the algorithm, see the 
+ <div class="embeddedDemoContainer">
+      <iframe
+        class="embeddedDemo"
+        src="/Algorithms/Content/Demos/Exhaustive Search/N-Queens Demo.html"
+        allow="fullscreen"
+        name="SubsetSum-demo-bf"
+      ></iframe>
+    </div>
+
+<p>The brute-force approach tries all \(N^N\) possible assignments and performs an \(O(N)\) conflict check on each, yielding an overall time complexity of \(O(N \times N^N)=O(N^{N+1})\). 
+Because \(N^{N+1}\) grows so quickly, this method is only practical for very small values of \(N\)
+(as you may have seen if you ran the demo for \(N = 7\) or \(N = 8\)).
+  For a more complete explanation and discussion of the algorithm, see this 
   <a class="problem" href="?path=Algorithms/Exhaustive Search/N-Queens">
     N-Queens (Exhaustive Search)
   </a> algorithm page. 

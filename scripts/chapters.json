@@ -44,16 +44,19 @@
     },
     {
       "Brute Force": [
+        "Accumulative Polynomial Demo.html",
         "Bubble Sort Demo.html",
         "Fibonacci 5 Naive Demo.html",
         "Fibonacci Naive Demo.html",
         "Polynomial Evaluation Demo.html",
+        "Polynomial Evaluation Old Demo.html",
         "Selection Sort Demo.html",
         "Sequential Search Demo.html"
       ]
     },
     {
       "Decrease-and-Conquer": [
+        "Accumulative Polynomial Demo.html",
         "Hoare Partition Demo.html",
         "Insertion Sort Demo.html"
       ]
@@ -71,6 +74,7 @@
     },
     {
       "Exhaustive Search": [
+        "N-Queens Demo.html",
         "Subset Sum Demo.html"
       ]
     },
