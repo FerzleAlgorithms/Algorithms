@@ -28,10 +28,14 @@
     .edge.mst { stroke: blue; stroke-width: 3px; }
     .info { margin-bottom: 0.5em; }
     #comment { font-style: italic; white-space: pre-line; margin-top: 0.5em; }
+
+    /* Play/Pause and Speed controls styling */
+    #play   { margin-left: 0.5em; }
+    #speed  { margin-left: 0.25em; }
   </style>
 </head>
 <body>
-<h2>Prim's Algorithm Demo</h2>
+  <h2>Prim's Algorithm Demo</h2>
   <div class="controls">
     <label>Nodes: <input type="number" id="nodeCount" min="3" max="20" value="9"></label>
     <button id="generateBtn">Generate Graph</button>
@@ -39,6 +43,14 @@
     <button id="startBtn" disabled>Start Algorithm</button>
     <button id="prevBtn" disabled>Previous</button>
     <button id="nextBtn" disabled>Next</button>
+    <!-- Added Play/Pause button and Speed dropdown -->
+    <button id="play">Play</button>
+    <label for="speed">Speed:</label>
+    <select id="speed">
+      <option value="1">1×</option>
+      <option value="2">2×</option>
+      <option value="4">4×</option>
+    </select>
   </div>
   <div id="info" class="info">Step: – — Total MST Weight: –</div>
 
@@ -72,6 +84,8 @@
     const startBtn = document.getElementById('startBtn');
     const prevBtn = document.getElementById('prevBtn');
     const nextBtn = document.getElementById('nextBtn');
+    const playBtn = document.getElementById('play');
+    const speedSelect = document.getElementById('speed');
     const nodeCount = document.getElementById('nodeCount');
     const startVertex = document.getElementById('startVertex');
     const infoDiv = document.getElementById('info');
@@ -83,15 +97,16 @@
     let steps = [], currentStep = 0;
     let dragNode = null;
     const edgeEls = {}, weightEls = {};
+    let playing = false, intervalId = null;
 
     window.onload = () => {
-  generateBtn.disabled = false;
-  generateBtn.click();
-  setTimeout(() => {
-    startBtn.disabled = false;
-    startBtn.click();
-  }, 100); // slight delay to allow generate to complete
-};
+      generateBtn.disabled = false;
+      generateBtn.click();
+      setTimeout(() => {
+        startBtn.disabled = false;
+        startBtn.click();
+      }, 100);
+    };
 
     generateBtn.onclick = () => {
       buildGraph(+nodeCount.value);
@@ -102,6 +117,11 @@
       commentDiv.textContent = '';
       pqLine.textContent = '';
       primBody.innerHTML = '';
+      // Reset playback state
+      playing = false;
+      playBtn.textContent = 'Play';
+      clearInterval(intervalId);
+      intervalId = null;
     };
 
     startBtn.onclick = () => {
@@ -117,19 +137,23 @@
 
     prevBtn.onclick = () => showStep(currentStep - 1);
     nextBtn.onclick = () => showStep(currentStep + 1);
+
     svg.onmousemove = onDrag;
     document.onmouseup = () => { dragNode = null; };
 
-	seen = new Set();
+    let seen = new Set();
     function buildGraph(n) {
-		seen = new Set(); 
+      seen = new Set();
       graph = {};
       positions = {};
       weightLookup = {};
       const w = svg.clientWidth, h = svg.clientHeight;
       const cx = w / 2, cy = h / 2, r = Math.min(cx, cy) - 50;
       for (let i = 0; i < n; i++) {
-        positions[i] = { x: cx + r * Math.cos(2 * Math.PI * i / n), y: cy + r * Math.sin(2 * Math.PI * i / n) };
+        positions[i] = {
+          x: cx + r * Math.cos(2 * Math.PI * i / n),
+          y: cy + r * Math.sin(2 * Math.PI * i / n)
+        };
         graph[i] = [];
       }
       for (let i = 1; i < n; i++) addEdge(i, Math.floor(Math.random() * i));
@@ -138,9 +162,9 @@
     }
 
     function addEdge(u, v) {
-	  const key = u < v ? `${u}-${v}` : `${v}-${u}`;
-	  if (seen.has(key)) return;
-	  seen.add(key);
+      const key = u < v ? `${u}-${v}` : `${v}-${u}`;
+      if (seen.has(key)) return;
+      seen.add(key);
       const w = 1 + Math.floor(Math.random() * 19);
       graph[u].push({ v, w });
       graph[v].push({ v: u, w });
@@ -162,13 +186,13 @@
             line.className.baseVal = inMst ? 'edge mst' : 'edge';
             svg.appendChild(line);
             edgeEls[key] = line;
-            const txt = document.createElementNS(svg.namespaceURI, 'text');
-            txt.setAttribute('font-size', '12px');
-            txt.setAttribute('text-anchor', 'middle');
-            txt.setAttribute('dominant-baseline', 'middle');
-            txt.textContent = weightLookup[key];
-            svg.appendChild(txt);
-            weightEls[key] = txt;
+            const label = document.createElementNS(svg.namespaceURI, 'text');
+            label.setAttribute('font-size', '12px');
+            label.setAttribute('text-anchor', 'middle');
+            label.setAttribute('dominant-baseline', 'middle');
+            label.textContent = weightLookup[key];
+            svg.appendChild(label);
+            weightEls[key] = label;
           }
         }
       }
@@ -177,14 +201,15 @@
         g.classList.add('node');
         g.setAttribute('data-id', i);
         g.addEventListener('mousedown', e => { dragNode = g; e.preventDefault(); });
+        const circle = document.createElementNS(svg.namespaceURI, 'circle');
+        circle.setAttribute('r', '20');
+        g.appendChild(circle);
+        const text = document.createElementNS(svg.namespaceURI, 'text');
+        text.setAttribute('x', '0');
+        text.setAttribute('y', '0');
+        text.textContent = String.fromCharCode(65 + +i);
+        g.appendChild(text);
         svg.appendChild(g);
-        const c = document.createElementNS(svg.namespaceURI, 'circle'); 
-		c.setAttribute('r', '20'); g.appendChild(c);
-        const t = document.createElementNS(svg.namespaceURI, 'text');
-        t.setAttribute('x', '0');
-        t.setAttribute('y', '0');
-        t.textContent = String.fromCharCode(65 + +i);
-        g.appendChild(t);
       }
       updatePositions();
     }
@@ -194,17 +219,18 @@
         const [u, v] = key.split('-').map(Number);
         const p1 = positions[u], p2 = positions[v];
         const line = edgeEls[key];
-        line.setAttribute('x1', p1.x); line.setAttribute('y1', p1.y);
-        line.setAttribute('x2', p2.x); line.setAttribute('y2', p2.y);
-        const txt = weightEls[key];
-        txt.setAttribute('x', (p1.x + p2.x) / 2);
-        txt.setAttribute('y', (p1.y + p2.y) / 2);
+        line.setAttribute('x1', p1.x);
+        line.setAttribute('y1', p1.y);
+        line.setAttribute('x2', p2.x);
+        line.setAttribute('y2', p2.y);
+        const label = weightEls[key];
+        label.setAttribute('x', (p1.x + p2.x) / 2);
+        label.setAttribute('y', (p1.y + p2.y) / 2);
       }
       svg.querySelectorAll('g.node').forEach(g => {
         const id = +g.getAttribute('data-id');
         const p = positions[id];
         g.setAttribute('transform', `translate(${p.x},${p.y})`);
-        //g.classList.remove('updated-node', 'skipped', 'no-change');
       });
     }
 
@@ -217,37 +243,68 @@
     }
 
     function computeSteps(n, start) {
-      const key = Array(n).fill(Infinity), parent = Array(n).fill(null), visited = Array(n).fill(false);
-      key[start] = 0; let mst = []; const res = [];
-      
-      visited[start] = false; // don't mark as visited yet
-      res.push({ type: 'start', u: start, key: 0, changes: [], neighborMsgs: [], keys: key.slice(), parent: parent.slice(), visited: visited.slice(), mst: [], weight: 0, pq: [{ vertex: start, key: 0 }] });
+      const key = Array(n).fill(Infinity),
+            parent = Array(n).fill(null),
+            visited = Array(n).fill(false);
+      key[start] = 0;
+      let mst = [], res = [];
+
+      res.push({
+        type: 'start', u: start, key: 0,
+        changes: [], neighborMsgs: [], keys: key.slice(),
+        parent: parent.slice(), visited: visited.slice(),
+        mst: [], weight: 0, pq: [{ vertex: start, key: 0 }]
+      });
+
       for (let i = 0; i < n; i++) {
-        const pqb = key.map((k, j) => ({ vertex: j, key: k, visited: visited[j] })).filter(x => !x.visited).sort((a, b) => a.key - b.key);
+        const pqb = key.map((k,j) => ({ vertex: j, key: k, visited: visited[j] }))
+                     .filter(x => !x.visited)
+                     .sort((a,b) => a.key - b.key);
         const u = pqb[0].vertex;
-        // highlight removal
-        res.push({ type: 'highlight', u, key: pqb[0].key, changes: [], neighborMsgs: [], keys: key.slice(), parent: parent.slice(), visited: visited.slice(), mst: mst.slice(), weight: mst.reduce((s, [a,b]) => s + weightLookup[`${a}-${b}`], 0), pq: pqb });
+
+        res.push({
+          type: 'highlight', u, key: pqb[0].key,
+          changes: [], neighborMsgs: [], keys: key.slice(),
+          parent: parent.slice(), visited: visited.slice(),
+          mst: mst.slice(),
+          weight: mst.reduce((s,[a,b]) => s + weightLookup[`${a}-${b}`], 0),
+          pq: pqb
+        });
+
         visited[u] = true;
         if (parent[u] !== null) mst.push([parent[u], u]);
-        // removal step
-        res.push({ type: 'remove', u, key: key[u], changes: [], neighborMsgs: [], keys: key.slice(), parent: parent.slice(), visited: visited.slice(), mst: mst.slice(), weight: mst.reduce((s, [a,b]) => s + weightLookup[`${a}-${b}`], 0), pq: pqb.slice(1) });
-        // relax neighbors
-        const changes = [];
-        const neighborMsgs = [];
+
+        res.push({
+          type: 'remove', u, key: key[u], changes: [],
+          neighborMsgs: [], keys: key.slice(), parent: parent.slice(),
+          visited: visited.slice(), mst: mst.slice(),
+          weight: mst.reduce((s,[a,b]) => s + weightLookup[`${a}-${b}`], 0),
+          pq: pqb.slice(1)
+        });
+
+        const changes = [], neighborMsgs = [];
         for (let { v, w } of graph[u]) {
           if (visited[v]) {
-            neighborMsgs.push(`${String.fromCharCode(65+v)} is already in the tree and will be skipped.`);
+            neighborMsgs.push(`${String.fromCharCode(65+v)} is already in the tree; skip.`);
           } else if (w < key[v]) {
-            neighborMsgs.push(`${String.fromCharCode(65+v)} had key ${key[v]}, but edge (${String.fromCharCode(65+u)},${String.fromCharCode(65+v)}) weight ${w}, updating.`);
+            neighborMsgs.push(`${String.fromCharCode(65+v)} had key ${key[v]}, but edge (${String.fromCharCode(65+u)},${String.fromCharCode(65+v)}) weight ${w}; updating.`);
             changes.push({ v, old: key[v], new: w });
             key[v] = w;
             parent[v] = u;
           } else {
-            neighborMsgs.push(`${String.fromCharCode(65+v)} has key ${key[v]} ≤ edge (${String.fromCharCode(65+u)},${String.fromCharCode(65+v)}) weight ${w}, no change.`);
+            neighborMsgs.push(`${String.fromCharCode(65+v)} has key ${key[v]} ≤ edge (${String.fromCharCode(65+u)},${String.fromCharCode(65+v)}) weight ${w}; no change.`);
           }
         }
-        const pqa = key.map((k, j) => ({ vertex: j, key: k, visited: visited[j] })).filter(x => !x.visited).sort((a, b) => a.key - b.key);
-        res.push({ type: 'relax', u, changes, neighborMsgs, keys: key.slice(), parent: parent.slice(), visited: visited.slice(), mst: mst.slice(), weight: mst.reduce((s, [a,b]) => s + weightLookup[`${a}-${b}`], 0), pq: pqa });
+        const pqa = key.map((k,j) => ({ vertex: j, key: k, visited: visited[j] }))
+                       .filter(x => !x.visited)
+                       .sort((a,b) => a.key - b.key);
+        res.push({
+          type: 'relax', u, changes, neighborMsgs,
+          keys: key.slice(), parent: parent.slice(),
+          visited: visited.slice(), mst: mst.slice(),
+          weight: mst.reduce((s,[a,b]) => s + weightLookup[`${a}-${b}`], 0),
+          pq: pqa
+        });
       }
       return res;
     }
@@ -256,17 +313,19 @@
       if (idx < 0 || idx >= steps.length) return;
       currentStep = idx;
       const step = steps[idx];
-      draw(step.mst); updatePositions();
-      // clear classes
-      svg.querySelectorAll('g.node').forEach(g => g.classList.remove('in-tree','recent','updated-node','skipped','no-change'));
-      // mark in-tree
+      draw(step.mst);
+      updatePositions();
+
+      svg.querySelectorAll('g.node').forEach(g => {
+        g.classList.remove('in-tree','recent','updated-node','skipped','no-change');
+      });
+
       step.visited.forEach((v,i) => {
         if (v) {
           const gi = document.querySelector(`g[data-id="${i}"]`);
           if (gi) gi.classList.add('in-tree');
         }
       });
-      // mark recent and neighbor highlights
       if (step.type === 'remove' || step.type === 'relax') {
         const gr = document.querySelector(`g[data-id="${step.u}"]`);
         if (gr) gr.classList.add('recent');
@@ -280,23 +339,31 @@
           else gv.classList.add('no-change');
         });
       }
-      // update info
+
       infoDiv.textContent = `Step: ${idx} — Total MST Weight: ${step.weight}`;
-      // comment & queue
+
       if (step.type === 'start') {
         commentDiv.textContent = `Starting at (${String.fromCharCode(65+step.u)},0).`;
         pqLine.textContent = '';
       } else if (step.type === 'highlight') {
         commentDiv.textContent = `Next removal: (${String.fromCharCode(65+step.u)},${step.key}).`;
-        pqLine.innerHTML = step.pq.map((e,i) => i===0 ? `<b>(${String.fromCharCode(65+e.vertex)},${e.key===Infinity?'∞':e.key})</b>` : `(${String.fromCharCode(65+e.vertex)},${e.key===Infinity?'∞':e.key})`).join(', ');
+        pqLine.innerHTML = step.pq.map((e,i) =>
+          i === 0
+            ? `<b>(${String.fromCharCode(65+e.vertex)},${e.key===Infinity?'∞':e.key})</b>`
+            : `(${String.fromCharCode(65+e.vertex)},${e.key===Infinity?'∞':e.key})`
+        ).join(', ');
       } else if (step.type === 'remove') {
         commentDiv.textContent = `Removed (${String.fromCharCode(65+step.u)},${step.key}) from queue and added to tree.`;
-        pqLine.textContent = step.pq.map(e => `(${String.fromCharCode(65+e.vertex)},${e.key===Infinity?'∞':e.key})`).join(', ');
+        pqLine.textContent = step.pq.map(e =>
+          `(${String.fromCharCode(65+e.vertex)},${e.key===Infinity?'∞':e.key})`
+        ).join(', ');
       } else if (step.type === 'relax') {
         commentDiv.innerHTML = step.neighborMsgs.join('\n');
-        pqLine.textContent = step.pq.map(e => `(${String.fromCharCode(65+e.vertex)},${e.key===Infinity?'∞':e.key})`).join(', ');
+        pqLine.textContent = step.pq.map(e =>
+          `(${String.fromCharCode(65+e.vertex)},${e.key===Infinity?'∞':e.key})`
+        ).join(', ');
       }
-      // update table
+
       primBody.innerHTML = '';
       step.keys.forEach((k,i) => {
         const tr = document.createElement('tr');
@@ -309,9 +376,51 @@
           <td>${step.visited[i]?'✓':''}</td>`;
         primBody.appendChild(tr);
       });
-      prevBtn.disabled = currentStep === 0;
-      nextBtn.disabled = currentStep === steps.length - 1;
+
+      prevBtn.disabled = (currentStep === 0);
+      nextBtn.disabled = (currentStep === steps.length - 1);
     }
+
+    // ─────────────────────────────────────────────────────────────
+    // Play/Pause & Speed functionality (same pattern as Merge Sort)
+    // ─────────────────────────────────────────────────────────────
+
+    playBtn.addEventListener('click', () => {
+      if (playing) {
+        // Pause
+        playing = false;
+        playBtn.textContent = 'Play';
+        clearInterval(intervalId);
+        intervalId = null;
+      } else {
+        // Start playing
+        playing = true;
+        playBtn.textContent = 'Pause';
+        const speed = parseInt(speedSelect.value, 10);
+        const delay = 1000 / speed;
+        intervalId = setInterval(() => {
+          if (currentStep < steps.length - 1) {
+            showStep(currentStep + 1);
+          } else {
+            // Stop at end
+            playing = false;
+            playBtn.textContent = 'Play';
+            clearInterval(intervalId);
+            intervalId = null;
+          }
+        }, delay);
+      }
+    });
+
+    speedSelect.addEventListener('change', () => {
+      if (playing) {
+        clearInterval(intervalId);
+        playing = false;
+        playBtn.textContent = 'Play';
+        // Restart at new speed
+        playBtn.click();
+      }
+    });
   </script>
 </body>
 </html>

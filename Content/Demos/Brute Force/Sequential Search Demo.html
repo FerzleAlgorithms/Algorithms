@@ -10,11 +10,11 @@
   /* Let the demo measure its *true* content height: */
     .found { background: #8bc34a; }
     .arrow {
-	  width: auto !important;
+      width: auto !important;
     }
-	.array-container{
-	margin-bottom: 50px !important;
-	}
+    .array-container {
+      margin-bottom: 50px !important;
+    }
   </style>
 </head>
 <body>
@@ -36,40 +36,49 @@
     <button id="search">Search</button>
     <button id="prev" disabled>Previous</button>
     <button id="next" disabled>Next</button>
+    <button id="play">Play</button>
+    <label for="speed">Speed:</label>
+    <select id="speed">
+      <option value="1">1x</option>
+      <option value="2">2x</option>
+      <option value="4">4x</option>
+    </select>
   </div>
 
   <div class="array-container" id="arrayContainer">
-  
     <div class="arrow" id="arrow">↑</div>
   </div>
   <div id="status"></div>
 
   <script>
     let array = [], steps = [], currentStep = -1, searchVal;
-    const sizeInput = document.getElementById('arraySize');
+    let playing = false, intervalId = null;
+    const sizeInput   = document.getElementById('arraySize');
     const customInput = document.getElementById('customArray');
-    const searchBtn = document.getElementById('search');
-    const prevBtn   = document.getElementById('prev');
-    const nextBtn   = document.getElementById('next');
- function generateRandomArray(sizeInput,inputValues) {
-  size = +sizeInput.value;
-  const minV = parseInt(sizeInput.min);
-  const maxV = parseInt(sizeInput.max);
-  if(size < minV) {
-      size = minV;
-      sizeInput.value = minV;
-  }
-  if(size > maxV) {
-     size = maxV;
-     sizeInput.value = maxV;
-  }
+    const searchBtn   = document.getElementById('search');
+    const prevBtn     = document.getElementById('prev');
+    const nextBtn     = document.getElementById('next');
+    const playBtn     = document.getElementById('play');
+    const speedSelect = document.getElementById('speed');
 
-  array = Array.from({length: size}, () => Math.floor(Math.random() * 100));
-  inputValues.value = array.join(',');
-}
+    function generateRandomArray(sizeInput, inputValues) {
+      let size = +sizeInput.value;
+      const minV = parseInt(sizeInput.min);
+      const maxV = parseInt(sizeInput.max);
+      if (size < minV) {
+        size = minV;
+        sizeInput.value = minV;
+      }
+      if (size > maxV) {
+        size = maxV;
+        sizeInput.value = maxV;
+      }
+      array = Array.from({ length: size }, () => Math.floor(Math.random() * 100));
+      inputValues.value = array.join(',');
+    }
 
     function randomArray() {
-      generateRandomArray(sizeInput,customInput);
+      generateRandomArray(sizeInput, customInput);
       displayArray();
       resetSteps();
     }
@@ -87,11 +96,11 @@
     function displayArray(highlightIndex = -1, foundIndex = -1) {
       const container = document.getElementById('arrayContainer');
       container.innerHTML = '<div class="arrow" id="arrow">↑</div>';
-      array.forEach((v,i) => {
+      array.forEach((v, i) => {
         const div = document.createElement('div');
         div.className = 'element';
         if (i === highlightIndex) div.classList.add('comparing');
-        if (i === foundIndex)    div.classList.add('found');
+        if (i === foundIndex) div.classList.add('found');
         div.textContent = v;
         container.appendChild(div);
       });
@@ -104,15 +113,19 @@
         const items = document.querySelectorAll('.element');
         const target = items[i].getBoundingClientRect();
         const parent = document.getElementById('arrayContainer').getBoundingClientRect();
-        arrow.style.left = `${target.left - parent.left + target.width/2 - 8}px`;
+        arrow.style.left = `${target.left - parent.left + target.width / 2 - 8}px`;
         arrow.style.display = 'block';
-      } else arrow.style.display = 'none';
+      } else {
+        arrow.style.display = 'none';
+      }
     }
 
     function resetSteps() {
-      steps = []; currentStep = -1;
+      steps = [];
+      currentStep = -1;
       document.getElementById('status').textContent = '';
       prevBtn.disabled = nextBtn.disabled = true;
+      stopAuto();
     }
 
     function startSearch() {
@@ -121,7 +134,10 @@
       let found = false;
       for (let i = 0; i < array.length; i++) {
         steps.push({ index: i, found: array[i] === searchVal });
-        if (array[i] === searchVal) { found = true; break; }
+        if (array[i] === searchVal) {
+          found = true;
+          break;
+        }
       }
       if (!found) steps.push({ index: array.length, found: false });
       nextStep();
@@ -130,9 +146,9 @@
     function updateStatus(step) {
       const s = document.getElementById('status');
       if (step.index === array.length) {
-        s.innerHTML = `Reached the end of the array.<br> ${searchVal} not found. Returning  -1.`;
+        s.innerHTML = `Reached the end of the array.<br>${searchVal} not found. Returning -1.`;
       } else if (step.found) {
-        s.innerHTML = `Searching for ${searchVal}<br>Index ${step.index}: ${array[step.index]} ≠ ${searchVal}<br>Found at index ${step.index}. Returning ${step.index}`;
+        s.innerHTML = `Searching for ${searchVal}<br>Index ${step.index}: ${array[step.index]} = ${searchVal}<br>Found at index ${step.index}. Returning ${step.index}`;
       } else {
         s.innerHTML = `Searching for ${searchVal}<br>Index ${step.index}: ${array[step.index]} ≠ ${searchVal}.`;
       }
@@ -145,7 +161,9 @@
         displayArray(st.index, st.found ? st.index : -1);
         updateStatus(st);
         prevBtn.disabled = false;
-        nextBtn.disabled = currentStep === steps.length - 1;
+        nextBtn.disabled = (currentStep === steps.length - 1);
+      } else {
+        stopAuto();
       }
     }
 
@@ -156,11 +174,50 @@
         displayArray(st.index, st.found ? st.index : -1);
         updateStatus(st);
         nextBtn.disabled = false;
-        prevBtn.disabled = currentStep === 0;
+        prevBtn.disabled = (currentStep === 0);
       }
     }
 
-    // wire up events (same style as Insertion Sort demo)
+    function startAuto() {
+      if (playing) return;
+      playing = true;
+      playBtn.textContent = 'Pause';
+      const speed = parseInt(speedSelect.value, 10);
+      const delay = 1000 / speed;
+      intervalId = setInterval(() => {
+        if (currentStep < steps.length - 1) {
+          nextStep();
+        } else {
+          stopAuto();
+        }
+      }, delay);
+    }
+
+    function stopAuto() {
+      playing = false;
+      playBtn.textContent = 'Play';
+      if (intervalId !== null) {
+        clearInterval(intervalId);
+        intervalId = null;
+      }
+    }
+
+    playBtn.addEventListener('click', () => {
+      if (playing) {
+        stopAuto();
+      } else {
+        startAuto();
+      }
+    });
+
+    speedSelect.addEventListener('change', () => {
+      if (playing) {
+        stopAuto();
+        startAuto();
+      }
+    });
+
+    // wire up events
     document.getElementById('generate').addEventListener('click', randomArray);
     document.getElementById('useCustom').addEventListener('click', useCustomArray);
     searchBtn.addEventListener('click', startSearch);
@@ -170,6 +227,7 @@
     // initialize
     randomArray();
   </script>
+
   <script>
   // send our height to the parent whenever we load or change
   function reportHeight() {
@@ -182,16 +240,12 @@
   }
 
   window.addEventListener('load', reportHeight);
-  // watch for DOM mutations (e.g. new elements, animation)
-  new MutationObserver(reportHeight)
-    .observe(document.documentElement, {
-      subtree: true,
-      childList: true,
-      attributes: true
-    });
-  // also on resize, in case your demo resizes itself
+  new MutationObserver(reportHeight).observe(document.documentElement, {
+    subtree: true,
+    childList: true,
+    attributes: true
+  });
   window.addEventListener('resize', reportHeight);
-</script>
-
+  </script>
 </body>
 </html>

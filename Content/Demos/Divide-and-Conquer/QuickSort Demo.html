@@ -7,7 +7,6 @@
   <link rel="stylesheet" href="../../../css/style.css">
   <link rel="stylesheet" href="../../../css/demo.css">
   <style>
-
     .element-wrapper {
       display: flex;
       flex-direction: column;
@@ -24,7 +23,7 @@
       display: flex;
       gap: 10px;
       position: relative;
-      min-height: 80px;      /* extra space for arrows underneathF */
+      min-height: 80px;      /* extra space for arrows underneath */
     }
     .element-wrapper {
       display: flex; flex-direction: column; align-items: center;
@@ -60,21 +59,28 @@
     <button id="useCustom">Create Array</button>
   </div>
 
-  <div style="margin:10px 0;">
-    <button id="prev-step">Previous</button>
-    <button id="next-step">Next</button>
+  <div id="buttons" style="margin:10px 0;">
+    <button id="prev" disabled>Previous</button>
+    <button id="next" disabled>Next</button>
+    <button id="play">Play</button>
+    <label for="speed">Speed:</label>
+    <select id="speed">
+      <option value="1">1x</option>
+      <option value="2">2x</option>
+      <option value="4">4x</option>
+    </select>
   </div>
 
-<div class="legend">
-  <b>Legend:</b>
-  <span class="legend-box" style="background-color: lightgreen;"></span> Pivot
-  <span class="legend-box" style="background-color: orange;"></span> ≤ pivot
-  <span class="legend-box" style="background-color: #1e90ff;"></span> &gt; pivot
-  <span class="legend-box" style="background-color: #ff7f7f;"></span> Comparing
-  <span class="legend-box" style="background-color: yellow;"></span> Swapping
-  <span class="legend-box" style="background-color: white;"></span> Unpartitioned
-  <span class="legend-box" style="background-color: #b579ee;"></span> Sorted
-</div> 
+  <div class="legend">
+    <b>Legend:</b>
+    <span class="legend-box" style="background-color: lightgreen;"></span> Pivot
+    <span class="legend-box" style="background-color: orange;"></span> ≤ pivot
+    <span class="legend-box" style="background-color: #1e90ff;"></span> &gt; pivot
+    <span class="legend-box" style="background-color: #ff7f7f;"></span> Comparing
+    <span class="legend-box" style="background-color: yellow;"></span> Swapping
+    <span class="legend-box" style="background-color: white;"></span> Unpartitioned
+    <span class="legend-box" style="background-color: #b579ee;"></span> Sorted
+  </div>
 
   <!-- Header for main array -->
   <h3>Main Array</h3>
@@ -92,8 +98,7 @@
   const renderedSnapshots = new Set();
   const depthContainers = {};
   const pivotIndices   = {};
-  const fadedSnapshots    = new Set();    // ← new: remembers which pivot‐snapshots have been faded
-
+  const fadedSnapshots = new Set();
 
   function record(state) {
     steps.push(JSON.parse(JSON.stringify(state)));
@@ -112,517 +117,484 @@
   }
 
   function render() {
-    // 0) reset everything
-   // 0) only clear out _dynamic_ groups; leave all .static-group in place
-  const container = document.getElementById('subarrays');
-  // (don’t touch container.innerHTML, renderedSnapshots, or depthContainers here)
-  Object.values(depthContainers).forEach(row => {
-    const prev = row.querySelector('.dynamic-group');
-    if (prev) row.removeChild(prev);
-  });
+    // 0) reset only the dynamic groups (keep static snapshots)
+    const container = document.getElementById('subarrays');
+    Object.values(depthContainers).forEach(row => {
+      const prev = row.querySelector('.dynamic-group');
+      if (prev) row.removeChild(prev);
+    });
 
+    const st = steps[cur];
+    const sortedColor = '#b579ee';
+    const fullKey     = `${st.depth}-${st.low}-${st.high}`;
+    const depthKey    = st.depth;
 
-  const st = steps[cur];
-  const sortedColor = '#b579ee';       // your purple swatch
-  const fullKey     = `${st.depth}-${st.low}-${st.high}`;
-  const depthKey    = st.depth;
-
-     // --- 1a) Build globalColors (full history for the main array) ---
-  const globalColors = Array(st.A.length).fill(null);
-  for (let k = 0; k <= cur; k++) {
-    const s = steps[k];
-    // “start” → pivot = lightgreen
-    if (s.phase === 'start' && globalColors[s.pivot] !== sortedColor) {
-      globalColors[s.pivot] = 'lightgreen';
-    }
-    // compare-i
-    if (s.phase === 'compare-i' && globalColors[s.i] !== sortedColor) {
-      globalColors[s.i] = (s.A[s.i] <= s.p) ? 'orange' : '#1e90ff';
-    }
-    // compare-j
-    if (s.phase === 'compare-j' && globalColors[s.j] !== sortedColor) {
-      globalColors[s.j] = (s.A[s.j] <= s.p) ? 'orange' : '#1e90ff';
-    }
-    // element swap
-    if (s.phase === 'do-swap') {
-      const c1 = globalColors[s.oldi], c2 = globalColors[s.oldj];
-      if (globalColors[s.oldi] !== sortedColor) {
-        globalColors[s.oldi] = (c2 === sortedColor) ? c1 : c2;
+    // — 1a) Build globalColors for main array
+    const globalColors = Array(st.A.length).fill(null);
+    for (let k = 0; k <= cur; k++) {
+      const s = steps[k];
+      if (s.phase === 'start' && globalColors[s.pivot] !== sortedColor) {
+        globalColors[s.pivot] = 'lightgreen';
       }
-      if (globalColors[s.oldj] !== sortedColor) {
-        globalColors[s.oldj] = (c1 === sortedColor) ? c2 : c1;
+      if (s.phase === 'compare-i' && globalColors[s.i] !== sortedColor) {
+        globalColors[s.i] = (s.A[s.i] <= s.p) ? 'orange' : '#1e90ff';
       }
-    }
-    // pivot placement
-    if (s.phase === 'do-p') {
-      globalColors[s.j] = sortedColor;
-    }
-    // base case
-    if (s.phase === 'base') {
-      for (let i = s.low; i <= s.high; i++) {
-        globalColors[i] = sortedColor;
+      if (s.phase === 'compare-j' && globalColors[s.j] !== sortedColor) {
+        globalColors[s.j] = (s.A[s.j] <= s.p) ? 'orange' : '#1e90ff';
+      }
+      if (s.phase === 'do-swap') {
+        const c1 = globalColors[s.oldi], c2 = globalColors[s.oldj];
+        if (globalColors[s.oldi] !== sortedColor) {
+          globalColors[s.oldi] = (c2 === sortedColor) ? c1 : c2;
+        }
+        if (globalColors[s.oldj] !== sortedColor) {
+          globalColors[s.oldj] = (c1 === sortedColor) ? c2 : c1;
+        }
+      }
+      if (s.phase === 'do-p') {
+        globalColors[s.j] = sortedColor;
+      }
+      if (s.phase === 'base') {
+        for (let i = s.low; i <= s.high; i++) {
+          globalColors[i] = sortedColor;
+        }
       }
     }
-  }
 
-    // --- 1b) Build localColors (only from this subarray’s depth) ---
+    // — 1b) Build localColors for this subarray’s depth
     const localColors = Array(st.A.length).fill(null);
-  for (let k = 0; k <= cur; k++) {
-    const s = steps[k];
-    if (s.depth !== st.depth) continue;
-
-    if (s.phase === 'start' && localColors[s.pivot] !== sortedColor) {
-      localColors[s.pivot] = 'lightgreen';
-    }
-    if (s.phase === 'compare-i' && localColors[s.i] !== sortedColor) {
-      localColors[s.i] = (s.A[s.i] <= s.p) ? 'orange' : '#1e90ff';
-    }
-    if (s.phase === 'compare-j' && localColors[s.j] !== sortedColor) {
-      localColors[s.j] = (s.A[s.j] <= s.p) ? 'orange' : '#1e90ff';
-    }
-    if (s.phase === 'do-swap') {
-      const c1 = localColors[s.oldi], c2 = localColors[s.oldj];
-      if (localColors[s.oldi] !== sortedColor) {
-        localColors[s.oldi] = (c2 === sortedColor) ? c1 : c2;
+    for (let k = 0; k <= cur; k++) {
+      const s = steps[k];
+      if (s.depth !== st.depth) continue;
+      if (s.phase === 'start' && localColors[s.pivot] !== sortedColor) {
+        localColors[s.pivot] = 'lightgreen';
       }
-      if (localColors[s.oldj] !== sortedColor) {
-        localColors[s.oldj] = (c1 === sortedColor) ? c2 : c1;
+      if (s.phase === 'compare-i' && localColors[s.i] !== sortedColor) {
+        localColors[s.i] = (s.A[s.i] <= s.p) ? 'orange' : '#1e90ff';
+      }
+      if (s.phase === 'compare-j' && localColors[s.j] !== sortedColor) {
+        localColors[s.j] = (s.A[s.j] <= s.p) ? 'orange' : '#1e90ff';
+      }
+      if (s.phase === 'do-swap') {
+        const c1 = localColors[s.oldi], c2 = localColors[s.oldj];
+        if (localColors[s.oldi] !== sortedColor) {
+          localColors[s.oldi] = (c2 === sortedColor) ? c1 : c2;
+        }
+        if (localColors[s.oldj] !== sortedColor) {
+          localColors[s.oldj] = (c1 === sortedColor) ? c2 : c1;
+        }
+      }
+      if (s.phase === 'do-p') {
+        localColors[s.j] = sortedColor;
+      }
+      if (s.phase === 'base') {
+        const pIdx = pivotIndices[s.depth];
+        for (let i = s.low; i <= s.high; i++) {
+          if      (i <  pIdx) localColors[i] = 'orange';
+          else if (i >  pIdx) localColors[i] = '#1e90ff';
+          else                localColors[i] = sortedColor;
+        }
       }
     }
-    if (s.phase === 'do-p') {
-      localColors[s.j] = sortedColor;
-    }
-      // New code in the localColors loop
-  if (s.phase === 'base') {
-    // look up where the pivot landed for this depth
-    const pIdx = pivotIndices[s.depth];
-    for (let i = s.low; i <= s.high; i++) {
-      if      (i <  pIdx) localColors[i] = 'orange';
-      else if (i >  pIdx) localColors[i] = '#1e90ff';
-      else                localColors[i] = sortedColor;
-    }
-  }
-  }
 
-
-
-  // --- 2) Draw master array (uses permanentColors) ---
-  const mainC = document.getElementById('boxes');
-  mainC.innerHTML = '';
-  const mainRow = document.createElement('div');
-  mainRow.className = 'subarray-row';
-  for (let i = 0; i < st.A.length; i++) {
-	  const wrap = document.createElement('div');
-	  wrap.className = 'element-wrapper';
-
-	  const box = document.createElement('div');
-	  box.className = 'element';
-	  box.textContent = st.A[i];
-		 // start with the “permanent” color
-	   let fill = globalColors[i] || '#fff';
-	   // if we’re in highlight-swap, mark the current i/j yellow
-	   if (st.phase === 'highlight-swap' && (i === st.i || i === st.j)) {
-		 fill = 'yellow';
-	   }  else if (st.phase === 'highlight-swap-pivot' && (i === 0 || i === st.j)) {
-		 fill = 'yellow';
-	   }
-	   // if we’re in do-swap, mark the oldi/oldj yellow
-	   if (st.phase === 'do-swap' && (i === st.oldi || i === st.oldj)) {
-		 fill = 'yellow';
-	   }
-	   box.style.background = fill;
-	  wrap.appendChild(box);
-
-	  // ← NEW: index label
-	  const idxLabel = document.createElement('div');
-	  idxLabel.className = 'element-index';
-	  idxLabel.textContent = i;
-	  wrap.appendChild(idxLabel);
-
-	  mainRow.appendChild(wrap);
-}
-
-  mainC.appendChild(mainRow);
-
-// — NEW: clear out any old pivotIndices so we can rebuild them on the replay loop
-for (let d in pivotIndices) delete pivotIndices[d];
-
-// 3) Re-draw every static snapshot (child-array creations + pivot placements)
-for (let k = 0; k <= cur; k++) {
-  const s = steps[k];
-
-  // ensure there's a row for this depth
-  let row = depthContainers[s.depth];
-  if (!row) {
-    row = document.createElement('div');
-    row.className = 'subarray-row';
-    container.appendChild(row);
-    depthContainers[s.depth] = row;
-  }
-
-  // 3a) child-array creation
-  if (s.type === 'draw-subarray') {
-  const key = `${s.depth}-${s.low}-${s.high}`;            // ← compute the same key
-  const row = depthContainers[s.depth];
-
-  // clear previous dynamic group, etc.
-  // …
-
-  // build the static snapshot
-  const staticGroup = document.createElement('div');
-  staticGroup.className = 'static-group';
-  const staticRow   = document.createElement('div');
-  staticRow.className = 'subarray-row';
-
-  // indent blanks up to s.low
-  for (let p = 0; p < s.low; p++) {
-    const ph = document.createElement('div');
-    ph.className = 'subarray-cell blank';
-    staticRow.appendChild(ph);
-  }
-
-  // fill in the actual values
-  s.arr.forEach((v, i) => {
-    const cell = document.createElement('div');
-    cell.className = 'subarray-cell';
-    cell.textContent = v;
-    staticRow.appendChild(cell);
-  });
-
-  // ─── APPLY permanent fade if we’ve seen this slice before ───
-  if (fadedSnapshots.has(key)) {
-    for (let i = s.low; i <= s.high; i++) {
-      const cell = staticRow.children[i];
-      if (cell) cell.style.opacity = '0.5';
-    }
-  }
-
-  staticGroup.appendChild(staticRow);
-  row.appendChild(staticGroup);
-  continue;
-}
-
-// 3b) pivot-placement snapshot
-if (s.phase === 'do-p') {
-  const key = `${s.depth}-${s.low}-${s.high}`;
-  if (renderedSnapshots.has(key)) continue;
-  renderedSnapshots.add(key);
-
-  // stash pivot index for downstream fading
-  pivotIndices[s.depth] = s.j;
-
-  // build the static snapshot group
-  const staticGroup = document.createElement('div');
-  staticGroup.className = 'static-group';
-  staticGroup.style.position = 'absolute';
-  staticGroup.style.left = '0';
-
-  const staticRow = document.createElement('div');
-  staticRow.className = 'subarray-row';
-
-  // indent blanks
-  for (let p = 0; p < s.low; p++) {
-    const blank = document.createElement('div');
-    blank.className = 'element';
-    blank.style.visibility = 'hidden';
-    staticRow.appendChild(blank);
-  }
-
-  // render the slice (values + pivot highlight)
-  for (let i = s.low; i <= s.high; i++) {
-    const wrap = document.createElement('div');
-    wrap.className = 'element-wrapper';
-    const box = document.createElement('div');
-    box.className = 'element';
-    box.textContent = s.A[i];
-    const fill = (i === s.j)
-      ? 'lightgreen'
-      : (s.A[i] <= s.p ? 'orange' : '#1e90ff');
-    box.style.background = fill;
-    wrap.appendChild(box);
-    staticRow.appendChild(wrap);
-  }
-
-  // ─── RE-APPLY any permanent fade we’ve recorded ───
-  if (fadedSnapshots.has(key)) {
-    for (let i = s.low; i <= s.high; i++) {
-      // children[i] includes both blanks (0…s.low-1) and wrappers (s.low…s.high)
-      const wrap = staticRow.children[i];
-      if (wrap) wrap.style.opacity = '0.5';
-    }
-  }
-
-  staticGroup.appendChild(staticRow);
-  row.appendChild(staticGroup);
-    // immediately fade this pivot‐box and mark it as “permanently” faded
-  const pivotWrap = staticRow.children[s.j];
-  if (pivotWrap) pivotWrap.style.opacity = '0.5';
-  fadedSnapshots.add(key);
-}
-}
-
-
-      // --- 4) Dynamic animation (all phases except do-p & base) ---
-  if (st.phase !== 'do-p' && st.phase !== 'base') {
-   // ─── FADE OUT THE PARENT’S STATIC SNAPSHOT SLICE ───
-if (st.depth > 0) {
-  const parentDepth = st.depth - 1;
-  const parentRow   = depthContainers[parentDepth];
-  const staticGroups = parentRow.querySelectorAll('.static-group');
-  staticGroups.forEach(staticGroup => {
-    const staticRow = staticGroup.querySelector('.subarray-row');
-    // fade the child-segment
-    for (let idx = st.low; idx <= st.high; idx++) {
-      const cell = staticRow.children[idx];
-      if (cell) cell.style.opacity = '0.5';
-    }
-    // fade the parent’s pivot
-    const parentPivot = pivotIndices[parentDepth];
-    const pivotCell   = staticRow.children[parentPivot];
-    if (pivotCell) pivotCell.style.opacity = '0.5';
-
-    // ─── RECORD that this slice is now permanently faded ───
-    const key = `${parentDepth}-${st.low}-${st.high}`;
-    fadedSnapshots.add(key);
-  });
-}
-
-    let row = depthContainers[depthKey];
-    if (!row) {
-      row = document.createElement('div');
-      row.className = 'subarray-row';
-      container.appendChild(row);
-      depthContainers[depthKey] = row;
-    }
-    const prev = row.querySelector('.dynamic-group');
-    if (prev) row.removeChild(prev);
-
-    const dynGroup = document.createElement('div');
-    dynGroup.className = 'dynamic-group';
-    dynGroup.style.position = 'absolute';
-    dynGroup.style.left = '0';
-
-    const dRow = document.createElement('div');
-    dRow.className = 'subarray-row';
-
-    // indent blanks
-    for (let p = 0; p < st.low; p++) {
-      const ph = document.createElement('div');
-      ph.className = 'element';
-      ph.style.visibility = 'hidden';
-      dRow.appendChild(ph);
-    }
-
-    // animate slice, now always honoring permanentColors
-    for (let i = st.low; i <= st.high; i++) {
+    // — 2) Draw main array
+    const mainC = document.getElementById('boxes');
+    mainC.innerHTML = '';
+    const mainRow = document.createElement('div');
+    mainRow.className = 'subarray-row';
+    for (let i = 0; i < st.A.length; i++) {
       const wrap = document.createElement('div');
       wrap.className = 'element-wrapper';
 
-      // ← UPDATED: always pull from permanentColors
-      let base = localColors[i] || '#fff';
-
-      let fill = base;
-      if (i === st.pivot)                         fill = 'lightgreen';
-      if ((st.phase === 'compare-i' && i === st.i) ||
-          (st.phase === 'compare-j' && i === st.j)) fill = '#ff7f7f';
-      // highlight-swap: mark st.i & st.j yellow
+      const box = document.createElement('div');
+      box.className = 'element';
+      box.textContent = st.A[i];
+      let fill = globalColors[i] || '#fff';
       if (st.phase === 'highlight-swap' && (i === st.i || i === st.j)) {
         fill = 'yellow';
+      } else if (st.phase === 'highlight-swap-pivot' && (i === 0 || i === st.j)) {
+        fill = 'yellow';
       }
-      // do-swap: mark oldi & oldj yellow
       if (st.phase === 'do-swap' && (i === st.oldi || i === st.oldj)) {
         fill = 'yellow';
       }
-
-
-      const box = document.createElement('div');
-      box.className = 'element';
       box.style.background = fill;
-      box.textContent = st.A[i];
       wrap.appendChild(box);
 
-      const labels = [];
-      if (i === st.i)     labels.push('i');
-      if (i === st.j)     labels.push('j');
-      if (i === st.pivot) labels.push('pivot');
-      if (labels.length) {
-        const a = document.createElement('div');
-        a.className = 'arrow';
-        a.innerHTML = '↑<br>' + labels.join(', ');
-        wrap.appendChild(a);
+      const idxLabel = document.createElement('div');
+      idxLabel.className = 'element-index';
+      idxLabel.textContent = i;
+      wrap.appendChild(idxLabel);
+
+      mainRow.appendChild(wrap);
+    }
+    mainC.appendChild(mainRow);
+
+    // Clear out old pivotIndices
+    for (let d in pivotIndices) delete pivotIndices[d];
+
+    // — 3) Re‐draw static snapshots (child arrays + pivot placements)
+    for (let k = 0; k <= cur; k++) {
+      const s = steps[k];
+      let row = depthContainers[s.depth];
+      if (!row) {
+        row = document.createElement('div');
+        row.className = 'subarray-row';
+        container.appendChild(row);
+        depthContainers[s.depth] = row;
       }
 
-      dRow.appendChild(wrap);
+      // 3a) child‐array creation
+      if (s.type === 'draw-subarray') {
+        const key = `${s.depth}-${s.low}-${s.high}`;
+        const staticGroup = document.createElement('div');
+        staticGroup.className = 'static-group';
+        const staticRow   = document.createElement('div');
+        staticRow.className = 'subarray-row';
+
+        for (let p = 0; p < s.low; p++) {
+          const ph = document.createElement('div');
+          ph.className = 'subarray-cell blank';
+          staticRow.appendChild(ph);
+        }
+
+        s.A.forEach((v, i) => {
+          const cell = document.createElement('div');
+          cell.className = 'subarray-cell';
+          cell.textContent = v;
+          staticRow.appendChild(cell);
+        });
+
+        if (fadedSnapshots.has(key)) {
+          for (let i = s.low; i <= s.high; i++) {
+            const cell = staticRow.children[i];
+            if (cell) cell.style.opacity = '0.5';
+          }
+        }
+
+        staticGroup.appendChild(staticRow);
+        row.appendChild(staticGroup);
+        continue;
+      }
+
+      // 3b) pivot placement snapshot
+      if (s.phase === 'do-p') {
+        const key = `${s.depth}-${s.low}-${s.high}`;
+        if (renderedSnapshots.has(key)) continue;
+        renderedSnapshots.add(key);
+
+        pivotIndices[s.depth] = s.j;
+
+        const staticGroup = document.createElement('div');
+        staticGroup.className = 'static-group';
+        staticGroup.style.position = 'absolute';
+        staticGroup.style.left = '0';
+
+        const staticRow = document.createElement('div');
+        staticRow.className = 'subarray-row';
+
+        for (let p = 0; p < s.low; p++) {
+          const blank = document.createElement('div');
+          blank.className = 'element';
+          blank.style.visibility = 'hidden';
+          staticRow.appendChild(blank);
+        }
+
+        for (let i = s.low; i <= s.high; i++) {
+          const wrap = document.createElement('div');
+          wrap.className = 'element-wrapper';
+          const box = document.createElement('div');
+          box.className = 'element';
+          box.textContent = s.A[i];
+          const fill = (i === s.j)
+            ? 'lightgreen'
+            : (s.A[i] <= s.p ? 'orange' : '#1e90ff');
+          box.style.background = fill;
+          wrap.appendChild(box);
+          staticRow.appendChild(wrap);
+        }
+
+        if (fadedSnapshots.has(key)) {
+          for (let i = s.low; i <= s.high; i++) {
+            const wrap = staticRow.children[i];
+            if (wrap) wrap.style.opacity = '0.5';
+          }
+        }
+
+        staticGroup.appendChild(staticRow);
+        row.appendChild(staticGroup);
+
+        const pivotWrap = staticRow.children[s.j];
+        if (pivotWrap) pivotWrap.style.opacity = '0.5';
+        fadedSnapshots.add(key);
+      }
     }
 
-    dynGroup.appendChild(dRow);
-    row.appendChild(dynGroup);
+    // — 4) Dynamic animation (all phases except do-p & base)
+    if (st.phase !== 'do-p' && st.phase !== 'base') {
+      if (st.depth > 0) {
+        const parentDepth = st.depth - 1;
+        const parentRow   = depthContainers[parentDepth];
+        const staticGroups = parentRow.querySelectorAll('.static-group');
+        staticGroups.forEach(staticGroup => {
+          const staticRow = staticGroup.querySelector('.subarray-row');
+          for (let idx = st.low; idx <= st.high; idx++) {
+            const cell = staticRow.children[idx];
+            if (cell) cell.style.opacity = '0.5';
+          }
+          const parentPivot = pivotIndices[parentDepth];
+          const pivotCell   = staticRow.children[parentPivot];
+          if (pivotCell) pivotCell.style.opacity = '0.5';
+
+          const key = `${parentDepth}-${st.low}-${st.high}`;
+          fadedSnapshots.add(key);
+        });
+      }
+
+      let row = depthContainers[depthKey];
+      if (!row) {
+        row = document.createElement('div');
+        row.className = 'subarray-row';
+        container.appendChild(row);
+        depthContainers[depthKey] = row;
+      }
+      const prev = row.querySelector('.dynamic-group');
+      if (prev) row.removeChild(prev);
+
+      const dynGroup = document.createElement('div');
+      dynGroup.className = 'dynamic-group';
+      dynGroup.style.position = 'absolute';
+      dynGroup.style.left = '0';
+
+      const dRow = document.createElement('div');
+      dRow.className = 'subarray-row';
+
+      for (let p = 0; p < st.low; p++) {
+        const ph = document.createElement('div');
+        ph.className = 'element';
+        ph.style.visibility = 'hidden';
+        dRow.appendChild(ph);
+      }
+
+      for (let i = st.low; i <= st.high; i++) {
+        const wrap = document.createElement('div');
+        wrap.className = 'element-wrapper';
+
+        let base = localColors[i] || '#fff';
+        let fill = base;
+        if (i === st.pivot)                         fill = 'lightgreen';
+        if ((st.phase === 'compare-i' && i === st.i) ||
+            (st.phase === 'compare-j' && i === st.j)) fill = '#ff7f7f';
+        if (st.phase === 'highlight-swap' && (i === st.i || i === st.j)) {
+          fill = 'yellow';
+        }
+        if (st.phase === 'do-swap' && (i === st.oldi || i === st.oldj)) {
+          fill = 'yellow';
+        }
+
+        const box = document.createElement('div');
+        box.className = 'element';
+        box.style.background = fill;
+        box.textContent = st.A[i];
+        wrap.appendChild(box);
+
+        const labels = [];
+        if (i === st.i)     labels.push('i');
+        if (i === st.j)     labels.push('j');
+        if (i === st.pivot) labels.push('pivot');
+        if (labels.length) {
+          const a = document.createElement('div');
+          a.className = 'arrow';
+          a.innerHTML = '↑<br>' + labels.join(', ');
+          wrap.appendChild(a);
+        }
+
+        dRow.appendChild(wrap);
+      }
+
+      dynGroup.appendChild(dRow);
+      row.appendChild(dynGroup);
+    }
+
+    // — 5) Base-case fade-out for this subarray
+    if (st.phase === 'base') {
+      const row = depthContainers[depthKey];
+      if (!row) return;
+
+      row.querySelectorAll('.static-group .subarray-row').forEach(staticRow => {
+        for (let i = st.low; i <= st.high; i++) {
+          const wrap = staticRow.children[i];
+          if (wrap) wrap.style.opacity = '0.5';
+        }
+        staticRow.querySelectorAll('.arrow')
+                 .forEach(a => a.style.opacity = '0.5');
+
+        const key = `${depthKey}-${st.low}-${st.high}`;
+        fadedSnapshots.add(key);
+      });
+
+      const dynGroup = row.querySelector('.dynamic-group');
+      if (dynGroup) {
+        const dynRow = dynGroup.querySelector('.subarray-row');
+        if (dynRow) {
+          Array.from(dynRow.children).forEach(wrap => wrap.style.opacity = '0.5');
+          dynRow.querySelectorAll('.arrow').forEach(a => a.style.opacity = '0.5');
+        }
+      }
+
+      row.querySelectorAll('.element-wrapper').forEach(w => w.style.opacity = '0.5');
+    }
+
+    // — 6) Step description
+    const descEl = document.getElementById('step-desc');
+    descEl.textContent = st.desc;
   }
 
-// --- 5) Base-case fade-out for this subarray ---
-if (st.phase === 'base') {
-  const row = depthContainers[depthKey];
-  if (!row) return;
-
-  // 1) fade the static snapshot cells…
-  row.querySelectorAll('.static-group .subarray-row').forEach(staticRow => {
-    for (let i = st.low; i <= st.high; i++) {
-      const wrap = staticRow.children[i];
-      if (wrap) wrap.style.opacity = '0.5';
-    }
-    staticRow.querySelectorAll('.arrow')
-             .forEach(a => a.style.opacity = '0.5');
-
-    // record permanent fade
-    const key = `${depthKey}-${st.low}-${st.high}`;
-    fadedSnapshots.add(key);
-  });
-
-  // 2) fade the one-element dynamic snapshot…
-  const dynGroup = row.querySelector('.dynamic-group');
-  if (dynGroup) {
-    const dynRow = dynGroup.querySelector('.subarray-row');
-    if (dynRow) {
-      Array.from(dynRow.children).forEach(wrap => wrap.style.opacity = '0.5');
-      dynRow.querySelectorAll('.arrow').forEach(a => a.style.opacity = '0.5');
-    }
-  }
-
-  // ← HERE: make sure *all* wrappers are at 50%
-  row.querySelectorAll('.element-wrapper').forEach(w => w.style.opacity = '0.5');
-}
-
-
-  // --- 5) Step description (with i/j on swap) ---
-const descEl = document.getElementById('step-desc');
-//if (st.phase === 'highlight-swap') {
-//  // before the swap happens
-//  descEl.textContent = `Swapping3 A[${st.i}] & A[${st.j}]`;
-//} else if (st.phase === 'do-swap') {
-//  // after the swap, oldi/oldj are the indices that were swapped
-//  descEl.textContent = `Swapped A[${st.oldi}] & A[${st.oldj}], i++, j--`;
-//} else {
-  // all other phases use the normal description
-  descEl.textContent = st.desc;
-//}
-
-}
-
-
-function quickSort(A, low, high, depth = 0) {
+  function quickSort(A, low, high, depth = 0) {
     if (low < high) {
-		// ← Add this record right here, before partitioning:
-		record({
-		  A:         [...A],
-		  low, 
-		  high,
-		  depth,
-		  phase:    'call',
-		  desc:     `Calling Quicksort on [${low}…${high}]`
-		}); 
+      record({
+        A:    [...A],
+        low,
+        high,
+        depth,
+        phase: 'call',
+        desc:  `Calling Quicksort on [${low}…${high}]`
+      });
       const pi = runPartition(A, low, high, depth);
 
       const leftLen  = pi - low;
       const rightLen = high - pi;
 
-      // LEFT child
       if (leftLen > 1) {
         quickSort(A, low, pi - 1, depth + 1);
       } else if (leftLen === 1) {
-        // fade out that single slot at parent depth
         record({
-          A: [...A],
-          low, high: low,
+          A:    [...A],
+          low,
+          high: low,
           depth,
           phase: 'base',
-          desc: `Reached base case [${low}…${low}]`
+          desc:  `Reached base case [${low}…${low}]`
         });
       }
 
-      // RIGHT child
       if (rightLen > 1) {
         quickSort(A, pi + 1, high, depth + 1);
       } else if (rightLen === 1) {
         record({
-          A: [...A],
-          low: pi + 1, high,
+          A:    [...A],
+          low:  pi + 1,
+          high,
           depth,
           phase: 'base',
-          desc: `Reached base case [${pi+1}…${pi+1}]`
+          desc:  `Reached base case [${pi+1}…${pi+1}]`
         });
       }
     }
   }
-
-
 
   function runPartition(arr, low, high, depth) {
     let pivot = low, p = arr[pivot], i = low+1, j = high;
     record({A:[...arr], i, j, pivot, p, low, high, depth, phase: 'start', desc: `pivot = A[${pivot}] = ${p}`});
     while (true) {
       while (i <= high && arr[i] <= p) {
+        record({
+          A:[...arr],
+          i, j,
+          pivot, p,
+          low, high,
+          depth,
+          phase: 'compare-i',
+          desc: `Comparing A[${i}] with pivot: ${arr[i]} <= ${p}? Yes → i++`
+        });
+        i++;
+      }
       record({
-        A: [...arr],
-        i,
-        j,
-        pivot,
-        p,
-        low,
-        high,
+        A:[...arr],
+        i, j,
+        pivot, p,
+        low, high,
         depth,
         phase: 'compare-i',
-        desc: `Comparing A[${i}] with pivot: ${arr[i]} <= ${p}? Yes → i++`
+        desc: `Comparing A[${i}] with pivot: ${arr[i]} <= ${p}? No → check j`
       });
-      i++;
-    }
-    record({
-      A: [...arr],
-      i,
-      j,
-      pivot,
-      p,
-      low,
-      high,
-      depth,
-      phase: 'compare-i',
-      desc: `Comparing A[${i}] with pivot: ${arr[i]} <= ${p}? No → check j`
-    });
-    
-    while (j >= low && arr[j] > p) {
-    record({
-      A: [...arr],
-      i,
-      j,
-      pivot,
-      p,
-      low,
-      high,
-      depth,
-      phase: 'compare-j',
-      desc: `Comparing A[${j}] with pivot: ${arr[j]} > ${p}? Yes → j--`
-    });
-    j--;
-  }
 
-      if (i >= j) {  
-	    record({A: [...arr],i,j,pivot, p,low, high,depth, phase: 'compare-j',desc: `Comparing A[${j}] with pivot: ${arr[j]} > ${p}? No. i >= j → need to swap j and pivot`});
+      while (j >= low && arr[j] > p) {
+        record({
+          A:[...arr],
+          i, j,
+          pivot, p,
+          low, high,
+          depth,
+          phase: 'compare-j',
+          desc: `Comparing A[${j}] with pivot: ${arr[j]} > ${p}? Yes → j--`
+        });
+        j--;
+      }
 
-		record({A:[...arr], i, j, pivot, p, low, high, depth, phase: 'highlight-swap-pivot',
-              desc: `Swapping1 A[${j}] & A[${0}] (pivot)`});
-		[arr[pivot], arr[j]] = [arr[j], arr[pivot]];
-        record({A:[...arr], i, j, pivot, p, low, high, depth, phase: 'do-p',
-                desc: `Swapped p with A[${j}], p now at index ${j}`});
+      if (i >= j) {
+        record({
+          A:[...arr],
+          i, j,
+          pivot, p,
+          low, high,
+          depth,
+          phase: 'compare-j',
+          desc: `Comparing A[${j}] with pivot: ${arr[j]} > ${p}? No. i >= j → need to swap j and pivot`
+        });
+        record({
+          A:[...arr],
+          i, j,
+          pivot, p,
+          low, high,
+          depth,
+          phase: 'highlight-swap-pivot',
+          desc: `Swapping1 A[${j}] & A[${0}] (pivot)`
+        });
+        [arr[pivot], arr[j]] = [arr[j], arr[pivot]];
+        record({
+          A:[...arr],
+          i, j,
+          pivot, p,
+          low, high,
+          depth,
+          phase: 'do-p',
+          desc: `Swapped p with A[${j}], p now at index ${j}`
+        });
         return j;
       } else {
-	    record({A: [...arr],i,j,pivot, p,low, high,depth, phase: 'compare-j',desc: `Comparing A[${j}] with pivot: ${arr[j]} > ${p}? No → need to swap i and j`});
-	  }
-      record({A:[...arr], i, j, pivot, p, low, high, depth, phase: 'highlight-swap',
-              desc: `Swapping2 A[${i}] & A[${j}]`});
+        record({
+          A:[...arr],
+          i, j,
+          pivot, p,
+          low, high,
+          depth,
+          phase: 'compare-j',
+          desc: `Comparing A[${j}] with pivot: ${arr[j]} > ${p}? No → need to swap i and j`
+        });
+      }
+      record({
+        A:[...arr],
+        i, j,
+        pivot, p,
+        low, high,
+        depth,
+        phase: 'highlight-swap',
+        desc: `Swapping2 A[${i}] & A[${j}]`
+      });
       [arr[i], arr[j]] = [arr[j], arr[i]];
-      const oldi = i, oldj = j; i++; j--;
-      record({A:[...arr], i, j, oldi, oldj, pivot, p, low, high, depth, phase: 'do-swap',
-              /*desc: `Swapped A[${oldi}] & A[${oldj}], i = ${i}, j = ${j}`});*/
-              desc: `Swapped A[${oldi}] & A[${oldj}], i++, j--`});
+      const oldi = i, oldj = j;
+      i++; j--;
+      record({
+        A:[...arr],
+        i, j,
+        oldi, oldj,
+        pivot, p,
+        low, high,
+        depth,
+        phase: 'do-swap',
+        desc: `Swapped A[${oldi}] & A[${oldj}], i++, j--`
+      });
     }
   }
 
@@ -630,65 +602,71 @@ function quickSort(A, low, high, depth = 0) {
     const n = Math.min(Math.max(parseInt(document.getElementById('arraySize').value)||10,8),20);
     document.getElementById('arraySize').value = n;
     A = Array.from({length:n}, ()=>Math.floor(Math.random()*100));
-    const customInput = document.getElementById('customArray');
-	customInput.value = A.join(',');
+    document.getElementById('customArray').value = A.join(',');
     steps = [];
     renderedSnapshots.clear();
     Object.keys(depthContainers).forEach(k => delete depthContainers[k]);
     document.getElementById('subarrays').innerHTML = '';
     quickSort(A, 0, A.length-1);
-	// ─── Add this: final snapshot showing “Finished Quicksort” ───
-	record({
-	  A:    [...A],
-	  low:  0,
-	  high: A.length - 1,
-	  depth: 0,
-	  phase: 'done',
-	  desc:  'Finished Quicksort'
-	});
+    // final snapshot “Finished Quicksort”
+    record({
+      A:    [...A],
+      low:  0,
+      high: A.length - 1,
+      depth: 0,
+      phase: 'done',
+      desc:  'Finished Quicksort'
+    });
     cur = 0; render();
   }
 
-  document.getElementById('generate').onclick = initDemo;
-  document.getElementById('prev-step').onclick = () => { if(cur>0) cur--, render(); };
-  document.getElementById('next-step').onclick = () => { if(cur<steps.length-1) cur++, render(); };
-  document.getElementById('useCustom').onclick = () => {
-  // parse user input
-  const input = document.getElementById('customArray').value;
-  const vals = input.split(',')
-                    .map(x => parseInt(x.trim(), 10))
-                    .filter(x => !isNaN(x));
-  if (vals.length < 2) {
-    return alert("Please enter at least 2 valid integers separated by commas.");
-  }
+  // We no longer wire up prev-step/next-step directly,
+  // because demoScripts.js will take over playback.
+  // IDs must be exactly “prev”, “next”, “play”, “speed”, “generate”, “useCustom”:
 
-  // reinitialize state using the user’s array
-  A = vals;
-  steps = [];
-  renderedSnapshots.clear();
-  Object.keys(depthContainers).forEach(k => delete depthContainers[k]);
-  document.getElementById('subarrays').innerHTML = '';
+  // ─ expose onGenerate to demoScripts.js ─
+  window.onGenerate = function(isCustom) {
+    if (isCustom) {
+      const txt = document.getElementById('customArray').value.trim();
+      return txt.split(',').map(s => parseInt(s.trim(), 10));
+    }
+    const n = parseInt(document.getElementById('arraySize').value, 10);
+    return Array.from({ length: n }, () => Math.floor(Math.random() * 100));
+  };
 
-  // run and render
-  quickSort(A, 0, A.length - 1);
-  // ─── Add this: final snapshot showing “Finished Quicksort” ───
-	record({
-	  A:    [...A],
-	  low:  0,
-	  high: A.length - 1,
-	  depth: 0,
-	  phase: 'done',
-	  desc:  'Finished Quicksort'
-	});
-  cur = 0;
-  render();
-};
+  // ─ expose genSteps to demoScripts.js ─
+  window.genSteps = function(arr) {
+    // clear and rebuild steps based on the passed‐in array
+    steps = [];
+    renderedSnapshots.clear();
+    Object.keys(depthContainers).forEach(k => delete depthContainers[k]);
+    document.getElementById('subarrays').innerHTML = '';
+    quickSort(arr, 0, arr.length - 1);
+    // final “done” snapshot
+    record({
+      A:     [...arr],
+      low:   0,
+      high:  arr.length - 1,
+      depth: 0,
+      phase: 'done',
+      desc:  'Finished Quicksort'
+    });
+    return steps;
+  };
 
+  // ─ expose renderStep to demoScripts.js ─
+  window.renderStep = function(stepsArr, idx, original) {
+    steps = stepsArr;
+    cur = idx;
+    render();
+  };
 
+  // Finally, initialize so that “Generate” works on first load.
   initDemo();
 })();
 </script>
-  <script>
+
+<script>
   // send our height to the parent whenever we load or change
   function reportHeight() {
     const h = document.documentElement.scrollHeight;
@@ -698,16 +676,12 @@ function quickSort(A, low, high, depth = 0) {
       height: h
     }, '*');
   }
-
   window.addEventListener('load', reportHeight);
-  // watch for DOM mutations (e.g. new elements, animation)
-  new MutationObserver(reportHeight)
-    .observe(document.documentElement, {
-      subtree: true,
-      childList: true,
-      attributes: true
-    });
-  // also on resize, in case your demo resizes itself
+  new MutationObserver(reportHeight).observe(document.documentElement, {
+    subtree: true,
+    childList: true,
+    attributes: true
+  });
   window.addEventListener('resize', reportHeight);
 </script>
 </body>

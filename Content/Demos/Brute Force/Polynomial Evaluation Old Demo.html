@@ -68,58 +68,28 @@
     #speed {
       margin-left: 0.25em;
     }
-
-    
   </style>
 </head>
 <body>
   <div class="demo-container">
     <h2>Brute-Force Polynomial Evaluation</h2>
 
-
-    <style>
-      .input-row {
-        margin-bottom: 16px; /* ← adjust as needed */
-      }
-    </style>
-    
     <div class="controls">
-      <!-- (1) NEW: coefficients input + button, then Enter x, all on one line -->
-      <div class="input-row" style="display: flex; align-items: center; gap: 0.75em;">
-        <label>
-          <strong>Coefficients:</strong>
-          <input
-            id="coeff-input"
-            type="text"
-            value="1,-2,3,-4,5,-6,7"
-            size="30"
-            placeholder="e.g. 1,-2,3,-4,5,-6,7"
-          >
-        </label>
-        <button id="create-coeffs-btn">Create Coefficients</button>
-  
-        <!-- keep Enter x on the same row, spaced a bit from Create Coefficients -->
-        <label style="margin-left: 1.5em;">
-          <strong>Enter x:</strong>
-          <input id="x-input" type="number" value="2">
-        </label>
-      </div>
-  
-      <!-- (2) unchanged: play/next/previous buttons, etc. -->
-      <div class="button-row">
-        <button id="prev-btn" disabled>Previous</button>
-        <button id="next-btn">Next</button>
-        <button id="play">Play</button>
-        <label for="speed">Speed:</label>
-        <select id="speed">
-          <option value="1">1×</option>
-          <option value="2">2×</option>
-          <option value="4">4×</option>
-        </select>
-      </div>
+      <label>
+        <strong>Enter x:</strong>
+        <input id="x-input" type="number" value="2">
+      </label>
+      <button id="prev-btn" disabled>Previous</button>
+      <button id="next-btn">Next</button>
+      <!-- Added Play/Pause button and Speed dropdown -->
+      <button id="play">Play</button>
+      <label for="speed">Speed:</label>
+      <select id="speed">
+        <option value="1">1×</option>
+        <option value="2">2×</option>
+        <option value="4">4×</option>
+      </select>
     </div>
-  
-    
 
     <div class="polynomial" id="poly-display">
       <!-- Polynomial with superscripts will be shown here -->
@@ -151,50 +121,27 @@
   <script>
     // 6th-degree polynomial: [1, -2, 3, -4, 5, -6, 7]
     // Represents: 1 - 2x + 3x^2 - 4x^3 + 5x^4 - 6x^5 + 7x^6
-    let coefficients = [1, -2, 3, -4, 5, -6, 7];
-
+    const coefficients = [1, -2, 3, -4, 5, -6, 7];
 
     // DOM elements
-    const polyDisplay     = document.getElementById('poly-display');
-    const stepTableBody   = document.querySelector('#step-table tbody');
-    const xInput          = document.getElementById('x-input');
-    const nextBtn         = document.getElementById('next-btn');
-    const prevBtn         = document.getElementById('prev-btn');
-    const commentDiv      = document.getElementById('comment');
-    const statsDiv        = document.getElementById('stats');
-    const playBtn         = document.getElementById('play');
-    const speedSelect     = document.getElementById('speed');
-
-    // ─── (A) NEW: “Create Coefficients” listener ───
-    const coeffInput      = document.getElementById('coeff-input');
-    const createCoeffsBtn = document.getElementById('create-coeffs-btn');
-
-    createCoeffsBtn.addEventListener('click', () => {
-      const parsed = coeffInput.value
-        .split(',')
-        .map(s => parseFloat(s.trim()))
-        .filter(n => !isNaN(n));
-
-      if (parsed.length > 0) {
-        coefficients = parsed;
-        initDemo();
-      } else {
-        alert('Please enter at least one valid numeric coefficient, separated by commas.');
-      }
-    });
-    // ───────────────────────────────────────────────────
+    const polyDisplay = document.getElementById('poly-display');
+    const stepTableBody = document.querySelector('#step-table tbody');
+    const xInput = document.getElementById('x-input');
+    const nextBtn = document.getElementById('next-btn');
+    const prevBtn = document.getElementById('prev-btn');
+    const commentDiv = document.getElementById('comment');
+    const statsDiv = document.getElementById('stats');
+    const playBtn = document.getElementById('play');
+    const speedSelect = document.getElementById('speed');
 
     // Event structure
-    let events = [];
-    let pointer = -1;
-    let termToSpan = [];
+    let events = [];          // array of event objects
+    let pointer = -1;         // current event index
+    let termToSpan = [];      // map nonzero term index → <span> element
 
     // Play/Pause state
     let playing = false;
     let intervalId = null;
-
-// … rest of your code (renderPolynomial, buildEvents, rebuildDisplay, initDemo, etc.) …
-
 
     // Build polynomial HTML with signs and <sup>
     function buildPolynomialHTML(coeffs) {

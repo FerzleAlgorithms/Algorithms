@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -6,136 +5,255 @@
   <script src="/Algorithms/scripts/demoScripts.js"></script>
   <link rel="stylesheet" href="/Algorithms/css/style.css">
   <link rel="stylesheet" href="/Algorithms/css/demo.css">
-  <title>Subset Sum Backtracking Tree with Functional Sliders</title>
-  <style>
-    #controls1 { margin-bottom: 1em; display: flex; flex-wrap: wrap; gap: 1em; }
-    #controls1 label { display: flex; align-items: center; gap: 0.5em; }
-    #controls2 { margin-bottom: 1em; display: flex; flex-wrap: wrap; gap: 1em; }
-    #controls2 label { display: flex; align-items: center; gap: 0.5em; }
-    .node circle { fill: lightblue; stroke: #333; }
-    .highlight circle { fill: orange; }
-    .deadend circle { fill: #f88; }
-    .current circle { stroke: #000; stroke-width: 3px; }
-    .level-label { font-size: 14px; fill: black; text-anchor: start; }
-  </style>
+  <title>Subset Sum Backtracking Tree with Playback</title>
 </head>
 <body>
   <h2>Subset Sum Backtracking Tree</h2>
+
   <div id="controls1">
     <label>Values: <input id="values" value="3,5,10,13,17"/></label>
-    <label>Target: <input id="target" type="number" value="26" style="width: 60px;"/></label>
+    <label>Target: <input id="target" type="number" value="26"/></label>
     <button id="buildBtn">Build</button>
+
+    <!-- Original Prev/Next buttons (no change) -->
     <button id="prevBtn">Prev</button>
     <button id="nextBtn">Next</button>
+
+    <!-- New Play/Pause button and Speed dropdown -->
+    <button id="play">Play</button>
+    <label for="speed">Speed:</label>
+    <select id="speed">
+      <option value="1">1x</option>
+      <option value="2">2x</option>
+      <option value="4">4x</option>
+    </select>
   </div>
- <!--<div id="controls2">
-	<label>Horizontal Spread: <input type="range" id="hSpread" min="400" max="2000" step="100" value="700"/> <span id="hSpreadVal">700</span></label>
-    <label>Node Font: <input type="range" id="nodeFontSize" min="6" max="24" value="16"/> <span id="nodeFontSizeVal">16</span>px</label>
-    <label>Edge Font: <input type="range" id="edgeFontSize" min="6" max="18" value="16"/> <span id="edgeFontSizeVal">16</span>px</label>
-    <label>Circle Radius: <input type="range" id="circleRadius" min="10" max="40" value="20"/> <span id="circleRadiusVal">20</span>px</label>
 
-  </div>-->
   <svg id="svg" width="1600" height="1200"></svg>
+
 <script>
-let events = [], step = -1;
-const settings = { hSpread:700, nodeFont:16, edgeFont:16, circleR:24 };
+  let events = [], step = -1;
+  const settings = { hSpread:700, nodeFont:16, edgeFont:16, circleR:24 };
 
-function updateSettings() {
-  settings.hSpread = +document.getElementById('hSpread').value;
-  settings.nodeFont = +document.getElementById('nodeFontSize').value;
-  settings.edgeFont = +document.getElementById('edgeFontSize').value;
-  settings.circleR = +document.getElementById('circleRadius').value;
-  document.getElementById('hSpreadVal').textContent = settings.hSpread;
-  document.getElementById('nodeFontSizeVal').textContent = settings.nodeFont;
-  document.getElementById('edgeFontSizeVal').textContent = settings.edgeFont;
-  document.getElementById('circleRadiusVal').textContent = settings.circleR;
-}
+  // Copies of the tree at each event
+  let nodes = [], edges = [], stateVals = [];
 
-function build(preserve=false) {
-  //updateSettings();
-  const oldStep = step;
-  events = []; step = -1;
-  const vals = document.getElementById('values').value.split(',').map(Number);
-  const target = parseInt(document.getElementById('target').value);
-  const nodes = [], edges = [];
-  let idCounter = 0;
-  function record(current,parent) {
-    events.push({nodes:JSON.parse(JSON.stringify(nodes)), edges:JSON.parse(JSON.stringify(edges)), current, vals});
+  function record(current, parent) {
+    events.push({
+      nodes: JSON.parse(JSON.stringify(nodes)),
+      edges: JSON.parse(JSON.stringify(edges)),
+      current,
+      vals: stateVals.slice()
+    });
   }
-  function dfs(i,sum,parent,x,y) {
-    const id = idCounter++;
-    const dead = sum>target, ok = sum===target;
-    nodes[id] = {id,sum,x,y,dead,ok,parent};
-    if(parent!=null) edges.push({from:parent,to:id,label:'+'+(sum-nodes[parent].sum)});
-    record(id,parent);
-    if(dead||i>=vals.length||ok) return;
-    dfs(i+1,sum+vals[i],id,x-settings.hSpread/Math.pow(2,y+1),y+1);
-    record(id,parent);
-    dfs(i+1,sum,id,x+settings.hSpread/Math.pow(2,y+1),y+1);
-    record(id,parent);
+
+  function dfs(i, sum, parent, x, y) {
+    const id = nodes.length;
+    const dead = sum > target;
+    const ok   = sum === target;
+    nodes.push({ id, sum, x, y, dead, ok, parent });
+
+    if (parent != null) {
+      edges.push({
+        from: parent,
+        to:   id,
+        label: '+' + (sum - nodes[parent].sum)
+      });
+    }
+    record(id, parent);
+    if (dead || i >= stateVals.length || ok) return;
+
+    // “Include stateVals[i]”
+    dfs(
+      i + 1,
+      sum + stateVals[i],
+      id,
+      x - settings.hSpread / Math.pow(2, y + 1),
+      y + 1
+    );
+    record(id, parent);
+
+    // “Exclude stateVals[i]”
+    dfs(
+      i + 1,
+      sum,
+      id,
+      x + settings.hSpread / Math.pow(2, y + 1),
+      y + 1
+    );
+    record(id, parent);
   }
-  dfs(0,0,null,800,0);
-  if(preserve && oldStep>=0) step = Math.min(oldStep, events.length-1);
-  else step = 0;
-  draw();
-}
 
-function draw() {
-  const svg = document.getElementById('svg');
-  svg.innerHTML = '';
-  if(step<0||step>=events.length) return;
-  const state = events[step];
-  // level labels
-  state.vals.forEach((v,i)=>{
-    const t=document.createElementNS(svg.namespaceURI,'text');
-    t.setAttribute('x',10); t.setAttribute('y',(i+1)*120+40);
-    t.setAttribute('class','level-label'); t.textContent='val['+i+']=' + v;
-    svg.appendChild(t);
+  function build(preserve = false) {
+    const oldStep = step;
+    events = [];
+    step = -1;
+
+    // Read inputs
+    stateVals = document.getElementById('values')
+                  .value
+                  .split(',')
+                  .map(Number);
+    target = parseInt(document.getElementById('target').value, 10);
+
+    // Reset nodes/edges
+    nodes = [];
+    edges = [];
+    dfs(0, 0, null, 800, 0);
+
+    if (preserve && oldStep >= 0) {
+      step = Math.min(oldStep, events.length - 1);
+    } else {
+      step = 0;
+    }
+
+    draw();
+  }
+
+  function draw() {
+    const svg = document.getElementById('svg');
+    svg.innerHTML = '';
+    if (step < 0 || step >= events.length) return;
+
+    const state = events[step];
+
+    // 1) Draw level labels on left
+    state.vals.forEach((v, i) => {
+      const t = document.createElementNS(svg.namespaceURI, 'text');
+      t.setAttribute('x', 10);
+      t.setAttribute('y', (i + 1) * 120 + 40);
+      // CSS now comes from demo.css:
+      //     .level-label { font-size: 14px; fill: #222; text-anchor: start; }
+      t.setAttribute('class', 'level-label');
+      t.textContent = 'val[' + i + '] = ' + v;
+      svg.appendChild(t);
+    });
+
+    // 2) Draw edges
+    state.edges.forEach(e => {
+      const a = state.nodes[e.from];
+      const b = state.nodes[e.to];
+      if (!a || !b) return;
+
+      const L = document.createElementNS(svg.namespaceURI, 'line');
+      L.setAttribute('x1', a.x);
+      L.setAttribute('y1', a.y * 120 + 40);
+      L.setAttribute('x2', b.x);
+      L.setAttribute('y2', b.y * 120 + 40);
+      // Edge stroke & label styling come from demo.css:
+      //     #svg line { stroke: #888; stroke-width: 1px; }
+      svg.appendChild(L);
+
+      const t = document.createElementNS(svg.namespaceURI, 'text');
+      t.setAttribute('x', (a.x + b.x) / 2);
+      t.setAttribute('y', ((a.y + b.y) / 2) * 120 + 35);
+      // Font-size, text-anchor, fill, etc., now in demo.css
+      t.setAttribute('font-size', settings.edgeFont);
+      t.setAttribute('text-anchor', 'middle');
+      t.setAttribute('dominant-baseline', 'middle');
+      t.textContent = e.label;
+      svg.appendChild(t);
+    });
+
+    // 3) Draw nodes
+    state.nodes.forEach(n => {
+      if (!n) return;
+      const g = document.createElementNS(svg.namespaceURI, 'g');
+
+      // ← changed 'node' → 'treeNode' so that demo.css can style it:
+      let cls = 'treeNode';
+      if (n.dead) cls += ' deadend';
+      if (n.ok)  cls += ' solution';
+      if (n.id === state.current) cls += ' current';
+      g.setAttribute('class', cls);
+
+      const c = document.createElementNS(svg.namespaceURI, 'circle');
+      c.setAttribute('cx', n.x);
+      c.setAttribute('cy', n.y * 120 + 40);
+      c.setAttribute('r', settings.circleR);
+      g.appendChild(c);
+
+      const t = document.createElementNS(svg.namespaceURI, 'text');
+      t.setAttribute('x', n.x);
+      t.setAttribute('y', n.y * 120 + 40);
+      t.setAttribute('font-size', settings.nodeFont);
+      t.setAttribute('text-anchor', 'middle');
+      t.setAttribute('dominant-baseline', 'middle');
+      t.textContent = n.sum;
+      g.appendChild(t);
+
+      svg.appendChild(g);
+    });
+  }
+
+  function next() {
+    if (step < events.length - 1) step++;
+    draw();
+  }
+
+  function prev() {
+    if (step > 0) step--;
+    draw();
+  }
+
+  // ───────────────────────────────────────────────
+  //  Play / Pause  &  Speed
+  // ───────────────────────────────────────────────
+  let playing = false;
+  let intervalId = null;
+
+  document.getElementById('play').addEventListener('click', () => {
+    if (playing) {
+      playing = false;
+      document.getElementById('play').textContent = 'Play';
+      clearInterval(intervalId);
+      intervalId = null;
+    } else {
+      playing = true;
+      document.getElementById('play').textContent = 'Pause';
+      const speed = parseInt(document.getElementById('speed').value, 10);
+      const delay = 1000 / speed;
+      intervalId = setInterval(() => {
+        if (step < events.length - 1) {
+          next();
+        } else {
+          playing = false;
+          document.getElementById('play').textContent = 'Play';
+          clearInterval(intervalId);
+          intervalId = null;
+        }
+      }, delay);
+    }
   });
-  state.edges.forEach(e=>{
-    const a=state.nodes[e.from], b=state.nodes[e.to];
-    if(!a||!b) return;
-    const L=document.createElementNS(svg.namespaceURI,'line');
-    L.setAttribute('x1',a.x); L.setAttribute('y1',a.y*120+40);
-    L.setAttribute('x2',b.x); L.setAttribute('y2',b.y*120+40);
-    L.setAttribute('stroke','#888'); svg.appendChild(L);
-    const t=document.createElementNS(svg.namespaceURI,'text');
-    t.setAttribute('x',(a.x+b.x)/2); t.setAttribute('y',(a.y+b.y)/2*120+35);
-    t.setAttribute('font-size',settings.edgeFont);
-    t.setAttribute('text-anchor','middle');
-    t.setAttribute('dominant-baseline','middle');
-    t.textContent=e.label; svg.appendChild(t);
+
+  document.getElementById('speed').addEventListener('change', () => {
+    if (playing) {
+      clearInterval(intervalId);
+      playing = false;
+      document.getElementById('play').textContent = 'Play';
+      document.getElementById('play').click();
+    }
   });
-  state.nodes.forEach(n=>{
-    if(!n) return;
-    const g=document.createElementNS(svg.namespaceURI,'g');
-    let cls='node'; if(n.dead) cls+=' deadend'; if(n.ok) cls+=' highlight'; if(n.id===state.current) cls+=' current';
-    g.setAttribute('class',cls);
-    const c=document.createElementNS(svg.namespaceURI,'circle');
-    c.setAttribute('cx',n.x); c.setAttribute('cy',n.y*120+40);
-    c.setAttribute('r',settings.circleR); g.appendChild(c);
-    const t=document.createElementNS(svg.namespaceURI,'text');
-    t.setAttribute('x',n.x); t.setAttribute('y',n.y*120+40);
-    t.setAttribute('font-size',settings.nodeFont);
-    t.setAttribute('text-anchor','middle');
-    t.setAttribute('dominant-baseline','middle');
-    t.textContent=n.sum; g.appendChild(t);
-    svg.appendChild(g);
+
+  // ───────────────────────────────────────────────
+  //  Wire up Prev / Next / Build buttons
+  // ───────────────────────────────────────────────
+  document.getElementById('prevBtn').addEventListener('click', () => {
+    prev();
   });
-}
+  document.getElementById('nextBtn').addEventListener('click', () => {
+    next();
+  });
+  document.getElementById('buildBtn').addEventListener('click', () => {
+    build(false);
+  });
 
-function next(){ if(step<events.length-1) step++; draw(); }
-function prev(){ if(step>0) step--; draw(); }
-
-window.onload = () => build(false);
-
-document.getElementById('buildBtn').addEventListener('click', ()=>build(false));
-document.getElementById('nextBtn').addEventListener('click', next);
-document.getElementById('prevBtn').addEventListener('click', prev);
-//document.getElementById('hSpread').addEventListener('input', ()=>build(true));
-//document.getElementById('nodeFontSize').addEventListener('input', ()=>{updateSettings(); draw();});
-//document.getElementById('edgeFontSize').addEventListener('input', ()=>{updateSettings(); draw();});
-//document.getElementById('circleRadius').addEventListener('input', ()=>{updateSettings(); draw();});
+  // ───────────────────────────────────────────────
+  //  On initial load, build so nodes appear immediately
+  // ───────────────────────────────────────────────
+  window.addEventListener('load', () => {
+    build(false);
+  });
 </script>
 </body>
 </html>

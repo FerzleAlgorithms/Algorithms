@@ -16,24 +16,26 @@
     #input-container { position: relative; }
     .array-container { margin-bottom: 30px; }
     .arrow { position: absolute; font-size: 1.2em; display: none; text-align: center; transform: translateX(-50%); }
-    .digit { display: inline; margin:0;padding:0;}
-	.digit-highlight {
-  color: #000;
-  border: 2px solid #4A90E2; /* blue outline */
-  border-radius: 0.25em;
-  padding: 0.05em 0.05em;
-}
-    .hidden {
-  display: none !important;
-}
-.element.finished {
-  background-color: lightgreen;    /* or whatever color you like */
- border-radius: 2px;
-}
-	.count-incremented {
-  background-color: orange;    /* or whatever color you like */
- border-radius: 2px;
-}
+    .digit { display: inline; margin:0;padding:0; }
+    .digit-highlight {
+      color: #000;
+      border: 2px solid #4A90E2; /* blue outline */
+      border-radius: 0.25em;
+      padding: 0.05em 0.05em;
+    }
+    .hidden { display: none !important; }
+    .element.finished {
+      background-color: lightgreen;    /* or whatever color you like */
+      border-radius: 2px;
+    }
+    .count-incremented {
+      background-color: orange;    /* or whatever color you like */
+      border-radius: 2px;
+    }
+
+    /* Styles for Play/Pause and Speed controls */
+    #play { margin-left: 10px; }
+    #speed { margin-left: 5px; }
   </style>
 </head>
 <body>
@@ -51,6 +53,14 @@
   <div id="buttons">
     <button id="prev-step" disabled>Previous</button>
     <button id="next-step" disabled>Next</button>
+    <!-- Play/Pause button and Speed dropdown added: -->
+    <button id="play">Play</button>
+    <label for="speed">Speed:</label>
+    <select id="speed">
+      <option value="1">1×</option>
+      <option value="2">2×</option>
+      <option value="4">4×</option>
+    </select>
   </div>
 
   <div id="phase-label"><strong>Phase:</strong> <span id="phase-name">Initialization</span></div>
@@ -70,11 +80,11 @@
   <div id="description">Press "Next" to begin.</div>
 
   <script>
-    let steps = [], cur = 0;
+    let steps = [], cur = 0, playing = false, intervalId = null;
     const phaseNames = {
       digit_init: 'Digit Initialization',
       count: 'Counting Occurrences',
-	  count_increment: 'Increment Count Array',
+      count_increment: 'Increment Count Array',
       count_end: 'Counting Complete',
       prefix_select: 'Select Prefix Inputs',
       prefix_calc: 'Perform Summation',
@@ -170,22 +180,20 @@
       const desc = document.getElementById('description');
       const phaseLabel = document.getElementById('phase-name');
       const digitLabel = document.getElementById('digit-pos');
-	  
-	  if (!steps.length) return;
-	   ['digit-label','input-label','count-label','output-label']
-    .forEach(id => document.getElementById(id).classList.remove('hidden'));
-  [inpC, cntC, outC].forEach(c => c.classList.remove('hidden'));
-      inpC.innerHTML = '<div id="input-arrow" class="arrow">↑</div>';
-	  const arrowEl = document.getElementById('input-arrow');
 
+      if (!steps.length) return;
+      ['digit-label', 'input-label', 'count-label', 'output-label']
+        .forEach(id => document.getElementById(id).classList.remove('hidden'));
+      [inpC, cntC, outC].forEach(c => c.classList.remove('hidden'));
+
+      inpC.innerHTML = '<div id="input-arrow" class="arrow">↑</div>';
       cntC.innerHTML = '';
       outC.innerHTML = '';
-	  
-      
+
       const st = steps[cur];
       phaseLabel.textContent = phaseNames[st.phase] || st.phase;
       digitLabel.textContent = st.digit != null ? st.digit + 1 : '';
-	  
+
       // Render input values padded to 3 digits with digit spans
       st.input.forEach(v => {
         const dElem = document.createElement('div');
@@ -194,15 +202,22 @@
         dElem.innerHTML = str.split('').map(c => `<span class="digit">${c}</span>`).join('');
         inpC.appendChild(dElem);
       });
+
       // Render count array
       st.count.forEach((c, i) => {
         const wrapper = document.createElement('div');
         wrapper.className = 'count-wrapper';
-        const d = document.createElement('div'); d.className = 'element'; d.textContent = c;
-        const lbl = document.createElement('div'); lbl.className = 'count-label'; lbl.textContent = i;
-        wrapper.appendChild(d); wrapper.appendChild(lbl);
+        const d = document.createElement('div');
+        d.className = 'element';
+        d.textContent = c;
+        const lbl = document.createElement('div');
+        lbl.className = 'count-label';
+        lbl.textContent = i;
+        wrapper.appendChild(d);
+        wrapper.appendChild(lbl);
         cntC.appendChild(wrapper);
       });
+
       // Render output values padded to 3 digits
       st.output.forEach(v => {
         const dElem = document.createElement('div');
@@ -213,6 +228,7 @@
         }
         outC.appendChild(dElem);
       });
+
       // clear previous highlights
       document.querySelectorAll('.comparing').forEach(el => el.classList.remove('comparing'));
       document.querySelectorAll('.digit-highlight').forEach(el => el.classList.remove('digit-highlight'));
@@ -225,16 +241,17 @@
         if (spans[idx]) spans[idx].classList.add('digit-highlight');
       }
 
+      const arrowEl = document.getElementById('input-arrow');
+
       switch (st.phase) {
         case 'digit_init':
           desc.textContent = `Preparing for digit pass ${st.digit + 1}.`;
           positionInputArrow(-1);
-		  if(st.digit >0){
-		  [inpC].forEach(container =>
-    container.querySelectorAll('.element')
-             .forEach(el => el.classList.add('finished'))
-  );}
+          if (st.digit > 0) {
+            inpC.querySelectorAll('.element').forEach(el => el.classList.add('finished'));
+          }
           break;
+
         case 'count':
           desc.textContent = `Counting digit ${st.digit + 1} of value ${st.value} at index ${st.index}.`;
           const inpCells = inpC.querySelectorAll('.element');
@@ -244,94 +261,83 @@
               .querySelector('.element').classList.add('comparing');
           positionInputArrow(st.index);
           break;
-		  case 'count_increment':
-		   const bucket = Math.floor(st.value / Math.pow(10, st.digit)) % 10;
-  desc.textContent = `Incremented bucket ${bucket} for value ${st.value}.`;
-  // highlight the input digit as before
-  const inpCells2 = inpC.querySelectorAll('.element');
-  inpCells2[st.index].classList.add('comparing');
-  highlightDigit(st.index);
-  // but for the count cell, use your new class:
- 
-  cntC.children[bucket]
-      .querySelector('.element')
-      .classList.add('count-incremented');
-	  positionInputArrow(st.index);
-  break;
+
+        case 'count_increment':
+          const bucket = Math.floor(st.value / Math.pow(10, st.digit)) % 10;
+          desc.textContent = `Incremented bucket ${bucket} for value ${st.value}.`;
+          const inpCells2 = inpC.querySelectorAll('.element');
+          inpCells2[st.index].classList.add('comparing');
+          highlightDigit(st.index);
+          cntC.children[bucket].querySelector('.element').classList.add('count-incremented');
+          positionInputArrow(st.index);
+          break;
 
         case 'count_end':
           desc.textContent = 'Counting occurrences complete.';
           positionInputArrow(-1);
           break;
+
         case 'prefix_select':
           desc.textContent = `Selecting count of bucket ${st.index - 1} and ${st.index} for prefix sum.`;
           cntC.children[st.index - 1].querySelector('.element').classList.add('comparing');
           cntC.children[st.index].querySelector('.element').classList.add('comparing');
           break;
+
         case 'prefix_calc':
           desc.textContent = `Updating bucket ${st.index} to ${st.count[st.index]}.`;
           cntC.children[st.index].querySelector('.element').classList.add('comparing');
           break;
+
         case 'prefix_end':
           desc.textContent = 'Prefix summation complete.';
           break;
+
         case 'output_input':
           desc.textContent = `Selecting value ${st.value} for placement.`;
           const inpI = inpC.querySelectorAll('.element');
           inpI[st.index].classList.add('comparing');
           highlightDigit(st.index);
           break;
-       case 'output_count': {
-  // 1) compute the bucket and position
-  const bucket   = Math.floor(st.value / Math.pow(10, st.digit)) % 10;
-  const countVal = st.count[bucket];
-  const position = countVal - 1;
 
-  // 2) build the HTML with no stray placeholders
-  desc.innerHTML =
-    `Determining position from count.<br>` +
-    `Index = count[${bucket}] - 1 = ${countVal} - 1 = ${position}`;
-
-  // 3) do your highlights
-  const inpCells = inpC.querySelectorAll('.element');
-  inpCells[st.index].classList.add('comparing');
-  highlightDigit(st.index);
-  cntC.children[bucket]
-      .querySelector('.element')
-      .classList.add('comparing');
-  break;
-}
+        case 'output_count':
+          {
+            const bucket = Math.floor(st.value / Math.pow(10, st.digit)) % 10;
+            const countVal = st.count[bucket];
+            const position = countVal - 1;
+            desc.innerHTML =
+              `Determining position from count.<br>` +
+              `Index = count[${bucket}] - 1 = ${countVal} - 1 = ${position}`;
+            const inpCells = inpC.querySelectorAll('.element');
+            inpCells[st.index].classList.add('comparing');
+            highlightDigit(st.index);
+            cntC.children[bucket].querySelector('.element').classList.add('comparing');
+          }
+          break;
 
         case 'output_place':
           desc.textContent = `Placing value ${st.value} at output index ${st.outPos}.`;
           outC.children[st.outPos].classList.add('finished');
           break;
+
         case 'output_end':
           desc.textContent = 'Building output complete.';
           break;
+
         case 'digit_end':
           desc.textContent = `Digit pass ${st.digit + 1} complete.`;
           break;
-      case 'done': {
-      // 1) Update description
-      desc.textContent = 'Sorting Complete. Showing only final output.';
 
-      // 2) Hide all labels & containers except the output
-      document.getElementById('digit-label').classList.add('hidden');
-      document.getElementById('input-label').classList.add('hidden');
-      document.getElementById('count-label').classList.add('hidden');
-      inpC.classList.add('hidden');
-      cntC.classList.add('hidden');
-      arrowEl.classList.add('hidden');
-
-      // 3) Ensure output is visible and highlight it
-      outC.classList.remove('hidden');
-      outC.querySelectorAll('.element')
-          .forEach(el => el.classList.add('finished'));
-      break;
-    }
-
-
+        case 'done':
+          desc.textContent = 'Sorting Complete. Showing only final output.';
+          document.getElementById('digit-label').classList.add('hidden');
+          document.getElementById('input-label').classList.add('hidden');
+          document.getElementById('count-label').classList.add('hidden');
+          inpC.classList.add('hidden');
+          cntC.classList.add('hidden');
+          arrowEl.classList.add('hidden');
+          outC.classList.remove('hidden');
+          outC.querySelectorAll('.element').forEach(el => el.classList.add('finished'));
+          break;
       }
     }
 
@@ -340,24 +346,87 @@
       document.getElementById('next-step').disabled = cur === steps.length - 1;
     }
 
-    function goToStep(i) { cur = i; render(); updateButtons(); }
-    document.getElementById('prev-step').addEventListener('click', () => cur > 0 && goToStep(cur - 1));
-    document.getElementById('next-step').addEventListener('click', () => cur < steps.length - 1 && goToStep(cur + 1));
+    function goToStep(i) {
+      cur = i;
+      render();
+      updateButtons();
+    }
+
+    document.getElementById('prev-step').addEventListener('click', () => {
+      if (cur > 0) goToStep(cur - 1);
+    });
+    document.getElementById('next-step').addEventListener('click', () => {
+      if (cur < steps.length - 1) goToStep(cur + 1);
+    });
+
     document.getElementById('generate').addEventListener('click', () => {
       const n = parseInt(document.getElementById('arraySize').value, 10);
-      if (isNaN(n) || n < 1 || n > 20) return alert('Size must be between 1 and 20');
+      if (isNaN(n) || n < 1 || n > 20) {
+        return alert('Size must be between 1 and 20');
+      }
       const arr = Array.from({ length: n }, () => Math.floor(Math.random() * 1000));
       document.getElementById('customArray').value = arr.join(',');
-      generateSteps(arr); goToStep(0);
+      steps = generateSteps(arr);
+      goToStep(0);
     });
+
     document.getElementById('useCustom').addEventListener('click', () => {
       const txt = document.getElementById('customArray').value.trim();
       if (!txt) return;
       const arr = txt.split(',').map(s => parseInt(s.trim(), 10));
-      if (arr.some(isNaN) || arr.length < 1 || arr.length > 20) return alert('Please enter 1–20 comma-separated numbers.');
-      generateSteps(arr); goToStep(0);
+      if (arr.some(isNaN) || arr.length < 1 || arr.length > 20) {
+        return alert('Please enter 1–20 comma-separated numbers.');
+      }
+      steps = generateSteps(arr);
+      goToStep(0);
     });
-    document.addEventListener('DOMContentLoaded', () => document.getElementById('generate').click());
+
+    document.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('generate').click();
+    });
+
+    // ─────────────────────────────────────────────────────────────
+    // Play/Pause & Speed functionality (following Merge Sort pattern)
+    // ─────────────────────────────────────────────────────────────
+
+    document.getElementById('play').addEventListener('click', () => {
+      if (playing) {
+        // Pause
+        playing = false;
+        document.getElementById('play').textContent = 'Play';
+        clearInterval(intervalId);
+        intervalId = null;
+      } else {
+        // Start playing
+        playing = true;
+        document.getElementById('play').textContent = 'Pause';
+        const speed = parseInt(document.getElementById('speed').value, 10);
+        const delay = 1000 / speed;
+        intervalId = setInterval(() => {
+          if (cur < steps.length - 1) {
+            cur++;
+            render();
+            updateButtons();
+          } else {
+            // Stop at the end
+            playing = false;
+            document.getElementById('play').textContent = 'Play';
+            clearInterval(intervalId);
+            intervalId = null;
+          }
+        }, delay);
+      }
+    });
+
+    document.getElementById('speed').addEventListener('change', () => {
+      if (playing) {
+        clearInterval(intervalId);
+        playing = false;
+        document.getElementById('play').textContent = 'Play';
+        // Restart playback at new speed
+        document.getElementById('play').click();
+      }
+    });
   </script>
 </body>
 </html>

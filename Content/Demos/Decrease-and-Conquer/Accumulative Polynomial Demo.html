@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Brute-Force Polynomial Evaluation Demo</title>
+  <title>Accumulative Polynomial Evaluation Demo</title>
 
   <script src="../../../scripts/demoScripts.js"></script>
   <link rel="stylesheet" href="../../../css/style.css">
@@ -69,22 +69,17 @@
       margin-left: 0.25em;
     }
 
-    
+    .input-row {
+      margin-bottom: 16px; /* ← adjust as needed */
+    }
   </style>
 </head>
 <body>
   <div class="demo-container">
-    <h2>Brute-Force Polynomial Evaluation</h2>
+    <h2>Accumulative Polynomial Evaluation</h2>
 
-
-    <style>
-      .input-row {
-        margin-bottom: 16px; /* ← adjust as needed */
-      }
-    </style>
-    
     <div class="controls">
-      <!-- (1) NEW: coefficients input + button, then Enter x, all on one line -->
+      <!-- (1) “Create Coefficients” input, then “Enter x” on same line -->
       <div class="input-row" style="display: flex; align-items: center; gap: 0.75em;">
         <label>
           <strong>Coefficients:</strong>
@@ -97,15 +92,15 @@
           >
         </label>
         <button id="create-coeffs-btn">Create Coefficients</button>
-  
-        <!-- keep Enter x on the same row, spaced a bit from Create Coefficients -->
+
+        <!-- “Enter x” on same row -->
         <label style="margin-left: 1.5em;">
           <strong>Enter x:</strong>
           <input id="x-input" type="number" value="2">
         </label>
       </div>
-  
-      <!-- (2) unchanged: play/next/previous buttons, etc. -->
+
+      <!-- (2) Play/Prev/Next and Speed controls, unchanged -->
       <div class="button-row">
         <button id="prev-btn" disabled>Previous</button>
         <button id="next-btn">Next</button>
@@ -118,8 +113,6 @@
         </select>
       </div>
     </div>
-  
-    
 
     <div class="polynomial" id="poly-display">
       <!-- Polynomial with superscripts will be shown here -->
@@ -149,10 +142,9 @@
   </div>
 
   <script>
-    // 6th-degree polynomial: [1, -2, 3, -4, 5, -6, 7]
+    // Default 6th-degree polynomial: [1, -2, 3, -4, 5, -6, 7]
     // Represents: 1 - 2x + 3x^2 - 4x^3 + 5x^4 - 6x^5 + 7x^6
     let coefficients = [1, -2, 3, -4, 5, -6, 7];
-
 
     // DOM elements
     const polyDisplay     = document.getElementById('poly-display');
@@ -165,7 +157,7 @@
     const playBtn         = document.getElementById('play');
     const speedSelect     = document.getElementById('speed');
 
-    // ─── (A) NEW: “Create Coefficients” listener ───
+    // “Create Coefficients” listener
     const coeffInput      = document.getElementById('coeff-input');
     const createCoeffsBtn = document.getElementById('create-coeffs-btn');
 
@@ -182,7 +174,6 @@
         alert('Please enter at least one valid numeric coefficient, separated by commas.');
       }
     });
-    // ───────────────────────────────────────────────────
 
     // Event structure
     let events = [];
@@ -192,9 +183,6 @@
     // Play/Pause state
     let playing = false;
     let intervalId = null;
-
-// … rest of your code (renderPolynomial, buildEvents, rebuildDisplay, initDemo, etc.) …
-
 
     // Build polynomial HTML with signs and <sup>
     function buildPolynomialHTML(coeffs) {
@@ -220,7 +208,7 @@
       return termStrings;
     }
 
-    // Render polynomial and track spans
+    // Render polynomial and track spans for highlighting
     function renderPolynomial() {
       polyDisplay.innerHTML = '';
       const termStrings = buildPolynomialHTML(coefficients);
@@ -238,65 +226,90 @@
       });
     }
 
-    // Build event list based on current x
+    // Build event list based on current x using accumulative evaluation
     function buildEvents(x) {
       events = [];
       let cumulative = 0;
+      let power = 1;
+      let rowIdxCounter = 0;
 
-      // Identify nonzero indices
-      const nonzeroIndices = [];
+      // Iterate through all degrees 0..n
       for (let i = 0; i < coefficients.length; i++) {
-        if (coefficients[i] !== 0) nonzeroIndices.push(i);
-      }
+        if (i === 0) {
+          // i = 0: power = 1, term = a[0]·1
+          const coeff = coefficients[0];
+          if (coeff !== 0) {
+            const initialTerm = coeff;
+            events.push({
+              type: 'createRow',
+              rowIdx: rowIdxCounter,
+              termIdx: rowIdxCounter,
+              i,
+              initialTerm,
+              desc: `Start i=0, term=${initialTerm}`
+            });
+            const prevTotal = cumulative;
+            cumulative += initialTerm;
+            events.push({
+              type: 'updateAdd',
+              rowIdx: rowIdxCounter,
+              i,
+              prevTotal,
+              term: initialTerm,
+              total: cumulative,
+              addCount: 1,
+              desc: `Add term to result: ${prevTotal} + ${initialTerm} = ${cumulative}`
+            });
+            rowIdxCounter++;
+          }
+          // Prepare power for next iteration
+          power = x;
+        } else {
+          // For i >= 1: first update power = previous_power · x
+          power = power * x;
 
-      nonzeroIndices.forEach((i, nzIdx) => {
-        const coeff = coefficients[i];
-        // Create new row with initial term = coefficient
-        events.push({
-          type: 'createRow',
-          rowIdx: nzIdx,
-          termIdx: nzIdx,
-          i,
-          initialTerm: coeff,
-          desc: `Start i=${i}, term=${coeff}`
-        });
-
-        // Multiplication steps
-        let prevTerm = coeff;
-        let multCount = 0;
-        for (let j = 1; j <= i; j++) {
-          const term = prevTerm * x;
-          multCount++;
-          events.push({
-            type: 'updateMult',
-            rowIdx: nzIdx,
-            i,
-            prevTerm,
-            x,
-            term,
-            multCount,
-            total: cumulative,
-            totalMultSteps: i,
-            desc: `Multiply x: ${prevTerm} * ${x} = ${term} (multiplication ${multCount} of ${i})`
-          });
-          prevTerm = term;
+          const coeff = coefficients[i];
+          if (coeff !== 0) {
+            const initialTerm = coeff;
+            events.push({
+              type: 'createRow',
+              rowIdx: rowIdxCounter,
+              termIdx: rowIdxCounter,
+              i,
+              initialTerm,
+              desc: `Start i=${i}, coefficient=${initialTerm}, power=${power}`
+            });
+            // Compute term = a[i] * power (one multiplication)
+            const term = initialTerm * power;
+            events.push({
+              type: 'updateMult',
+              rowIdx: rowIdxCounter,
+              i,
+              prevTerm: initialTerm,
+              x: power,
+              term,
+              multCount: 1,
+              total: cumulative,
+              totalMultSteps: 1,
+              desc: `Multiply coefficient by power: ${initialTerm} * ${power} = ${term}`
+            });
+            // Addition step
+            const prevTotal = cumulative;
+            cumulative += term;
+            events.push({
+              type: 'updateAdd',
+              rowIdx: rowIdxCounter,
+              i,
+              prevTotal,
+              term,
+              total: cumulative,
+              addCount: 1,
+              desc: `Add term to result: ${prevTotal} + ${term} = ${cumulative}`
+            });
+            rowIdxCounter++;
+          }
         }
-
-        // Addition step
-        const term = prevTerm;
-        const prevTotal = cumulative;
-        cumulative += term;
-        events.push({
-          type: 'updateAdd',
-          rowIdx: nzIdx,
-          i,
-          prevTotal,
-          term,
-          total: cumulative,
-          addCount: 1,
-          desc: `Add term to result: ${prevTotal} + ${term} = ${cumulative}`
-        });
-      });
+      }
 
       // Final event: done with answer
       events.push({
@@ -306,7 +319,7 @@
       });
     }
 
-    // Rebuild display up to current pointer
+    // Rebuild display up to current pointer (same logic as brute-force version)
     function rebuildDisplay() {
       // 1) CLEAR ALL EXISTING HIGHLIGHTS (table cells and polynomial terms)
       document.querySelectorAll('.highlight-cell').forEach(td => {
@@ -332,7 +345,7 @@
             const { rowIdx, termIdx, i, initialTerm } = ev;
 
             // 3a) Highlight the new polynomial term
-            document.querySelectorAll('.term.current').forEach(el => 
+            document.querySelectorAll('.term.current').forEach(el =>
               el.classList.remove('current')
             );
             termToSpan[termIdx].classList.add('current');
@@ -345,7 +358,7 @@
             tdI.textContent = i;
             tr.appendChild(tdI);
 
-            // term cell (coefficient) – we will highlight at the very end
+            // term cell (coefficient) – highlight later
             const tdTerm = document.createElement('td');
             tdTerm.textContent = initialTerm;
             tr.appendChild(tdTerm);
@@ -431,7 +444,7 @@
       if (pointer < 0) {
         commentDiv.innerHTML = '<br>';
       } else {
-        // This ensures the final "done" description is shown when pointer is on done
+        // Ensure final "done" description is shown when pointer is on done
         commentDiv.innerHTML = events[pointer].desc + '<br>';
       }
       statsDiv.textContent = `Total multiplications: ${totalMult}, Total additions: ${totalAdd}`;
@@ -448,7 +461,7 @@
       rebuildDisplay();
     }
 
-    // Event listeners
+    // Event listeners for Next/Previous
     nextBtn.addEventListener('click', () => {
       if (pointer < events.length - 1) {
         pointer++;

@@ -50,33 +50,30 @@
       font-style: italic;
     }
     
-    
-#callPanel {
-  position: fixed;
-  top: 0;
-  right: 0;
-  width: 300px;
-  height: 100%;
-  background: #fff;
-  border-left: 1px solid #ccc;
-  box-shadow: -2px 0 5px rgba(0,0,0,0.1);
-  transform: translateX(100%);
-  transition: transform 0.3s ease-out;
-  overflow-y: auto;
-  z-index: 1000;
-}
-#callPanel ul {
-   list-style: none;
-   margin: 5px;
-   padding: 0;
-   font-family: sans-serif;
-   font-size: 14px;
-}
-#callPanel.open {
-  transform: translateX(0);
-}
-
-
+    #callPanel {
+      position: fixed;
+      top: 0;
+      right: 0;
+      width: 300px;
+      height: 100%;
+      background: #fff;
+      border-left: 1px solid #ccc;
+      box-shadow: -2px 0 5px rgba(0,0,0,0.1);
+      transform: translateX(100%);
+      transition: transform 0.3s ease-out;
+      overflow-y: auto;
+      z-index: 1000;
+    }
+    #callPanel ul {
+       list-style: none;
+       margin: 5px;
+       padding: 0;
+       font-family: sans-serif;
+       font-size: 14px;
+    }
+    #callPanel.open {
+      transform: translateX(0);
+    }
   </style>
 </head>
 <body>
@@ -87,6 +84,14 @@
     <button id="startBtn">Start</button>
     <button id="prevBtn" disabled>Previous</button>
     <button id="nextBtn" disabled>Next</button>
+    <!-- Play/Pause and Speed controls added below -->
+    <button id="play">Play</button>
+    <label for="speed">Speed:</label>
+    <select id="speed">
+      <option value="1">1×</option>
+      <option value="2">2×</option>
+      <option value="4">4×</option>
+    </select>
     <span id="nodeCount">Number of nodes: 0</span>
     <button id="toggleCalls">Show Calls</button>
     <div id="commentary"></div>
@@ -133,6 +138,10 @@
     let svgNS = 'http://www.w3.org/2000/svg';
     let createCount = 0;
 
+    // Playback globals
+    let playing = false;
+    let intervalId = null;
+
     // Build full tree structure (for layout and event generation)
     function buildTree(n) {
       let idCounter = 0;
@@ -165,35 +174,26 @@
 
     function assignPositions(root) {
       let xCounter = 0;
-      let maxDepth = 0;
       allNodes.forEach(node => {
-        if (node.depth > maxDepth) {
-          maxDepth = node.depth;
-        }
+        // nothing here
       });
-
       const viewBoxWidth  = 800;
       const viewBoxHeight = 400;
       const radius        = 10;
-
-      // Fixed spacing between rows (50px)
-      const levelHeight = 50;
-
-      const marginX     = radius + 5;
-      const usableWidth = viewBoxWidth - 2 * marginX;
-      const total       = allNodes.length;
+      const levelHeight   = 50;
+      const marginX       = radius + 5;
+      const usableWidth   = viewBoxWidth - 2 * marginX;
+      const total         = allNodes.length;
 
       function inorder(node) {
         if (!node) return;
         inorder(node.left);
-
         if (total > 1) {
           node.x = marginX + xCounter * (usableWidth / (total - 1));
         } else {
           node.x = viewBoxWidth / 2;
         }
         node.y = node.depth * levelHeight + radius;
-
         xCounter++;
         inorder(node.right);
       }
@@ -204,7 +204,6 @@
       while (svg.firstChild) {
         svg.removeChild(svg.firstChild);
       }
-      // Recreate the two layers:
       let linkLayer = document.createElementNS(svgNS, 'g');
       linkLayer.setAttribute('id', 'linkLayer');
       svg.appendChild(linkLayer);
@@ -227,12 +226,10 @@
       const radius = 10;
       const offset = 8;
       let parent = node.parent;
-
       let x1 = parent.x + (parent.left === node ? -offset : offset);
       let y1 = parent.y + radius;
       let x2 = node.x;
       let y2 = node.y - radius;
-
       let line = document.createElementNS(svgNS, 'line');
       line.setAttribute('x1', x1);
       line.setAttribute('y1', y1);
@@ -240,13 +237,11 @@
       line.setAttribute('y2', y2);
       line.setAttribute('class', 'link-line');
       line.setAttribute('id', 'link-' + node.id);
-
       document.getElementById('linkLayer').appendChild(line);
     }
 
     function drawNode(node) {
       clearCurrentHighlights();
-
       let circle = document.createElementNS(svgNS, 'circle');
       circle.setAttribute('cx', node.x);
       circle.setAttribute('cy', node.y);
@@ -254,7 +249,6 @@
       circle.setAttribute('id', 'circle-' + node.id);
       circle.setAttribute('class', 'node-circle node-call node-current');
       document.getElementById('nodeLayer').appendChild(circle);
-
       let label = document.createElementNS(svgNS, 'text');
       label.setAttribute('x', node.x + 25);
       label.setAttribute('y', node.y + 10);
@@ -262,7 +256,6 @@
       label.setAttribute('class', 'node-label');
       label.textContent = `F(${node.n})`;
       document.getElementById('nodeLayer').appendChild(label);
-
       let text = document.createElementNS(svgNS, 'text');
       text.setAttribute('x', node.x);
       text.setAttribute('y', node.y);
@@ -270,21 +263,20 @@
       text.setAttribute('class', 'node-text');
       text.textContent = "";
       document.getElementById('nodeLayer').appendChild(text);
-
       createCount++;
       document.getElementById('nodeCount').textContent = `Number of nodes: ${createCount}`;
       updateCommentary(`Calling fib(${node.n})`);
+      // Log call in callPanel
+      logCall(node.n, node.depth, `Call fib(${node.n})`);
     }
 
     function computeNode(node) {
-     // Remove any lingering highlights before drawing the parent
       clearCurrentHighlights();
       if (node.n < 2) {
         node.value = node.n;
       } else {
         node.value = node.left.value + node.right.value;
       }
-
       let circle = document.getElementById('circle-' + node.id);
       let text   = document.getElementById('text-'   + node.id);
       if (circle) {
@@ -293,7 +285,6 @@
       if (text) {
         text.textContent = node.value;
       }
-
       if (node.n < 2) {
         updateCommentary(`Returning F(${node.n}) = ${node.value}`);
       } else {
@@ -307,6 +298,8 @@
           `Done computing F(${L}) = ${Lv} and F(${R}) = ${Rv}. Returning F(${N}) = ${Lv} + ${Rv} = ${Nv}`
         );
       }
+      // Log return in callPanel
+      logCall(node.n, node.depth, `Return fib(${node.n}) = ${node.value}`);
     }
 
     function removeNode(node) {
@@ -321,6 +314,11 @@
       createCount--;
       document.getElementById('nodeCount').textContent = `Number of nodes: ${createCount}`;
       updateCommentary(`Undo call fib(${node.n})`);
+      // Remove last entry from callPanel
+      const ul = document.getElementById('callList');
+      if (ul.lastElementChild) {
+        ul.removeChild(ul.lastElementChild);
+      }
     }
 
     function undoCompute(node) {
@@ -335,6 +333,11 @@
       }
       node.value = null;
       updateCommentary(`Undo return fib(${node.n})`);
+      // Remove last entry from callPanel
+      const ul = document.getElementById('callList');
+      if (ul.lastElementChild) {
+        ul.removeChild(ul.lastElementChild);
+      }
     }
 
     function updateCommentary(message) {
@@ -357,52 +360,6 @@
       clearCallList();
     }
 
-function nextStep() {
-  if (stepIndex >= eventList.length) return;
-  let ev = eventList[stepIndex];
-
-  if (ev.type === 'call') {
-    // draw the new node
-    drawLink(ev.node);
-    drawNode(ev.node);
-
-    // *** ADD THIS LINE ***
-    logCall(ev.node.n, ev.node.depth, `Call fib(${ev.node.n})`);
-
-    // Optional: commentary update is already there
-    // …
-  }
-  else if (ev.type === 'resume') {
-    clearCurrentHighlights();
-    let circle = document.getElementById('circle-' + ev.node.id);
-    if (circle) {
-      circle.classList.add('node-current');
-    }
-    const leftNode  = ev.node.left;
-    const leftN     = leftNode.n;
-    const leftValue = leftNode.value;
-    const rightN    = ev.node.right.n;
-    updateCommentary(
-      `Computed F(${leftN}) = ${leftValue}. Now need to compute F(${rightN}).`
-    );
-  }
-  else if (ev.type === 'return') {
-    // highlight and set the computed value
-    computeNode(ev.node);
-
-    // *** ADD THIS LINE ***
-    logCall(
-      ev.node.n,
-      ev.node.depth,
-      `Return fib(${ev.node.n}) = ${ev.node.value}`
-    );
-  }
-
-  stepIndex++;
-  updateButtons();
-}
-
-/*
     function nextStep() {
       if (stepIndex >= eventList.length) return;
       let ev = eventList[stepIndex];
@@ -428,48 +385,7 @@ function nextStep() {
       stepIndex++;
       updateButtons();
     }
-    */
 
-function prevStep() {
-  if (stepIndex <= 0) return;
-  stepIndex--;
-  let ev = eventList[stepIndex];
-
-  if (ev.type === 'call') {
-    // 1) remove the node from the SVG
-    removeNode(ev.node);
-
-    // 2) remove the LAST <li> from the callList, 
-    //    which corresponds to "Call fib(ev.node.n)"
-    const ul = document.getElementById('callList');
-    if (ul.lastElementChild) {
-      ul.removeChild(ul.lastElementChild);
-    }
-  }
-  else if (ev.type === 'resume') {
-    // resuming from a left‐child return: just undo the highlight.
-    let circle = document.getElementById('circle-' + ev.node.id);
-    if (circle) {
-      circle.classList.remove('node-current');
-    }
-    // (no change to callList because we never logged on "resume")
-  }
-  else if (ev.type === 'return') {
-    // 1) undo the “computed” highlight and clear node.value
-    undoCompute(ev.node);
-
-    // 2) remove the LAST <li> from the callList, 
-    //    which corresponds to "Return fib(ev.node.n) = ev.node.value"
-    const ul = document.getElementById('callList');
-    if (ul.lastElementChild) {
-      ul.removeChild(ul.lastElementChild);
-    }
-  }
-
-  updateButtons();
-}
-
-/*
     function prevStep() {
       if (stepIndex <= 0) return;
       stepIndex--;
@@ -486,7 +402,6 @@ function prevStep() {
       }
       updateButtons();
     }
-    */
 
     function updateButtons() {
       document.getElementById('prevBtn').disabled = (stepIndex === 0);
@@ -496,7 +411,7 @@ function prevStep() {
     document.getElementById('startBtn').addEventListener('click', () => {
       let n = parseInt(document.getElementById('inputN').value, 10);
       if (isNaN(n) || n < 2 || n > 9) {
-        alert("Please enter an integer n with 2 ≤ n ≤ 8.");
+        alert("Please enter an integer n with 2 ≤ n ≤ 9.");
         return;
       }
       initializeDemo(n);
@@ -505,58 +420,67 @@ function prevStep() {
     document.getElementById('nextBtn').addEventListener('click', nextStep);
     document.getElementById('prevBtn').addEventListener('click', prevStep);
 
+    // ────── Playback logic for Play/Pause & Speed ──────
+    const playBtn = document.getElementById('play');
+    const speedSelect = document.getElementById('speed');
+
+    playBtn.addEventListener('click', () => {
+      if (playing) {
+        // Pause
+        playing = false;
+        playBtn.textContent = 'Play';
+        clearInterval(intervalId);
+        intervalId = null;
+      } else {
+        // Start playing
+        playing = true;
+        playBtn.textContent = 'Pause';
+        const speed = parseInt(speedSelect.value, 10);
+        const delay = 1000 / speed;
+        intervalId = setInterval(() => {
+          if (stepIndex < eventList.length) {
+            nextStep();
+          } else {
+            // Stop at the end
+            playing = false;
+            playBtn.textContent = 'Play';
+            clearInterval(intervalId);
+            intervalId = null;
+          }
+        }, delay);
+      }
+    });
+
+    speedSelect.addEventListener('change', () => {
+      if (playing) {
+        clearInterval(intervalId);
+        playing = false;
+        playBtn.textContent = 'Play';
+        // Restart playback at new speed
+        playBtn.click();
+      }
+    });
+
+    // ────── Call panel helpers ──────
+    const toggleBtn = document.getElementById('toggleCalls');
+    const panel    = document.getElementById('callPanel');
+    toggleBtn.addEventListener('click', () => {
+      panel.classList.toggle('open');
+      toggleBtn.textContent = panel.classList.contains('open') ? 'Hide Calls' : 'Show Calls';
+    });
+    function logCall(n, depth, type) {
+      const li = document.createElement('li');
+      li.textContent = `${type}`;
+      li.style.paddingLeft = (depth * 20) + 'px';
+      document.getElementById('callList').appendChild(li);
+    }
+    function clearCallList() {
+      document.getElementById('callList').innerHTML = '';
+    }
+
     window.addEventListener('load', () => {
       initializeDemo(5);
     });
-    
-    
-    
-    // 1) Panel toggle logic
-const toggleBtn = document.getElementById('toggleCalls');
-const panel    = document.getElementById('callPanel');
-
-toggleBtn.addEventListener('click', () => {
-  panel.classList.toggle('open');
-  toggleBtn.textContent = panel.classList.contains('open') ? 'Hide Calls' : 'Show Calls';
-});
-
-// 2) Logging helper
-function logCall(n, depth, type) {
-  const li = document.createElement('li');
-  /*li.textContent = `${type} fib(${n})`;*/
-  li.textContent = `${type}`;
-  li.style.paddingLeft = (depth * 20) + 'px';
-  document.getElementById('callList').appendChild(li);
-}
-
-// 3) Clear the list at the start of a new run
-function clearCallList() {
-  document.getElementById('callList').innerHTML = '';
-}
-
-// 4) Modified recursive traversal
-function traversePreorder(node, depth = 0) {
-  logCall(node.n, depth, 'Call');
-  // (Optional) highlight node here…
-  if (node.n < 2) {
-    node.value = node.n;
-  } else {
-    traversePreorder(node.left, depth + 1);
-    traversePreorder(node.right, depth + 1);
-    node.value = node.left.value + node.right.value;
-  }
-  logCall(node.n, depth, `Return fib(${node.n}) = ${node.value}`);
-  // (Optional) highlight computed node here…
-}
-
-// 5) Kick off the animation/log:
-function startDemo() {
-  clearCurrentHighlights();   // whatever existing setup you have
-  clearCallList();
-  traversePreorder(root, 0);
-  // …then animate or step through highlights as before…
-}
-</script>   
-
+  </script>   
 </body>
 </html>

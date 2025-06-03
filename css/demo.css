@@ -82,4 +82,107 @@ html, body {
   font-weight: bold;
 }
 
+/* ───────────────────────────────────────────────────────────────────── */
+/* 1. TREE NODES */
+/* ───────────────────────────────────────────────────────────────────── */
+
+/* All “tree” nodes (e.g. subset‐sum expansion) */
+.treeNode circle {
+  fill: #cce3ff;
+  stroke: #2a2a2a;
+  stroke-width: 1.5px;
+}
+.treeNode text {
+  font-size: 16px;
+  text-anchor: middle;
+  dominant-baseline: middle;
+  fill: #0a0a0a;
+}
+
+/* Highlight a “solution” tree node */
+.treeNode.solution circle {
+  fill: gold;
+}
+
+/* Mark a “dead-end” tree node (sum > target) */
+.treeNode.deadend circle {
+  fill: #e06464;
+}
+
+/* Outline for the currently active tree node */
+.treeNode.current circle {
+  stroke: #000;
+  stroke-width: 3px;
+}
+
+/* ───────────────────────────────────────────────────────────────────── */
+/* 2. GENERIC GRAPH NODES */
+/* ───────────────────────────────────────────────────────────────────── */
+
+/* All other graph nodes (not part of the subset‐sum tree) */
+.graphNode circle {
+  fill: lightblue;
+  stroke: #444;
+  stroke-width: 1px;
+}
+.graphNode text {
+  font-size: 14px;
+  text-anchor: middle;
+  dominant-baseline: middle;
+  fill: #202020;
+}
+
+/* If you want to highlight a graph-node differently */
+.graphNode.highlight circle {
+  fill: orange;
+}
+.graphNode.current circle {
+  stroke: #000;
+  stroke-width: 2.5px;
+}
+
+/* ───────────────────────────────────────────────────────────────────── */
+/* 3. EDGES (ALL TYPES) */
+/* ───────────────────────────────────────────────────────────────────── */
+
+/* Any <line> under #svg is an edge—same styling for tree and graph */
+#svg line {
+  stroke: #888;
+  stroke-width: 1px;
+}
+
+/* The “+x” label on each edge */
+#svg line + text {
+  font-size: 16px;
+  text-anchor: middle;
+  dominant-baseline: middle;
+  fill: #333;
+}
+
+/* If you want tree-edges vs graph-edges to have different strokes: */
+/*
+.treeNode + line { stroke: green; }
+.graphNode + line { stroke: blue; }
+*/
+
+/* ───────────────────────────────────────────────────────────────────── */
+/* 4. LEVEL LABELS (LEFT-SIDE “val[i] = …”) */
+/* ───────────────────────────────────────────────────────────────────── */
+
+.level-label {
+  font-size: 14px;
+  fill: #222;
+  text-anchor: start;
+}
+
+/* ───────────────────────────────────────────────────────────────────── */
+/* 5. CONTROLS (BUTTONS, SELECTS, ETC.) */
+/* ───────────────────────────────────────────────────────────────────── */
+
+#controls1 button,
+#controls1 select {
+  margin: 5px;
+  padding: 4px 8px;
+  font-size: 14px;
+}
 

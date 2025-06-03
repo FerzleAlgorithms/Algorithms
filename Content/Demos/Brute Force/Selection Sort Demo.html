@@ -19,23 +19,28 @@
     <button id="useCustom">Create Array</button>
   </div>
 
-  <div style="margin:10px 0;">
-    <button id="prev-step">Previous</button>
-    <button id="next-step">Next</button>
+  <div id="buttons" style="margin:10px 0;">
+    <button id="prev" disabled>Previous</button>
+    <button id="next" disabled>Next</button>
+    <button id="play">Play</button>
+    <label for="speed">Speed:</label>
+    <select id="speed">
+      <option value="1">1x</option>
+      <option value="2">2x</option>
+      <option value="4">4x</option>
+    </select>
   </div>
 
   <div class="array-container" id="boxes"></div>
-
   <div id="step-desc" class="step-comment"></div>
 
-     <div class="legend">
-  <strong>Legend:</strong>
-  <span class="legend-box default"></span> Unsorted
-  <span class="legend-box comparing"></span> Being Compared
-  <span class="legend-box swap"></span> Being Swapped
-  <span class="legend-box sorted"></span> Sorted
-</div>
-
+  <div class="legend">
+    <strong>Legend:</strong>
+    <span class="legend-box default"></span> Unsorted
+    <span class="legend-box comparing"></span> Being Compared
+    <span class="legend-box swap"></span> Being Swapped
+    <span class="legend-box sorted"></span> Sorted
+  </div>
 
   <script>
     let array = [], steps = [], cur = 0;
@@ -51,18 +56,18 @@
         for (let j = 0; j < i; j++) {
           const comment = `Comparing elements at ${j} and ${maxIndex}: ${A[j]} > ${A[maxIndex]} → ` +
             (A[j] > A[maxIndex] ? `update max index to ${j}` : `max index remains at ${maxIndex}`);
-          record({A: [...A], i, j, maxIndex, phase: 'compare', desc: comment});
+          record({ A: [...A], i, j, maxIndex, phase: 'compare', desc: comment });
           if (A[j] > A[maxIndex]) {
             maxIndex = j;
           }
         }
         if (maxIndex !== i) {
-          record({A: [...A], i, maxIndex, phase: 'swap', desc: `Swapping element ${A[i]} at index ${i} with element ${A[maxIndex]} at index ${maxIndex}`});
+          record({ A: [...A], i, maxIndex, phase: 'swap', desc: `Swapping element ${A[i]} at index ${i} with element ${A[maxIndex]} at index ${maxIndex}` });
           [A[i], A[maxIndex]] = [A[maxIndex], A[i]];
-          record({A: [...A], i, maxIndex, phase: 'swapped', desc: `Swapped elements at index ${i} and ${maxIndex}`});
+          record({ A: [...A], i, maxIndex, phase: 'swapped', desc: `Swapped elements at index ${i} and ${maxIndex}` });
         }
       }
-      record({A: [...A], phase: 'done', desc: 'Array fully sorted'});
+      record({ A: [...A], phase: 'done', desc: 'Array fully sorted' });
     }
 
     function render() {
@@ -115,21 +120,34 @@
       render();
     }
 
-    document.getElementById('generate').onclick = initDemo;
-    document.getElementById('prev-step').onclick = () => { if (cur > 0) cur--; render(); };
-    document.getElementById('next-step').onclick = () => { if (cur < steps.length - 1) cur++; render(); };
-    document.getElementById('useCustom').onclick = () => {
-      const inputStr = document.getElementById('customArray').value;
-      const values = inputStr.split(',').map(x => parseInt(x.trim())).filter(x => !isNaN(x));
-      if (values.length >= 2) {
-        generateSteps([...values]);
-        cur = 0;
-        render();
+    // Expose to demoScripts.js:
+    window.onGenerate = function(isCustom) {
+      if (isCustom) {
+        const inputStr = document.getElementById('customArray').value.trim();
+        const values = inputStr.split(',').map(x => parseInt(x.trim())).filter(x => !isNaN(x));
+        return values.length >= 2 ? values : [];
       } else {
-        alert("Please enter at least 2 valid integers separated by commas.");
+        let n = parseInt(document.getElementById('arraySize').value) || 10;
+        n = Math.max(8, Math.min(n, 20));
+        document.getElementById('arraySize').value = n;
+        return Array.from({ length: n }, () => Math.floor(Math.random() * 100));
       }
     };
 
+    window.genSteps = function(arr) {
+      // Build steps for the given array
+      steps = [];
+      generateSteps([...arr]);
+      return steps;
+    };
+
+    window.renderStep = function(stepsArr, idx, original) {
+      steps = stepsArr;
+      cur = idx;
+      render();
+    };
+
+    // On initial load, run the demo once
     initDemo();
   </script>
 </body>

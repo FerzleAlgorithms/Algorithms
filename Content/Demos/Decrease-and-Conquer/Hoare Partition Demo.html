@@ -8,8 +8,8 @@
   <link rel="stylesheet" href="/Algorithms/css/demo.css">
 </head>
 <body>
-<h2>Hoare's Partition Demo</h2>
-<div id="controls">
+  <h2>Hoare's Partition Demo</h2>
+  <div id="controls">
     <label>Size:
       <input type="number" id="arraySize" min="8" max="20" value="10" size="2">
     </label>
@@ -21,113 +21,110 @@
   <div style="margin:10px 0;">
     <button id="prev-step">Previous</button>
     <button id="next-step">Next</button>
+    <!-- Added Play/Pause button and Speed dropdown -->
+    <button id="play">Play</button>
+    <label for="speed">Speed:</label>
+    <select id="speed">
+      <option value="1">1×</option>
+      <option value="2">2×</option>
+      <option value="4">4×</option>
+    </select>
   </div>
+
   <div class="array-container" id="boxes"></div>
-
-
   <div id="step-desc" class="step-comment"></div>
 
-
-
   <div class="legend">
-  <strong>Legend:</strong>
-  <!-- Pivot -->
-  <span class="legend-box pivot"></span> Pivot
-  <!-- Left Partition (≤ pivot) -->
-  <span class="legend-box left-partition" ></span> Left Partition (≤ pivot)
-  <!-- Right Partition (> pivot) -->
-  <span class="legend-box right-partition" ></span> Right Partition (> pivot)
-  <!-- Being Swapped -->
-  <span class="legend-box comparing" ></span> Being Swapped
-  <!-- Unpartitioned -->
-  <span class="legend-box blank" ></span> Unpartitioned
-</div>
-
+    <strong>Legend:</strong>
+    <span class="legend-box pivot"></span> Pivot
+    <span class="legend-box left-partition"></span> Left Partition (≤ pivot)
+    <span class="legend-box right-partition"></span> Right Partition (> pivot)
+    <span class="legend-box comparing"></span> Being Swapped
+    <span class="legend-box blank"></span> Unpartitioned
+  </div>
 
 <script>
 (function(){
   const boxWidth = 60, boxHeight = 40;
   let A, steps, cur, pivot, high, p;
+  // Playback controls
+  let playing = false;
+  let intervalId = null;
 
   function record(state) {
     steps.push(JSON.parse(JSON.stringify(state)));
   }
 
-function render() {
-  const permanentColors = Array(A.length).fill(null);
-  for (let k = 0; k <= cur; k++) {
-    const s = steps[k];
-    if (s.phase === 'compare-i' && s.i < A.length) {
-      permanentColors[s.i] = (A[s.i] <= p) ? 'lightsalmon' : '#1e90ff';
+  function render() {
+    const permanentColors = Array(A.length).fill(null);
+    for (let k = 0; k <= cur; k++) {
+      const s = steps[k];
+      if (s.phase === 'compare-i' && s.i < A.length) {
+        permanentColors[s.i] = (A[s.i] <= p) ? 'lightsalmon' : '#1e90ff';
+      }
+      if (s.phase === 'compare-j' && s.j < A.length) {
+        permanentColors[s.j] = (A[s.j] <= p) ? 'lightsalmon' : '#1e90ff';
+      }
     }
-    if (s.phase === 'compare-j' && s.j < A.length) {
-      permanentColors[s.j] = (A[s.j] <= p) ? 'lightsalmon' : '#1e90ff';
-    }
+
+    const st = steps[cur];
+    const container = document.getElementById('boxes');
+    container.innerHTML = '';
+
+    st.A.forEach((v, idx) => {
+      let fill = permanentColors[idx] || '#fff';
+      if (st.phase === 'compare-i' && idx === st.i) fill = '#ffa';
+      if (st.phase === 'compare-j' && idx === st.j) fill = '#acf';
+      if (st.phase === 'highlight-swap' && (idx === st.i || idx === st.j)) fill = 'yellow';
+      if (st.phase === 'do-swap' && (idx === st.oldi || idx === st.oldj)) fill = 'lightgreen';
+
+      // Final pivot placement
+      if (st.phase === 'do-p') {
+        if (pivot === st.j) {
+          if (idx === pivot) fill = 'lightgreen';
+        } else {
+          if (idx === st.j) fill = 'lightgreen';
+          else if (idx === pivot) fill = 'lightsalmon';
+        }
+      } else if (idx === pivot) {
+        fill = 'lightgreen';
+      }
+
+      const elem = document.createElement('div');
+      elem.className = 'element';
+      elem.style.background = fill;
+      elem.textContent = v;
+
+      const labels = [];
+      if (idx === st.i) labels.push('i');
+      if (idx === st.j) labels.push('j');
+      if (idx === pivot && (st.phase !== 'do-p' || st.j === pivot)) labels.push('pivot');
+      if (st.phase === 'do-p' && idx === st.j && pivot !== st.j) labels.push('pivot');
+
+      if (labels.length > 0) {
+        elem.innerHTML += `<div class="arrow">↑<br>${labels.join(',')}</div>`;
+      }
+
+      container.appendChild(elem);
+    });
+
+    document.getElementById('step-desc').textContent = st.desc;
   }
 
-  const st = steps[cur];
-  const container = document.getElementById('boxes');
-  container.innerHTML = '';
-
-  st.A.forEach((v, idx) => {
-    let fill = permanentColors[idx] || '#fff';
-    if (st.phase === 'compare-i' && idx === st.i) fill = '#ffa';
-    if (st.phase === 'compare-j' && idx === st.j) fill = '#acf';
-    if (st.phase === 'highlight-swap' && (idx === st.i || idx === st.j)) fill = 'yellow';
-    if (st.phase === 'do-swap' && (idx === st.oldi || idx === st.oldj)) fill = 'lightgreen';
-    // Final step: pivot moved or stayed
-    if (st.phase === 'do-p') {
-    if (pivot === st.j) {
-        // Pivot stayed in same spot
-        if (idx === pivot) fill = 'lightgreen';
-    } else {
-        if (idx === st.j) {
-        fill = 'lightgreen'; // Pivot's new home
-        } else if (idx === pivot) {
-        fill = 'lightsalmon'; // Value that pivot was swapped with
-        }
-    }
-    } else if (idx === pivot) {
-    fill = 'lightgreen'; // Ongoing tracking of pivot
-}
-
-
-    const elem = document.createElement('div');
-    elem.className = 'element';
-    elem.style.background = fill;
-    elem.textContent = v;
-
-    const labels = [];
-    if (idx === st.i) labels.push('i');
-    if (idx === st.j) labels.push('j');
-    if (idx === pivot && (st.phase !== 'do-p' || st.j === pivot)) labels.push('pivot');
-    if (st.phase === 'do-p' && idx === st.j && pivot !== st.j) labels.push('pivot');
-
-    if (labels.length > 0) {
-      elem.innerHTML += `<div class="arrow">↑<br>${labels.join(',')}</div>`;
-    }
-
-    container.appendChild(elem);
-  });
-
-  document.getElementById('step-desc').textContent = st.desc;
-}
-
-
   function runPartition(arrayInput) {
-    A = arrayInput;
+    A = arrayInput.slice();          // copy incoming array
     pivot = 0;
     high = A.length - 1;
     p = A[pivot];
     let i = pivot + 1, j = high;
     steps = [];
-    record({A, i, j, phase: 'start', desc: `p=A[${pivot}]=${p}`});
+    record({A, i, j, phase: 'start', desc: `p = A[${pivot}] = ${p}`});
     while (true) {
       while (i <= high && A[i] <= p) {
-        record({A, i, j, phase: 'compare-i', desc: `${A[i]} <= ${p}? Yes → i++`});
+        record({A, i, j, phase: 'compare-i', desc: `${A[i]} ≤ ${p}? Yes → i++`});
         i++;
       }
-      record({A, i, j, phase: 'compare-i', desc: `${A[i]} <= ${p}? No → check j`});
+      record({A, i, j, phase: 'compare-i', desc: `${A[i]} ≤ ${p}? No → check j`});
       while (j >= pivot && A[j] > p) {
         record({A, i, j, phase: 'compare-j', desc: `${A[j]} > ${p}? Yes → j--`});
         j--;
@@ -135,47 +132,95 @@ function render() {
       record({A, i, j, phase: 'compare-j', desc: `${A[j]} > ${p}? No → swap`});
       if (i >= j) {
         [A[pivot], A[j]] = [A[j], A[pivot]];
-        record({A, i, j, phase: 'do-p', desc: `Swapped p with A[${j}], p now at index ${j}`});
-        
+        record({A, i, j, phase: 'do-p', desc: `Swapped pivot with A[${j}], pivot now at index ${j}`});
         break;
       }
-      record({A, i, j, phase: 'highlight-swap', desc: `swap A[${i}] and A[${j}]`});
+      record({A, i, j, phase: 'highlight-swap', desc: `Swap A[${i}] and A[${j}]`});
       [A[i], A[j]] = [A[j], A[i]];
       const oldi = i, oldj = j;
       i++; j--;
-      record({A, i, j, oldi, oldj, phase: 'do-swap', desc: `swapped A[${oldi}] and A[${oldj}], i=${i}, j=${j}`});
+      record({A, i, j, oldi, oldj, phase: 'do-swap', desc: `Swapped A[${oldi}] and A[${oldj}], i=${i}, j=${j}`});
     }
     cur = 0;
     render();
   }
 
   function initDemo() {
-    let n = parseInt(document.getElementById('arraySize').value) || 12;
-    n = Math.min(Math.max(n, 8), 20);
+    let n = parseInt(document.getElementById('arraySize').value, 10) || 10;
+    n = Math.max(8, Math.min(n, 20));
     document.getElementById('arraySize').value = n;
     const randArr = Array.from({ length: n }, () => Math.floor(Math.random() * 100));
     runPartition(randArr);
   }
 
+  // Wire up existing buttons:
   document.getElementById('generate').onclick = initDemo;
-  document.getElementById('prev-step').onclick = () => { if (cur > 0) cur--, render(); };
-  document.getElementById('next-step').onclick = () => { if (cur < steps.length - 1) cur++, render(); };
   document.getElementById('useCustom').onclick = () => {
     const inputStr = document.getElementById('customArray').value;
-    const values = inputStr.split(',').map(x => parseInt(x.trim())).filter(x => !isNaN(x));
+    const values = inputStr
+      .split(',')
+      .map(x => parseInt(x.trim(), 10))
+      .filter(x => !isNaN(x));
     if (values.length >= 2) {
       runPartition(values);
     } else {
-      alert("Please enter at least 2 valid integers separated by commas.");
+      alert('Please enter at least 2 valid integers separated by commas.');
     }
   };
+  document.getElementById('prev-step').onclick = () => {
+    if (cur > 0) cur--, render();
+  };
+  document.getElementById('next-step').onclick = () => {
+    if (cur < steps.length - 1) cur++, render();
+  };
 
+  // ─────────────────────────────────────────────────────────────
+  // Play/Pause & Speed functionality (following Merge Sort pattern)
+  // ─────────────────────────────────────────────────────────────
+
+  document.getElementById('play').addEventListener('click', () => {
+    if (playing) {
+      // Pause
+      playing = false;
+      document.getElementById('play').textContent = 'Play';
+      clearInterval(intervalId);
+      intervalId = null;
+    } else {
+      // Start playing
+      playing = true;
+      document.getElementById('play').textContent = 'Pause';
+      const speed = parseInt(document.getElementById('speed').value, 10);
+      const delay = 1000 / speed;
+      intervalId = setInterval(() => {
+        if (cur < steps.length - 1) {
+          cur++;
+          render();
+        } else {
+          // Stop at the end
+          playing = false;
+          document.getElementById('play').textContent = 'Play';
+          clearInterval(intervalId);
+          intervalId = null;
+        }
+      }, delay);
+    }
+  });
+
+  document.getElementById('speed').addEventListener('change', () => {
+    if (playing) {
+      clearInterval(intervalId);
+      playing = false;
+      document.getElementById('play').textContent = 'Play';
+      // Restart playback at the new speed
+      document.getElementById('play').click();
+    }
+  });
+
+  // ─────────────────────────────────────────────────────────────
+  // Initialize on load so nodes appear immediately
+  // ─────────────────────────────────────────────────────────────
   initDemo();
 })();
-
-/*randomArray();*/
 </script>
-
-  
 </body>
 </html>

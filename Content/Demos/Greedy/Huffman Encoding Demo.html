@@ -8,56 +8,78 @@
   <link rel="stylesheet" href="/Algorithms/css/demo.css">
 </head>
 <style>
-#output { padding: 1em;  border: none;  font-family: monospace;  min-height: 60px;  white-space: pre-wrap;
-  width: 100vw;           /* viewport width */
-  overflow: hidden;       /* optional */}
+  #output {
+    padding: 1em;
+    border: none;
+    font-family: monospace;
+    min-height: 60px;
+    white-space: pre-wrap;
+    width: 100vw;       /* viewport width */
+    overflow: hidden;   /* optional */
+  }
 
-button {
-  margin: 0.5em;
-  padding: 0.5em 1em;
-}
-svg {
-  width: 100%;
-}
-.node text {
-  font-size: 12px;
-  text-anchor: middle;
-}
-.node circle {
-  fill: #cce3ff;
-  stroke: #333;
-}
-.node.merging circle {
-  fill: #b2f2bb;
-}
-.edge {
-  stroke: #888;
-}
-.label {
-  font-size: 12px;
-  fill: black;
-  text-anchor: middle;
-}
-#queue-container {
-  margin-top: 1em;
-  padding: 1em;
-  overflow-x: auto;
-	position: absolute;
-	left: 0;
-	width: 100vw;           /* viewport width */
-	overflow: hidden;       /* optional */
-}
+  button {
+    margin: 0.5em;
+    padding: 0.5em 1em;
+  }
+  svg {
+    width: 100%;
+  }
+  .node text {
+    font-size: 12px;
+    text-anchor: middle;
+  }
+  .node circle {
+    fill: #cce3ff;
+    stroke: #333;
+  }
+  .node.merging circle {
+    fill: #b2f2bb;
+  }
+  .edge {
+    stroke: #888;
+  }
+  .label {
+    font-size: 12px;
+    fill: black;
+    text-anchor: middle;
+  }
+  #queue-container {
+    margin-top: 1em;
+    padding: 1em;
+    overflow-x: auto;
+    position: absolute;
+    left: 0;
+    width: 100vw;       /* viewport width */
+    overflow: hidden;   /* optional */
+  }
+
+  /* New Play/Pause + Speed styles */
+  #play   { margin-left: 0.5em; }
+  #speed  { margin-left: 0.25em; }
 </style>
 <body>
 
-<h2>Huffman Encoding  Demo</h2>
+<h2>Huffman Encoding Demo</h2>
 
 <p>Enter text to encode:</p>
-<input type="text" id="inputText" value="This is a sample string. Change if you want to." style="width:400px;" />
+<input type="text" id="inputText"
+       value="This is a sample string. Change if you want to."
+       style="width:400px;" />
 <button onclick="startVisualization()">Start</button>
 <br>
 <button onclick="prevStep()">Previous</button>
 <button onclick="nextStep()">Next</button>
+
+<!-- Added Play/Pause button and Speed dropdown below: -->
+<button id="play">Play</button>
+<label for="speed">Speed:</label>
+<select id="speed">
+  <option value="1">1×</option>
+  <option value="2">2×</option>
+  <option value="4">4×</option>
+</select>
+
 <div id="output">Click "Start" to begin.</div>
 
 <h3>Priority Queue (Tree Forest)</h3>
@@ -69,6 +91,7 @@ svg {
   let steps = [], queues = [], highlight = [], stepIndex = 0;
   let highlightId = [], encodingTables = [];
   let nodeIdCounter = 0;
+  let playing = false, intervalId = null;
 
   const svgQueue = document.getElementById("queue-svg");
   const output = document.getElementById("output");
@@ -120,11 +143,13 @@ svg {
 
   function drawEdges(svg, node, labelMode = false) {
     if (node.left) {
-      drawLine(svg, node._x, node._y, node.left._x, node.left._y, labelMode ? "0" : "");
+      drawLine(svg, node._x, node._y, node.left._x, node.left._y,
+               labelMode ? "0" : "");
       drawEdges(svg, node.left, labelMode);
     }
     if (node.right) {
-      drawLine(svg, node._x, node._y, node.right._x, node.right._y, labelMode ? "1" : "");
+      drawLine(svg, node._x, node._y, node.right._x, node.right._y,
+               labelMode ? "1" : "");
       drawEdges(svg, node.right, labelMode);
     }
   }
@@ -171,7 +196,8 @@ svg {
       let tree = queue[i];
       layoutTree(tree, x, 30);
       drawEdges(svgQueue, tree, labelEdges && queue.length === 1);
-      const isMerging = (i < highlightCount) || (idToHighlight !== null && tree.id === idToHighlight);
+      const isMerging = (i < highlightCount) ||
+                        (idToHighlight !== null && tree.id === idToHighlight);
       drawAllNodes(svgQueue, tree, isMerging, true);
       x += getTreeWidth(tree) + 20;
     }
@@ -195,7 +221,9 @@ svg {
       char, freq, left: null, right: null, id: nodeIdCounter++
     }));
 
-    logStep("Character Frequencies", Object.entries(freqs).map(([c, f]) => `'${c}': ${f}`).join(", "), [], 0);
+    logStep("Character Frequencies",
+            Object.entries(freqs).map(([c, f]) => `'${c}': ${f}`).join(", "),
+            [], 0);
 
     queue.sort((a, b) => a.freq - b.freq);
     logStep("Initial Queue", formatQueue(queue), queue, 0);
@@ -204,7 +232,9 @@ svg {
       let left = queue.shift();
       let right = queue.shift();
 
-      logStep("Merging Next Two Nodes", `Combining ${formatNode(left)} + ${formatNode(right)}`, [left, right, ...queue], 2);
+      logStep("Merging Next Two Nodes",
+              `Combining ${formatNode(left)} + ${formatNode(right)}`,
+              [left, right, ...queue], 2);
 
       let parent = {
         char: null,
@@ -225,33 +255,31 @@ svg {
     generateEncodingTable(root, "", codes);
 
     const huffmanBits = inputText.split("").reduce((sum, ch) => sum + codes[ch].length, 0);
-    const asciiBits = inputText.length * 8;
+    const asciiBits   = inputText.length * 8;
     const unicodeBits = inputText.length * 16;
 
-const freqTable = countFrequencies(inputText);  // make sure this is available
-const tableStr = Object.entries(codes)
-  .map(([char, code]) => {
-    const freq = freqTable[char];
-    return `  '${char}' → ${code}   (freq: ${freq})`;
-  })
-  .join("\n");
+    const freqTable = countFrequencies(inputText);  
+    const tableStr = Object.entries(codes)
+      .map(([char, code]) => {
+        const freq = freqTable[char];
+        return `  '${char}' → ${code}   (freq: ${freq})`;
+      })
+      .join("\n");
 
-let costTerms = [];
-for (let [char, code] of Object.entries(codes)) {
-  const freq = freqTable[char];
-  costTerms.push(`(${freq}×${code.length})`);
-}
-const huffmanCostBreakdown = costTerms.join(" + ");
-const huffmanCost = eval(huffmanCostBreakdown.replace(/×/g, '*'));
+    let costTerms = [];
+    for (let [char, code] of Object.entries(codes)) {
+      const freq = freqTable[char];
+      costTerms.push(`(${freq}×${code.length})`);
+    }
+    const huffmanCostBreakdown = costTerms.join(" + ");
+    const huffmanCost = eval(huffmanCostBreakdown.replace(/×/g, '*'));
 
-const summary =
-  `Encoding Table:\n${tableStr}\n\n` +
-  `Bit Comparison:\n` +
-  `-->Huffman: ${huffmanBits} bits` +
-  ` = ${huffmanCostBreakdown} \n` +
-  `-->ASCII:   ${asciiBits} bits = (8 × ${inputText.length} chars)\n` +
-  `-->Unicode: ${unicodeBits} bits = (16 × ${inputText.length} chars)`;
-
+    const summary =
+      `Encoding Table:\n${tableStr}\n\n` +
+      `Bit Comparison:\n` +
+      `--> Huffman: ${huffmanBits} bits = ${huffmanCostBreakdown} \n` +
+      `--> ASCII:   ${asciiBits} bits = (8 × ${inputText.length} chars)\n` +
+      `--> Unicode: ${unicodeBits} bits = (16 × ${inputText.length} chars)`;
 
     logStep("Huffman Tree Complete", summary, [root], 0, null, codes);
   }
@@ -260,7 +288,7 @@ const summary =
     if (node.char !== null) {
       map[node.char] = code;
     } else {
-      if (node.left) generateEncodingTable(node.left, code + "0", map);
+      if (node.left)  generateEncodingTable(node.left,  code + "0", map);
       if (node.right) generateEncodingTable(node.right, code + "1", map);
     }
   }
@@ -274,7 +302,10 @@ const summary =
       const step = steps[stepIndex];
       output.innerHTML = `▶ <b>${step.title}</b>\n${step.content}`;
       const isFinalStep = (stepIndex === steps.length - 1);
-      drawQueue(queues[stepIndex], highlight[stepIndex], highlightId[stepIndex], isFinalStep);
+      drawQueue(queues[stepIndex],
+                highlight[stepIndex],
+                highlightId[stepIndex],
+                isFinalStep);
       stepIndex++;
     } else {
       output.innerHTML = `✅ <b>All steps complete.</b>`;
@@ -309,6 +340,47 @@ const summary =
     buildHuffmanTree(freqs, input);
     nextStep();
   }
+
+  // ─────────────────────────────────────────────────────────────
+  //  Play/Pause & Speed functionality (following Merge Sort pattern)
+  // ─────────────────────────────────────────────────────────────
+
+  document.getElementById('play').addEventListener('click', () => {
+    if (playing) {
+      // Pause
+      playing = false;
+      document.getElementById('play').textContent = 'Play';
+      clearInterval(intervalId);
+      intervalId = null;
+    } else {
+      // Start playing
+      playing = true;
+      document.getElementById('play').textContent = 'Pause';
+      const speed = parseInt(document.getElementById('speed').value, 10);
+      const delay = 1000 / speed;
+      intervalId = setInterval(() => {
+        if (stepIndex < steps.length - 1) {
+          nextStep();
+        } else {
+          // Stop at the end
+          playing = false;
+          document.getElementById('play').textContent = 'Play';
+          clearInterval(intervalId);
+          intervalId = null;
+        }
+      }, delay);
+    }
+  });
+
+  document.getElementById('speed').addEventListener('change', () => {
+    if (playing) {
+      clearInterval(intervalId);
+      playing = false;
+      document.getElementById('play').textContent = 'Play';
+      // Restart playback at new speed
+      document.getElementById('play').click();
+    }
+  });
 </script>
 </body>
 </html>

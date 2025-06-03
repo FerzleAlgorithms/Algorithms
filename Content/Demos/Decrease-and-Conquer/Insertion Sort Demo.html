@@ -10,7 +10,7 @@
   <style>
     #visualization { position: relative; height: 120px; overflow: visible; margin: 0 auto; }
     #array-container { display: flex; align-items: flex-end; justify-content: left; gap: 5px; 
-	    height: calc(100% - 10px); margin-bottom: 10px; }
+      height: calc(100% - 10px); margin-bottom: 10px; }
     .floating  { position: absolute; z-index: 10; transition: top 0.3s ease; }
   </style>
 </head>
@@ -22,10 +22,20 @@
     <input type="text" id="customArray" placeholder="12,6,10,5,3,8,1,20,13" size="30" />
     <button id="useCustom">Use Custom Array</button>
   </div>
+
   <div id="buttons">
     <button id="prev" disabled>Previous</button>
     <button id="next" disabled>Next</button>
+    <!-- Added Play/Pause and Speed dropdown -->
+    <button id="play">Play</button>
+    <label for="speed">Speed:</label>
+    <select id="speed">
+      <option value="1">1×</option>
+      <option value="2">2×</option>
+      <option value="4">4×</option>
+    </select>
   </div>
+
   <div id="visualization">
     <div id="array-container"></div>
     <div id="floatLayer"></div>
@@ -39,12 +49,15 @@
     <span><span class="legend-box comparing"></span> Comparing</span>
     <span><span class="legend-box empty"></span> Empty Placeholder</span>
   </div>
+
   <script>
     const arrayContainer = document.getElementById('array-container');
     const floatLayer = document.getElementById('floatLayer');
     const desc = document.getElementById('description');
     const prevBtn = document.getElementById('prev');
     const nextBtn = document.getElementById('next');
+    const playBtn = document.getElementById('play');
+    const speedSelect = document.getElementById('speed');
     let steps = [], stepIndex = 0, floatingKey = null;
 
     function generateSteps(arr) {
@@ -92,17 +105,15 @@
           if (state.stage === 'comparing' && idx === state.compareIndex) {
             element.classList.remove('sorted'); element.classList.add('comparing');
           }
-		  // blue for key when it’s just been placed
-		  if (state.stage === 'placed' && idx === state.keyIndex) {
-		  element.classList.remove('sorted');
-		  element.classList.add('key');
-		  }
-
+          // blue for key when it’s just been placed
+          if (state.stage === 'placed' && idx === state.keyIndex) {
+            element.classList.remove('sorted');
+            element.classList.add('key');
+          }
         }
         arrayContainer.appendChild(element);
       });
 
-      // description text
       switch(state.stage) {
         case 'newKey':
           desc.textContent = `${state.keyVal} is the new key element.`;
@@ -113,7 +124,6 @@
         case 'comparing': {
           const aVal = state.keyVal;
           const bVal = state.arr[state.compareIndex];
-          const op = aVal <= bVal ? '<' : '>';
           if (aVal < bVal) {
             desc.textContent = `${aVal} < ${bVal}? Yes, need to shift ${bVal} to the right.`;
           } else {
@@ -128,8 +138,9 @@
           if (state.sortedCount === state.arr.length) {
             desc.textContent = 'Array is sorted!';
             Array.from(arrayContainer.children).forEach(el => {
-			el.classList.remove('sorted');
-			el.classList.add('finished')});
+              el.classList.remove('sorted');
+              el.classList.add('finished');
+            });
           } else {
             desc.textContent = `${state.keyVal} placed at index ${state.keyIndex}.`;
           }
@@ -156,8 +167,8 @@
     }
 
     function updateButtons() {
-      prevBtn.disabled = stepIndex === 0;
-      nextBtn.disabled = stepIndex === steps.length - 1;
+      prevBtn.disabled = (stepIndex === 0);
+      nextBtn.disabled = (stepIndex === steps.length - 1);
     }
 
     function goToStep(idx) {
@@ -166,12 +177,18 @@
       updateButtons();
     }
 
-    prevBtn.addEventListener('click', () => { if (stepIndex > 0) goToStep(stepIndex - 1); });
-    nextBtn.addEventListener('click', () => { if (stepIndex < steps.length - 1) goToStep(stepIndex + 1); });
+    prevBtn.addEventListener('click', () => {
+      if (stepIndex > 0) goToStep(stepIndex - 1);
+    });
+    nextBtn.addEventListener('click', () => {
+      if (stepIndex < steps.length - 1) goToStep(stepIndex + 1);
+    });
 
     document.getElementById('generate').addEventListener('click', () => {
       const size = parseInt(document.getElementById('size').value, 10);
-      if (isNaN(size) || size < 8 || size > 20) return alert('Size must be between 8 and 20');
+      if (isNaN(size) || size < 8 || size > 20) {
+        return alert('Size must be between 8 and 20');
+      }
       const arr = Array.from({ length: size }, () => Math.floor(Math.random() * 90) + 10);
       document.getElementById('customArray').value = arr.join(',');
       steps = generateSteps(arr);
@@ -182,12 +199,59 @@
       const input = document.getElementById('customArray').value.trim();
       if (!input) return;
       const arr = input.split(',').map(s => parseInt(s.trim(), 10));
-      if (arr.some(isNaN) || arr.length < 8 || arr.length > 20) return alert('Custom array must have 8-20 numbers, comma-separated.');
+      if (arr.some(isNaN) || arr.length < 8 || arr.length > 20) {
+        return alert('Custom array must have 8-20 numbers, comma-separated.');
+      }
       steps = generateSteps(arr);
       goToStep(0);
     });
 
-    // initialize
+    // ───────────────────────────────────────────────────────────────────────────
+    // Playback logic (Play/Pause + Speed) – inserted below without touching existing logic
+    // ───────────────────────────────────────────────────────────────────────────
+    let playing = false;
+    let intervalId = null;
+
+    playBtn.addEventListener('click', () => {
+      if (playing) {
+        // Pause
+        playing = false;
+        playBtn.textContent = 'Play';
+        clearInterval(intervalId);
+        intervalId = null;
+      } else {
+        // Start playing
+        playing = true;
+        playBtn.textContent = 'Pause';
+        const speed = parseInt(speedSelect.value, 10);
+        const delay = 1000 / speed;
+        intervalId = setInterval(() => {
+          if (stepIndex < steps.length - 1) {
+            stepIndex++;
+            renderState(steps[stepIndex]);
+            updateButtons();
+          } else {
+            // Stop at the end
+            playing = false;
+            playBtn.textContent = 'Play';
+            clearInterval(intervalId);
+            intervalId = null;
+          }
+        }, delay);
+      }
+    });
+
+    speedSelect.addEventListener('change', () => {
+      if (playing) {
+        clearInterval(intervalId);
+        playing = false;
+        playBtn.textContent = 'Play';
+        // Restart playback at new speed
+        playBtn.click();
+      }
+    });
+
+    // Initialize on load by simulating “Generate” click
     document.getElementById('generate').click();
   </script>
 </body>

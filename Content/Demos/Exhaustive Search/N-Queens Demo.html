@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Queens: Exhaustive Search Demo</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+    }
+    .controls {
+      margin-bottom: 10px;
+    }
+    .controls button,
+    .controls select,
+    .controls label {
+      padding: 5px 10px;
+      margin-right: 5px;
+      font-size: 1em;
+      cursor: pointer;
+    }
+    .controls button:disabled {
+      opacity: 0.5;
+      cursor: default;
+    }
+    #loading {
+      font-style: italic;
+      margin-bottom: 10px;
+      display: none;
+    }
+    #comment {
+      margin-top: 10px;
+      font-style: italic;
+      min-height: 1.2em;
+    }
+    #step-count {
+      margin-top: 10px;
+      font-weight: bold;
+    }
+    #q-array {
+      margin-top: 10px;
+      font-weight: bold;
+    }
+    #solutions {
+      margin-top: 15px;
+      border-top: 1px solid #ccc;
+      padding-top: 10px;
+    }
+    .solution-entry {
+      color: blue;
+      text-decoration: underline;
+      cursor: pointer;
+    }
+    .solution-entry:hover {
+      color: darkblue;
+    }
+    svg {
+      border: 1px solid #333;
+    }
+    .cell {
+      fill: #f0f0f0;
+      stroke: #333;
+      stroke-width: 1;
+    }
+    .cell.dark {
+      fill: #999;
+    }
+    .queen {
+      font-size: 24px;
+      text-anchor: middle;
+      dominant-baseline: central;
+    }
+  </style>
+</head>
+<body>
+  <h2>Queens: Exhaustive Search Demo</h2>
+
+  <div class="controls">
+    <label for="n-select">N:</label>
+    <select id="n-select">
+      <option value="3">3</option>
+      <option value="4" selected>4</option>
+      <option value="5">5</option>
+      <option value="6">6</option>
+      <option value="7">7</option>
+      <option value="8">8</option>
+    </select>
+    <button id="prev-btn" disabled>Previous</button>
+    <button id="next-btn">Next</button>
+    <button id="play-btn">Play</button>
+    <label for="speed-select">Speed:</label>
+    <select id="speed-select">
+      <option value="1">1×</option>
+      <option value="2">2×</option>
+      <option value="4">4×</option>
+      <option value="8">8×</option>
+      <option value="16">16×</option>
+      <option value="32">32×</option>
+      <option value="64">64×</option>
+      <option value="128">128×</option>
+      <option value="256">256×</option>
+      <option value="512">512×</option>
+      <option value="1024">1024×</option>
+    </select>
+  </div>
+
+  <div id="loading">Loading, please wait...</div>
+
+  <div id="step-count"> configurations tried: 0</div>
+  <div id="q-array">Q = [ - ]</div>
+  <svg id="board"></svg>
+  <div id="comment"><br></div>
+  <div id="solutions">
+    <strong>Solutions found:</strong>
+    <ol id="solutions-list"></ol>  <!-- numbered list container -->
+  </div>
+
+  <script>
+    // === VARIABLES & DOM REFERENCES ===
+    const nSelect      = document.getElementById('n-select');
+    let N              = parseInt(nSelect.value, 10);
+    const CELL_SIZE    = 50;
+
+    let gen            = null;       // generator instance
+    let currentEvent   = null;       // last yielded event
+    let playing        = false;      // is an interval running?
+    let intervalId     = null;
+    let stepCounter    = 0;
+
+    const prevBtn      = document.getElementById('prev-btn');
+    const nextBtn      = document.getElementById('next-btn');
+    const playBtn      = document.getElementById('play-btn');
+    const speedSelect  = document.getElementById('speed-select');
+    const commentDiv   = document.getElementById('comment');
+    const qArrayDiv    = document.getElementById('q-array');
+    const boardSvg     = document.getElementById('board');
+    const solutionsDiv = document.getElementById('solutions');
+    const loadingDiv   = document.getElementById('loading');
+    const stepCountDiv = document.getElementById('step-count');
+    let solutionsList = document.getElementById('solutions-list'); 
+
+    // === HELPERS: disable/enable controls ===
+    function disableControls() {
+      prevBtn.disabled      = true;
+      nextBtn.disabled      = true;
+      playBtn.disabled      = true;
+      nSelect.disabled      = true;
+      speedSelect.disabled  = true;
+    }
+    function enableControls() {
+      prevBtn.disabled      = true;  // previous always disabled
+      nextBtn.disabled      = false;
+      playBtn.disabled      = false;
+      nSelect.disabled      = false;
+      speedSelect.disabled  = false;
+    }
+
+    // === SHOW / HIDE LOADING ===
+    function showLoading() {
+      loadingDiv.style.display = 'block';
+      disableControls();
+      commentDiv.innerHTML  = '';
+      qArrayDiv.textContent = '';
+      drawEmptyBoard();
+
+      solutionsDiv.innerHTML = '<strong>Solutions found:</strong><ol id="solutions-list"></ol>';
+      solutionsList = document.getElementById('solutions-list');
+      stepCounter = 0;
+      stepCountDiv.textContent = ' configurations tried: 0';
+    }
+    function hideLoading() {
+      loadingDiv.style.display = 'none';
+      enableControls();
+    }
+
+    // === GENERATOR FOR ON-THE-FLY EVENT PRODUCTION ===
+    function* generateEvents() {
+      const Q = new Array(N).fill(-1);
+
+      function isValidConfiguration(arr) {
+        for (let i = 0; i < N; i++) {
+          for (let j = i + 1; j < N; j++) {
+            if (
+              arr[i] === arr[j] ||
+              Math.abs(i - j) === Math.abs(arr[i] - arr[j])
+            ) {
+              return false;
+            }
+          }
+        }
+        return true;
+      }
+
+      function* recurse(row) {
+        for (let col = 0; col < N; col++) {
+          Q[row] = col;
+          yield { type: 'place', Q: Q.slice(), row: row };
+          if (row === N - 1) {
+            const valid = isValidConfiguration(Q);
+            yield { type: 'check', Q: Q.slice(), valid: valid };
+          } else {
+            yield* recurse(row + 1);
+          }
+        }
+        Q[row] = -1;
+      }
+
+      yield* recurse(0);
+    }
+
+    // === DRAW BLANK BOARD FOR CURRENT N ===
+    function drawEmptyBoard() {
+      boardSvg.innerHTML = '';
+      const boardSizePx = N * CELL_SIZE;
+      boardSvg.setAttribute('width', boardSizePx);
+      boardSvg.setAttribute('height', boardSizePx);
+      for (let r = 0; r < N; r++) {
+        for (let c = 0; c < N; c++) {
+          const rect = document.createElementNS('http://www.w3.org/2000/svg','rect');
+          rect.setAttribute('x', c * CELL_SIZE);
+          rect.setAttribute('y', r * CELL_SIZE);
+          rect.setAttribute('width', CELL_SIZE);
+          rect.setAttribute('height', CELL_SIZE);
+          const isDark = (r + c) % 2 === 1;
+          rect.setAttribute('class', 'cell' + (isDark ? ' dark' : ''));
+          boardSvg.appendChild(rect);
+        }
+      }
+    }
+
+    // === HANDLE A CHECK EVENT FOR SOLUTION LIST & STEP COUNT ===
+    function handleCheckEvent(ev) {
+      stepCounter++;
+      stepCountDiv.textContent = ' configurations tried: ' + stepCounter;
+      if (ev.valid) {
+        const arr = ev.Q;
+          const li = document.createElement('li');
+       li.textContent = '[ ' + arr.join(' , ') + ' ]';
+       li.classList.add('solution-entry');
+       li.addEventListener('click', () => {
+         renderSolution(arr);
+       });
+       solutionsList.appendChild(li);
+
+/*		const solDiv  = document.createElement('div');
+        const solSpan = document.createElement('span');
+        solSpan.textContent = '[ ' + arr.join(' , ') + ' ]';
+        solSpan.classList.add('solution-entry');
+        solSpan.addEventListener('click', () => {
+          renderSolution(arr);
+        });
+        solDiv.appendChild(solSpan);
+        solutionsDiv.appendChild(solDiv);
+		
+		*/
+		
+		
+      }
+    }
+
+    // === RENDER THE CURRENT EVENT (VISUAL ONLY) ===
+    function renderCurrentEvent() {
+      drawEmptyBoard();
+      if (!currentEvent) {
+        commentDiv.innerHTML = '<br>';
+        qArrayDiv.textContent = 'Q = [ ' + Array(N).fill('-').join(' , ') + ' ]';
+        return;
+      }
+      const ev  = currentEvent;
+      const arr = ev.Q;
+      const displayArr = arr.map(v => (v === -1 ? '-' : v));
+      qArrayDiv.textContent = 'Q = [ ' + displayArr.join(' , ') + ' ]';
+
+      if (ev.type === 'place') {
+        for (let r = 0; r <= ev.row; r++) {
+          const c = arr[r];
+          if (c < 0) continue;
+          const cx = c * CELL_SIZE + CELL_SIZE / 2;
+          const cy = r * CELL_SIZE + CELL_SIZE / 2;
+          const radius = CELL_SIZE / 2 - 5;
+          const circle = document.createElementNS('http://www.w3.org/2000/svg','circle');
+          circle.setAttribute('cx', cx);
+          circle.setAttribute('cy', cy);
+          circle.setAttribute('r', radius);
+          circle.setAttribute('fill', '#888');
+          boardSvg.appendChild(circle);
+
+          const text = document.createElementNS('http://www.w3.org/2000/svg','text');
+          text.setAttribute('x', cx);
+          text.setAttribute('y', cy + 1);
+          text.setAttribute('class', 'queen');
+          text.setAttribute('fill', '#fff');
+          text.textContent = 'Q';
+          boardSvg.appendChild(text);
+        }
+        commentDiv.textContent = 'Placed queen at row ' + ev.row + ', column ' + arr[ev.row] + '.';
+
+      } else if (ev.type === 'check') {
+        const conflictSet = new Set();
+        for (let i = 0; i < N; i++) {
+          for (let j = i + 1; j < N; j++) {
+            if (
+              arr[i] === arr[j] ||
+              Math.abs(i - j) === Math.abs(arr[i] - arr[j])
+            ) {
+              conflictSet.add(i);
+              conflictSet.add(j);
+            }
+          }
+        }
+        for (let r = 0; r < N; r++) {
+          const c = arr[r];
+          const cx = c * CELL_SIZE + CELL_SIZE / 2;
+          const cy = r * CELL_SIZE + CELL_SIZE / 2;
+          const radius = CELL_SIZE / 2 - 5;
+          const isConflict = conflictSet.has(r);
+          const circle = document.createElementNS('http://www.w3.org/2000/svg','circle');
+          circle.setAttribute('cx', cx);
+          circle.setAttribute('cy', cy);
+          circle.setAttribute('r', radius);
+          circle.setAttribute('fill', isConflict ? '#c00' : '#0a0');
+          boardSvg.appendChild(circle);
+
+          const text = document.createElementNS('http://www.w3.org/2000/svg','text');
+          text.setAttribute('x', cx);
+          text.setAttribute('y', cy + 1);
+          text.setAttribute('class', 'queen');
+          text.setAttribute('fill', '#fff');
+          text.textContent = 'Q';
+          boardSvg.appendChild(text);
+        }
+        if (ev.valid) {
+          commentDiv.textContent = 'Valid solution: [ ' + arr.join(' , ') + ' ]';
+        } else {
+          commentDiv.textContent = 'Invalid assignment: [ ' + arr.join(' , ') + ' ]';
+        }
+      }
+    }
+
+    // === SHOW ONE FULL SOLUTION WHEN CLICKED ===
+    function renderSolution(arr) {
+      drawEmptyBoard();
+      qArrayDiv.textContent = 'Q = [ ' + arr.join(' , ') + ' ]';
+      commentDiv.textContent = 'Displaying selected solution.';
+      for (let r = 0; r < N; r++) {
+        const c = arr[r];
+        const cx = c * CELL_SIZE + CELL_SIZE / 2;
+        const cy = r * CELL_SIZE + CELL_SIZE / 2;
+        const radius = CELL_SIZE / 2 - 5;
+        const circle = document.createElementNS('http://www.w3.org/2000/svg','circle');
+        circle.setAttribute('cx', cx);
+        circle.setAttribute('cy', cy);
+        circle.setAttribute('r', radius);
+        circle.setAttribute('fill', '#0a0');
+        boardSvg.appendChild(circle);
+
+        const text = document.createElementNS('http://www.w3.org/2000/svg','text');
+        text.setAttribute('x', cx);
+        text.setAttribute('y', cy + 1);
+        text.setAttribute('class', 'queen');
+        text.setAttribute('fill', '#fff');
+        text.textContent = 'Q';
+        boardSvg.appendChild(text);
+      }
+    }
+
+    // === NEXT EVENT (ON-DEMAND) ===
+    function nextEvent() {
+      if (!gen) return;
+      const result = gen.next();
+      if (result.done) {
+        // end of generator
+        playing = false;
+        playBtn.textContent = 'Play';
+        clearInterval(intervalId);
+        return;
+      }
+      currentEvent = result.value;
+      if (currentEvent.type === 'check') {
+        handleCheckEvent(currentEvent);
+      }
+      renderCurrentEvent();
+    }
+
+    // === PLAY/PAUSE & SPEED LOGIC WITH SKIPPING ===
+    function playEvents() {
+      if (playing) {
+        playing = false;
+        playBtn.textContent = 'Play';
+        clearInterval(intervalId);
+      } else {
+        playing = true;
+        playBtn.textContent = 'Pause';
+        startIntervalAtCurrentSpeed();
+      }
+    }
+
+    function startIntervalAtCurrentSpeed() {
+      clearInterval(intervalId);
+      const speed = parseInt(speedSelect.value, 10);
+      let skipFactor = 1;
+      let effectiveRate = speed;
+      if (speed > 32) {
+        skipFactor = speed / 32;
+        effectiveRate = 32;
+      }
+      const delay = 1000 / effectiveRate;
+
+      intervalId = setInterval(() => {
+        for (let i = 0; i < skipFactor; i++) {
+          if (!gen) break;
+          const result = gen.next();
+          if (result.done) {
+            playing = false;
+            playBtn.textContent = 'Play';
+            clearInterval(intervalId);
+            break;
+          }
+          currentEvent = result.value;
+          if (currentEvent.type === 'check') {
+            handleCheckEvent(currentEvent);
+          }
+        }
+        renderCurrentEvent();
+      }, delay);
+    }
+
+    speedSelect.addEventListener('change', () => {
+      if (!playing) return;
+      clearInterval(intervalId);
+      startIntervalAtCurrentSpeed();
+    });
+
+    // === CHANGE N HANDLER ===
+    nSelect.addEventListener('change', () => {
+      if (playing) {
+        clearInterval(intervalId);
+        playing = false;
+        playBtn.textContent = 'Play';
+      }
+      N = parseInt(nSelect.value, 10);
+      showLoading();
+      setTimeout(() => {
+        initDemo();
+        hideLoading();
+      }, 50);
+    });
+
+    // === INITIALIZATION ===
+    function initDemo() {
+	  solutionsDiv.innerHTML = '<strong>Solutions found:</strong><ol id="solutions-list"></ol>';
+      solutionsList = document.getElementById('solutions-list');
+      drawEmptyBoard();
+      commentDiv.innerHTML = '<br>';
+      stepCounter = 0;
+      stepCountDiv.textContent = ' configurations tried: 0';
+      qArrayDiv.textContent = 'Q = [ ' + Array(N).fill('-').join(' , ') + ' ]';
+      gen = generateEvents();
+      currentEvent = null;
+      updateButtons();
+    }
+
+    // === UPDATE BUTTON STATES ===
+    function updateButtons() {
+      prevBtn.disabled = true; // previous not supported
+      nextBtn.disabled = false;
+    }
+
+    // === BUTTON LISTENERS ===
+    nextBtn.addEventListener('click', nextEvent);
+    playBtn.addEventListener('click', playEvents);
+
+    // On first load:
+    initDemo();
+  </script>
+</body>
+</html>
