@@ -95,9 +95,8 @@
     "links.html"
   ],
   "Problems": [
-    "0_Problem List.html",
     {
-      "1_Foundational": [
+      "Foundational": [
         "Array Partition.html",
         "Exponentiation.html",
         "Matrix Multiplication.html",
@@ -109,22 +108,13 @@
       ]
     },
     {
-      "2_Optimization": [
-        "0-1 Knapsack.html",
-        "Chain Matrix Multiplication.html",
-        "Edit Distance.html",
-        "Fractional Knapsack.html",
-        "Minimum Coin Change.html"
-      ]
-    },
-    {
-      "3_Geometry": [
+      "Geometry": [
         "Closest Pair.html",
         "Convex Hull.html"
       ]
     },
     {
-      "4_Graphs": [
+      "Graphs": [
         "All Pairs Shortest Path.html",
         "Graph Traversal.html",
         "Maximum Flow.html",
@@ -135,14 +125,24 @@
       ]
     },
     {
-      "5_Other": [
+      "Optimization": [
+        "0-1 Knapsack.html",
+        "Chain Matrix Multiplication.html",
+        "Edit Distance.html",
+        "Fractional Knapsack.html",
+        "Minimum Coin Change.html"
+      ]
+    },
+    {
+      "Other": [
         "Fibonacci.html",
         "Optimal Character Encoding.html",
         "String Matching.html",
         "Subset Sum.html",
         "Travelling Salesman.html"
       ]
-    }
+    },
+    "Problem List.html"
   ],
   "Techniques": [
     "Brute Force.html",

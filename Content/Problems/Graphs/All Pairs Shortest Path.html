@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>All-Pairs Shortest Path</title>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <link rel="stylesheet" href="../../../css/style.css">
+  <link rel="stylesheet" href="../../../css/problem.css">
+</head>
+<body>
+  <h1>All-Pairs Shortest Path</h1>
+
+  <section>
+    <h2>Problem Description</h2>
+    <p>
+      Given a directed or undirected weighted graph, the goal is to find the shortest path distances between all pairs of vertices. 
+      In other words, for every pair of vertices \( (u, v) \), determine the minimum cost to travel from vertex \( u \) to vertex \( v \).
+    </p>
+    <h3>Input</h3>
+    <p>
+      A graph \( G = (V, E) \), where each edge \( (u, v) \in E \) has an associated weight \( w(u, v) \in \mathbb{R} \). The input may be represented 
+      as an adjacency matrix or an adjacency list. The graph may contain negative edge weights, but no negative weight cycles.
+    </p>
+
+    <h3>Output</h3>
+    <p>
+      A matrix \( D \) of size \( |V| \times |V| \), where \( D[u][v] \) is the shortest path distance from vertex \( u \) to vertex \( v \).
+      If no such path exists, the entry should be ∞ or a sentinel value (e.g., -1).
+    </p>
+  </section>
+
+  <section>
+    <h2>Motivation/Applications</h2>
+    <p>
+      This problem is fundamental in many domains such as network routing, transportation planning, urban traffic simulations, 
+      and game development where shortest paths between multiple entities need to be precomputed or queried frequently.
+    </p>
+  </section>
+
+  <section>
+    <h2>Examples</h2>
+		<p><em>Note:</em> In the examples, edge \((u,v)\) of weight \(w\) is specified as a triple \((u,v,w)\)
+	</p>
+	
+	<div class="example-box">
+  <strong class="example-title">Example 1</strong><br>
+  <strong>Input:</strong><br>
+  Directed graph with 3 vertices and the following weighted edges:<br>
+  (0,1,4), (0,2,11), (1,2,2)<br><br>
+<svg width="300" height="180" style="border:1px solid #ccc; background:#fafafa">
+  <!-- Nodes -->
+  <circle cx="60" cy="90" r="20" fill="#cce3ff" />
+  <text x="60" y="95" text-anchor="middle" font-size="16" fill="black">0</text>
+
+  <circle cx="150" cy="45" r="20" fill="#cce3ff" />
+  <text x="150" y="50" text-anchor="middle" font-size="16" fill="black">1</text>
+
+  <circle cx="240" cy="120" r="20" fill="#cce3ff" />
+  <text x="240" y="125" text-anchor="middle" font-size="16" fill="black">2</text>
+
+  <!-- Edges -->
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#000" />
+    </marker>
+  </defs>
+
+  <line x1="80" y1="90" x2="130" y2="50" stroke="black" marker-end="url(#arrow)" />
+  <text x="100" y="60" font-size="14" fill="black">4</text>
+
+  <line x1="80" y1="90" x2="220" y2="120" stroke="black" marker-end="url(#arrow)" />
+  <text x="150" y="120" font-size="14" fill="black">11</text>
+
+  <line x1="170" y1="50" x2="220" y2="110" stroke="black" marker-end="url(#arrow)" />
+  <text x="195" y="70" font-size="14" fill="black">2</text>
+</svg><br><br>
+
+
+
+  <strong>Output:</strong><br>
+  Shortest distance matrix:<br>
+  <pre>
+0  4  6
+∞  0  2
+∞  ∞  0
+  </pre>
+</div>
+    <br>
+<!-- Based on problem_template.html:contentReference[oaicite:0]{index=0} and using .example-box styles from style.css -->
+<div class="example-box">
+  <strong class="example-title">Example 2</strong><br>
+  <strong>Input:</strong><br>
+  Graph with 6 vertices and weighted edges:<br>
+  (0,1,7), (0,2,9), (0,5,14), (1,2,10), (1,3,15), (2,3,11), (2,5,2), (3,4,6), (4,5,9)<br><br>
+
+<svg width="450" height="260" style="border:1px solid #ccc; background:#fafafa">
+  <!-- Arrow marker definition -->
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L9,3 z" fill="black" />
+    </marker>
+  </defs>
+  <g transform="translate(0, -40)">
+  <!-- Edges -->
+  <line x1="100" y1="200" x2="200" y2="80" stroke="black" marker-end="url(#arrow)" />
+  <text x="140" y="140" font-size="16">7</text>
+
+  <line x1="100" y1="200" x2="320" y2="80" stroke="black" marker-end="url(#arrow)" />
+  <text x="190" y="145" font-size="16">9</text>
+
+  <line x1="100" y1="200" x2="100" y2="260" stroke="black" marker-end="url(#arrow)" />
+  <text x="80" y="235" font-size="16">14</text>
+
+  <line x1="200" y1="80" x2="320" y2="80" stroke="black" marker-end="url(#arrow)" />
+  <text x="260" y="70" font-size="16">10</text>
+
+  <line x1="200" y1="80" x2="320" y2="200" stroke="black" marker-end="url(#arrow)" />
+  <text x="270" y="150" font-size="16">15</text>
+
+  <line x1="320" y1="80" x2="320" y2="200" stroke="black" marker-end="url(#arrow)" />
+  <text x="330" y="140" font-size="16">11</text>
+
+  <line x1="320" y1="80" x2="100" y2="260" stroke="black" marker-end="url(#arrow)" />
+  <text x="210" y="185" font-size="16">2</text>
+
+  <line x1="320" y1="200" x2="200" y2="260" stroke="black" marker-end="url(#arrow)" />
+  <text x="270" y="240" font-size="16">6</text>
+
+  <line x1="200" y1="260" x2="100" y2="260" stroke="black" marker-end="url(#arrow)" />
+  <text x="150" y="275" font-size="16">9</text>
+
+  <!-- Nodes -->
+  <circle cx="100" cy="200" r="20" fill="#cce3ff" />
+  <text x="100" y="206" text-anchor="middle" font-size="18">0</text>
+
+  <circle cx="200" cy="80" r="20" fill="#cce3ff" />
+  <text x="200" y="86" text-anchor="middle" font-size="18">1</text>
+
+  <circle cx="320" cy="80" r="20" fill="#cce3ff" />
+  <text x="320" y="86" text-anchor="middle" font-size="18">2</text>
+
+  <circle cx="320" cy="200" r="20" fill="#cce3ff" />
+  <text x="320" y="206" text-anchor="middle" font-size="18">3</text>
+
+  <circle cx="200" cy="260" r="20" fill="#cce3ff" />
+  <text x="200" y="266" text-anchor="middle" font-size="18">4</text>
+
+  <circle cx="100" cy="260" r="20" fill="#cce3ff" />
+  <text x="100" y="266" text-anchor="middle" font-size="18">5</text>
+  </g>
+</svg><br><br>
+
+
+  <strong>Output:</strong><br>
+  Shortest distance matrix:<br>
+  <pre>
+  0   7   9  20  20  11
+  7   0  10  15  21  12
+  9  10   0  11  11   2
+ 20  15  11   0   6  13
+ 20  21  11   6   0   9
+ 11  12   2  13   9   0
+  </pre>
+</div>
+
+  <section>
+    <h2>Common Algorithms/Techniques</h2>
+    <ul>
+      <li><a class="problem" href="?path=Algorithms/Dynamic Programming/Floyd-Warshall"> Floyd-Warshall Algorithm</a></li>
+      <li><a class="problem" href="?path=Algorithms/Greedy/Dijkstras">Dijkstra's Algorithm</a> (It solves the single-source shortest path problem, 
+	  but can be called for each vertex to solve the all-pairs shortest path.)</li>
+      <li>Johnson's Algorithm (Works with negative weights, works well with sparse graphs.)</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Variants/Related Problems</h2>
+    <ul>
+      <li>Single-Source Shortest Path</li>
+      <li>Transitive Closure (unweighted version)</li>
+    </ul>
+  </section>
+</body>
+</html>

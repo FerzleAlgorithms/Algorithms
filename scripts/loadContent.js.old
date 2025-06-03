@@ -1,0 +1,382 @@
+// File: scripts/loadContent.js
+
+// Specify the exact order you want, using the *plain* names:
+const TOP_LEVEL_ORDER = [
+  "Home",
+  "Problems",
+  "Data Structures",
+  "Techniques",
+  "Algorithms",
+  "Demos",
+  "More"
+];
+
+const PROBLEMS_ORDER = [
+  "Foundational",
+  "Optimization",
+  "Geometry",
+  "Graphs",
+  "Other"
+];
+
+const ALGORITHMS_ORDER = [
+  "Brute Force",
+  "Exhaustive Search",
+  "Divide-and-Conquer",
+  "Decrease-and-Conquer",
+  "Transform-and-Conquer",
+  "Greedy",
+  "Dynamic Programming",
+  "Space-Time Tradeoff",
+  "Backtracking"
+];
+
+const DEMOS_ORDER = [
+  "Brute Force",
+  "Exhaustive Search",
+  "Divide-and-Conquer",
+  "Decrease-and-Conquer",
+  "Transform-and-Conquer",
+  "Greedy",
+  "Dynamic Programming",
+  "Space-Time Tradeoff",
+  "Backtracking"
+];
+
+
+
+
+
+/**
+ * Normalize a slash-delimited path by decoding then re-encoding each segment.
+ * Ensures no spaces or special chars remain unencoded.
+ * @param {string} path
+ * @returns {string} e.g. "Algorithms%2FBrute%20Force%2FBubble%20Sort"
+ */
+function normalizePath(path) {
+  return path
+    .split("/")
+    .map(function (segment) {
+      return encodeURIComponent(decodeURIComponent(segment));
+    })
+    .join("/");
+}
+
+ /**
+ * Hook an <object> element so that:
+ *   a) Any <a href="?path=…"> inside it loads via loadContent() + pushState({path}, "?path=<safe>")
+ *   b) Any other <a> opens in the top frame
+ *   c) Any <iframe class="embeddedDemo"> is cache-busted and auto-resized.
+ */
+function hookIframeContent(obj) {
+  const innerDoc = obj.contentDocument;
+  if (!innerDoc) return;
+
+  // a) Intercept any <a href="?path=…"> inside the iframe content
+  innerDoc.addEventListener("click", function onInnerClick(event) {
+    var anchor = event.target.closest('a[href]');
+    if (!anchor) return;
+
+    var href = anchor.getAttribute("href");
+    if (!href.startsWith("?path=")) return;
+
+    event.preventDefault();
+    var raw = new URLSearchParams(href.slice(1)).get("path");
+    if (!raw) return;
+
+    // 1) Determine the parent’s current path (either from history.state or from URL)
+    let parentCurrent = (history.state && history.state.path)
+      ? history.state.path
+      : new URLSearchParams(window.location.search).get("path") || "home";
+
+    // 2) Don’t pushState if we’re already on that same raw path
+    if (raw === parentCurrent) {
+      return; // no-op
+    }
+
+    // 3) Build an encoded (“safe”) URL fragment
+    var safe = normalizePath(raw);
+
+    // 4) Actually load the new content and push a proper state
+    parent.loadContent(safe + ".html");
+    parent.history.pushState({ path: raw }, "", "?path=" + safe);
+  });
+
+  // b) Make all other links open at top level
+  innerDoc.querySelectorAll('a[href]:not([href^="?path="])').forEach(function(a) {
+    a.target = "_top";
+  });
+
+  // c) Cache-bust & auto-resize any <iframe class="embeddedDemo">
+  innerDoc.querySelectorAll("iframe.embeddedDemo").forEach((frame) => {
+    const base = frame.src.split("?")[0];
+    frame.src = base + "?cb=" + Date.now();
+    frame.scrolling = "no";
+
+    frame.addEventListener("load", () => {
+      const d = frame.contentDocument || frame.contentWindow.document;
+      function resize() {
+        frame.style.height = "auto";
+        const h = Math.max(
+          d.documentElement.scrollHeight,
+          d.body.scrollHeight
+        );
+        frame.style.height = h + "px";
+      }
+      // Initial sizing
+      resize();
+      // Observe for any DOM changes inside the iframe
+      new MutationObserver(resize).observe(d.documentElement, {
+        childList: true,
+        subtree: true,
+        attributes: true
+      });
+    });
+  });
+}
+
+/**
+ * Builds the nested sidebar menu from chapters.json.
+ * Expects <nav id="menu"><ul></ul></nav> in your HTML.
+ * @param {Object} chapters
+ */
+function buildMenu(chapters) {
+  var menu = document.querySelector("#menu ul");
+  menu.innerHTML = "<li><a href='?path=home'>Home</a></li>";
+
+function buildList(items, container, pathPrefix, orderList = []) {
+  const getKey = (entry) =>
+    typeof entry === "string"
+      ? entry.replace(/\.html$/, "")
+      : Object.keys(entry)[0];
+
+  items.sort((a, b) => {
+    const indexA = orderList.indexOf(getKey(a));
+    const indexB = orderList.indexOf(getKey(b));
+    return (indexA === -1 ? 9999 : indexA) - (indexB === -1 ? 9999 : indexB);
+  });
+
+  items.forEach(function (item) {
+    const li = document.createElement("li");
+
+    if (typeof item === "string") {
+      const raw = item.replace(/\.html$/, "");
+      const a = document.createElement("a");
+      a.textContent = raw.replace(/Demo$/, "").trim(); // for display only
+      a.href = "?path=" + encodeURIComponent(pathPrefix + raw);
+      li.appendChild(a);
+    } else {
+      Object.entries(item).forEach(function ([dir, sub]) {
+        const span = document.createElement("span");
+        span.textContent = dir;
+        span.onclick = () => li.classList.toggle("open");
+        li.appendChild(span);
+
+        const ul = document.createElement("ul");
+        buildList(sub, ul, pathPrefix + dir + "/", orderList); // <-- pass orderList here
+        li.appendChild(ul);
+      });
+    }
+
+    container.appendChild(li);
+  });
+}
+
+  function initMenuToggle() {
+    const spans = document.querySelectorAll("nav#menu li > span");
+    spans.forEach(function (span) {
+      span.onclick = function () {
+        const parentLi = this.parentElement;
+        const parentUl = parentLi.parentElement;
+        parentUl.querySelectorAll(":scope > li.open").forEach(function (openLi) {
+          if (openLi !== parentLi) openLi.classList.remove("open");
+        });
+        parentLi.classList.toggle("open");
+      };
+    });
+  }
+
+  TOP_LEVEL_ORDER.forEach(function (plainName) {
+    const rawKey = Object.keys(chapters).find(function (k) {
+      return k === plainName;
+    });
+    if (!rawKey) return;
+
+    const contents = chapters[rawKey];
+    const li = document.createElement("li");
+
+    var span = document.createElement("span");
+    span.textContent = plainName;
+    span.onclick = function () {
+      li.classList.toggle("open");
+    };
+    li.appendChild(span);
+
+    const ul = document.createElement("ul");
+    
+  const orderList = {
+    Problems: PROBLEMS_ORDER,
+    Algorithms: ALGORITHMS_ORDER,
+    Demos: DEMOS_ORDER
+  }[plainName] || [];
+
+    buildList(contents, ul, rawKey + "/", orderList);
+    li.appendChild(ul);
+
+    document.querySelector("#menu ul").appendChild(li);
+  });
+
+  initMenuToggle();
+}
+
+/**
+ * Loads a page into the <object id="content">.
+ * If fetch fails, shows a custom error with a “nice” page name.
+ * @param {string} relativePath  e.g. "Chapter1/Intro.html"
+ */
+async function loadContent(relativePath) {
+  var obj = document.getElementById("content");
+  var err = document.getElementById("errorMessage");
+  var url = "Content/" + relativePath;
+
+  try {
+    var res = await fetch(url, { cache: "no-cache" });
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    await res.text(); // ensure it exists
+
+    // Hide any previous error, show the <object>, then set its src
+    err.style.display = "none";
+    obj.style.display = "block";
+    obj.src = url + "?_=" + Date.now();
+
+    obj.onload = function () {
+      // Hook in-page links and embedded demos
+      hookIframeContent(obj);
+
+      function resizeIframe() {
+        const prevY = window.pageYOffset;
+        obj.style.height = "auto";
+        const d = obj.contentDocument || obj.contentWindow.document;
+        const h = Math.max(
+          d.documentElement.scrollHeight,
+          d.body.scrollHeight
+        );
+        obj.style.height = 50 + h + "px";
+        window.scrollTo(0, prevY);
+      }
+
+      // Initial sizing
+      resizeIframe();
+
+      new MutationObserver(resizeIframe).observe(
+        obj.contentDocument.documentElement,
+        {
+          subtree: true,
+          childList: true,
+          attributes: true
+        }
+      );
+
+      window.addEventListener("resize", resizeIframe);
+    };
+  } catch (e) {
+     // Add back for debugging.
+    //console.error("loadContent error:", e);
+    obj.style.display = "none";
+
+    var rawPath = (history.state && history.state.path)
+      ? history.state.path
+      : new URLSearchParams(window.location.search).get("path") || "unknown";
+    
+    err.innerHTML =
+      "<p>The page you are trying to load cannot be found.<br>" +
+      "It is possible it is still being created.<br>"+
+      "Please check back later.</p>" +
+      "<p><strong>Page path:</strong> " + rawPath + "</p>";
+          err.style.display = "block";
+
+    //throw e; // No need to throw. We handled it.
+  }
+}
+
+/**
+ * Reads the '?path=' parameter from event.state.path (preferred),
+ * or from window.location.search if no state is present. Defaults to 'home'.
+ * Then calls loadContent().
+ */
+function loadFromURLParams(event) {
+  let pathParam;
+  if (event && event.state && event.state.path) {
+    pathParam = event.state.path;
+  } else {
+    pathParam = new URLSearchParams(window.location.search).get("path") || "home";
+  }
+  var safe = normalizePath(pathParam);
+  loadContent(safe + ".html");
+}
+
+// Listen for Back/Forward navigation
+window.addEventListener("popstate", loadFromURLParams);
+
+// When the DOM is ready, set up everything
+document.addEventListener("DOMContentLoaded", function initApp() {
+  // 1) Determine initial “raw” path, or default to "home"
+  const initialParam =
+    new URLSearchParams(window.location.search).get("path") || "home";
+
+  // 2) Encode it so that the URL becomes '?path=<encoded>'
+  const safeInitial = normalizePath(initialParam);
+
+  // 3) Replace the very first history entry so that .state.path is set to initialParam,
+  //    and make sure the address bar reads exactly '?path=<encodedInitial>'.
+  history.replaceState({ path: initialParam }, "", "?path=" + safeInitial);
+
+  // 4) Build the sidebar menu from scripts/chapters.json, then load the first content
+  fetch("scripts/chapters.json")
+    .then(function (response) {
+      return response.json();
+    })
+    .then(function (chaptersData) {
+      buildMenu(chaptersData);
+      loadFromURLParams(); // loads “home.html” or whatever pathParam is
+    })
+    .catch(console.error);
+
+  // 5) Delegate ANY <a href="?path="> click (sidebar or anywhere) to Ajax + pushState({path}, …)
+    document.addEventListener("click", function onNavClick(event) {
+    var anchor = event.target.closest('a[href^="?path="]');
+    if (!anchor) return;
+    event.preventDefault();
+
+    // 1) Extract the raw “friendly” path from the link (e.g. "home" or "Algorithms/Brute Force/Bubble Sort")
+    var rawPath = new URLSearchParams(anchor.getAttribute("href").slice(1)).get("path");
+    if (!rawPath) return;
+
+    // 2) What is the current path, according to history.state or the URL?
+    let currentPath = (history.state && history.state.path) 
+      ? history.state.path 
+      : new URLSearchParams(window.location.search).get("path") || "home";
+
+    // 3) If rawPath is exactly the same as currentPath, do nothing (no pushState).
+    if (rawPath === currentPath) {
+      // We’re already on this page, so just return without pushing a duplicate state.
+      return;
+    }
+
+    // 4) Otherwise, encode (“safe”) then load + pushState
+    var safe = normalizePath(rawPath);
+    loadContent(safe + ".html");
+    history.pushState({ path: rawPath }, "", "?path=" + safe);
+  });
+
+  // 6) Handle any postMessage (e.g. full-screen requests) from embedded demos
+  window.addEventListener("message", function onDemoMessage(event) {
+    var msg = event.data;
+    if (msg && msg.type === "demo-fullscreen") {
+      var frame = event.source.frameElement;
+      if (frame && typeof frame.requestFullscreen === "function") {
+        frame.requestFullscreen().catch(console.error);
+      }
+    }
+  });
+});

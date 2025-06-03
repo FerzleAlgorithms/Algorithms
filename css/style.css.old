@@ -2,11 +2,14 @@
  * style.css — updated: single‐scroll container + side‐by‐side menu & content
  */
 
+
+
 /* 0) Global reset for all documents */
 html {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
+  height: auto;
   overflow: visible;
 }
 *, *::before, *::after {
@@ -15,8 +18,10 @@ html {
 body {
   font-family: 'Times New Roman', Times, serif;
   background-color: #f7f9fc;
+  height: 100%;
   margin: 0;
   padding: 0 5px;              /* horizontal gutters */
+  height: auto;
   overflow: visible;
 }
 
@@ -25,8 +30,9 @@ header h1,
 header h2,
 header h3 {
   color: #DDDDDD;
-  margin: 0.2em 0;
-  padding: 0;
+  margin-top: 0.2em;    /* shrink the space above */
+  margin-bottom: 0.2em; /* shrink the space below */
+  padding: 0;           /* remove any extra padding */
 }
 header h3 {
   font-style: italic;
@@ -36,20 +42,23 @@ header h3 {
 body.mainSite {
   display: flex;
   flex-direction: column;
-  margin: 0 10px;
+  height: 100%;                /* fill the viewport */
+  margin: 0 10px;              /* inner side gutters */
+  height: auto;
   overflow: visible;
 }
 
 body.mainSite #pageWrapper {
   display: flex;
   flex-direction: column;
-  flex: 1 1 auto;
+  flex: 1 1 auto;              /* fill available space */
   width: 100%;
-  max-width: 1050px;
+  max-width: 1050px;           /* or whatever you prefer */
   margin: 0 auto;
   background: #fff;
 }
 
+/* header stays its own size */
 body.mainSite header {
   flex: 0 0 auto;
   padding: 8px 0;
@@ -57,33 +66,35 @@ body.mainSite header {
   color: #fff;
   text-align: center;
 }
+/*---------------------------------------*/
+
 
 /* 2) Container holds menu + content and is the *only* scrollable area */
 body.mainSite #container {
-  display: flex;
-  flex: 1 1 auto;
-  min-height: 0;
-  overflow-y: auto;
+  display: flex;               /* row by default */
+  flex: 1 1 auto;              /* fill remaining space under header */
+  min-height: 0;       /* allow children to shrink */
+  overflow-y: auto;            /* ← single scrollbar lives here */
 }
 
 /* 4) Main content area (iframe) */
 body.mainSite #content {
-  flex: 1 1 auto;
+  flex: 1 1 auto;              /* fill remaining width */
   border: 1px solid #ccc;
   box-sizing: border-box;
-  overflow: hidden;
-  min-height: 0;
+  overflow: hidden;            /* no internal scroll */
+  min-height: 0;               /* allow shrinking in flex context */
 }
 
+/*---------------------------------------------------------*/
 /* 3) Sidebar menu */
-body.mainSite nav#menu {
-  font-size: 1em; 
-  width: 190px;
+body.mainSite nav#menu { 
+  width: 190px;                 /* explicit width */
   flex-shrink: 0;
   box-sizing: border-box;
   background-color: #e2e8f0;
   padding: 0.5em;
-  overflow-y: auto;
+  overflow-y: auto;            /* scroll if menu is too tall */
   word-wrap: break-word;
 }
 
@@ -93,21 +104,20 @@ body.mainSite nav#menu ul {
   margin: 0;
 }
 body.mainSite nav#menu ul ul {
-  display: none;
+  display: none;               /* hide submenus */
   padding-left: 1em;
 }
 body.mainSite nav#menu li {
   margin-bottom: 0.3em;
 }
 body.mainSite nav#menu li.open > ul {
-  display: block;
+  display: block;              /* show when open */
 }
-
 body.mainSite nav#menu li span {
-  display: flex;
-  align-items: center;
-  gap: 0.4em;
+  display: block;              /* so it fills the width */
   width: 100%;
+  align-items: flex-start;
+  gap: 0.4em;
   cursor: pointer;
 }
 
@@ -115,29 +125,13 @@ body.mainSite nav#menu li ul {
   width: 100%;
 }
 
-/* base arrow size */
 body.mainSite nav#menu li span::before {
   content: "▶";
-  display: inline-block;
-  width: 1em;
-  font-size: 1em;
-  text-align: center;
+  flex-shrink: 0;
   line-height: 1;
   transition: transform 0.15s ease;
   transform-origin: center;
 }
-
-/* smaller arrows for deeper levels */
-body.mainSite nav#menu ul ul li span::before {
-  font-size: 0.9em;
-}
-body.mainSite nav#menu ul ul ul li span::before {
-  font-size: 0.8em;
-}
-body.mainSite nav#menu ul ul ul ul li span::before {
-  font-size: 0.7em;
-}
-
 body.mainSite nav#menu li.open > span::before {
   transform: rotate(90deg);
 }
@@ -146,13 +140,19 @@ body.mainSite nav#menu li span:hover {
   background-color: #94a3b8;
 }
 
+/*body.mainSite nav#menu li:hover span {
+  background-color: #94a3b8;
+}
+*/
 body.mainSite nav#menu a {
   color: #1e293b;
   text-decoration: none;
 }
+
 body.mainSite nav#menu a:hover {
   text-decoration: underline;
 }
+
 
 nav#menu .menu-controls {
   margin-bottom: 0.5em;
@@ -173,6 +173,9 @@ nav#menu .menu-controls button {
 nav#menu .menu-controls button:hover {
   background-color: #a8b7cc;
 }
+
+
+
 
 /* 5) Error message below iframe (if shown) */
 body.mainSite #errorMessage {
@@ -195,6 +198,7 @@ body.mainSite #errorMessage {
 a.problem {
   color: #0366d6;
   text-decoration: none;
+  /* border-bottom: 2px solid #8bbde0;*/
   padding-bottom: 1px;
   transition: color 0.2s, border-color 0.2s;
 }
@@ -203,14 +207,18 @@ a.problem:hover {
   border-color: #559ecb;
 }
 
+
 /* 9) Resource-list link styling in main content */
 .resource-list a {
   color: #038c7f;
   text-decoration: none;
+  /*border-bottom: 2px solid #8bdcc9;*/
   padding-bottom: 0px;
-  line-height: 1.75;
+  line-height: 1.75;      /* spacing within each item */
 }
 .resource-list a:hover {
   color: #024f9a;
   border-color: #559ecb;
 }
+
+

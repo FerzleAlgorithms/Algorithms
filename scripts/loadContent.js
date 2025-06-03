@@ -1,85 +1,59 @@
 // File: scripts/loadContent.js
 
-// Specify the exact order you want, using the *plain* names:
+// --- Section: Top-level Ordering Constants ---
 const TOP_LEVEL_ORDER = [
-  "Home",
-  "Problems",
-  "Data Structures",
-  "Techniques",
-  "Algorithms",
-  "Demos",
-  "More"
+  "Home", "Problems", "Data Structures", "Techniques", "Algorithms", "Demos", "More"
 ];
 
-/**
- * Normalize a slash-delimited path by decoding then re-encoding each segment.
- * Ensures no spaces or special chars remain unencoded.
- * @param {string} path
- * @returns {string} e.g. "Algorithms%2FBrute%20Force%2FBubble%20Sort"
- */
+const PROBLEMS_ORDER = [
+  "Problem List", "Foundational", "Optimization", "Geometry", "Graphs", "Other"
+];
+
+const ALGORITHMS_ORDER = [
+  "Brute Force", "Exhaustive Search", "Divide-and-Conquer", "Decrease-and-Conquer",
+  "Transform-and-Conquer", "Greedy", "Dynamic Programming", "Space-Time Tradeoff", "Backtracking"
+];
+
+const DEMOS_ORDER = [...ALGORITHMS_ORDER];
+
+// --- Section: Utility Functions ---
 function normalizePath(path) {
   return path
     .split("/")
-    .map(function (segment) {
-      return encodeURIComponent(decodeURIComponent(segment));
-    })
+    .map((segment) => encodeURIComponent(decodeURIComponent(segment)))
     .join("/");
 }
 
-/**
- * Hook an <object> element so that:
- *   a) Any <a href="?path=…"> inside it loads via loadContent() + pushState({path}, "?path=<safe>")
- *   b) Any other <a> opens in the top frame
- *   c) Any <iframe class="embeddedDemo"> is cache-busted and auto-resized.
- * @param {HTMLObjectElement} obj
- */
- /**
- * Hook an <object> element so that:
- *   a) Any <a href="?path=…"> inside it loads via loadContent() + pushState({path}, "?path=<safe>")
- *   b) Any other <a> opens in the top frame
- *   c) Any <iframe class="embeddedDemo"> is cache-busted and auto-resized.
- */
+// --- Section: Iframe Hooking and Resizing ---
 function hookIframeContent(obj) {
   const innerDoc = obj.contentDocument;
   if (!innerDoc) return;
 
-  // a) Intercept any <a href="?path=…"> inside the iframe content
   innerDoc.addEventListener("click", function onInnerClick(event) {
-    var anchor = event.target.closest('a[href]');
+    const anchor = event.target.closest('a[href]');
     if (!anchor) return;
 
-    var href = anchor.getAttribute("href");
+    const href = anchor.getAttribute("href");
     if (!href.startsWith("?path=")) return;
 
     event.preventDefault();
-    var raw = new URLSearchParams(href.slice(1)).get("path");
+    const raw = new URLSearchParams(href.slice(1)).get("path");
     if (!raw) return;
 
-    // 1) Determine the parent’s current path (either from history.state or from URL)
-    let parentCurrent = (history.state && history.state.path)
-      ? history.state.path
-      : new URLSearchParams(window.location.search).get("path") || "home";
+    const parentCurrent = (history.state && history.state.path) ||
+      new URLSearchParams(window.location.search).get("path") || "home";
 
-    // 2) Don’t pushState if we’re already on that same raw path
-    if (raw === parentCurrent) {
-      return; // no-op
-    }
+    if (raw === parentCurrent) return;
 
-    // 3) Build an encoded (“safe”) URL fragment
-    var safe = normalizePath(raw);
-
-    // 4) Actually load the new content and push a proper state
+    const safe = normalizePath(raw);
     parent.loadContent(safe + ".html");
-    console.log("? pushState (in-iframe):", { path: raw }, "?path=" + safe);
     parent.history.pushState({ path: raw }, "", "?path=" + safe);
   });
 
-  // b) Make all other links open at top level
-  innerDoc.querySelectorAll('a[href]:not([href^="?path="])').forEach(function(a) {
+  innerDoc.querySelectorAll('a[href]:not([href^="?path="])').forEach((a) => {
     a.target = "_top";
   });
 
-  // c) Cache-bust & auto-resize any <iframe class="embeddedDemo">
   innerDoc.querySelectorAll("iframe.embeddedDemo").forEach((frame) => {
     const base = frame.src.split("?")[0];
     frame.src = base + "?cb=" + Date.now();
@@ -87,17 +61,14 @@ function hookIframeContent(obj) {
 
     frame.addEventListener("load", () => {
       const d = frame.contentDocument || frame.contentWindow.document;
+
       function resize() {
         frame.style.height = "auto";
-        const h = Math.max(
-          d.documentElement.scrollHeight,
-          d.body.scrollHeight
-        );
+        const h = Math.max(d.documentElement.scrollHeight, d.body.scrollHeight);
         frame.style.height = h + "px";
       }
-      // Initial sizing
+
       resize();
-      // Observe for any DOM changes inside the iframe
       new MutationObserver(resize).observe(d.documentElement, {
         childList: true,
         subtree: true,
@@ -107,124 +78,49 @@ function hookIframeContent(obj) {
   });
 }
 
-/*
-function hookIframeContent(obj) {
-  const innerDoc = obj.contentDocument;
-  if (!innerDoc) return;
-
-  // a) Intercept any <a href="?path=…">
-  innerDoc.addEventListener("click", function onInnerClick(event) {
-    var anchor = event.target.closest('a[href]');
-    if (!anchor) return;
-
-    var href = anchor.getAttribute("href");
-    if (!href.startsWith("?path=")) return;
-
-    event.preventDefault();
-    var raw = new URLSearchParams(href.slice(1)).get("path");
-    if (!raw) return;
-
-    // Build an encoded (“safe”) version for the URL:
-    var safe = normalizePath(raw);
-    
-    innerDoc.addEventListener("click", function onInnerClick(event) {
-        var anchor = event.target.closest('a[href]');
-        if (!anchor) return;
-        var href = anchor.getAttribute("href");
-        if (!href.startsWith("?path=")) return;
-    
-        event.preventDefault();
-        var raw = new URLSearchParams(href.slice(1)).get("path");
-        if (!raw) return;
-    
-        // What is the parent’s current path?
-        let parentCurrent = (history.state && history.state.path) 
-          ? history.state.path 
-          : new URLSearchParams(window.location.search).get("path") || "home";
-    
-        // If we’re already on "raw", skip the pushState
-        if (raw === parentCurrent) {
-          // Just re-load the content (or even skip re-loading if you want)
-          return;
-        }
-    
-        var safe = normalizePath(raw);
-        parent.loadContent(safe + ".html");
-    
-        console.log("? pushState (in-iframe):", { path: raw }, "?path=" + safe);
-        parent.history.pushState({ path: raw }, "", "?path=" + safe);
-      });
-
-    
-  });
-
-  // b) Make all other links open at the top
-  innerDoc.querySelectorAll('a[href]:not([href^="?path="])').forEach(function (a) {
-    a.target = "_top";
-  });
-
-  // c) For any <iframe class="embeddedDemo">, bust cache & auto-resize
-  innerDoc.querySelectorAll("iframe.embeddedDemo").forEach((frame) => {
-    const base = frame.src.split("?")[0];
-    frame.src = base + "?cb=" + Date.now();
-    frame.scrolling = "no";
-
-    frame.addEventListener("load", () => {
-      const d = frame.contentDocument || frame.contentWindow.document;
-      function resize() {
-        frame.style.height = "auto";
-        const h = Math.max(
-          d.documentElement.scrollHeight,
-          d.body.scrollHeight
-        );
-        frame.style.height = h + "px";
-      }
-      // Initial size
-      resize();
-      // Observe for any DOM changes inside the iframe
-      new MutationObserver(resize).observe(d.documentElement, {
-        childList: true,
-        subtree: true,
-        attributes: true
-      });
-    });
-  });
-}
-
-*/
-/**
- * Builds the nested sidebar menu from chapters.json.
- * Expects <nav id="menu"><ul></ul></nav> in your HTML.
- * @param {Object} chapters
- */
+// --- Section: Menu Building ---
 function buildMenu(chapters) {
-  var menu = document.querySelector("#menu ul");
-  menu.innerHTML = "<li><a href='?path=home'>Home</a></li>";
+  const menuContainer = document.querySelector("#menu");
+  menuContainer.innerHTML = `
+    <div class="menu-controls">
+      <button id="expandAll">Expand All</button>
+      <button id="collapseAll">Collapse All</button>
+    </div>
+    <ul><li><a href='?path=home'>Home</a></li></ul>
+  `;
 
-  function buildList(items, container, pathPrefix, isDemo) {
-    items.forEach(function (item) {
-      var li = document.createElement("li");
+  const menu = menuContainer.querySelector("ul");
+
+  function buildList(items, container, pathPrefix, orderList = [], level = 1) {
+    const getKey = (entry) =>
+      typeof entry === "string" ? entry.replace(/\.html$/, "") : Object.keys(entry)[0];
+
+    items.sort((a, b) => {
+      const indexA = orderList.indexOf(getKey(a));
+      const indexB = orderList.indexOf(getKey(b));
+      return (indexA === -1 ? 9999 : indexA) - (indexB === -1 ? 9999 : indexB);
+    });
+
+    items.forEach((item) => {
+      const li = document.createElement("li");
 
       if (typeof item === "string") {
-        // Leaf page (e.g., "01_Some_Page.html")
-        var raw = item.replace(/\.html$/, "");
-        var name = raw.replace(/^\d+_/, "").replace(/_/g, " ");
-        var a = document.createElement("a");
-        a.textContent = isDemo ? name.replace(/Demo/g, "").trim() : name;
+        const raw = item.replace(/\.html$/, "");
+        const a = document.createElement("a");
+        a.textContent = raw.replace(/Demo$/, "").trim();
         a.href = "?path=" + encodeURIComponent(pathPrefix + raw);
+        a.style.fontSize = `${1 - (level - 1) * 0.1}em`;
         li.appendChild(a);
       } else {
-        // Folder node (object with one key ? array)
-        Object.entries(item).forEach(function ([dir, sub]) {
-          var span = document.createElement("span");
-          span.textContent = dir.replace(/^\d+_/, "").replace(/_/g, " ");
-          span.onclick = function () {
-            li.classList.toggle("open");
-          };
+        Object.entries(item).forEach(([dir, sub]) => {
+          const span = document.createElement("span");
+          span.textContent = dir;
+          span.style.fontSize = `${1 - (level - 1) * 0.1}em`;
+          span.onclick = () => li.classList.toggle("open");
           li.appendChild(span);
 
-          var ul = document.createElement("ul");
-          buildList(sub, ul, pathPrefix + dir + "/", isDemo);
+          const ul = document.createElement("ul");
+          buildList(sub, ul, pathPrefix + dir + "/", orderList, level + 1);
           li.appendChild(ul);
         });
       }
@@ -233,213 +129,137 @@ function buildMenu(chapters) {
     });
   }
 
-  function initMenuToggle() {
-    const spans = document.querySelectorAll("nav#menu li > span");
-    spans.forEach(function (span) {
-      span.onclick = function () {
-        const parentLi = this.parentElement;
-        const parentUl = parentLi.parentElement;
-        parentUl.querySelectorAll(":scope > li.open").forEach(function (openLi) {
-          if (openLi !== parentLi) openLi.classList.remove("open");
-        });
-        parentLi.classList.toggle("open");
-      };
-    });
-  }
-
-  TOP_LEVEL_ORDER.forEach(function (plainName) {
-    const rawKey = Object.keys(chapters).find(function (k) {
-      return k.replace(/^\d+_/, "") === plainName;
-    });
+  TOP_LEVEL_ORDER.forEach((plainName) => {
+    const rawKey = Object.keys(chapters).find((k) => k === plainName);
     if (!rawKey) return;
 
     const contents = chapters[rawKey];
     const li = document.createElement("li");
 
-    var span = document.createElement("span");
+    const span = document.createElement("span");
     span.textContent = plainName;
-    span.onclick = function () {
-      li.classList.toggle("open");
-    };
+    span.style.fontSize = "1.1em";
+    span.onclick = () => li.classList.toggle("open");
     li.appendChild(span);
 
     const ul = document.createElement("ul");
-    buildList(contents, ul, rawKey + "/", rawKey === "Demos");
+    const orderList = {
+      Problems: PROBLEMS_ORDER,
+      Algorithms: ALGORITHMS_ORDER,
+      Demos: DEMOS_ORDER
+    }[plainName] || [];
+
+    buildList(contents, ul, rawKey + "/", orderList);
     li.appendChild(ul);
-
-    document.querySelector("#menu ul").appendChild(li);
+    menu.appendChild(li);
   });
-
-  initMenuToggle();
 }
 
-/**
- * Loads a page into the <object id="content">.
- * If fetch fails, shows a custom error with a “nice” page name.
- * @param {string} relativePath  e.g. "Chapter1/Intro.html"
- */
+// --- Section: Load Content via Ajax ---
 async function loadContent(relativePath) {
-  var obj = document.getElementById("content");
-  var err = document.getElementById("errorMessage");
-  var url = "Content/" + relativePath;
+  const obj = document.getElementById("content");
+  const err = document.getElementById("errorMessage");
+  const url = "Content/" + relativePath;
 
   try {
-    var res = await fetch(url, { cache: "no-cache" });
+    const res = await fetch(url, { cache: "no-cache" });
     if (!res.ok) throw new Error("HTTP " + res.status);
-    await res.text(); // ensure it exists
+    await res.text();
 
-    // Hide any previous error, show the <object>, then set its src
     err.style.display = "none";
     obj.style.display = "block";
     obj.src = url + "?_=" + Date.now();
 
     obj.onload = function () {
-      // Hook in-page links and embedded demos
       hookIframeContent(obj);
 
       function resizeIframe() {
         const prevY = window.pageYOffset;
         obj.style.height = "auto";
         const d = obj.contentDocument || obj.contentWindow.document;
-        const h = Math.max(
-          d.documentElement.scrollHeight,
-          d.body.scrollHeight
-        );
+        const h = Math.max(d.documentElement.scrollHeight, d.body.scrollHeight);
         obj.style.height = 50 + h + "px";
         window.scrollTo(0, prevY);
       }
 
-      // Initial sizing
       resizeIframe();
 
-      new MutationObserver(resizeIframe).observe(
-        obj.contentDocument.documentElement,
-        {
-          subtree: true,
-          childList: true,
-          attributes: true
-        }
-      );
+      new MutationObserver(resizeIframe).observe(obj.contentDocument.documentElement, {
+        subtree: true,
+        childList: true,
+        attributes: true
+      });
 
       window.addEventListener("resize", resizeIframe);
     };
   } catch (e) {
-     // Add back for debugging.
-    //console.error("loadContent error:", e);
     obj.style.display = "none";
+    const rawPath = (history.state && history.state.path) ||
+      new URLSearchParams(window.location.search).get("path") || "unknown";
 
-    var rawPath = (history.state && history.state.path)
-      ? history.state.path
-      : new URLSearchParams(window.location.search).get("path") || "unknown";
-    
-    err.innerHTML =
-      "<p>The page you are trying to load cannot be found.<br>" +
-      "It is possible it is still being created.<br>"+
-      "Please check back later.</p>" +
-      "<p><strong>Page path:</strong> " + rawPath + "</p>";
-          err.style.display = "block";
-
-    //throw e; // No need to throw. We handled it.
+    err.innerHTML = `
+      <p>The page you are trying to load cannot be found.<br>
+      It is possible it is still being created.<br>
+      Please check back later.</p>
+      <p><strong>Page path:</strong> ${rawPath}</p>
+    `;
+    err.style.display = "block";
   }
 }
 
-/**
- * Reads the '?path=' parameter from event.state.path (preferred),
- * or from window.location.search if no state is present. Defaults to 'home'.
- * Then calls loadContent().
- */
 function loadFromURLParams(event) {
-  let pathParam;
-  if (event && event.state && event.state.path) {
-    pathParam = event.state.path;
-  } else {
-    pathParam = new URLSearchParams(window.location.search).get("path") || "home";
-  }
-  var safe = normalizePath(pathParam);
+  const pathParam = (event?.state?.path) ||
+    new URLSearchParams(window.location.search).get("path") || "home";
+  const safe = normalizePath(pathParam);
   loadContent(safe + ".html");
 }
 
-// Listen for Back/Forward navigation
 window.addEventListener("popstate", loadFromURLParams);
 
-// When the DOM is ready, set up everything
 document.addEventListener("DOMContentLoaded", function initApp() {
-  // 1) Determine initial “raw” path, or default to "home"
-  const initialParam =
-    new URLSearchParams(window.location.search).get("path") || "home";
-
-  // 2) Encode it so that the URL becomes '?path=<encoded>'
+  const initialParam = new URLSearchParams(window.location.search).get("path") || "home";
   const safeInitial = normalizePath(initialParam);
-
-  // 3) Replace the very first history entry so that .state.path is set to initialParam,
-  //    and make sure the address bar reads exactly '?path=<encodedInitial>'.
-    console.log("? replaceState (initial):", { path: initialParam }, "?path=" + safeInitial);
   history.replaceState({ path: initialParam }, "", "?path=" + safeInitial);
 
-  // 4) Build the sidebar menu from scripts/chapters.json, then load the first content
   fetch("scripts/chapters.json")
-    .then(function (response) {
-      return response.json();
-    })
-    .then(function (chaptersData) {
+    .then((res) => res.json())
+    .then((chaptersData) => {
       buildMenu(chaptersData);
-      loadFromURLParams(); // loads “home.html” or whatever pathParam is
+
+      document.getElementById("expandAll").onclick = () => {
+        document.querySelectorAll("nav#menu li").forEach((li) => li.classList.add("open"));
+      };
+      document.getElementById("collapseAll").onclick = () => {
+        document.querySelectorAll("nav#menu li").forEach((li) => li.classList.remove("open"));
+      };
+
+      loadFromURLParams();
     })
     .catch(console.error);
 
-  // 5) Delegate ANY <a href="?path="> click (sidebar or anywhere) to Ajax + pushState({path}, …)
-    document.addEventListener("click", function onNavClick(event) {
-    var anchor = event.target.closest('a[href^="?path="]');
+  document.addEventListener("click", function onNavClick(event) {
+    const anchor = event.target.closest('a[href^="?path="]');
     if (!anchor) return;
     event.preventDefault();
 
-    // 1) Extract the raw “friendly” path from the link (e.g. "home" or "Algorithms/Brute Force/Bubble Sort")
-    var rawPath = new URLSearchParams(anchor.getAttribute("href").slice(1)).get("path");
+    const rawPath = new URLSearchParams(anchor.getAttribute("href").slice(1)).get("path");
     if (!rawPath) return;
 
-    // 2) What is the current path, according to history.state or the URL?
-    let currentPath = (history.state && history.state.path) 
-      ? history.state.path 
-      : new URLSearchParams(window.location.search).get("path") || "home";
+    const currentPath = (history.state && history.state.path) ||
+      new URLSearchParams(window.location.search).get("path") || "home";
 
-    // 3) If rawPath is exactly the same as currentPath, do nothing (no pushState).
-    if (rawPath === currentPath) {
-      // We’re already on this page, so just return without pushing a duplicate state.
-      return;
-    }
+    if (rawPath === currentPath) return;
 
-    // 4) Otherwise, encode (“safe”) then load + pushState
-    var safe = normalizePath(rawPath);
+    const safe = normalizePath(rawPath);
     loadContent(safe + ".html");
-
-    console.log("? pushState (menu):", { path: rawPath }, "?path=" + safe);
     history.pushState({ path: rawPath }, "", "?path=" + safe);
   });
 
-/*
-  document.addEventListener("click", function onNavClick(event) {
-    var anchor = event.target.closest('a[href^="?path="]');
-    if (!anchor) return;
-    event.preventDefault();
-
-    var rawPath = new URLSearchParams(anchor.getAttribute("href").slice(1)).get(
-      "path"
-    );
-    if (!rawPath) return;
-
-    var safe = normalizePath(rawPath);
-    loadContent(safe + ".html");
-
-    console.log("? pushState (menu):", { path: rawPath }, "?path=" + safe);
-    history.pushState({ path: rawPath }, "", "?path=" + safe);
-  });*/
-
-  // 6) Handle any postMessage (e.g. full-screen requests) from embedded demos
   window.addEventListener("message", function onDemoMessage(event) {
-    var msg = event.data;
-    if (msg && msg.type === "demo-fullscreen") {
-      var frame = event.source.frameElement;
-      if (frame && typeof frame.requestFullscreen === "function") {
+    const msg = event.data;
+    if (msg?.type === "demo-fullscreen") {
+      const frame = event.source.frameElement;
+      if (frame?.requestFullscreen) {
         frame.requestFullscreen().catch(console.error);
       }
     }
