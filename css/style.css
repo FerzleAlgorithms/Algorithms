@@ -203,6 +203,17 @@ body.mainSite #errorMessage {
   margin: 0.5em;
 }
 
+ a {
+  color: #038c7f;
+  text-decoration: none;
+  padding-bottom: 0px;
+}
+a:hover {
+  color: #024f9a;
+  border-color: #559ecb;
+}
+
+
 /* 8) Error message (global) */
 .error {
   padding: 1em;
@@ -230,7 +241,7 @@ a.problem:hover {
   color: #038c7f;
   text-decoration: none;
   padding-bottom: 0px;
-  line-height: 1.75;
+  /*line-height: 1.75;*/
 }
 .resource-list a:hover {
   color: #024f9a;

@@ -1,11 +1,214 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Welcome!</title>
-  <link rel="stylesheet" href="/Algorithms/css/style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Interactive Algorithms Textbook</title>
+  <link rel="stylesheet" href="/Algorithms/css/style.css?f=f" />
+  <style>
+    /* Example inline styles—you can move these to style.css */
+    .contributors {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+      gap: 1.5rem;
+      list-style: none;
+      padding: 0;
+    }
+    .contributor {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 1rem;
+      text-align: left; /* remove center alignment now that we're using flex */
+    }
+    .contributor img {
+      width: 120px;
+      height: 120px;
+      object-fit: cover;
+      border-radius: 50%;
+      flex-shrink: 0;
+      margin: 0; /* no extra bottom margin */
+    }
+    .contributor .details {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 0.25rem;
+    }
+    .contributor .details h4 {
+      margin: 0;
+      font-size: 1.1rem;
+    }
+    .contributor .details .title {
+      font-style: italic;
+      color: #555;
+      font-size: 0.95rem;
+    }
+    .contributor .details .bio {
+      font-size: 0.95rem;
+      line-height: 1.4;
+      margin: 0.5rem 0 0;
+    }
+  </style>
 </head>
+
 <body>
-  <h1>Welcome. More details coming soon.</h1>
+  <h1>About This Textbook</h1>
+  <div id="pageWrapper">
+    <div id="container">
+      <!-- Main content area -->
+      <main id="content">
+        <!-- Introduction Section -->
+        <section id="introduction">
+          <h2>Introduction &amp; Purpose</h2>
+          <p>
+            The purpose of this project is to serve as a comprehensive, open-access resource for algorithm-related courses. It is designed to replace traditional textbooks and make algorithms as intuitive and engaging as possible. By combining interactive demos, clear explanations, and human-verified content, this site aims to bring algorithmic concepts to life for students and instructors alike.
+          </p>
+          <p>Current focus:</p>
+          <ul class="resource-list">
+            <li>Create and refine core content suitable for an <em>Introduction to Algorithms</em> course.</li>
+            <li>Develop interactive demos that illustrate each algorithm step by step.</li>
+            <li>Organize material into “textbook modules” that can be assembled to fit different course structures.</li>
+          </ul>
+          <p>
+            Future plans include grouping existing and forthcoming chapters into cohesive “textbooks” tailored to specific courses (e.g., Intro to Algorithms, Advanced Algorithms, Intro to Data Structures). Until then, please explore individual chapters and demos via the sidebar menu.
+          </p>
+        </section>
+
+        <!-- Timeline Section -->
+        <section id="timeline">
+          <h2>Development Timeline</h2>
+          <ul class="resource-list">
+            <li>
+              <strong>By Fall 2025:</strong>
+              Enough content for a full <em>Introduction to Algorithms</em> course
+              that covers the design and analysis of algorithms for sorting, searching, various 
+              graph problems, etc., and the important design techniques such as brute force,
+              divide-and-conquer, dynamic programming, etc.
+              (For my courses, material on asymptotic notation and algorithm analysis will be taken
+              from <a href="https://cusack.hope.edu/Notes/Notes/Books/AIDMA/AIDMA.3.5.pdf" 
+              target="_blank" rel="noopener noreferrer">An
+              Active Introduction to Discrete Mathematics and Algorithms</a>
+              until at least 2026 when there is time to convert that material to this format.)
+            </li>
+            <li>
+              <strong>By Fall 2026:</strong>
+              Expanded content suitable for an <em>Advanced Algorithms</em> course
+              that digs deeper into the various algorithmic techniques, 
+              and (ideally) a few parallel algorithms examples and demos.
+              Hopefully asymptotic notation and an introduction to algorithm analysis will also
+              be added (since I have another good resource for that material, it is not on the
+              top of the list).
+            </li>
+            <li>
+              <strong>By Fall 2027:</strong>
+              A complete suite of materials for an <em>Introduction to Data Structures</em> course, 
+              featuring each major data structure, analysis, and hands-on demos 
+              (e.g., linked-lists, stacks, queues, heaps, balanced trees, hash tables).
+            </li>
+          </ul>
+          <p>
+            We are continuously adding and refining material. Check back regularly for updates.
+          </p>
+        </section>
+
+        <!-- Contributors Section -->
+        <section id="team">
+          <h2>Contributors</h2>
+          <ul class="contributors">
+            <li class="contributor">
+              <img src="/Algorithms/images/charles_cusack.png" alt="Charles Cusack" />
+              <div class="details">
+                <h4>Charles Cusack</h4>
+                <div class="title">Primary Author &amp; Editor</div>
+                <p class="bio">
+                  Charles is a professor of Computer Science at Hope College, 
+                  specializing in combinatorics and algorithmic art. He leads the 
+                  development of our open-source algorithms textbook.
+                </p>
+              </div>
+            </li>
+            <li class="contributor">
+              <img src="/Algorithms/images/caiden_sunlin.png" alt="Caiden Sunlin" />
+              <div class="details">
+                <h4>Caiden Sunlin</h4>
+                <div class="title">Major Contributor</div>
+                <p class="bio">
+                  Caiden, a current undergraduate student at Hope College, helped design interactive demos and contributed key examples for the graph theory 
+                  and sorting algorithm chapters.
+                </p>
+              </div>
+            </li>
+            <li class="contributor">
+              <img src="/Algorithms/images/connor_vachon.png" alt="Connor Vachon" />
+              <div class="details">
+                <h4>Connor Vachon</h4>
+                <div class="title">Major Contributor</div>
+                <p class="bio">
+                  Connor, a soon-to-be graduate of Hope College (December 2025), helped design interactive demos and contributed key examples for the graph theory 
+                  and sorting algorithm chapters.
+                </p>
+              </div>
+            </li>
+            <li class="contributor">
+              <img src="/Algorithms/images/chatgpt.png" alt="ChatGPT" />
+              <div class="details">
+                <h4>ChatGPT (OpenAI's large language model)</h4>
+                <div class="title">Major Contributor</div>
+                <p class="bio">
+                  ChatGPT was used extensively in drafting explanations, pseudocode, and early-stage content.<br />
+                  – Performed the majority of coding for interactive demos under developer supervision.<br />
+                  – Every piece of generated content has been reviewed, verified, and edited by human authors before publication.
+                </p>
+              </div>
+            </li>
+          </ul>
+        </section>
+
+        <section>
+          <h2>Funding &amp; Acknowledgments</h2>
+          <ul>
+            <li>
+              <strong>Howard R. &amp; Margaret E. Sluyter Faculty Development Fund, Hope College</strong><br />
+              Provided support for an undergraduate student working on the first phase of the project (2025).
+            </li>
+            <li>Know somebody with money that wants to fund a great project? Please let them or us know!</li>
+          </ul>
+        </section>
+
+        <!-- License Section -->
+        <section id="license">
+          <h2>License &amp; How to Cite</h2>
+          <p>
+            All text, figures, and code on this site are licensed under a
+            <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener noreferrer">
+              Creative Commons Attribution 4.0 International (CC BY 4.0)
+            </a> license. You are free to share and adapt the material as long as appropriate credit is given.
+          </p>
+          <p>Suggested citation:</p>
+          <blockquote>
+            Cusack, C. (2025). <em> Algorithms Textbook Official Name Yet To Be Decided</em>. 
+            Hope College. Retrieved from
+            <a href="https://cusack.hope.edu/Algorithms" 
+            target="_blank" rel="noopener noreferrer">https://cusack.hope.edu/Algorithms</a>.
+          </blockquote>
+        </section>
+
+        <!-- Contact Section -->
+        <section id="contact">
+          <h2>Contact</h2>
+          <p>For feedback, questions, comments, or concerns, please contact the lead author:</p>
+          <p>
+            <strong>Charles Cusack</strong><br />
+            Professor, Computer Science<br />
+            Hope College<br />
+            Email:<a href="mailto:cusack@hope.edu">cusack@hope.edu</a>
+          </p>
+        </section>
+      </main>
+    </div>
+  </div>
 </body>
 </html>
