@@ -6,7 +6,6 @@
   <link rel="stylesheet" href="/Algorithms/css/style.css">
   <link rel="stylesheet" href="/Algorithms/css/demo.css">
   <style>
-   
     #loading {
       font-style: italic;
       margin-bottom: 10px;
@@ -96,7 +95,7 @@
   <div id="comment"><br></div>
   <div id="solutions">
     <strong>Solutions found:</strong>
-    <ol id="solutions-list"></ol>  <!-- numbered list container -->
+    <ol id="solutions-list"></ol>
   </div>
 
   <script>
@@ -105,9 +104,10 @@
     let N              = parseInt(nSelect.value, 10);
     const CELL_SIZE    = 50;
 
-    let gen            = null;       // generator instance
-    let currentEvent   = null;       // last yielded event
-    let playing        = false;      // is an interval running?
+    let allEvents      = [];         // array of all generated events
+    let stepIndex      = -1;         // index into allEvents
+    let currentEvent   = null;       // currently displayed event
+    let playing        = false;      // is playback running?
     let intervalId     = null;
     let stepCounter    = 0;
 
@@ -121,7 +121,7 @@
     const solutionsDiv = document.getElementById('solutions');
     const loadingDiv   = document.getElementById('loading');
     const stepCountDiv = document.getElementById('step-count');
-    let solutionsList = document.getElementById('solutions-list'); 
+    let solutionsList  = document.getElementById('solutions-list');
 
     // === HELPERS: disable/enable controls ===
     function disableControls() {
@@ -132,7 +132,7 @@
       speedSelect.disabled  = true;
     }
     function enableControls() {
-      prevBtn.disabled      = true;  // previous always disabled
+      prevBtn.disabled      = true;  // previous initially disabled
       nextBtn.disabled      = false;
       playBtn.disabled      = false;
       nSelect.disabled      = false;
@@ -146,7 +146,6 @@
       commentDiv.innerHTML  = '';
       qArrayDiv.textContent = '';
       drawEmptyBoard();
-
       solutionsDiv.innerHTML = '<strong>Solutions found:</strong><ol id="solutions-list"></ol>';
       solutionsList = document.getElementById('solutions-list');
       stepCounter = 0;
@@ -157,8 +156,9 @@
       enableControls();
     }
 
-    // === GENERATOR FOR ON-THE-FLY EVENT PRODUCTION ===
-    function* generateEvents() {
+    // === GENERATE ALL EVENTS UPFRONT ===
+    function generateAllEvents() {
+      const events = [];
       const Q = new Array(N).fill(-1);
 
       function isValidConfiguration(arr) {
@@ -175,21 +175,22 @@
         return true;
       }
 
-      function* recurse(row) {
+      function recurse(row) {
         for (let col = 0; col < N; col++) {
           Q[row] = col;
-          yield { type: 'place', Q: Q.slice(), row: row };
+          events.push({ type: 'place', Q: Q.slice(), row: row });
           if (row === N - 1) {
             const valid = isValidConfiguration(Q);
-            yield { type: 'check', Q: Q.slice(), valid: valid };
+            events.push({ type: 'check', Q: Q.slice(), valid: valid });
           } else {
-            yield* recurse(row + 1);
+            recurse(row + 1);
           }
         }
         Q[row] = -1;
       }
 
-      yield* recurse(0);
+      recurse(0);
+      return events;
     }
 
     // === DRAW BLANK BOARD FOR CURRENT N ===
@@ -218,34 +219,20 @@
       stepCountDiv.textContent = ' configurations tried: ' + stepCounter;
       if (ev.valid) {
         const arr = ev.Q;
-          const li = document.createElement('li');
-       li.textContent = '[ ' + arr.join(' , ') + ' ]';
-       li.classList.add('solution-entry');
-       li.addEventListener('click', () => {
-         renderSolution(arr);
-       });
-       solutionsList.appendChild(li);
-
-/*		const solDiv  = document.createElement('div');
-        const solSpan = document.createElement('span');
-        solSpan.textContent = '[ ' + arr.join(' , ') + ' ]';
-        solSpan.classList.add('solution-entry');
-        solSpan.addEventListener('click', () => {
+        const li = document.createElement('li');
+        li.textContent = '[ ' + arr.join(' , ') + ' ]';
+        li.classList.add('solution-entry');
+        li.addEventListener('click', () => {
           renderSolution(arr);
         });
-        solDiv.appendChild(solSpan);
-        solutionsDiv.appendChild(solDiv);
-		
-		*/
-		
-		
+        solutionsList.appendChild(li);
       }
     }
 
     // === RENDER THE CURRENT EVENT (VISUAL ONLY) ===
     function renderCurrentEvent() {
       drawEmptyBoard();
-      if (!currentEvent) {
+      if (stepIndex < 0 || !currentEvent) {
         commentDiv.innerHTML = '<br>';
         qArrayDiv.textContent = 'Q = [ ' + Array(N).fill('-').join(' , ') + ' ]';
         return;
@@ -348,30 +335,58 @@
       }
     }
 
-    // === NEXT EVENT (ON-DEMAND) ===
+    // === NEXT EVENT ===
     function nextEvent() {
-      if (!gen) return;
-      const result = gen.next();
-      if (result.done) {
-        // end of generator
-        playing = false;
-        playBtn.textContent = 'Play';
-        clearInterval(intervalId);
+      if (stepIndex + 1 >= allEvents.length) {
+        stopPlaying();
         return;
       }
-      currentEvent = result.value;
-      if (currentEvent.type === 'check') {
-        handleCheckEvent(currentEvent);
+      stepIndex++;
+      const ev = allEvents[stepIndex];
+      currentEvent = ev;
+      if (ev.type === 'check') {
+        handleCheckEvent(ev);
       }
       renderCurrentEvent();
+      updateButtons();
     }
 
-    // === PLAY/PAUSE & SPEED LOGIC WITH SKIPPING ===
+    // === PREVIOUS EVENT ===
+    function prevEvent() {
+      // If we're already before the first event, do nothing
+      if (stepIndex < 0) return;
+
+      // Look at the event we're about to “undo”
+      const outgoing = allEvents[stepIndex];
+
+      if (outgoing.type === 'check') {
+        // Decrement the counter for every check
+        stepCounter--;
+        stepCountDiv.textContent = ' configurations tried: ' + stepCounter;
+
+        // If it was a valid solution, remove the last <li>
+        if (outgoing.valid && solutionsList.lastElementChild) {
+          solutionsList.removeChild(solutionsList.lastElementChild);
+        }
+      }
+
+      // Step back
+      stepIndex--;
+      currentEvent = stepIndex >= 0 ? allEvents[stepIndex] : null;
+      renderCurrentEvent();
+      updateButtons();
+    }
+
+    // === PLAY/PAUSE & SPEED LOGIC ===
+    function stopPlaying() {
+      playing = false;
+      playBtn.textContent = 'Play';
+      clearInterval(intervalId);
+    }
+
     function playEvents() {
       if (playing) {
-        playing = false;
-        playBtn.textContent = 'Play';
-        clearInterval(intervalId);
+        stopPlaying();
       } else {
         playing = true;
         playBtn.textContent = 'Pause';
@@ -392,20 +407,9 @@
 
       intervalId = setInterval(() => {
         for (let i = 0; i < skipFactor; i++) {
-          if (!gen) break;
-          const result = gen.next();
-          if (result.done) {
-            playing = false;
-            playBtn.textContent = 'Play';
-            clearInterval(intervalId);
-            break;
-          }
-          currentEvent = result.value;
-          if (currentEvent.type === 'check') {
-            handleCheckEvent(currentEvent);
-          }
+          nextEvent();
+          if (!playing) break;
         }
-        renderCurrentEvent();
       }, delay);
     }
 
@@ -418,9 +422,7 @@
     // === CHANGE N HANDLER ===
     nSelect.addEventListener('change', () => {
       if (playing) {
-        clearInterval(intervalId);
-        playing = false;
-        playBtn.textContent = 'Play';
+        stopPlaying();
       }
       N = parseInt(nSelect.value, 10);
       showLoading();
@@ -432,25 +434,28 @@
 
     // === INITIALIZATION ===
     function initDemo() {
-	  solutionsDiv.innerHTML = '<strong>Solutions found:</strong><ol id="solutions-list"></ol>';
+      solutionsDiv.innerHTML = '<strong>Solutions found:</strong><ol id="solutions-list"></ol>';
       solutionsList = document.getElementById('solutions-list');
       drawEmptyBoard();
       commentDiv.innerHTML = '<br>';
       stepCounter = 0;
       stepCountDiv.textContent = ' configurations tried: 0';
       qArrayDiv.textContent = 'Q = [ ' + Array(N).fill('-').join(' , ') + ' ]';
-      gen = generateEvents();
+
+      allEvents = generateAllEvents();
+      stepIndex = -1;
       currentEvent = null;
       updateButtons();
     }
 
     // === UPDATE BUTTON STATES ===
     function updateButtons() {
-      prevBtn.disabled = true; // previous not supported
-      nextBtn.disabled = false;
+      prevBtn.disabled = stepIndex <= 0;
+      nextBtn.disabled = stepIndex + 1 >= allEvents.length;
     }
 
     // === BUTTON LISTENERS ===
+    prevBtn.addEventListener('click', prevEvent);
     nextBtn.addEventListener('click', nextEvent);
     playBtn.addEventListener('click', playEvents);
 
