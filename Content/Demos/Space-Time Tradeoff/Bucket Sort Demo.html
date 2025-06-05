@@ -5,7 +5,7 @@
   <title>Bucket Sort Demo</title>
   <script src="/Algorithms/scripts/demoScripts.js"></script>
   <link rel="stylesheet" href="/Algorithms/css/style.css">
-  <link rel="stylesheet" href="/Algorithms/css/demo.css">
+  <link rel="stylesheet" href="/Algorithms/css/demo.css?d=3">
   <style>
 
 
@@ -105,16 +105,15 @@
   <h2>Bucket Sort Demo</h2>
 
   <div id="controls">
-    <label>Size:
+    <label>Array Size:
       <input type="number" id="arraySize" min="8" max="20" value="10" size="2">
     </label>
     <button id="generate">Random Array</button>
     <input type="text" id="customArray" placeholder="12,34,56,78" size="40">
     <button id="useCustom">Create Array</button>
-
+    <br>
     <!-- single bucket-size + set-buckets control -->
-    <label style="margin-left:1em">
-      Buckets:
+    <label># of Buckets:
       <input
         type="number"
         id="bucketSize"
@@ -125,6 +124,7 @@
     </label>
     <button id="setBuckets">Set Buckets</button>
   </div>
+
 
 
   <div style="margin:10px 0;">
@@ -158,16 +158,20 @@
 
   <div id="step-desc" class="step-comment"></div>
 
-  <div class="legend">
+<div class="legend">
+  <div class="legend-label">
     <strong>Legend:</strong>
+  </div>
+  <div class="legend-items">
     <span class="legend-box default"></span> Unprocessed
     <span class="legend-box comparing"></span> Distributing
     <span class="legend-box swap"></span> Bucketed
-    <span class="legend-box sorted"></span> Placed
+    <span class="legend-box sorted"></span> Placed<br>
     <span class="legend-box comparing-insert"></span> Comparing (insertion-sort)
     <span class="legend-box bucket-range"></span> Bucket Range
     <span class="bucket-arrow">↓</span> Bucket Arrow
   </div>
+</div>
 
   <script>
     let originalArray = [], steps = [], cur = 0;

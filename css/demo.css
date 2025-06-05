@@ -31,15 +31,35 @@ html, body {
   position: relative;
 }
 
-/* 12) Legend boxes */
+/* 12) Legend container */
 .legend {
-  margin: 10px 0 10px;
-  text-align: left;
-  border-radius: 4px;
-  border: 1px solid #333;
-  display: inline-block;
+  display: inline-flex;
+  align-items: flex-start;    /* top-align the two columns */
+  column-gap: 12px;           /* space between “Legend:” and items */
+  margin: 10px 0;
   padding: 4px 8px;
+  border: 1px solid #333;
+  border-radius: 4px;
+  /* remove overflow: auto; since flex handles containment */
 }
+
+/* “Legend:” label on the left */
+.legend-label {
+  /* if you want all legend‐items to start at exactly the same x-coordinate,
+     give .legend-label a fixed width. Otherwise you can omit width. */
+  /* width: 80px; */
+  text-align: right;   /* if using a fixed width, this right‐aligns “Legend:” */
+  font-weight: bold;   /* same as <strong> */
+  line-height: 1.2;    /* ensure the label’s height accommodates wrapped lines */
+}
+
+/* all colored boxes + text go here */
+.legend-items {
+  flex: 1;              /* take up remaining horizontal space */
+  /* allow wrapping inside this block; <br> will force a new line */
+}
+
+/* the little colored‐box squares */
 .legend-box {
   display: inline-block;
   width: 15px;
@@ -50,6 +70,15 @@ html, body {
   border: 1px solid #333;
   background-color: transparent;
 }
+
+/* OPTIONAL: if you want the “Bucket Arrow” (↓) to align with the boxes,
+   you can give it the same vertical-align: middle; as .legend-box: */
+.bucket-arrow {
+  display: inline-block;
+  vertical-align: middle;
+  margin-left: 10px;
+}
+
 
 /* 14) Array-cell styles */
 .element {
