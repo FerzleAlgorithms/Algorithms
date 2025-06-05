@@ -1,370 +1,364 @@
 // File: scripts/loadContent.js
 
-// ── Disable native scrollRestoration (so the browser won’t auto‐jump) ──
-if ("scrollRestoration" in history) {
-  history.scrollRestoration = "manual";
+// ─── History Logging ─────────────────────────────────────────────────────────
+const historyLog = [];
+
+// Wrap either pushState or replaceState to log into `historyLog`
+const wrapHistoryMethod = (methodName, color) => {
+  const original = history[methodName];
+  history[methodName] = function (stateObj, title, url) {
+    console.log(`%c[${methodName.toUpperCase()}] url=%s, state=%O`, `color:${color};`, url, stateObj);
+    historyLog.push({ type: methodName, url, state: stateObj });
+    return original.apply(this, arguments);
+  };
+};
+wrapHistoryMethod('pushState', 'red');
+wrapHistoryMethod('replaceState', 'darkred');
+
+window.addEventListener('popstate', (event) => {
+  console.log(
+    '%c[POPTATE] event.state=%O, location.search=%s',
+    'color:orange;',
+    event.state,
+    window.location.search
+  );
+});
+
+// Expose a helper so you can inspect the log in DevTools:
+window.printHistoryLog = () => {
+  console.groupCollapsed('History Log (chronological)');
+  historyLog.forEach((entry, idx) => {
+    const label = `#${idx + 1} [${entry.type.toUpperCase()}] url=${entry.url}`;
+    const color = entry.type === 'pushState' ? 'red' : 'darkred';
+    console.log(`%c${label}`, `color:${color};`, entry.state);
+  });
+  console.groupEnd();
+};
+
+// Disable native scrollRestoration so we control scroll jumps manually
+if ('scrollRestoration' in history) {
+  history.scrollRestoration = 'manual';
 }
 
-// --- Section: Top‐level Ordering Constants ---
+// ─── Ordering Constants ─────────────────────────────────────────────────────
 const TOP_LEVEL_ORDER = [
-  "Home", "Problems", "Data Structures", "Techniques", "Algorithms", "Demos", "More"
+  'Home',
+  'Problems',
+  'Data Structures',
+  'Techniques',
+  'Algorithms',
+  'Demos',
+  'More'
 ];
-
 const PROBLEMS_ORDER = [
-  "Problem List", "Foundational", "Optimization", "Geometry", "Graphs", "Other"
+  'Problem List',
+  'Foundational',
+  'Optimization',
+  'Geometry',
+  'Graphs',
+  'Other'
 ];
-
 const ALGORITHMS_ORDER = [
-  "Brute Force", "Exhaustive Search", "Divide-and-Conquer", "Decrease-and-Conquer",
-  "Transform-and-Conquer", "Greedy", "Dynamic Programming", "Space-Time Tradeoff", "Backtracking"
+  'Brute Force',
+  'Exhaustive Search',
+  'Divide-and-Conquer',
+  'Decrease-and-Conquer',
+  'Transform-and-Conquer',
+  'Greedy',
+  'Dynamic Programming',
+  'Space-Time Tradeoff',
+  'Backtracking'
 ];
-
+// For "Demos", we just mirror the same order as the algorithm names
 const DEMOS_ORDER = [...ALGORITHMS_ORDER];
 
-// --- Section: Utility Functions ---
-function normalizePath(path) {
-  return path
-    .split("/")
+// ─── Utility Functions ──────────────────────────────────────────────────────
+// Return the current “path” either from history.state or URL param or fallback
+const getCurrentPath = () =>
+  history.state?.path ||
+  new URLSearchParams(window.location.search).get('path') ||
+  'home';
+
+// Ensure each segment of a path is properly URI‐encoded (but not double‐encoded)
+const normalizePath = (path) =>
+  path
+    .split('/')
     .map((segment) => encodeURIComponent(decodeURIComponent(segment)))
-    .join("/");
-}
+    .join('/');
 
+// Extract a “key” from either a string filename or an object entry
+const getKey = (entry) =>
+  typeof entry === 'string'
+    ? entry.replace(/\.html$/, '')
+    : Object.keys(entry)[0];
 
-const _push = history.pushState;
-history.pushState = function (stateObj, title, url) {
-  console.log("%c[PUSHTOTAL] url=%s, state=%O", "color:red;", url, stateObj);
-  return _push.apply(this, arguments);
-};
-
-const _replace = history.replaceState;
-history.replaceState = function (stateObj, title, url) {
-  console.log("%c[REPLACETOTAL] url=%s, state=%O", "color:darkred;", url, stateObj);
-  return _replace.apply(this, arguments);
-};
-
-
-// ──────────────────────────────────────────────────────────────────
-// We'll store a “pending” scroll position here if we see one on reload.
-// After the iframe in #content has fully loaded and run its first resize,
-// we’ll consume this and scroll the parent to it exactly once.
-// ──────────────────────────────────────────────────────────────────
+// ─── Navigation / Content Loading ────────────────────────────────────────────
 let pendingScrollRestore = null;
 
-// --- Section: Iframe Hooking and Resizing ---
-function hookIframeContent(obj) {
-  const innerDoc = obj.contentDocument;
+const navigateTo = (rawPath) => {
+  const currentPath = getCurrentPath();
+  if (rawPath === currentPath) return;
+
+  const safe = normalizePath(rawPath);
+  window.scrollTo(0, 0);
+  loadContent(`${safe}.html`);
+  //history.pushState({ path: rawPath }, '', `?path=${safe}`);
+};
+
+const loadFromURLParams = () => {
+  const rawPath = new URLSearchParams(window.location.search).get('path') || 'home';
+  console.log(
+    '%c[POPSTATE] location.search=%s → loading path=%s',
+    'color:orange;',
+    window.location.search,
+    rawPath
+  );
+  loadContent(`${normalizePath(rawPath)}.html`);
+};
+
+// ─── iframe Hooking & Resizing ───────────────────────────────────────────────
+function hookIframeContent(iframe) {
+  const innerDoc = iframe.contentDocument;
   if (!innerDoc) return;
 
-  innerDoc.addEventListener("click", function onInnerClick(event) {
-    // Find any <a> inside the iframe
-    const anchor = event.target.closest('a[href]');
+  // Intercept any “?path=” link clicks inside the iframe:
+  console.log("Adding inner doc click listener");
+  innerDoc.addEventListener('click', (event) => {
+    const anchor = event.target.closest('a[href^="?path="]');
     if (!anchor) return;
-
-    const href = anchor.getAttribute("href");
-    // Only intercept links that start with "?path="
-    if (!href.startsWith("?path=")) return;
-
     event.preventDefault();
-    event.stopPropagation();  // ← prevent this click from bubbling up to the outer document
-
-    const raw = new URLSearchParams(href.slice(1)).get("path");
+    const raw = new URLSearchParams(anchor.getAttribute('href').slice(1)).get('path');
     if (!raw) return;
 
-    const parentCurrent = (history.state && history.state.path) ||
-      new URLSearchParams(window.location.search).get("path") ||
-      "home";
-    if (raw === parentCurrent) return;
+    // If it’s already the current path in the parent, do nothing
+    const parentPath = getCurrentPath.call(window.parent);
+    if (raw === parentPath) return;
 
-    const safe = normalizePath(raw);
-    window.scrollTo(0, 0);
-
-    // Load the new iframe and push exactly one history entry
-    parent.loadContent(safe + ".html");
-    console.log("%c[IFRAME pushState] path=%s", "color:purple;", raw);
-    parent.history.pushState({ path: raw }, "", "?path=" + safe);
+    // Ask the parent to navigate
+    window.parent.postMessage({ type: 'navigate', path: raw }, '*');
   });
 
-  // Ensure external or non‐"?path=" links open at top level
+  // Any external link (not “?path=”) should break out to the top window:
   innerDoc.querySelectorAll('a[href]:not([href^="?path="])').forEach((a) => {
-    a.target = "_top";
+    a.target = '_top';
   });
 
-  // Resize any embeddedDemo iframes inside this iframe
-  innerDoc.querySelectorAll("iframe.embeddedDemo").forEach((frame) => {
-    const base = frame.src.split("?")[0];
-    frame.src = base + "?cb=" + Date.now();
-    frame.scrolling = "no";
+  // Resize any embeddedDemo iframe inside this iframe
+  innerDoc.querySelectorAll('iframe.embeddedDemo').forEach((frame) => {
+    const base = frame.src.split('?')[0];
+    frame.src = `${base}?cb=${Date.now()}`;
+    frame.scrolling = 'no';
+    console.log("iframe: "+frame.src);
 
-    frame.addEventListener("load", () => {
+    frame.addEventListener('load', () => {
       const d = frame.contentDocument || frame.contentWindow.document;
-      function resize() {
-        frame.style.height = "auto";
+      const resizeFn = () => {
+        frame.style.height = 'auto';
         const h = Math.max(d.documentElement.scrollHeight, d.body.scrollHeight);
-        frame.style.height = h + "px";
-      }
-      resize();
-      new MutationObserver(resize).observe(d.documentElement, {
-        childList: true,
+        frame.style.height = `${h}px`;
+      };
+      resizeFn();
+      new MutationObserver(resizeFn).observe(d.documentElement, {
         subtree: true,
+        childList: true,
         attributes: true
       });
     });
   });
 }
 
-// --- Section: Menu Building ---
-function buildMenu(chapters) {
-  const menuContainer = document.querySelector("#menu");
+// ─── Build Sidebar Menu ─────────────────────────────────────────────────────
+const buildMenu = (chapters) => {
+  const menuContainer = document.querySelector('#menu');
   menuContainer.innerHTML = `
     <div class="menu-controls">
       <button id="expandAll" class="link-style">Expand All</button>
       <button id="collapseAll" class="link-style">Collapse All</button>
     </div>
-    <ul><li><a href='?path=home'>Home</a></li></ul>
+    <ul><li><a href="?path=home">Home</a></li></ul>
   `;
+  const menuRoot = menuContainer.querySelector('ul');
 
-  const menu = menuContainer.querySelector("ul");
+  // Recursive helper to build a nested <ul> structure
+  const buildList = (items, container, pathPrefix, orderList = [], level = 1) => {
+    items
+      .sort((a, b) => {
+        const indexA = orderList.indexOf(getKey(a));
+        const indexB = orderList.indexOf(getKey(b));
+        return (indexA === -1 ? 9999 : indexA) - (indexB === -1 ? 9999 : indexB);
+      })
+      .forEach((item) => {
+        const li = document.createElement('li');
+        if (typeof item === 'string') {
+          const raw = item.replace(/\.html$/, '');
+          const a = document.createElement('a');
+          a.textContent = raw.replace(/Demo$/, '').trim();
+          a.href = `?path=${encodeURIComponent(pathPrefix + raw)}`;
+          // Slightly decrease font size with each deeper level
+          a.style.fontSize = `${1 - (level - 1) * 0.1}em`;
+          li.appendChild(a);
+        } else {
+          Object.entries(item).forEach(([dir, sub]) => {
+            const span = document.createElement('span');
+            span.textContent = dir;
+            span.style.fontSize = `${1 - (level - 1) * 0.1}em`;
+            span.onclick = () => li.classList.toggle('open');
+            li.appendChild(span);
 
-  function buildList(items, container, pathPrefix, orderList = [], level = 1) {
-    const getKey = (entry) =>
-      typeof entry === "string" ? entry.replace(/\.html$/, "") : Object.keys(entry)[0];
+            const ul = document.createElement('ul');
+            buildList(sub, ul, `${pathPrefix}${dir}/`, orderList, level + 1);
+            li.appendChild(ul);
+          });
+        }
+        container.appendChild(li);
+      });
+  };
 
-    items.sort((a, b) => {
-      const indexA = orderList.indexOf(getKey(a));
-      const indexB = orderList.indexOf(getKey(b));
-      return (indexA === -1 ? 9999 : indexA) - (indexB === -1 ? 9999 : indexB);
-    });
+  TOP_LEVEL_ORDER.forEach((sectionName) => {
+    const contents = chapters[sectionName];
+    if (!contents) return;
 
-    items.forEach((item) => {
-      const li = document.createElement("li");
-
-      if (typeof item === "string") {
-        const raw = item.replace(/\.html$/, "");
-        const a = document.createElement("a");
-        a.textContent = raw.replace(/Demo$/, "").trim();
-        a.href = "?path=" + encodeURIComponent(pathPrefix + raw);
-        a.style.fontSize = `${1 - (level - 1) * 0.1}em`;
-        li.appendChild(a);
-      } else {
-        Object.entries(item).forEach(([dir, sub]) => {
-          const span = document.createElement("span");
-          span.textContent = dir;
-          span.style.fontSize = `${1 - (level - 1) * 0.1}em`;
-          span.onclick = () => li.classList.toggle("open");
-          li.appendChild(span);
-
-          const ul = document.createElement("ul");
-          buildList(sub, ul, pathPrefix + dir + "/", orderList, level + 1);
-          li.appendChild(ul);
-        });
-      }
-
-      container.appendChild(li);
-    });
-  }
-
-  TOP_LEVEL_ORDER.forEach((plainName) => {
-    const rawKey = Object.keys(chapters).find((k) => k === plainName);
-    if (!rawKey) return;
-
-    const contents = chapters[rawKey];
-    const li = document.createElement("li");
-
-    const span = document.createElement("span");
-    span.textContent = plainName;
-    span.style.fontSize = "1.1em";
-    span.onclick = () => li.classList.toggle("open");
+    const li = document.createElement('li');
+    const span = document.createElement('span');
+    span.textContent = sectionName;
+    span.style.fontSize = '1.1em';
+    span.onclick = () => li.classList.toggle('open');
     li.appendChild(span);
 
-    const ul = document.createElement("ul");
+    const ul = document.createElement('ul');
+    // Choose an ordering list if this section is Problems, Algorithms, or Demos
     const orderList = {
       Problems: PROBLEMS_ORDER,
       Algorithms: ALGORITHMS_ORDER,
       Demos: DEMOS_ORDER
-    }[plainName] || [];
+    }[sectionName] || [];
 
-    buildList(contents, ul, rawKey + "/", orderList);
+    buildList(contents, ul, `${sectionName}/`, orderList);
     li.appendChild(ul);
-    menu.appendChild(li);
+    menuRoot.appendChild(li);
   });
-}
+};
 
-// --- Section: Load Content via Fetch + Iframe Refresh ---
+// ─── Load Content via Fetch + Force‐reload Iframe ─────────────────────────────
 async function loadContent(relativePath) {
-  const obj = document.getElementById("content");
-  const err = document.getElementById("errorMessage");
-  const url = "Content/" + relativePath;
+  const iframe = document.getElementById('content');
+  const err = document.getElementById('errorMessage');
+  const url = `Content/${relativePath}`;
 
   try {
-    const res = await fetch(url, { cache: "no-cache" });
-    if (!res.ok) throw new Error("HTTP " + res.status);
-    await res.text();
+    // Fetch just to check if it exists (no-cache)
+    const res = await fetch(url, { cache: 'no-cache' });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    await res.text(); // we don’t actually need the body
 
-    err.style.display = "none";
-    obj.style.display = "block";
+    err.style.display = 'none';
+    iframe.style.display = 'block';
+    // Force‐reload by appending a timestamp
+    iframe.src = `${url}?_=${Date.now()}`;
 
-    // Force‐reload the iframe by changing its src
-    obj.src = url + "?_=" + Date.now();
-
-    obj.onload = function () {
-      hookIframeContent(obj);
-
-      // ── in the very first resizeIframe() run, we may have a pendingScrollRestore to apply ──
+    iframe.onload = () => {
+      hookIframeContent(iframe);
       let firstResize = true;
 
-      function resizeIframe() {
-        // (1) capture whatever current scroll is (even if it's 0):
+      const resizeIframe = () => {
         const prevY = window.pageYOffset;
-
-        obj.style.height = "auto";
-        const d = obj.contentDocument || obj.contentWindow.document;
+        iframe.style.height = 'auto';
+        const d = iframe.contentDocument || iframe.contentWindow.document;
         const h = Math.max(d.documentElement.scrollHeight, d.body.scrollHeight);
-        obj.style.height = 50 + h + "px";
+        iframe.style.height = `${50 + h}px`;
 
         if (firstResize && pendingScrollRestore !== null) {
-          // ── On first resize, override “prevY” and restore the saved value ──
           window.scrollTo(0, parseInt(pendingScrollRestore, 10));
           pendingScrollRestore = null;
           firstResize = false;
         } else {
-          // ── After that, just restore to whatever we were already at ──
           window.scrollTo(0, prevY);
         }
-      }
+      };
 
       resizeIframe();
-
-      new MutationObserver(resizeIframe).observe(obj.contentDocument.documentElement, {
+      new MutationObserver(resizeIframe).observe(iframe.contentDocument.documentElement, {
         subtree: true,
         childList: true,
         attributes: true
       });
-
-      window.addEventListener("resize", resizeIframe);
+      window.addEventListener('resize', resizeIframe);
     };
   } catch (e) {
-    obj.style.display = "none";
-    const rawPath = (history.state && history.state.path) ||
-      new URLSearchParams(window.location.search).get("path") || "unknown";
-
+    iframe.style.display = 'none';
+    const rawPath = getCurrentPath();
     err.innerHTML = `
       <p>The page you are trying to load cannot be found.<br>
       It is possible it is still being created.<br>
       Please check back later.</p>
       <p><strong>Page path:</strong> ${rawPath}</p>
     `;
-    err.style.display = "block";
+    err.style.display = 'block';
   }
 }
 
-function loadFromURLParams(event) {
-  // Always grab from the URL bar, never from event.state:
-  const rawPath = new URLSearchParams(window.location.search).get("path") || "home";
-  console.log(
-    "%c[POPSTATE] event.state=%O, location.search=%s → loading path=%s",
-    "color:orange;",
-    event?.state,
-    window.location.search,
-    rawPath
-  );
-  const safe = normalizePath(rawPath);
-  loadContent(safe + ".html");
-}
-
-/*
-function loadFromURLParams(event) {
-console.log(
-    "%c[POPSTATE] event.state=%O, location.search=%s",
-    "color:orange;",
-    event?.state,
-    window.location.search
-  );
-  const pathParam = (event?.state?.path) ||
-    new URLSearchParams(window.location.search).get("path") || "home";
-  const safe = normalizePath(pathParam);
-  loadContent(safe + ".html");
-}*/
-
-// ──────────────────────────────────────────────────────────────────
-// (A) On “Reload” or any full‐page navigation, save the scrollY here.
-// (B) Don’t attempt to restore in window.onload or DOMContentLoaded anymore.
-//     Instead, we’ll restore when the iframe first resizes.
-// ──────────────────────────────────────────────────────────────────
-window.addEventListener("beforeunload", () => {
-  sessionStorage.setItem("scrollPos", window.pageYOffset);
+// ─── Scroll Position Preservation ─────────────────────────────────────────────
+window.addEventListener('beforeunload', () => {
+  sessionStorage.setItem('scrollPos', window.pageYOffset);
 });
-
-// As soon as the page loads, grab that stored value (if any)
-// and stash it into pendingScrollRestore. Then clear it from sessionStorage.
-window.addEventListener("load", () => {
-  const savedScroll = sessionStorage.getItem("scrollPos");
-  if (savedScroll !== null) {
-    pendingScrollRestore = savedScroll;
-    sessionStorage.removeItem("scrollPos");
+window.addEventListener('load', () => {
+  const saved = sessionStorage.getItem('scrollPos');
+  if (saved !== null) {
+    pendingScrollRestore = saved;
+    sessionStorage.removeItem('scrollPos');
   }
 });
 
-document.addEventListener("DOMContentLoaded", function initApp() {
-  const initialParam = new URLSearchParams(window.location.search).get("path") || "home";
-  const safeInitial = normalizePath(initialParam);
-  history.replaceState({ path: initialParam }, "", "?path=" + safeInitial);
-
-  fetch("scripts/chapters.json")
+// ─── App Initialization ──────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  // Fetch the JSON that describes all chapters & their files
+  fetch('scripts/chapters.json')
     .then((res) => res.json())
     .then((chaptersData) => {
       buildMenu(chaptersData);
 
-      document.getElementById("expandAll").onclick = () => {
-        document.querySelectorAll("nav#menu li").forEach((li) => li.classList.add("open"));
-      };
-      document.getElementById("collapseAll").onclick = () => {
-        document.querySelectorAll("nav#menu li").forEach((li) => li.classList.remove("open"));
-      };
+      document
+        .querySelector('#expandAll')
+        .onclick = () => document.querySelectorAll('#menu li').forEach((li) => li.classList.add('open'));
+      document
+        .querySelector('#collapseAll')
+        .onclick = () => document.querySelectorAll('#menu li').forEach((li) => li.classList.remove('open'));
 
       loadFromURLParams();
     })
     .catch(console.error);
 
-  // ── OUTER click handler: intercept only "?path=" links in the parent document  ──
-  document.addEventListener("click", function onNavClick(event) {
-    // If the click happened inside an <iframe>, bail out immediately
-    if (event.target.closest("iframe")) {
-      return;
-    }
-
-    // Only intercept links whose href starts with "?path="
+  console.log('bound parent click')
+  // Intercept any “?path=” link in the parent document (outside iframes):
+  document.addEventListener('click', (event) => {
+    if (event.target.closest('iframe')) return;
     const anchor = event.target.closest('a[href^="?path="]');
     if (!anchor) return;
 
     event.preventDefault();
-    const rawPath = new URLSearchParams(anchor.getAttribute("href").slice(1)).get("path");
+    const rawPath = new URLSearchParams(anchor.getAttribute('href').slice(1)).get('path');
     if (!rawPath) return;
-
-    const currentPath = (history.state && history.state.path) ||
-      new URLSearchParams(window.location.search).get("path") ||
-      "home";
-    if (rawPath === currentPath) return;
-
-    const safe = normalizePath(rawPath);
-    window.scrollTo(0, 0);
-
-    // Load the new iframe and push exactly one history entry
-    loadContent(safe + ".html");  
-    console.log("%c[OUTER pushState] path=%s", "color:teal;", rawPath);
-
-    history.pushState({ path: rawPath }, "", "?path=" + safe);
+    navigateTo(rawPath);
   });
 
-  // ── Listen for fullscreen‐requests from demos ──
-  window.addEventListener("message", function onDemoMessage(event) {
+  // Listen for fullscreen requests from demos:
+  window.addEventListener('message', (event) => {
     const msg = event.data;
-    if (msg?.type === "demo-fullscreen") {
+    if (msg?.type === 'demo-fullscreen') {
       const frame = event.source.frameElement;
-      if (frame?.requestFullscreen) {
-        frame.requestFullscreen().catch(console.error);
-      }
+      frame?.requestFullscreen().catch(console.error);
     }
   });
 });
 
-window.addEventListener("popstate", loadFromURLParams);
+// Listen for “navigate” messages from inside iframes:
+window.addEventListener('message', (event) => {
+  const msg = event.data;
+  if (msg?.type === 'navigate' && msg.path) {
+    navigateTo(msg.path);
+  }
+});
+
+// Handle Back/Forward buttons:
+console.log('popstate listener bound');
+window.addEventListener('popstate', loadFromURLParams);
