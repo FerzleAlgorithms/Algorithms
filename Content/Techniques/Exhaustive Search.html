@@ -56,7 +56,7 @@
     href="?path=Algorithms/Exhaustive Search/Subset%20Sum">Subset-Sum (Exhaustive Search)</a>
     page for more complete details about that part.</p>
     
-<pre><code style="width: 400px;">function subsetSumBruteForce(S, T):
+<pre><code>function subsetSumBruteForce(S, T):
     for each subset X of S do
         if sum of elements in X = T then
             output X
@@ -261,135 +261,58 @@ Because \(N^{N+1}\) grows so quickly, this method is only practical for very sma
   <ul>
   <li>
   <strong>Use a General Recursive or Iterative Pattern:</strong>
-  Rather than hard-coding loops for each size or permutation, write a generic routine that builds one candidate at a time, 
-  checks its validity, and only then outputs it. 
-  Below are two pseudocode styles&mdash;recursive and iterative&mdash;showing how to "generate & test" every subset. 
-  In each case, replace the <code>isValid(...)</code> check with whatever your problem's criterion 
-  is (for example, <code>sum(subset) == T</code> in Subset-Sum).
-
-<br>
-<font style="font-size:2em; color:red">I am here</font>
-
-  <pre><code>
-// Recursive pseudocode: build one subset at a time, then test it
-function generateSubsets(i, element[], n, currentSubset[], size):
-    if i == n then
-        // We have a complete subset in currentSubset[0..size-1]
-        if isValid(currentSubset, size) then
-            output currentSubset[0..size-1]
-        end if
-        return
-    end if
-
-    // 1) EXCLUDE element[i]
-    generateSubsets(i + 1, element, n, currentSubset, size)
-
-    // 2) INCLUDE element[i]
-    currentSubset[size] = element[i]
-    generateSubsets(i + 1, element, n, currentSubset, size + 1)
-end function
-
-// Initial call (e.g., in main):
-// element[] = { ... }             // input array of length n
-// currentSubset = new int[n]      // allocate array of size n
-// generateSubsets(0, element, n, currentSubset, 0)
-  </code></pre>
-
-  <pre><code>
-// Iterative pseudocode: interpret each integer from 0..2^n-1 as a candidate subset
-function processAllSubsets(element[], n):
-    totalMasks = 1 << n           // 2^n possible subsets
-    for mask = 0 to totalMasks - 1 do
-        // Build one subset according to bits of mask
-        subset = new int[n]
-        size = 0
-        for j = 0 to n - 1 do
-            if ((mask & (1 << j)) != 0) then
-                subset[size] = element[j]
-                size = size + 1
-            end if
+  Novice programmers often think of exhaustive search in terms of deeply nested loops, writing a separate loop for each choice. For example, to solve the 5-Queens problem, one might write:</p>
+  <pre><code>// Bad pseudocode for 5-Queens using five nested loops
+for r0 = 0 to 4:
+    for r1 = 0 to 4:
+        for r2 = 0 to 4:
+            for r3 = 0 to 4:
+                for r4 = 0 to 4:
+                    positions = [r0, r1, r2, r3, r4]
+                    if isValidNQueens(positions) then
+                        output positions
+                    end if
+                end for
+            end for
         end for
-
-        // Test the candidate subset
-        if isValid(subset, size) then
-            output subset[0..size-1]
-        end if
     end for
-end function
-
-// Initial call (e.g., in main):
-// element[] = { ... }            // input array of length n
-// processAllSubsets(element, n)
-  </code></pre>
+end for</code></pre>
+<p>This is a bad idea because it only works when \(N\) is fixed at 5. 
+To handle a different \(N\), you would need to rewrite the code with that many loops.
+It is hard to maintain and does not generalize to arbitrary board sizes.
+Notice that the code in Example 2, although slightly harder to understand, is written so that it
+works properly no matter what the value of \(N\) is.
+It uses a recursive approach. The same idea can be implemented with an iterative algorithm.
+Generating all subsets, permutations, etc., can be done similarly. 
+</p>  
 </li>
-
-  
-  
-    <li>
-      <strong>Use a General Recursive or Iterative Pattern:</strong>  
-      Rather than writing nested loops for each candidate size, use a single recursion parameterized by an index \(i\). For example, to generate all subsets of a set of size \(n\), write:
-      
-      <pre><code>
-function generateSubsets(i, currentSubset):
-    if i = n then
-        output currentSubset
-        return
-    end if
-    // Exclude element i
-    generateSubsets(i + 1, currentSubset)
-    // Include element i
-    currentSubset.append(element[i])
-    generateSubsets(i + 1, currentSubset)
-    currentSubset.pop()
-      </code></pre>
-      Alternatively, use an iterative bitmask loop for "all assignments":
-      <pre><code>
-for mask = 0 to (1 << n) - 1 do
-    // mask encodes one subset in binary
-    processMask(mask)
-end for
-      </code></pre>
-    </li>
-
     <li>
       <strong>Be Careful with Recursion Depth &amp; Stack Usage:</strong>  
       Recursive calls can reach depth \(n\) (for subsets) or \(N\) (for N-Queens), which may overflow the call stack when \(n\) or \(N\) is large. If \(n\) might exceed a few thousand, convert to an iterative approach (e.g., bitmask loops or explicit stack) or increase your language's recursion limit.
     </li>
-
     <li>
       <strong>Avoid Recomputing From Scratch:</strong>  
-      Whenever possible, maintain incremental state instead of recomputing at each leaf:
-      <ul>
-        <li>In Subset-Sum, keep a running sum as you add or remove elements&mdash;then each candidate's sum is \(O(1)\) to update, not \(O(n)\) to recompute.</li>
-        <li>In N-Queens, maintain auxiliary arrays (or bitmasks) for columns and diagonals so that checking whether placing a queen conflicts with existing queens is \(O(1)\). For example:
-        <pre><code>
-columns[col] = true if column col is occupied
-diag1[row+col] = true if one diagonal is occupied
-diag2[row-col + (N-1)] = true if the other diagonal is occupied
-        </code></pre>
-        </li>
-      </ul>
+      Whenever possible, maintain incremental state instead of recomputing at each leaf. For instance, 
+      in Subset-Sum, keep a running sum as you add or remove elements&mdash;then each candidate's sum is 
+      \(O(1)\) to update, not \(O(n)\) to recompute.
     </li>
-
     <li>
       <strong>Test on Small Inputs First:</strong>  
       Before running on large parameters, verify correctness on minimal cases (e.g., a set of size 3 for subset enumeration or \(N = 4\) for N-Queens). Print intermediate candidates to ensure that every combination is visited exactly once and that conflict checks are correct.
     </li>
-
     <li>
       <strong>Consider Early Termination When Only One Solution Is Required:</strong>  
       If the problem only asks for "some valid solution" (not "all" solutions), you can stop as soon as you find a match. However, if you need to enumerate every solution, do not terminate early&mdash;otherwise you risk missing additional valid candidates.
     </li>
-
     <li>
       <strong>Mind Data Types &amp; Overflow:</strong>  
       When summing values or using bitmasks, watch for integer overflow:
       <ul>
-        <li>For Subset-Sum with large element values, use 64-bit integers (e.g., <code>long long</code> in C++ or <code>int64_t</code>).</li>
-        <li>For bitmask enumeration, if \(n > 31\), a 32-bit integer may overflow; use a 64-bit mask or arbitrary-precision type.</li>
+        <li>For Subset-Sum with large sets, use 64-bit integers (e.g., <code>long long</code> in C++ or <code>BigInteger</code> in Java).</li>
+        <li>For bitmask enumeration, if \(n > 31\), a 32-bit integer may overflow; 
+        use a 64-bit mask or an arbitrary-precision type.</li>
       </ul>
     </li>
-
     <li>
       <strong>Prepare for Large Memory Use:</strong>  
       Storing all valid candidates can exhaust available RAM. If you only need to count solutions or write them to an output stream, avoid accumulating everything in memory. For example, print each valid subset as soon as you generate it, rather than storing it in a list.
@@ -400,26 +323,25 @@ diag2[row-col + (N-1)] = true if the other diagonal is occupied
       Pure Exhaustive Search does not leverage domain-specific constraints. Even a small amount of pruning&mdash;checking partial feasibility before recursing&mdash;can reduce the search space dramatically. For instance:
       <ul>
         <li>In Subset-Sum, if the current partial sum already exceeds \(T\), skip further recursion down that branch.</li>
-        <li>In N-Queens, reject any partial assignment where two queens share a column or diagonal before placing all \(N\) queens. This pruned version is no longer "pure" Exhaustive Search but remains a brute-force method with much lower constant factors.</li>
+        <li>In N-Queens, reject any partial assignment where two queens share a column or diagonal before placing all \(N\) queens. This pruned version is no longer "pure"
+        Exhaustive Search but remains a brute-force method with much lower constant factors.</li>
       </ul>
     </li>
-
     <li>
-      <strong>Watch Loop Bounds in Iterative Enumeration:</strong>  
-      When simulating an \(n\)-digit base-\(b\) counter (e.g., base-\(N\) for N-Queens), be sure to initialize and terminate correctly:
-      <pre><code>
-for mask = 0 to (b^n) - 1 do
-    // compute digits by repeated division
-end for
-      </code></pre>
-      Off-by-one errors in loop limits or digit extraction can lead to missing the first or last candidate.
-    </li>
-
+    <strong>Watch For Off-by-One Errors in Loops:</strong>  
+    When writing a loop to visit every candidate, be sure your start and end conditions include exactly the intended range. 
+    For example, to process an array of length <code>n</code>, write:
+    <pre><code>for i = 0 to n - 1 do
+      // process element[i]
+  end for  </code></pre>
+    If you instead wrote <code>for i = 1 to n - 1</code>, you would skip the first element. If you wrote <code>for i = 0 to n</code>, you would attempt to access element[n] which does not exist. Double-check that your loop covers exactly indices <code>0</code> through <code>n - 1</code>.
+    This can show up in other contexts as well&mdash;not forgetting to include the empty set (although it is rarely relevent) or the full set when generating subsets,
+    not forgetting the first permutation (the unaltered one) of an array.
+  </li>
     <li>
       <strong>Use Deterministic Ordering When Needed:</strong>  
       If you must compare outputs across different runs (e.g., for debugging or automated testing), choose a consistent enumeration order&mdash;such as lexicographic bitmask order for subsets or sorted permutations for N-Queens. This ensures reproducible results.
     </li>
-
     <li>
       <strong>Benchmark and Profile for Bottlenecks:</strong>  
       Even with small \(n\), high per-candidate overhead can dominate runtime. Use a profiler to identify which part of your code&mdash;conflict checking, summation, or array manipulation&mdash;is the hot spot, then optimize that routine (e.g., replace array scans with bitwise operations).
@@ -427,243 +349,211 @@ end for
   </ul>
 </section>
 
-
-  <!-- Implementation Tips & Common Pitfalls -->
-  <section id="tips">
-    <h2>Implementation Tips &amp; Common Pitfalls</h2>
-    <ul>
-      <li>
-        <strong>Use a General Recursive or Iterative Pattern:</strong>  
-        For "all subsets," write a single recursion with parameter \(i\) (include/exclude) 
-        instead of hard-coding loops for each subset size. The same pattern applies to "all 
-        assignments" (choose each variable's value).
-      </li>
-      <li>
-        <strong>Be Careful with Recursion Depth:</strong>  
-        If \(n\) is large, recursion to depth \(n\) may cause stack overflow. Consider converting 
-        to a bitmask loop (for subsets or assignments) or manage your own explicit stack.
-      </li>
-      <li>
-        <strong>Avoid Recomputing from Scratch:</strong>  
-        In subset enumeration, maintain a running sum instead of summing the subset from 
-        scratch at each leaf. In N-Queens, maintain auxiliary arrays (or bitmasks) for columns 
-        and diagonals so conflict checks can be \(O(1)\) per placement.
-      </li>
-      <li>
-        <strong>Test on Small Inputs First:</strong>  
-        Verify correctness by running on minimal cases (e.g.\ set of size 3 for subsets, 
-        \(N=4\) for N-Queens) and print partial results to ensure you are visiting every 
-        candidate.
-      </li>
-      <li>
-        <strong>Consider Early Termination if You Only Need One Solution:</strong>  
-        If you only need to find "some valid solution," you can stop once you encounter it. 
-        But if you need "all" solutions, do not terminate prematurely.
-      </li>
-      <li>
-        <strong>Mind Data Types &amp; Overflow:</strong>  
-        Summing subset elements or indexing large arrays can overflow standard integers if 
-        numbers get large. Use 64-bit types or big-integer libraries when needed.
-      </li>
-      <li>
-        <strong>Prepare for Large Memory Use:</strong>  
-        If you store every valid subset or every queen placement in a list, memory can blow up 
-        quickly. Consider streaming results or writing them to disk if necessary.
-      </li>
-    </ul>
-  </section>
-
-  <!-- Canonical Algorithms -->
-  <section id="algorithms">
-    <h2>Algorithms Using This Technique</h2>
-    <ul>
-      <li>
-        <a class="problem" href="?path=Algorithms/Exhaustive%20Search/Subset%20Sum">
-          Subset-Sum (Enumeration)
-        </a>
-        – Enumerate all subsets of a set \(S\) and check each subset's sum against the target \(T\).
-      </li>
-      <li>
-        <a class="problem" href="?path=Algorithms/Exhaustive%20Search/N-Queens">
-          N-Queens (Column-Assignment)
-        </a>
-        – Try every assignment of queen positions (one column per row) then filter out conflicts.
-      </li>
-      <li>
-        <a class="problem" href="?path=Algorithms/Exhaustive%20Search/3-SAT">
-          3-SAT (Truth-Assignment)
-        </a>
-        – Enumerate all \(2^n\) truth assignments for \(n\) variables and test each against 
-        the set of clauses.
-      </li>
-      <li>
-        <a class="problem" href="?path=Algorithms/Exhaustive%20Search/Graph-Coloring">
-          Graph-Coloring (k-Coloring)
-        </a>
-        – Assign each of \(n\) vertices one of \(k\) colors (total \(k^n\) assignments) 
-        and test for adjacent conflicts.
-      </li>
-      <li>
-        <a class="problem" href="?path=Algorithms/Exhaustive%20Search/Magic-Square">
-          Magic Square Generation
-        </a>
-        – Generate all permutations of \(\{1,\dots,9\}\) (9! candidates) and test sums of 
-        rows/columns/diagonals for 3×3 magic squares.
-      </li>
-      <li>
-        <a class="problem" href="?path=Algorithms/Exhaustive%20Search/All-Strings">
-          All Strings of Length \(L\)
-        </a>
-        – Enumerate all \(K^L\) strings over an alphabet of size \(K\), then test for desired 
-        property (e.g.\ containing a substring).
-      </li>
-      <li>
-        <a class="problem" href="?path=Algorithms/Exhaustive%20Search/Integer-Ro
-ots">
-          Integer Roots (Exhaustive Check)
-        </a>
-        – Test each integer \(x\) in a fixed range (e.g.\ \(0\le x<p\)) to see if \(p(x)\equiv0\pmod{p}\).
-      </li>
-    </ul>
-  </section>
-
-<section id="applications">
-  <h2>Real-World Applications</h2>
+<!-- Canonical Algorithms -->
+<section id="algorithms">
+  <h2>Algorithms Using This Technique</h2>
   <ul>
     <li>
-      <strong>Cryptanalysis and Password Cracking:</strong>
-      For short keys or simple password schemes, attackers can literally generate every possible key or password string until a match is found.  Even though modern systems enforce complex policies, brute-force remains the fallback for recovering lost credentials (e.g., “try all 8-character combinations of letters, digits, and symbols”).  In cryptographic research, exhaustive key search helps verify the effective key length of ciphers by demonstrating the practical limits of brute-force.
+      <a class="problem" href="?path=Algorithms/Exhaustive%20Search/Subset%20Sum">
+        Subset-Sum (Exhaustive)
+      </a>
+      - Enumerate all subsets of a set \(S\) and check each subset's sum against the target \(T\).
     </li>
     <li>
-      <strong>Formal Verification &amp; Model Checking:</strong>
-      In hardware design and safety-critical software, model checkers exhaustively explore all possible states of a finite state machine or protocol up to a given bound, looking for counterexamples to a specification.  Although state-space explosion is a concern, exhaustive enumeration on a reduced or bounded model is often the only way to guarantee that every possible scenario has been checked.
+      <a class="problem" href="?path=Algorithms/Exhaustive%20Search/N-Queens">
+        N-Queens (Column-Assignment)
+      </a>
+      - Try every assignment of queen positions (one column per row) and filter out conflicts.
     </li>
     <li>
-      <strong>Configuration &amp; Regression Testing:</strong>
-      Software projects with multiple Boolean flags, compiler options, or environment variables sometimes use exhaustive testing on small subsets of flags to detect interaction bugs.  For example, if a program has four binary configuration switches, exhaustive search of all \(2^4 = 16\) combinations can reveal corner-case failures before release.  Similar techniques apply in hardware driver validation and embedded systems.
+      <b>3-SAT (Truth-Assignment)</b>
+      - Enumerate all \(2^n\) truth assignments for \(n\) variables and test each against the set of clauses.
     </li>
     <li>
-      <strong>Hyperparameter Tuning in Machine Learning (Grid Search):</strong>
-      When the search space of hyperparameters is small (e.g., learning rate ? \{0.01, 0.1\}, tree depth ? \{4, 8\}), a grid search exhaustively evaluates every combination on a validation set.  Although more sophisticated methods (random search, Bayesian optimization) scale better, exhaustive grid search remains widely used for low-dimensional hyperparameter spaces to guarantee that the global optimum is not missed.
+      <b>Graph-Coloring (k-Coloring)</b>
+      - Assign each of \(n\) vertices one of \(k\) colors (total \(k^n\) assignments) and test for adjacent conflicts.
     </li>
     <li>
-      <strong>Combinatorial Puzzle Solving:</strong>
-      Many classic puzzles—such as the \(3\times3\) magic square, \(4\times4\) sliding puzzle, or small versions of Sudoku—are solved by generating all candidate configurations and filtering out invalid ones.  For a \(3\times3\) magic square, there are \(9! = 362{,}880\) permutations of \(\{1,\dots,9\}\); checking each is straightforward at this scale and provides a complete list of solutions.
+      <b>Magic Square Generation</b>
+      - Generate all permutations of \(\{1,\dots,9\}\) (\(9!\) candidates) and test sums of rows, columns, and diagonals for 3x3 magic squares.
     </li>
     <li>
-      <strong>Small-Scale Bioinformatics &amp; Chemistry:</strong>
-      In peptide-sequencing or ligand-docking on a short peptide (e.g., \(\le6\) amino acids), tools sometimes exhaustively generate every candidate sequence (or every 3D conformation in a coarse grid) and score each one.  Although this becomes impractical for large proteins, brute-force enumeration on a limited alphabet or small molecule set can identify promising leads in drug discovery or motif finding.
+      <b>All Strings of Length \(L\)</b>
+      - Enumerate all \(K^L\) strings over an alphabet of size \(K\), then test for a desired property (for example, containing a substring).
     </li>
     <li>
-      <strong>Benchmarking &amp; Pedagogical Demos:</strong>
-      In algorithm design courses, instructors often implement exhaustive search as a “correctness baseline” to compare against optimized or heuristic methods.  Demonstrations—such as visualizing all subsets in \(\{1,2,3,4\}\) or stepping through all \(8^8\) assignments in \(8\)-Queens—help students appreciate why pruning, dynamic programming, or backtracking drastically reduce work.
+      <b>Integer Roots (Exhaustive Check)</b>
+      - Test each integer \(x\) in a fixed range (for example, \(0 \le x < p\)) to see if \(p(x)\equiv 0 \pmod{p}\).
     </li>
     <li>
-      <strong>Exhaustive Enumeration in Combinatorial Design:</strong>
-      For small combinatorial objects—like all non-isomorphic graphs on \(n\le 6\) vertices, all set partitions of a 5-element set, or all Latin squares of order 4—researchers can generate every candidate and filter out isomorphic or invalid ones.  This exhaustive cataloging underpins database creation for combinatorial designs and helps conjecture enumeration formulas.
+      <b>Maze Solving</b>
+      - Enumerate all simple paths from a start to a target cell in a small grid or graph by exploring every possible move and backing up.
     </li>
   </ul>
 </section>
 
-  <!-- Real-World Applications -->
-  <section id="applications">
-    <h2>Real-World Applications</h2>
-    <ul>
-      <li>
-        <strong>Password &amp; Key Cracking:</strong> For short keys, exhaustively generate 
-        every possible key or password string until you find a match. 
-      </li>
-      <li>
-        <strong>Small CSP Solvers:</strong> When only a few variables remain, enumerating 
-        all assignments (e.g.\ 3-SAT or Sudoku on a few empty cells) can be done quickly.
-      </li>
-      <li>
-        <strong>Benchmarking &amp; Educational Demos:</strong> Use exhaustive search to 
-        verify correctness of more advanced algorithms. It is often used as a teaching 
-        tool to illustrate how pruning or dynamic programming provides speedups.
-      </li>
-      <li>
-        <strong>Exhaustive Hyperparameter Tuning:</strong> For a very small set of discrete 
-        hyperparameter values (e.g.\ learning rate ? {0.01, 0.1}, depth ? {4,8}), generate 
-        all combinations and test each configuration.
-      </li>
-      <li>
-        <strong>Small-Scale Puzzle Solvers:</strong> For puzzles like the 3×3 Magic Square or 
-        4×4 sliding-tile, "generate all candidate boards" (or partial assignments) and test 
-        validity.
-      </li>
-    </ul>
-  </section>
-  
-  
-  <!-- Reading Comprehension Questions -->
-  <section id="reading-questions">
-    <h2>Summary &amp; Key Takeaways</h2>
-    </section>
-  
-  
-  <!-- Reading Comprehension Questions -->
-  <section id="reading-questions">
-    <h2>Reading Comprehension Questions</h2>
+<section id="applications">
+  <h2>Real-World Applications</h2>
+  <ul>
+  <li>
+  <strong>Cryptanalysis and Password Cracking:</strong>
+  For short keys or simple password schemes, attackers can literally generate every possible key or password string until a match is found. Even though modern systems enforce complex policies, brute force remains the fallback for recovering lost credentials (e.g., "try all 8-character combinations of letters, digits, and symbols"). 
+  In cryptographic research, exhaustive key search measures how long it takes to try all \(2^k\) possible keys on real hardware.
+  For instance, if testing every \(k\)-bit key takes about a year, then \(k\) bits offers pretty good security against brute force.
+</li>
+    <li>
+      <strong>Formal Verification and Model Checking:</strong>
+      In hardware design and safety-critical software, model checkers exhaustively explore all possible states of a finite-state machine or protocol up to a given bound, looking for counterexamples to a specification. Although state-space explosion is a concern, exhaustive enumeration on a reduced or bounded model is often the only way to guarantee that every possible scenario has been checked.
+    </li>
+    <li>
+      <strong>Configuration and Regression Testing:</strong>
+      Software projects with multiple Boolean flags, compiler options, or environment variables sometimes use exhaustive testing of all combinations (for a small number of flags) to detect interaction bugs. For example, if a program has four binary switches, testing all \(2^4 = 16\) combinations can reveal corner-case failures before release. Similar exhaustive tests are used in hardware driver validation and embedded systems.
+    </li>
+    <li>
+      <strong>Hyperparameter Tuning in Machine Learning (Grid Search):</strong>
+      When the search space of hyperparameters is small&mdash;for example, learning rate \(\in \{0.01,0.1\}\) and tree depth \(\in \{4,8\}\)&mdash;a grid search evaluates every combination on a validation set. Although more sophisticated methods (random search, Bayesian optimization) scale better, exhaustive grid search remains widely used for low-dimensional hyperparameter spaces to guarantee that the global optimum is not missed.
+    </li>
+    <li>
+      <strong>Combinatorial Puzzle Solving:</strong>
+      Many classic puzzles&mdash;such as the \(3\times3\) magic square, \(4\times4\) sliding puzzle, or small versions of Sudoku&mdash;are solved by generating all candidate configurations and filtering out invalid ones. For a \(3\times3\) magic square, there are \(9! = 362\,880\) permutations of \(\{1,\dots,9\}\); checking each is straightforward at this scale and provides a complete list of solutions.
+    </li>
+    <li>
+      <strong>Small-Scale Bioinformatics and Chemistry:</strong>
+      In peptide sequencing or ligand docking on a short peptide (e.g., length \(\le 6\) amino acids), tools sometimes exhaustively generate every candidate sequence (or every coarse-grained 3D conformation) and score each one. Although this becomes impractical for large proteins, brute-force enumeration on a limited alphabet or small molecule set can identify promising leads in drug discovery and motif finding.
+    </li>
+    <li>
+      <strong>Benchmarking and Pedagogical Demos:</strong>
+      In algorithm design courses, instructors often implement exhaustive search as a "correctness baseline" to compare against optimized or heuristic methods. Demonstrations&mdash;such as visualizing all subsets in \(\{1,2,3,4\}\) or stepping through all \(8^8\) assignments in 8-Queens&mdash;help students appreciate why pruning, dynamic programming, or backtracking drastically reduce work.
+    </li>
+    <li>
+      <strong>Exhaustive Enumeration in Combinatorial Design:</strong>
+      For small combinatorial objects&mdash;like all non-isomorphic graphs on \(n \le 6\) vertices, all set partitions of a 5-element set, or all Latin squares of order 4&mdash;researchers can generate every candidate and filter out isomorphic or invalid ones. This exhaustive cataloging underpins database creation for combinatorial designs and helps conjecture enumeration formulas.
+    </li>
+    <li>
+      <strong>State-Space Exploration in AI Planning:</strong>
+      In certain AI planning and game-solving tasks (e.g., solving a small 3x3 sliding tile puzzle or exploring all Tic-Tac-Toe game states), exhaustive search over all possible moves is feasible. By generating every reachable state (for a small board) and evaluating each, one can build complete solution databases or optimal play tables.
+    </li>
+  </ul>
+</section>
+<section id="summary">
+  <h2>Summary &amp; Key Takeaways</h2>
+  <p>
+    Exhaustive Search is a special case of Brute Force where we generate every possible candidate in the solution space and test each one without pruning. This approach guarantees correctness by mirroring the problem definition directly, even though it may perform a huge amount of extra work.
+  </p>
+  <p>
+    Key points to remember:
+  </p>
+  <ul>
+    <li><strong>Generate and test every candidate:</strong> By design, Exhaustive Search visits all possibilities 
+    (for example, all subsets, all permutations, or all truth assignments) and checks each against the problem's conditions.</li>
+    <li><strong>Common growth rates:</strong> Candidate spaces often scale as \(2^n\) (all subsets), \(N^N\) (naive N-Queens), \(N!\) (permutations), or \(k^n\) (k-coloring of n vertices). Even moderate \(n\) makes these sizes infeasible.</li>
+    <li><strong>No pruning unless added explicitly:</strong> Pure Exhaustive Search will explore every branch, even if a partial assignment already violates constraints, resulting in a lot of redundant work.</li>
+    <li><strong>High per-candidate cost:</strong> Each candidate often requires \(O(n)\) or \(O(N)\) time to verify (for example, summing a subset or checking queen conflicts), yielding \(O(n \cdot 2^n)\) or \(O(N \cdot N^N)\) overall.</li>
+    <li><strong>Ideal for small inputs and prototyping:</strong> Use Exhaustive Search when \(n\) or \(N\) is small (for example, \(n \le 20\) for \(2^n\) problems or \(N \le 8\) for \(N^N\) problems) or when you need a quick, reliable baseline before implementing optimizations.</li>
+    <li><strong>Useful correctness check:</strong> Exhaustive Search provides a reference solution against which to compare more advanced methods&mdash;backtracking with pruning, dynamic programming, or heuristics&mdash;to ensure they produce correct results on small instances.</li>
+    <li><strong>Watch coding pitfalls:</strong> Common errors include off-by-one mistakes in loop bounds (for example, using <code>0..n</code> instead of <code>0..n-1</code>), unnecessary recomputation (compute running sums or maintain conflict arrays instead of recomputing from scratch), and excessive recursion depth (consider iterative or bitmask alternatives if depth might exceed available stack).</li>
+    <li><strong>Switch techniques when needed:</strong> As soon as input size or performance requirements grow beyond small thresholds (for example, \(n > 25\) for \(2^n\) problems or \(N > 10\) for \(N^N\) or \(N!\) problems), transition to a more efficient algorithm that leverages pruning, memoization, or a different strategy.</li>
+    <li><strong>Real-world use cases:</strong> Examples where Exhaustive Search is still practical include small-grid model checking, hyperparameter grid search for low-dimensional spaces, combinatorial puzzle solvers (3x3 magic squares, small Sudoku), and exhaustive enumeration of short peptide sequences in bioinformatics.</li>
+  </ul>
+</section>
+
+<!-- Reading Comprehension Questions -->
+<section id="reading-questions">
+  <h2>Reading Comprehension Questions</h2>
+  <ol>
+    <li>
+      <b>What differentiates Exhaustive Search from a more general Brute Force method?</b><br>
+      In your own words, explain the key distinction.
+    </li>
+    <li>
+      <b>Why does Exhaustive Search often run in \(O(2^n)\), \(O(N^N)\), or \(O(k^n)\)?</b><br>
+      Describe how the candidate space size leads to these time complexities.
+    </li>
+    <li>
+      <b>Why does Subset-Sum enumeration cost \(O(n \cdot 2^n)\)?</b><br>
+      According to the Subset-Sum example, why does enumeration of all subsets cost \(O(n \cdot 2^n)\) time?
+    </li>
+    <li>
+      <b>Why does naive N-Queens produce \(N^N\) candidates?</b><br>
+      In the N-Queens example, why does the naive enumeration produce \(N^N\) candidates? How would enforcing "one queen per column" reduce the candidate space?
+    </li>
+    <li>
+      <b>When is Exhaustive Search appropriate?</b><br>
+      Describe two situations from the "When to Use" section where Exhaustive Search is appropriate; explain why you would choose it over a more optimized algorithm.
+    </li>
+    <li>
+      <b>Give a scenario illustrating deep recursion risk.</b><br>
+      The "Limitations" section lists "Deep Recursion Risks." Provide a concrete scenario in Subset-Sum or N-Queens that illustrates how recursion depth can cause a stack overflow.
+    </li>
+    <li>
+      <b>Summarize one canonical algorithm's enumeration.</b><br>
+      Choose one canonical algorithm under "Algorithms Using This Technique" and briefly summarize how its enumeration works (for example, "Graph-Coloring enumerates \(k^n\) color assignments").
+    </li>
+  </ol>
+
+  <button id="toggleAnswers" class="show-answer">Show Answers</button>
+  <div id="answers" class="answer" style="display: none; margin-top: 1em;">
+    <h3>Answers</h3>
     <ol>
       <li>
-        In your own words, what differentiates Exhaustive Search from a more general Brute Force 
-        method? Why does Exhaustive Search often run in \(O(2^n)\), \(O(N^N)\), or \(O(k^n)\)?
+        <b>Answer:</b> Exhaustive Search explicitly generates every candidate in the search space and tests each one without any pruning. General Brute Force may simply follow the problem definition or a formula verbatim, but it does not necessarily enumerate all possible combinations.
       </li>
       <li>
-        According to the Subset-Sum example, why does enumeration of all subsets cost \(O(n \cdot 2^n)\) 
-        time? Explain how the recursion tree has \(2^n\) leaves and why each leaf requires \(O(n)\) work.
+        <b>Answer:</b> Because Exhaustive Search visits all possible candidates, the number of candidates often grows as \(2^n\) (all subsets of an \(n\)-element set), \(N^N\) (choosing one of \(N\) options in each of \(N\) positions for N-Queens), or \(k^n\) (assigning one of \(k\) colors to each of \(n\) vertices). Visiting every candidate leads to those exponential time complexities.
       </li>
       <li>
-        In the N-Queens example, why does the naive enumeration produce \(N^N\) candidates? How would 
-        enforcing "one queen per column" reduce the candidate space?
+        <b>Answer:</b> There are \(2^n\) subsets of a set of size \(n\).  For each subset the algorithm adds the terms in the subset and compares it to the target.
+        Since there are up to \(n\) terms in each subset, that takes \(O(n)\) time. Since this is done \(2^n\) times, the overall complexity is \(O(n \cdot 2^n)\).
       </li>
       <li>
-        Describe two situations from the "When to Use" section where Exhaustive Search is appropriate; 
-        explain why you would choose it over a more optimized algorithm.
+        <b>Answer:</b> In the naive version, for each of the \(N\) rows you choose any column from 0 to \(N-1\). That yields \(N\) choices per row, for \(N\) rows, giving \(N^N\) total assignments. Enforcing "one queen per column" requires that each column is used exactly once, reducing the search space to all permutations of \(\{0,\dots,N-1\}\), which is \(N!\) candidates instead of \(N^N\).
       </li>
       <li>
-        The "Limitations" section lists "Deep Recursion Risks." Provide a concrete scenario in Subset-Sum 
-        or N-Queens that illustrates how recursion depth can cause a stack overflow.
+        <b>Answer:</b>
+        <ul>
+          <li><strong>Very small input size:</strong> For Subset-Sum with \(n \le 20\), \(2^n \le 1{,}048{,}576\) subsets can be tested quickly. Because \(2^{20}\) is still under a few million, Exhaustive Search is simple to implement and runs fast enough without pruning.</li>
+          <li><strong>Guaranteed completeness:</strong> If you need all valid solutions&mdash;for example, listing every valid 8-queen configuration&mdash;you must enumerate every candidate. No pruning-based method can guarantee finding every placement without missing one, so Exhaustive Search ensures correctness even at the expense of performance.</li>
+        </ul>
       </li>
       <li>
-        Choose one canonical algorithm under "Algorithms Using This Technique" and briefly summarize 
-        how its enumeration works (e.g.\ "Graph-Coloring enumerates \(k^n\) color assignments").
+        <b>Answer:</b> In Subset-Sum, a recursive routine calls itself once per element to include or exclude it. For \(n = 10,000,\) the recursion depth would reach 
+        \(10,000\) calls, likely exceeding typical call-stack limits and causing a stack overflow. Similarly, in N-Queens, recursing on each row down to row \(N\) can overflow the stack when \(N\) is large (for example, \(N > 1000\)).
+      </li>
+      <li>
+        <b>Answer:</b> <strong>Graph-Coloring:</strong> Graph-Coloring enumerates \(k^n\) color assignments by choosing a color for each of \(n\) vertices. Each assignment can be represented as an array of length \(n\) with values in \(\{0,\dots,k-1\}\). For each assignment, the algorithm checks that no two adjacent vertices share the same color. Thus it generates all \(k^n\) assignments and tests each one for adjacency conflicts.
       </li>
     </ol>
-  </section>
+  </div>
+</section>
 
-  <!-- In-Class Activities -->
-  <section id="activities">
-    <h2>In-Class Activities</h2>
-    <ol>
-      <li>
-        <strong>Subset-Sum Recursion Tree:</strong> 
-        For \(n=4\) and a small set (e.g.\ \(\{2,5,7,9\}\)), draw the full recursion tree of 
-        include/exclude decisions. Count how many leaves there are and highlight which subsets 
-        sum to a given \(T\).
-      </li>
-      <li>
-        <strong>Compare Bitmask vs. Recursion:</strong> 
-        Implement both the recursive and bitmask versions of Subset-Sum for \(n=5\). Count how 
-        many times you enter the "process a subset" step. Confirm both methods enumerate \(2^5 = 32\) subsets.
-      </li>
-      <li>
-        <strong>N-Queens Candidate Count:</strong> 
-        Write code that, for \(N=6\), enumerates all \(6^6\) assignments (without conflict checks). 
-        Then measure how many survive after filtering (i.e.\ valid placements). Compare that 
-        against the count of valid 6-queen solutions.
-      </li>
-      <li>
-        <strong>Early Stopping vs. Full Enumeration:</strong> 
-        Modify the Subset-Sum code to stop once it finds any subset summing to \(T\). Compare 
-        average work done (number of candidates tested) vs. the full enumeration for random sets.
-      </li>
-      <li>
-        <strong>Binary Hypercube Visualization:</strong> 
-        Visualize all vertices of an \(n\)-dimensional hypercube (bitstrings of length \(n\)) 
-        and label which bitstrings correspond    </li>
-        <li>Think of an N! version of the algorithm.</li>
+<!-- In-Class Activities -->
+<section id="activities">
+  <h2>In-Class Activities</h2>
+  <ol>
+    <li>
+      <strong>Subset-Sum Recursion Tree:</strong><br>
+      For \(n = 4\) and a small set (for example, \(\{2,5,7,9\}\)), draw the full recursion tree of include/exclude decisions. Count how many leaves there are (there should be \(2^4 = 16\)) and highlight which subsets sum to a given target \(T\). Discuss how each path from root to leaf corresponds to exactly one subset.
+    </li>
+    <li>
+      <strong>Early Stopping vs. Full Enumeration:</strong><br>
+      Modify the Subset-Sum code so that it stops as soon as it finds any subset that sums to \(T\). On randomly generated sets of size \(n = 8\) with random target \(T\), measure the average number of candidates tested before stopping versus the full enumeration of all \(2^8 = 256\) subsets. Discuss how early stopping can save work when a solution is found early.
+    </li>
+    <li>
+      <strong>Permutation Enumeration (N! Style):</strong><br>
+      Think of an \(N!\)-type exhaustive search. Implement a simple algorithm that generates all permutations of \(\{1,2,\dots,5\}\) (there are \(5! = 120\) permutations) using recursion. After generating each permutation, test it against a property (for example, whether it is in ascending order). Count how many permutations satisfy the property and confirm that the code visits exactly 120 candidates.
+    </li>
+    <li>
+      <strong>State-Space Exploration for Tic-Tac-Toe:</strong><br>
+      Enumerate all possible completed Tic-Tac-Toe boards (there are fewer than \(3^9\) because some positions are unreachable, but treat it as at most \(3^9 = 19683\) candidate boards). For each board, test whether it represents a win for X, a win for O, or a draw. Count how many boards fall into each category. Discuss how this exhaustive enumeration can be used to build an optimal strategy table.
+    </li>   
+     <li>
+      <strong>N! Algorithm for N-Queens:</strong><br>
+      Instead of generating all \(N^N\) assignments, generate all permutations of \(\{0,1,\dots,N-1\}\) (there are \(N!\) such permutations). Each permutation \((p_0,p_1,\dots,p_{N-1})\) represents placing a queen in row \(r\) at column \(p_r\). For \(N = 6\), implement a permutation generator that produces all \(6! = 720\) candidates and then test each permutation for diagonal conflicts. Count how many valid 6-queen solutions emerge and compare against the recursive and bitmask methods.
+    </li>
+    <li>
+      <strong>Binary-Tree Pruning for Subset-Sum:</strong><br>
+      Represent the Subset-Sum recursion as a binary tree of depth \(n\), where each left branch excludes the next element and each right branch includes it. Annotate each node with the partial sum so far. For a target \(T\), implement a version that prunes any branch whose partial sum already exceeds \(T\). For \(n = 6\), generate a set of six small integers, draw or simulate the pruned tree, and compare the number of candidates visited with and without pruning.
+    </li>
   </ol>
 </section>
 
@@ -673,11 +563,76 @@ ots">
 
   <h3>Basic</h3>
   <ol>
+    <li>
+      <strong>Subset Enumeration (Small Set):</strong><br>
+      Given the set \(\{A,B,C,D\}\), manually list all \(2^4 = 16\) subsets in lexicographic order. Then write a recursive "include/exclude" algorithm to generate the same list and verify that your code's output matches your manual enumeration.
+    </li>
+    <li>
+      <strong>3-SAT Truth Assignments (Tiny Instance):</strong><br>
+      Consider the 3-SAT formula \(\phi = (x_1 \lor \lnot x_2 \lor x_3)\land(\lnot x_1 \lor x_2 \lor x_4)\). Enumerate all \(2^4 = 16\) truth assignments for \((x_1,x_2,x_3,x_4)\) and determine which assignments satisfy \(\phi\). Implement a brute-force checker that outputs all satisfying assignments.
+    </li>
+    <li>
+      <strong>Magic Square Generation (3x3):</strong><br>
+      Write a brute-force routine that generates all permutations of \(\{1,\dots,9\}\) (there are \(9! = 362,880\) permutations) and tests each for forming a valid 3x3 magic square (all rows, columns, and diagonals sum to 15). How many permutations did your algorithm generate during its search? How many distinct magic squares exist (counting rotations and reflections separately)? Display each valid square.
+    </li>
+    <li>
+      <strong>N-Queens (Small N):</strong><br>
+      For \(N = 5\), write code that enumerates all \(5^5 = 3,125\) assignments of queen positions (one column per row), then filters out invalid placements. How many valid solutions remain? Next, implement the \(N!\)-based version that generates all \(5! = 120\) permutations of \(\{0,\ldots,4\}\); test each permutation for diagonal conflicts. Confirm both methods produce the same valid-solution count.
+    </li>
+    <li>
+      <strong>All Strings of Length 4:</strong><br>
+      Let the alphabet be \(\{A,B,C,D\}\). Enumerate all \(4^4 = 256\) strings of length 4 and print those that contain the substring "AB". Then write a brute-force generator for all length-4 strings (for example, four nested loops or a base-4 counter) that tests each for containing "AB".
+    </li>
+    <li>
+  <strong>Modular Circle Solutions (Exhaustive Check):</strong><br>
+  Given a prime \(p = 13\), find all pairs \((x,y)\) with \(0 \le x,y < 13\) such that
+  \[
+    x^2 + y^2 \;\equiv\; 1 \pmod{13}.
+  \]
+  There are \(13^2 = 169\) possible pairs \((x,y)\). Write a brute-force routine that enumerates each of the 169 candidates, tests the congruence, and outputs all \((x,y)\) satisfying \(x^2 + y^2 \equiv 1 \pmod{13}\).
+</li>
   </ol>
- <h3>Advanced</h3>
+
+  <h3>Advanced</h3>
   <ol>
+    <li>
+      <strong>Graph-Coloring (k=3, n=5):</strong><br>
+      Consider a specific 5-vertex graph (provide its adjacency lists). Enumerate all \(3^5 = 243\) assignments of 3 colors to the vertices, then test each assignment for adjacent conflicts. How many valid 3-colorings exist? Compare runtime for pure enumeration versus a version that prunes any assignment as soon as a conflict is detected (partial assignment check).
+    </li>
+    <li>
+      <strong>Binary-Tree Pruning for Subset-Sum (n=6):</strong><br>
+      Let \(S\) be a set of 6 positive integers and let \(T\) be a target sum. Draw the recursion tree of include/exclude decisions as a binary tree of depth 6, annotating each node with its partial sum. Implement two versions: (a) pure exhaustive search on all \(2^6 = 64\) subsets, (b) a pruned version that abandons any branch whose partial sum exceeds \(T\). Compare the number of visited nodes in both versions for a chosen \(S\) and \(T\).
+    </li>
+    <li>
+      <strong>Permutation-Based N-Queens (n=7):</strong><br>
+      Generate all \(7! = 5,040\) permutations of \(\{0,1,\dots,6\}\). Each permutation represents placing one queen per row at the given column index. For each permutation, test diagonal conflicts. Report how many valid 7-queen solutions exist. Then compare against a naive \(7^7\)-assignment version by calculating how many candidates would be checked (even if not fully enumerated).
+    </li>
+    <li>
+      <strong>Cartesian Product Generation:</strong><br>
+      Given two sets \(A\) of size \(n\) and \(B\) of size \(m\), write a nested-loop brute-force algorithm to generate all \(n \times m\) ordered pairs \((a,b)\). 
+      Is there a more efficient way to generate these ordered pairs? If so, do it. If not, explain why not.
+    </li>
+    <li>
+      <strong>Maze Path Enumeration (Small Grid):</strong><br>
+      Consider a 4x4 grid with start at the top-left and goal at the bottom-right. Enumerate all simple paths (no revisiting cells) from start to goal by exploring every possible move (up, down, left, right). How many distinct paths exist? Implement a brute-force backtracking algorithm and report its count and running time.
+    </li>
+    <li>
+      <strong>All Strings with a Forbidden Substring:</strong><br>
+      Let the alphabet be \(\{0,1\}\) and let \(L = 10\). Enumerate all \(2^{10} = 1024\) bitstrings of length 10, 
+      then print those that do not contain the substring "101". Write a brute-force generator and count how many strings avoid "101".
+    </li>
+    <li>
+      <strong>Exhaustive Tic-Tac-Toe (Completed Boards):</strong><br>
+      Treat any board cell as "X", "O", or blank, and enumerate all \(3^9 = 19683\) possible boards. For each board that represents a terminal state (either a win for X, a win for O, or a full draw), categorize it accordingly. How many completed-win states for X, for O, and how many draws? Implement the enumeration and output the counts.
+    </li>
+    <li>
+      <strong>All Strings of Length 4 Over \(\{A,B,C\}\) with Exactly Two As:</strong><br>
+      Enumerate all \(3^4 = 81\) strings of length 4 over \(\{A,B,C\}\) and output those that contain exactly two "A" characters. Then implement a brute-force generator and count how many satisfy the condition.
+    </li>he conformation with minimum energy.
+    </li>
   </ol>
 </section>
+
 
 
 </body>

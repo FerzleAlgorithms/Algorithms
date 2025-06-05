@@ -67,6 +67,12 @@ ol.spaced > li {
   margin-bottom: 0.5em;
 }
 
+pre {
+  display: inline-block;
+  white-space: pre; /* preserve line breaks and spacing */
+}
+
+
 .theorem, .lemma {
   border: 2px solid #003366;
   background-color: #f0f8ff;

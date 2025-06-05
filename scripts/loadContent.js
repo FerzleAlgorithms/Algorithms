@@ -1,6 +1,11 @@
 // File: scripts/loadContent.js
 
-// --- Section: Top-level Ordering Constants ---
+// ── Disable native scrollRestoration (so the browser won’t auto‐jump) ──
+if ("scrollRestoration" in history) {
+  history.scrollRestoration = "manual";
+}
+
+// --- Section: Top‐level Ordering Constants ---
 const TOP_LEVEL_ORDER = [
   "Home", "Problems", "Data Structures", "Techniques", "Algorithms", "Demos", "More"
 ];
@@ -24,6 +29,13 @@ function normalizePath(path) {
     .join("/");
 }
 
+// ──────────────────────────────────────────────────────────────────
+// We'll store a “pending” scroll position here if we see one on reload.
+// After the iframe in #content has fully loaded and run its first resize,
+// we’ll consume this and scroll the parent to it exactly once.
+// ──────────────────────────────────────────────────────────────────
+let pendingScrollRestore = null;
+
 // --- Section: Iframe Hooking and Resizing ---
 function hookIframeContent(obj) {
   const innerDoc = obj.contentDocument;
@@ -44,8 +56,11 @@ function hookIframeContent(obj) {
       new URLSearchParams(window.location.search).get("path") || "home";
 
     if (raw === parentCurrent) return;
-
     const safe = normalizePath(raw);
+
+    // ── SPA navigation: scroll the parent window to top before fetching new content
+    window.scrollTo(0, 0);
+
     parent.loadContent(safe + ".html");
     parent.history.pushState({ path: raw }, "", "?path=" + safe);
   });
@@ -61,13 +76,11 @@ function hookIframeContent(obj) {
 
     frame.addEventListener("load", () => {
       const d = frame.contentDocument || frame.contentWindow.document;
-
       function resize() {
         frame.style.height = "auto";
         const h = Math.max(d.documentElement.scrollHeight, d.body.scrollHeight);
         frame.style.height = h + "px";
       }
-
       resize();
       new MutationObserver(resize).observe(d.documentElement, {
         childList: true,
@@ -83,8 +96,8 @@ function buildMenu(chapters) {
   const menuContainer = document.querySelector("#menu");
   menuContainer.innerHTML = `
     <div class="menu-controls">
-    <button id="expandAll" class="link-style">Expand All</button>
-    <button id="collapseAll" class="link-style">Collapse All</button>
+      <button id="expandAll" class="link-style">Expand All</button>
+      <button id="collapseAll" class="link-style">Collapse All</button>
     </div>
     <ul><li><a href='?path=home'>Home</a></li></ul>
   `;
@@ -168,18 +181,34 @@ async function loadContent(relativePath) {
 
     err.style.display = "none";
     obj.style.display = "block";
+
+    // Force‐reload the iframe:
     obj.src = url + "?_=" + Date.now();
 
     obj.onload = function () {
       hookIframeContent(obj);
 
+      // ── in the very first resizeIframe() run, we may have a pendingScrollRestore to apply ──
+      let firstResize = true;
+
       function resizeIframe() {
+        // (1) capture whatever current scroll is (even if it's 0):
         const prevY = window.pageYOffset;
+
         obj.style.height = "auto";
         const d = obj.contentDocument || obj.contentWindow.document;
         const h = Math.max(d.documentElement.scrollHeight, d.body.scrollHeight);
         obj.style.height = 50 + h + "px";
-        window.scrollTo(0, prevY);
+
+        if (firstResize && pendingScrollRestore !== null) {
+          // ── On first resize, override “prevY” and restore the saved value ──
+          window.scrollTo(0, parseInt(pendingScrollRestore, 10));
+          pendingScrollRestore = null;
+          firstResize = false;
+        } else {
+          // ── After that, just restore to whatever we were already at ──
+          window.scrollTo(0, prevY);
+        }
       }
 
       resizeIframe();
@@ -214,7 +243,24 @@ function loadFromURLParams(event) {
   loadContent(safe + ".html");
 }
 
-window.addEventListener("popstate", loadFromURLParams);
+// ──────────────────────────────────────────────────────────────────
+// (A) On “Reload” or any full‐page navigation, save the scrollY here.
+// (B) Don’t attempt to restore in window.onload or DOMContentLoaded anymore.
+//     Instead, we’ll restore when the iframe first resizes.
+// ──────────────────────────────────────────────────────────────────
+window.addEventListener("beforeunload", () => {
+  sessionStorage.setItem("scrollPos", window.pageYOffset);
+});
+
+// As soon as the page loads, grab that stored value (if any)
+// and stash it into pendingScrollRestore. Then clear it from sessionStorage.
+window.addEventListener("load", () => {
+  const savedScroll = sessionStorage.getItem("scrollPos");
+  if (savedScroll !== null) {
+    pendingScrollRestore = savedScroll;
+    sessionStorage.removeItem("scrollPos");
+  }
+});
 
 document.addEventListener("DOMContentLoaded", function initApp() {
   const initialParam = new URLSearchParams(window.location.search).get("path") || "home";
@@ -251,6 +297,10 @@ document.addEventListener("DOMContentLoaded", function initApp() {
     if (rawPath === currentPath) return;
 
     const safe = normalizePath(rawPath);
+
+    // ── SPA navigation: scroll to top before loading new content ──
+    window.scrollTo(0, 0);
+
     loadContent(safe + ".html");
     history.pushState({ path: rawPath }, "", "?path=" + safe);
   });
@@ -265,3 +315,5 @@ document.addEventListener("DOMContentLoaded", function initApp() {
     }
   });
 });
+
+window.addEventListener("popstate", loadFromURLParams);

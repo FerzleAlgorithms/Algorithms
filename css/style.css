@@ -21,6 +21,13 @@ body {
   overflow: visible;
 }
 
+/* restore a monospace font for all code or pre */
+code,
+pre {
+  font-family: 'Fira Code', 'Source Code Pro', Menlo, Consolas, monospace;
+}
+
+
 /*-------------- header -----------------*/
 header h1,
 header h2,
@@ -213,7 +220,6 @@ a:hover {
   color: #024f9a;
   border-color: #559ecb;
 }
-
 
 /* 8) Error message (global) */
 .error {
