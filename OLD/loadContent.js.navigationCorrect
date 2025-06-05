@@ -92,36 +92,22 @@ const getKey = (entry) =>
     ? entry.replace(/\.html$/, '')
     : Object.keys(entry)[0];
 
-// ─── Navigation / Scroll‐State / Content Loading ─────────────────────────────
+// ─── Navigation / Content Loading ────────────────────────────────────────────
 let pendingScrollRestore = null;
 
 const navigateTo = (rawPath) => {
   const currentPath = getCurrentPath();
   if (rawPath === currentPath) return;
 
-  // ─── 1) Save the *old* scroll position into the current history entry:
-  const oldScrollY = window.pageYOffset;
-  history.replaceState(
-    { path: currentPath, scrollY: oldScrollY },
-    '',
-    `?path=${ normalizePath(currentPath) }`
-  );
-
-  // ─── 2) Push the new entry with scrollY = 0
   const safe = normalizePath(rawPath);
-  history.pushState(
-    { path: rawPath, scrollY: 0 },
-    '',
-    `?path=${safe}`
-  );
 
-  // ─── 3) Immediately jump to top and load the new content
+  // ─── 1) Change the URL in the browser’s address bar and push to history: ───
+  history.pushState({ path: rawPath }, '', `?path=${safe}`); // ← ensure top‐level history
   window.scrollTo(0, 0);
   loadContent(`${safe}.html`);
 };
 
 const loadFromURLParams = () => {
-  // Used on initial page load (or if someone manually types in ?path=…).
   const rawPath = new URLSearchParams(window.location.search).get('path') || 'home';
   console.log(
     '%c[POPSTATE] location.search=%s → loading path=%s',
@@ -150,7 +136,7 @@ function hookIframeContent(iframe) {
     const parentPath = getCurrentPath.call(window.parent);
     if (raw === parentPath) return;
 
-    // Ask the parent to navigate (this pushes a new top‐level history entry)
+    // Ask the parent to navigate (this will push a new top‐level history entry)
     window.parent.postMessage({ type: 'navigate', path: raw }, '*');
   });
 
@@ -287,7 +273,7 @@ async function loadContent(relativePath) {
       iframe.src = `${url}?_=${Date.now()}`;
     }
 
-    // 4) Once the new document is loaded in the iframe, hook it and restore scroll if needed:
+    // 4) Once the new document is loaded in the iframe, hook it:
     iframe.onload = () => {
       hookIframeContent(iframe);
       let firstResize = true;
@@ -332,8 +318,6 @@ async function loadContent(relativePath) {
 
 // ─── Scroll Position Preservation (unchanged) ───────────────────────────────
 window.addEventListener('beforeunload', () => {
-  // This ensures that if someone does a *hard* reload (F5) or navigates away and comes back,
-  // we still have a fallback scroll position. But popState will handle virtual‐page scroll.
   sessionStorage.setItem('scrollPos', window.pageYOffset);
 });
 window.addEventListener('load', () => {
@@ -359,7 +343,6 @@ document.addEventListener('DOMContentLoaded', () => {
         .querySelector('#collapseAll')
         .onclick = () => document.querySelectorAll('#menu li').forEach((li) => li.classList.remove('open'));
 
-      // On initial page load, read ?path=… and load content
       loadFromURLParams();
     })
     .catch(console.error);
@@ -388,7 +371,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 });
 
-// ─── Listen for “navigate” messages from inside iframes ───────────────────────
+// Listen for “navigate” messages from inside iframes:
 window.addEventListener('message', (event) => {
   const msg = event.data;
   if (msg?.type === 'navigate' && msg.path) {
@@ -396,15 +379,6 @@ window.addEventListener('message', (event) => {
   }
 });
 
-// ─── Handle Back/Forward buttons on the top level: replace popstate handler ──
+// Handle Back/Forward buttons on the top level:
 console.log('popstate listener bound');
-window.removeEventListener('popstate', loadFromURLParams); // in case it was added
-window.addEventListener('popstate', (event) => {
-  const state = event.state || {};
-  // 1) Read scrollY from state (if present), otherwise default to 0
-  pendingScrollRestore = typeof state.scrollY === 'number' ? state.scrollY : 0;
-
-  // 2) Navigate to the saved path
-  const rawPath = state.path || 'home';
-  loadContent(`${ normalizePath(rawPath) }.html`);
-});
+window.addEventListener('popstate', loadFromURLParams);

@@ -1,6 +1,6 @@
 // File: scripts/loadContent.js
 
-// ─── History Logging (unchanged) ─────────────────────────────────────────────
+// ─── History Logging ─────────────────────────────────────────────────────────
 const historyLog = [];
 
 // Wrap either pushState or replaceState to log into `historyLog`
@@ -40,7 +40,7 @@ if ('scrollRestoration' in history) {
   history.scrollRestoration = 'manual';
 }
 
-// ─── Ordering Constants (unchanged) ───────────────────────────────────────────
+// ─── Ordering Constants ─────────────────────────────────────────────────────
 const TOP_LEVEL_ORDER = [
   'Home',
   'Problems',
@@ -69,10 +69,10 @@ const ALGORITHMS_ORDER = [
   'Space-Time Tradeoff',
   'Backtracking'
 ];
-// For "Demos", we just mirror the same order as the algorithm names:
+// For "Demos", we just mirror the same order as the algorithm names
 const DEMOS_ORDER = [...ALGORITHMS_ORDER];
 
-// ─── Utility Functions (unchanged) ──────────────────────────────────────────
+// ─── Utility Functions ──────────────────────────────────────────────────────
 // Return the current “path” either from history.state or URL param or fallback
 const getCurrentPath = () =>
   history.state?.path ||
@@ -92,36 +92,20 @@ const getKey = (entry) =>
     ? entry.replace(/\.html$/, '')
     : Object.keys(entry)[0];
 
-// ─── Navigation / Scroll‐State / Content Loading ─────────────────────────────
+// ─── Navigation / Content Loading ────────────────────────────────────────────
 let pendingScrollRestore = null;
 
 const navigateTo = (rawPath) => {
   const currentPath = getCurrentPath();
   if (rawPath === currentPath) return;
 
-  // ─── 1) Save the *old* scroll position into the current history entry:
-  const oldScrollY = window.pageYOffset;
-  history.replaceState(
-    { path: currentPath, scrollY: oldScrollY },
-    '',
-    `?path=${ normalizePath(currentPath) }`
-  );
-
-  // ─── 2) Push the new entry with scrollY = 0
   const safe = normalizePath(rawPath);
-  history.pushState(
-    { path: rawPath, scrollY: 0 },
-    '',
-    `?path=${safe}`
-  );
-
-  // ─── 3) Immediately jump to top and load the new content
   window.scrollTo(0, 0);
   loadContent(`${safe}.html`);
+  //history.pushState({ path: rawPath }, '', `?path=${safe}`);
 };
 
 const loadFromURLParams = () => {
-  // Used on initial page load (or if someone manually types in ?path=…).
   const rawPath = new URLSearchParams(window.location.search).get('path') || 'home';
   console.log(
     '%c[POPSTATE] location.search=%s → loading path=%s',
@@ -140,7 +124,7 @@ function hookIframeContent(iframe) {
   // Intercept any “?path=” link clicks inside the iframe:
   console.log("Adding inner doc click listener");
   innerDoc.addEventListener('click', (event) => {
-    const anchor = event.target.closest('a[href^=\"?path=\"]');
+    const anchor = event.target.closest('a[href^="?path="]');
     if (!anchor) return;
     event.preventDefault();
     const raw = new URLSearchParams(anchor.getAttribute('href').slice(1)).get('path');
@@ -150,28 +134,21 @@ function hookIframeContent(iframe) {
     const parentPath = getCurrentPath.call(window.parent);
     if (raw === parentPath) return;
 
-    // Ask the parent to navigate (this pushes a new top‐level history entry)
+    // Ask the parent to navigate
     window.parent.postMessage({ type: 'navigate', path: raw }, '*');
   });
 
   // Any external link (not “?path=”) should break out to the top window:
-  innerDoc.querySelectorAll('a[href]:not([href^=\"?path=\"])').forEach((a) => {
+  innerDoc.querySelectorAll('a[href]:not([href^="?path="])').forEach((a) => {
     a.target = '_top';
   });
 
-  // Resize any embeddedDemo iframe inside this iframe—but use replace() instead of src=...
+  // Resize any embeddedDemo iframe inside this iframe
   innerDoc.querySelectorAll('iframe.embeddedDemo').forEach((frame) => {
     const base = frame.src.split('?')[0];
-    // ─── REPLACE the location instead of assigning src, so we never push a new entry inside this iframe: ───
-    try {
-      frame.contentWindow.location.replace(`${base}?cb=${Date.now()}`); // ← avoids extra iframe history
-    } catch (crossOriginErr) {
-      // If cross‐origin, fall back to plain src assignment (it WILL push a history entry,
-      // but there’s no other choice if the iframe is not same‐origin).
-      frame.src = `${base}?cb=${Date.now()}`;
-    }
+    frame.src = `${base}?cb=${Date.now()}`;
     frame.scrolling = 'no';
-    console.log("embeddedDemo → loading: " + frame.src);
+    console.log("iframe: "+frame.src);
 
     frame.addEventListener('load', () => {
       const d = frame.contentDocument || frame.contentWindow.document;
@@ -190,7 +167,7 @@ function hookIframeContent(iframe) {
   });
 }
 
-// ─── Build Sidebar Menu (unchanged) ─────────────────────────────────────────
+// ─── Build Sidebar Menu ─────────────────────────────────────────────────────
 const buildMenu = (chapters) => {
   const menuContainer = document.querySelector('#menu');
   menuContainer.innerHTML = `
@@ -262,32 +239,25 @@ const buildMenu = (chapters) => {
   });
 };
 
-// ─── Load Content via Fetch + Replace‐into‐iframe ────────────────────────────
+// ─── Load Content via Fetch + Force‐reload Iframe ─────────────────────────────
 async function loadContent(relativePath) {
   const iframe = document.getElementById('content');
   const err = document.getElementById('errorMessage');
   const url = `Content/${relativePath}`;
 
   try {
-    // 1) Check the file exists (no‐cache):
+    // Fetch just to check if it exists (no-cache)
     const res = await fetch(url, { cache: 'no-cache' });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    await res.text(); // we only need to be sure it exists
+    await res.text(); // we don’t actually need the body
 
-    // 2) Hide any previous error:
     err.style.display = 'none';
     iframe.style.display = 'block';
+    // Force‐reload by appending a timestamp
+    console.log("Load: "+url);
+    iframe.contentWindow.location.replace(url);
+    // iframe.src = `${url}?_=${Date.now()}`;
 
-    // 3) Replace the iframe’s location instead of using `.src = …`:
-    console.log("Load main‐content iframe → " + url);
-    try {
-      iframe.contentWindow.location.replace(url); // ← never push a new entry inside the content iframe
-    } catch (crossOriginErr) {
-      // If that fails (very rare, since Content/ is same‐origin), fall back to `.src`
-      iframe.src = `${url}?_=${Date.now()}`;
-    }
-
-    // 4) Once the new document is loaded in the iframe, hook it and restore scroll if needed:
     iframe.onload = () => {
       hookIframeContent(iframe);
       let firstResize = true;
@@ -317,7 +287,7 @@ async function loadContent(relativePath) {
       window.addEventListener('resize', resizeIframe);
     };
   } catch (e) {
-    console.error(e);
+  console.log(e);
     iframe.style.display = 'none';
     const rawPath = getCurrentPath();
     err.innerHTML = `
@@ -330,10 +300,8 @@ async function loadContent(relativePath) {
   }
 }
 
-// ─── Scroll Position Preservation (unchanged) ───────────────────────────────
+// ─── Scroll Position Preservation ─────────────────────────────────────────────
 window.addEventListener('beforeunload', () => {
-  // This ensures that if someone does a *hard* reload (F5) or navigates away and comes back,
-  // we still have a fallback scroll position. But popState will handle virtual‐page scroll.
   sessionStorage.setItem('scrollPos', window.pageYOffset);
 });
 window.addEventListener('load', () => {
@@ -359,16 +327,15 @@ document.addEventListener('DOMContentLoaded', () => {
         .querySelector('#collapseAll')
         .onclick = () => document.querySelectorAll('#menu li').forEach((li) => li.classList.remove('open'));
 
-      // On initial page load, read ?path=… and load content
       loadFromURLParams();
     })
     .catch(console.error);
 
-  console.log('bound parent click');
+  console.log('bound parent click')
   // Intercept any “?path=” link in the parent document (outside iframes):
   document.addEventListener('click', (event) => {
     if (event.target.closest('iframe')) return;
-    const anchor = event.target.closest('a[href^=\"?path=\"]');
+    const anchor = event.target.closest('a[href^="?path="]');
     if (!anchor) return;
 
     console.log("Clicked in menu");
@@ -388,7 +355,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 });
 
-// ─── Listen for “navigate” messages from inside iframes ───────────────────────
+// Listen for “navigate” messages from inside iframes:
 window.addEventListener('message', (event) => {
   const msg = event.data;
   if (msg?.type === 'navigate' && msg.path) {
@@ -396,15 +363,6 @@ window.addEventListener('message', (event) => {
   }
 });
 
-// ─── Handle Back/Forward buttons on the top level: replace popstate handler ──
+// Handle Back/Forward buttons:
 console.log('popstate listener bound');
-window.removeEventListener('popstate', loadFromURLParams); // in case it was added
-window.addEventListener('popstate', (event) => {
-  const state = event.state || {};
-  // 1) Read scrollY from state (if present), otherwise default to 0
-  pendingScrollRestore = typeof state.scrollY === 'number' ? state.scrollY : 0;
-
-  // 2) Navigate to the saved path
-  const rawPath = state.path || 'home';
-  loadContent(`${ normalizePath(rawPath) }.html`);
-});
+window.addEventListener('popstate', loadFromURLParams);
