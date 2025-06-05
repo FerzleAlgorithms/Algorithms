@@ -29,6 +29,20 @@ function normalizePath(path) {
     .join("/");
 }
 
+
+const _push = history.pushState;
+history.pushState = function (stateObj, title, url) {
+  console.log("%c[PUSHTOTAL] url=%s, state=%O", "color:red;", url, stateObj);
+  return _push.apply(this, arguments);
+};
+
+const _replace = history.replaceState;
+history.replaceState = function (stateObj, title, url) {
+  console.log("%c[REPLACETOTAL] url=%s, state=%O", "color:darkred;", url, stateObj);
+  return _replace.apply(this, arguments);
+};
+
+
 // ──────────────────────────────────────────────────────────────────
 // We'll store a “pending” scroll position here if we see one on reload.
 // After the iframe in #content has fully loaded and run its first resize,
@@ -42,33 +56,40 @@ function hookIframeContent(obj) {
   if (!innerDoc) return;
 
   innerDoc.addEventListener("click", function onInnerClick(event) {
+    // Find any <a> inside the iframe
     const anchor = event.target.closest('a[href]');
     if (!anchor) return;
 
     const href = anchor.getAttribute("href");
+    // Only intercept links that start with "?path="
     if (!href.startsWith("?path=")) return;
 
     event.preventDefault();
+    event.stopPropagation();  // ← prevent this click from bubbling up to the outer document
+
     const raw = new URLSearchParams(href.slice(1)).get("path");
     if (!raw) return;
 
     const parentCurrent = (history.state && history.state.path) ||
-      new URLSearchParams(window.location.search).get("path") || "home";
-
+      new URLSearchParams(window.location.search).get("path") ||
+      "home";
     if (raw === parentCurrent) return;
-    const safe = normalizePath(raw);
 
-    // ── SPA navigation: scroll the parent window to top before fetching new content
+    const safe = normalizePath(raw);
     window.scrollTo(0, 0);
 
+    // Load the new iframe and push exactly one history entry
     parent.loadContent(safe + ".html");
+    console.log("%c[IFRAME pushState] path=%s", "color:purple;", raw);
     parent.history.pushState({ path: raw }, "", "?path=" + safe);
   });
 
+  // Ensure external or non‐"?path=" links open at top level
   innerDoc.querySelectorAll('a[href]:not([href^="?path="])').forEach((a) => {
     a.target = "_top";
   });
 
+  // Resize any embeddedDemo iframes inside this iframe
   innerDoc.querySelectorAll("iframe.embeddedDemo").forEach((frame) => {
     const base = frame.src.split("?")[0];
     frame.src = base + "?cb=" + Date.now();
@@ -168,7 +189,7 @@ function buildMenu(chapters) {
   });
 }
 
-// --- Section: Load Content via Ajax ---
+// --- Section: Load Content via Fetch + Iframe Refresh ---
 async function loadContent(relativePath) {
   const obj = document.getElementById("content");
   const err = document.getElementById("errorMessage");
@@ -182,7 +203,7 @@ async function loadContent(relativePath) {
     err.style.display = "none";
     obj.style.display = "block";
 
-    // Force‐reload the iframe:
+    // Force‐reload the iframe by changing its src
     obj.src = url + "?_=" + Date.now();
 
     obj.onload = function () {
@@ -237,11 +258,32 @@ async function loadContent(relativePath) {
 }
 
 function loadFromURLParams(event) {
+  // Always grab from the URL bar, never from event.state:
+  const rawPath = new URLSearchParams(window.location.search).get("path") || "home";
+  console.log(
+    "%c[POPSTATE] event.state=%O, location.search=%s → loading path=%s",
+    "color:orange;",
+    event?.state,
+    window.location.search,
+    rawPath
+  );
+  const safe = normalizePath(rawPath);
+  loadContent(safe + ".html");
+}
+
+/*
+function loadFromURLParams(event) {
+console.log(
+    "%c[POPSTATE] event.state=%O, location.search=%s",
+    "color:orange;",
+    event?.state,
+    window.location.search
+  );
   const pathParam = (event?.state?.path) ||
     new URLSearchParams(window.location.search).get("path") || "home";
   const safe = normalizePath(pathParam);
   loadContent(safe + ".html");
-}
+}*/
 
 // ──────────────────────────────────────────────────────────────────
 // (A) On “Reload” or any full‐page navigation, save the scrollY here.
@@ -283,28 +325,37 @@ document.addEventListener("DOMContentLoaded", function initApp() {
     })
     .catch(console.error);
 
+  // ── OUTER click handler: intercept only "?path=" links in the parent document  ──
   document.addEventListener("click", function onNavClick(event) {
+    // If the click happened inside an <iframe>, bail out immediately
+    if (event.target.closest("iframe")) {
+      return;
+    }
+
+    // Only intercept links whose href starts with "?path="
     const anchor = event.target.closest('a[href^="?path="]');
     if (!anchor) return;
-    event.preventDefault();
 
+    event.preventDefault();
     const rawPath = new URLSearchParams(anchor.getAttribute("href").slice(1)).get("path");
     if (!rawPath) return;
 
     const currentPath = (history.state && history.state.path) ||
-      new URLSearchParams(window.location.search).get("path") || "home";
-
+      new URLSearchParams(window.location.search).get("path") ||
+      "home";
     if (rawPath === currentPath) return;
 
     const safe = normalizePath(rawPath);
-
-    // ── SPA navigation: scroll to top before loading new content ──
     window.scrollTo(0, 0);
 
-    loadContent(safe + ".html");
+    // Load the new iframe and push exactly one history entry
+    loadContent(safe + ".html");  
+    console.log("%c[OUTER pushState] path=%s", "color:teal;", rawPath);
+
     history.pushState({ path: rawPath }, "", "?path=" + safe);
   });
 
+  // ── Listen for fullscreen‐requests from demos ──
   window.addEventListener("message", function onDemoMessage(event) {
     const msg = event.data;
     if (msg?.type === "demo-fullscreen") {
