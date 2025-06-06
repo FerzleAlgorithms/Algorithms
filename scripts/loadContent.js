@@ -137,6 +137,41 @@ function hookIframeContent(iframe) {
   const innerDoc = iframe.contentDocument;
   if (!innerDoc) return;
 
+  // 2) Prevent duplicate injection: check if we've already added the glossary scripts
+  //    (You can guard by checking for an existing element with a known “id” or “data-” attribute.)
+  if (innerDoc.getElementById("glossary-data-script")) {
+    // Already injected; skip
+    return;
+  }
+
+  // 3) Get the <head> of the iframe document
+  const head = innerDoc.head || innerDoc.getElementsByTagName("head")[0];
+  if (!head) return;
+
+  // 4) (Optional) Inject your main CSS if the content pages do not already link to it.
+  //    If every content page already has:
+  //        <link rel="stylesheet" href="/Algorithms/css/style.css" />
+  //    you can skip this step. Otherwise, uncomment the lines below:
+  //
+  // const link = doc.createElement("link");
+  // link.rel = "stylesheet";
+  // link.href = "/Algorithms/css/style.css"; // adjust the path as needed
+  // head.appendChild(link);
+
+  // 5) Inject glossary-data.js
+  const scriptData = innerDoc.createElement("script");
+  scriptData.type = "module";
+  scriptData.id = "glossary-data-script";
+  scriptData.src = "/Algorithms/scripts/glossary-data.js"; // adjust path if your folder structure is different
+  head.appendChild(scriptData);
+
+  // 6) Inject glossary-tooltips.js
+  const scriptTips = innerDoc.createElement("script");
+  scriptTips.type = "module";
+  scriptTips.id = "glossary-tooltips-script";
+  scriptTips.src = "/Algorithms/scripts/glossary-tooltips.js";
+  head.appendChild(scriptTips);
+  
   // Intercept any “?path=” link clicks inside the iframe:
   console.log("Adding inner doc click listener");
   innerDoc.addEventListener('click', (event) => {

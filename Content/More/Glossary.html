@@ -1,0 +1,66 @@
+<!-- File: /Algorithms/glossary.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Algorithm Textbook – Glossary</title>
+  <link rel="stylesheet" href="/Algorithms/css/style.css" />
+  <style>
+    /* (Optional) Basic styling for the glossary list */
+    #glossary-container {
+      max-width: 800px;
+      margin: 2rem auto;
+      padding: 0 1rem;
+      font-family: Arial, sans-serif;
+    }
+    .glossary-entry {
+      margin-bottom: 1.5rem;
+    }
+    .glossary-term {
+      font-weight: bold;
+      font-size: 1.1em;
+      color: #333;
+    }
+    .glossary-definition {
+      margin-top: 0.25rem;
+      line-height: 1.4;
+    }
+  </style>
+</head>
+<body class="no-tooltips">
+  <main id="glossary-container">
+    <h1>Glossary</h1>
+    <div id="entries"></div>
+  </main>
+
+  <script type="module">
+    import { GLOSSARY } from "/Algorithms/scripts/glossary-data.js";
+
+    const container = document.getElementById("entries");
+
+    // Sort terms alphabetically (optional)
+    GLOSSARY.sort((a, b) =>
+      a.term.toLowerCase().localeCompare(b.term.toLowerCase())
+    );
+
+    GLOSSARY.forEach((item) => {
+      const entryDiv = document.createElement("div");
+      entryDiv.classList.add("glossary-entry");
+
+      // Term
+      const termEl = document.createElement("div");
+      termEl.classList.add("glossary-term");
+      termEl.textContent = item.term;
+      entryDiv.appendChild(termEl);
+
+      // Definition
+      const defEl = document.createElement("div");
+      defEl.classList.add("glossary-definition");
+      defEl.textContent = item.definition;
+      entryDiv.appendChild(defEl);
+
+      container.appendChild(entryDiv);
+    });
+  </script>
+</body>
+</html>
