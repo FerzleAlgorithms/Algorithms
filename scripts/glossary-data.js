@@ -1,35 +1,563 @@
 // File: /Algorithms/scripts/glossary-data.js
-// (If you prefer JSON, change `export const` to a JSON file and `fetch()` it.)
 export const GLOSSARY = [
+  {
+    term: "Array",
+    definition:
+      "A collection of elements stored in contiguous memory, allowing constant-time access by index. Common operations include indexing, traversal, insertion, and deletion (insertion/deletion may require shifting elements)."
+  },
+  {
+    term: "Adjacency List",
+    definition:
+      "A graph representation where each vertex maintains a list of its adjacent vertices. Basic operations include adding and removing edges, and traversing neighbors in time proportional to the degree of the vertex."
+  },
+  {
+    term: "Adjacency Matrix",
+    definition:
+      "A 2D matrix representation of a graph where entry (i,j) indicates the presence or weight of an edge between vertices i and j. Operations like checking for an edge are constant time, while iterating over neighbors takes O(n) time per vertex."
+  },
+  {
+    term: "Algorithm",
+    definition:
+      "A step-by-step procedure for solving a computational problem or performing a task. It specifies a finite sequence of well-defined instructions that transform input into output."
+  },
+  {
+    term: "Amortized Analysis",
+    definition:
+      "A method of analyzing the average running time of an operation over a worst-case sequence of operations. It ensures that the average cost per operation is small even if some operations are expensive."
+  },
+  {
+    term: "Asymptotic Notation",
+    definition:
+      "Mathematical notation (e.g., Big O, Theta, Omega) used to describe the limiting behavior of a function as its input grows. It abstracts constant factors and lower-order terms to focus on growth rates."
+  },
+  {
+    term: "Backtracking",
+    definition:
+      "A paradigm for solving combinatorial problems by building candidates incrementally and abandoning a candidate (backtracking) as soon as it is determined to be invalid. Commonly used for problems like N-Queens and Sudoku."
+  },
+  {
+    term: "Base Case",
+    definition:
+      "The simplest instance of a recursive problem that can be solved directly without further recursion. It prevents infinite recursion by providing a stopping condition."
+  },
+  {
+    term: "Binary Heap",
+    definition:
+      "A complete binary tree satisfying the heap property (min-heap or max-heap), where each node’s key is less than or equal (min-heap) or greater than or equal (max-heap) to its children’s keys. Common operations include insert, extract-min/max, and decrease-key in O(log n) time."
+  },
+  {
+    term: "Binary Search",
+    definition:
+      "An algorithm for finding a target value in a sorted array by repeatedly dividing the search interval in half. It runs in O(log n) time by comparing the target to the middle element and discarding half of the search space."
+  },
+  {
+    term: "Binary Search Tree",
+    definition:
+      "A binary tree in which each node has a key, and all keys in the left subtree are less than the node’s key, while those in the right subtree are greater. Operations like search, insert, and delete take O(h) time, where h is the tree height (O(log n) on average for balanced trees)."
+  },
+  {
+    term: "Branch-and-Bound",
+    definition:
+      "A search algorithm that systematically explores branches of a solution space, using bounds to prune subproblems that cannot yield better solutions than the current best. Often used for optimization problems like integer programming."
+  },
+  {
+    term: "Breadth-First Search",
+    definition:
+      "A graph traversal algorithm that explores vertices in order of increasing distance from the source, using a queue. It visits all neighbors of a vertex before moving to the next level, running in O(V + E) time for adjacency list representation."
+  },
+  {
+    term: "Bucket Sort",
+    definition:
+      "A sorting algorithm that distributes elements into a number of buckets, sorts each bucket (often with another sort), and then concatenates the buckets. It achieves O(n + k) time when input is uniformly distributed over a range and k is the number of buckets."
+  },
+  {
+    term: "Chain Hashing",
+    definition:
+      "A collision-resolution technique for hash tables where each bucket contains a linked list of elements that hash to the same index. Common operations include insert, search, and delete in O(1 + a) average time, where a is the load factor."
+  },
+  {
+    term: "Coefficient",
+    definition:
+      "A constant multiplier of a variable or term, often appearing in polynomial expressions. In algorithm analysis, coefficients are the constant factors hidden in asymptotic notation."
+  },
+  {
+    term: "Complexity Analysis",
+    definition:
+      "The process of determining the time and space requirements of an algorithm as functions of input size. It involves evaluating best-case, average-case, and worst-case performance."
+  },
+  {
+    term: "Computational Complexity",
+    definition:
+      "A field of study concerned with classifying computational problems based on their inherent difficulty and the resources required to solve them. It defines complexity classes such as P, NP, NP-hard, and NP-complete."
+  },
+  {
+    term: "Constant Time",
+    definition:
+      "An operation that takes the same amount of time to complete regardless of the input size, denoted as O(1). Examples include accessing an array element by index and basic arithmetic operations."
+  },
+  {
+    term: "Convex Hull",
+    definition:
+      "The smallest convex polygon that contains all points in a given set. Common algorithms for computing the convex hull include Graham’s scan and the Quickhull algorithm, running in O(n log n) time."
+  },
+  {
+    term: "Counting Sort",
+    definition:
+      "A non-comparative sorting algorithm that counts the occurrences of each value in the input and computes positions based on prefix sums. It runs in O(n + k) time, where k is the range of input values."
+  },
+  {
+    term: "Data Structure",
+    definition:
+      "A way to store and organize data to enable efficient access and modification. Examples include arrays, linked lists, trees, graphs, stacks, queues, and hash tables."
+  },
+  {
+    term: "Degree Sequence",
+    definition:
+      "A sequence of vertex degrees in a graph, often used to characterize or test properties of the graph. For a simple graph, it is a non-increasing sequence of integers."
+  },
+  {
+    term: "Depth-First Search",
+    definition:
+      "A graph traversal algorithm that explores as far as possible along each branch before backtracking, using a stack (often via recursion). It runs in O(V + E) time and is used for tasks like topological sorting and cycle detection."
+  },
+  {
+    term: "Dequeue",
+    definition:
+      "A double-ended queue allowing insertion and deletion at both the front and back in O(1) time. Common operations include addFirst, addLast, removeFirst, and removeLast."
+  },
+  {
+    term: "Digraph",
+    definition:
+      "Short for directed graph, a set of vertices connected by directed edges where each edge has a direction. It can be represented by adjacency lists or adjacency matrices."
+  },
+  {
+    term: "Disjoint Set",
+    definition:
+      "Also known as Union-Find, a data structure that keeps track of a partition of elements into disjoint subsets, supporting find and union operations in near-constant (amortized a(n)) time with path compression and union by rank."
+  },
   {
     term: "Divide-and-Conquer",
     definition:
       "A paradigm in which a problem is recursively divided into two or more subproblems of the same (or related) type, each subproblem is solved independently, and finally the solutions are combined."
   },
   {
+    term: "Dynamic Programming",
+    definition:
+      "A technique for solving problems by breaking them into overlapping subproblems, solving each subproblem once, and storing the results (memoization or tabulation). It is often used for optimization problems like the Knapsack or shortest paths."
+  },
+  {
+    term: "Edge Relaxation",
+    definition:
+      "In shortest path algorithms, the process of checking and updating the shortest known distance to a vertex by comparing it with a path that goes through an adjacent edge. It is central to algorithms like Dijkstra’s and Bellman-Ford."
+  },
+  {
+    term: "Enqueue",
+    definition:
+      "An operation that adds an element to the end of a queue in O(1) time. It complements dequeue, which removes an element from the front."
+  },
+  {
+    term: "Exponential Time",
+    definition:
+      "An algorithm whose running time grows exponentially with the input size, typically denoted as O(c^n) for some c > 1. These algorithms are generally intractable for large inputs."
+  },
+  {
+    term: "Exponentiation",
+    definition:
+      "The process of raising a base to a power, often implemented recursively or via fast exponentiation (divide-and-conquer) to achieve O(log n) time instead of O(n)."
+  },
+  {
+    term: "Euclidean Distance",
+    definition:
+      "The straight-line distance between two points in Euclidean space, computed as the square root of the sum of squared differences of their coordinates. It is commonly used in nearest-neighbor and clustering algorithms."
+  },
+  {
+    term: "Eulerian Path",
+    definition:
+      "A path in a graph that visits every edge exactly once. A connected graph has an Eulerian path if and only if 0 or 2 vertices have odd degree."
+  },
+  {
+    term: "Fibonacci Number",
+    definition:
+      "A sequence defined by F(0)=0, F(1)=1, and F(n)=F(n-1)+F(n-2) for n=2. Fibonacci numbers grow exponentially and have applications in algorithm analysis."
+  },
+  {
+    term: "Flow",
+    definition:
+      "An assignment of values to edges in a flow network satisfying capacity and conservation constraints. The value of the flow is the total flow out of the source."
+  },
+  {
+    term: "Flow Network",
+    definition:
+      "A directed graph where each edge has a non-negative capacity, along with a designated source and sink. Algorithms like Ford-Fulkerson and Edmonds-Karp compute the maximum flow in O(E·f) or O(V·E²) time."
+  },
+  {
+    term: "Forest",
+    definition:
+      "A disjoint collection of trees. In graph theory, a forest can be obtained by removing edges from a tree or as a subgraph of an acyclic graph."
+  },
+  {
+    term: "Garbage Collection",
+    definition:
+      "Automatic memory management technique where the system reclaims memory occupied by objects that are no longer reachable. Common methods include reference counting and tracing collectors."
+  },
+  {
+    term: "Graph",
+    definition:
+      "A collection of vertices (or nodes) and edges connecting pairs of vertices, which may be directed or undirected. Graphs model relationships in networks, dependencies, and more."
+  },
+  {
+    term: "Graph Traversal",
+    definition:
+      "The process of visiting all vertices and edges in a graph systematically, using algorithms like depth-first search or breadth-first search, to explore structure or search for data."
+  },
+  {
+    term: "Greedy Algorithm",
+    definition:
+      "A paradigm where a solution is built piece by piece by always choosing the locally optimal choice at each step, hoping to find a global optimum. Examples include Prim’s and Kruskal’s algorithms for minimum spanning trees."
+  },
+  {
+    term: "Hash Function",
+    definition:
+      "A function that maps input keys of arbitrary size to fixed-size hash values, used in hash tables to index data. A good hash function distributes keys uniformly to minimize collisions."
+  },
+  {
+    term: "Hash Table",
+    definition:
+      "A data structure that stores key-value pairs using a hash function to compute an index into an array of buckets. Common operations include insert, search, and delete in O(1 + a) average time, where a is the load factor."
+  },
+  {
+    term: "Heapify",
+    definition:
+      "The process of converting an array into a heap, typically by calling sift-down on each non-leaf node starting from the last non-leaf. It runs in O(n) time."
+  },
+  {
+    term: "Heapsort",
+    definition:
+      "A comparison-based sorting algorithm that builds a heap from the input and repeatedly extracts the maximum (or minimum) element to produce a sorted array. It runs in O(n log n) time with O(1) extra space."
+  },
+  {
+    term: "Huffman Encoding",
+    definition:
+      "A prefix-free coding algorithm that assigns shorter codes to more frequent symbols based on a binary tree constructed from symbol frequencies. It achieves optimal variable-length codes and runs in O(n log n) time."
+  },
+  {
+    term: "Insertion Sort",
+    definition:
+      "A simple sorting algorithm that builds the final sorted array one element at a time by inserting each element into its correct position among the previously sorted elements. It runs in O(n²) time in the worst case, but O(n) time for nearly sorted input."
+  },
+  {
+    term: "Interpolation Search",
+    definition:
+      "A search algorithm for sorted arrays that estimates the probable position of the target using a linear interpolation formula. It has an average time complexity of O(log log n) when data is uniformly distributed."
+  },
+  {
+    term: "Isomorphism",
+    definition:
+      "A bijection between the vertex sets of two graphs that preserves adjacency. Two graphs are isomorphic if one can be transformed into the other by renaming vertices."
+  },
+  {
+    term: "Johnson’s Algorithm",
+    definition:
+      "An algorithm for finding all-pairs shortest paths in sparse, weighted, directed graphs without negative cycles by reweighting edges using a potential function and then running Dijkstra’s algorithm from each vertex. It runs in O(V² log V + V·E) time."
+  },
+  {
+    term: "Kruskal’s Algorithm",
+    definition:
+      "A greedy algorithm for finding the minimum spanning tree of a connected, undirected graph by repeatedly adding the smallest weight edge that does not form a cycle, using a disjoint set to detect cycles. It runs in O(E log E) time."
+  },
+  {
+    term: "Lazy Evaluation",
+    definition:
+      "A strategy where computation of expressions is delayed until their values are needed, and the results are cached for subsequent use. It can improve performance by avoiding unnecessary computations."
+  },
+  {
+    term: "Lexicographic Order",
+    definition:
+      "The dictionary order of sequences based on comparing elements from left to right. It is used to sort strings, tuples, or other comparable sequences."
+  },
+  {
+    term: "Linear Time",
+    definition:
+      "An algorithm whose running time grows linearly with the input size, denoted as O(n). Examples include scanning an array or computing a sum of elements."
+  },
+  {
+    term: "Linked List",
+    definition:
+      "A data structure consisting of nodes where each node contains data and a pointer to the next node; in a doubly linked list, nodes also have pointers to the previous node. Common operations include insertion and deletion in O(1) time (given a node reference) and traversal in O(n) time."
+  },
+  {
+    term: "Load Factor",
+    definition:
+      "For hash tables, the ratio of the number of stored elements to the number of buckets, often denoted a = n/m. It affects time complexity by influencing collision frequency; resizing is typically triggered when a exceeds a threshold."
+  },
+  {
+    term: "Logarithm",
+    definition:
+      "The inverse operation to exponentiation, where log_b(a) returns the exponent x such that b^x = a. In algorithm analysis, logarithms measure growth rates, especially in divide-and-conquer algorithms."
+  },
+  {
+    term: "Logarithmic Time",
+    definition:
+      "An algorithm whose running time scales as O(log n), where each step reduces the problem size multiplicatively. Binary search is a classic example."
+  },
+  {
+    term: "Lower Bound",
+    definition:
+      "A theoretical minimum limit on the complexity of any algorithm solving a particular problem; for example, comparison-based sorting has a lower bound of O(n log n)."
+  },
+  {
+    term: "Manhatten Distance",
+    definition:
+      "The distance between two points measured along axes at right angles, computed as the sum of absolute differences of their coordinates. It is also called L1 distance and is used in grid-based pathfinding."
+  },
+  {
+    term: "Median of Medians",
+    definition:
+      "A selection algorithm that chooses a pivot by recursively computing the median of medians of subgroups, guaranteeing linear time selection. It is used to find the k-th smallest element in O(n) worst-case time."
+  },
+  {
+    term: "Memoization",
+    definition:
+      "An optimization technique where the results of expensive function calls are cached and reused when the same inputs occur again. It is commonly used in dynamic programming to avoid redundant computations."
+  },
+  {
     term: "Merge Sort",
     definition:
-      "A divide-and-conquer sorting algorithm that recursively splits an array in half, sorts each half, and then merges the two sorted halves."
+      "A divide-and-conquer sorting algorithm that recursively splits an array in half, sorts each half, and then merges the two sorted halves. It runs in O(n log n) time and uses O(n) auxiliary space."
   },
   {
-    term: "Exhaustive Search",
+    term: "Minimum Spanning Tree",
     definition:
-      "A brute-force approach that systematically enumerates all possible candidates to find a solution; often exponential in running time. A brute-force approach that systematically enumerates all possible candidates to find a solution; often exponential in running time. A brute-force approach that systematically enumerates all possible candidates to find a solution; often exponential in running time. A brute-force approach that systematically enumerates all possible candidates to find a solution; often exponential in running time. A brute-force approach that systematically enumerates all possible candidates to find a solution; often exponential in running time."
+      "A spanning tree of a connected, undirected graph that has the minimum possible total edge weight. Algorithms to compute MSTs include Kruskal’s and Prim’s algorithms."
   },
   {
-    term: "Greedy",
+    term: "Monte Carlo Algorithm",
     definition:
-      "A paradigm where a solution is built piece by piece by always choosing the locally optimal choice at each step, hoping to find a global optimum."
+      "A randomized algorithm that has a bounded running time and may produce incorrect results with a small probability. Examples include probabilistic primality tests like Miller-Rabin."
   },
-    {
-    term: "the",
+  {
+    term: "Network",
     definition:
-      "An article"
+      "A graph in which vertices represent entities and edges represent connections, possibly with weights or directions. Networks model systems like computer networks, transportation systems, and social networks."
   },
-    {
-    term: "Polynomial Evaluation",
+  {
+    term: "NP-Complete",
     definition:
-      "It's when you evaluate a polynomial by plugging stuff into it."
+      "A class of decision problems in NP to which every problem in NP can be reduced in polynomial time and that themselves are in NP. If any NP-complete problem has a polynomial-time algorithm, then P = NP."
   },
-  // …add as many entries as you need…
+  {
+    term: "NP-Hard",
+    definition:
+      "A class of problems at least as hard as the hardest problems in NP; an NP-hard problem may not be in NP (e.g., optimization versions). NP-hard problems cannot be solved in polynomial time unless P = NP."
+  },
+  {
+    term: "Optimization",
+    definition:
+      "The process of finding the best solution from all feasible solutions, often subject to constraints. In algorithm design, it involves minimizing or maximizing an objective function."
+  },
+  {
+    term: "Order of Growth",
+    definition:
+      "A characterization of how a function’s value changes as its input grows, often expressed using Big O notation. It captures the dominant term that determines resource usage for large inputs."
+  },
+  {
+    term: "Order Statistic",
+    definition:
+      "The k-th smallest (or largest) element in an ordered list; selection algorithms like Quickselect find order statistics in expected O(n) time."
+  },
+  {
+    term: "Array Partition",
+    definition:
+      "The process of rearranging elements in an array so that elements less than a pivot come before it and elements greater come after. It is a key step in Quick Sort and Quickselect."
+  },
+  {
+    term: "Path Compression",
+    definition:
+      "A technique used in the union-find data structure to flatten the structure of the tree whenever find is called by making nodes on the find path point directly to the root. It improves amortized time per operation to near-constant."
+  },
+  {
+    term: "Permutation",
+    definition:
+      "An arrangement of all elements of a set in a sequence or order. There are n! permutations of n distinct elements, and computing permutations is used in combinatorial algorithms."
+  },
+  {
+    term: "Pigeonhole Principle",
+    definition:
+      "A principle stating that if n+1 or more items are placed into n containers, at least one container must contain more than one item. It is used in proofs and to demonstrate lower bounds."
+  },
+  {
+    term: "Polygon",
+    definition:
+      "A plane figure formed by a finite sequence of straight line segments closing in a loop to form a closed chain or circuit. Polygons are used in computational geometry problems like convex hull and triangulation."
+  },
+  {
+    term: "Polynomial",
+    definition:
+      "A mathematical expression consisting of variables and coefficients combined using addition, subtraction, and multiplication, potentially raised to non-negative integer exponents. In algorithmic contexts, polynomials often represent complexity functions."
+  },
+  {
+    term: "Polynomial Time",
+    definition:
+      "An algorithm whose running time is upper bounded by a polynomial expression in the size of the input, denoted as O(n^k) for some constant k. Problems solvable in polynomial time belong to the class P."
+  },
+  {
+    term: "Priority Queue",
+    definition:
+      "An abstract data type similar to a queue where each element has a priority, and elements are removed based on highest (or lowest) priority. Common implementations use binary heaps, supporting insert and extract-min/max in O(log n) time."
+  },
+  {
+    term: "Pseudocode",
+    definition:
+      "A high-level description of an algorithm using the structural conventions of programming languages but in plain language. It abstracts away language-specific syntax to focus on algorithmic logic."
+  },
+  {
+    term: "Queue",
+    definition:
+      "A first-in-first-out (FIFO) data structure supporting enqueue (insert at back) and dequeue (remove from front) in O(1) time. It is used in breadth-first search, buffering, and scheduling."
+  },
+  {
+    term: "Radix Sort",
+    definition:
+      "A non-comparative integer sorting algorithm that processes digits of numbers from least significant to most significant (LSD) or vice versa, using counting sort as a subroutine. It runs in O(n·k) time, where k is the number of digits."
+  },
+  {
+    term: "Randomized Algorithm",
+    definition:
+      "An algorithm that uses randomness as part of its logic, potentially giving different outcomes on different runs. Examples include randomized quicksort and Monte Carlo algorithms."
+  },
+  {
+    term: "Recurrence Relation",
+    definition:
+      "An equation that defines a sequence recursively in terms of earlier terms. In algorithm analysis, recurrence relations express the running time of divide-and-conquer algorithms."
+  },
+  {
+    term: "Recursion",
+    definition:
+      "A programming technique where a function calls itself with smaller inputs until reaching a base case. It is used to solve divide-and-conquer and combinatorial problems."
+  },
+  {
+    term: "Red-Black Tree",
+    definition:
+      "A self-balancing binary search tree where each node has a color (red or black) and the tree maintains specific properties to ensure balance. Operations like search, insert, and delete run in O(log n) time."
+  },
+  {
+    term: "Reduction",
+    definition:
+      "The process of transforming one problem into another in a way that a solution to the second problem can be converted back to a solution to the first. Reductions are used to prove hardness and complexity class membership."
+  },
+  {
+    term: "Residual Graph",
+    definition:
+      "In network flow algorithms, a graph that represents remaining capacities after flow is sent along edges, used to find augmenting paths. It is central to Ford-Fulkerson and Edmonds-Karp algorithms."
+  },
+  {
+    term: "Run-Time Analysis",
+    definition:
+      "The study of how the running time of an algorithm grows with input size, often expressed using asymptotic notation. It can include worst-case, average-case, and best-case analyses."
+  },
+  {
+    term: "Segment Tree",
+    definition:
+      "A binary tree data structure that stores intervals or segments, allowing efficient range queries and updates in O(log n) time. It supports operations like range sum or minimum."
+  },
+  {
+    term: "Selection Sort",
+    definition:
+      "A simple sorting algorithm that repeatedly selects the minimum element from the unsorted portion and swaps it with the first unsorted element. It has O(n²) time complexity and O(1) space usage."
+  },
+  {
+    term: "Shortest Path",
+    definition:
+      "The problem of finding a path between two vertices in a graph such that the sum of edge weights is minimized. Algorithms include Dijkstra’s (for non-negative weights) and Bellman-Ford (for graphs with negative weights)."
+  },
+  {
+    term: "Sink Vertex",
+    definition:
+      "In a directed graph, a vertex with no outgoing edges (outdegree zero). In flow networks, the sink is the designated target node where flow is collected."
+  },
+  {
+    term: "Sort",
+    definition:
+      "The process of arranging elements in a list into a specified order, usually ascending or descending. Common sorting algorithms include quicksort, mergesort, heapsort, and insertion sort."
+  },
+  {
+    term: "Source Vertex",
+    definition:
+      "In a directed graph, a vertex with no incoming edges (indegree zero). In flow networks, the source is the designated origin node where flow is generated."
+  },
+  {
+    term: "Space Complexity",
+    definition:
+      "The amount of memory an algorithm uses relative to the size of its input, often expressed using asymptotic notation. It includes both auxiliary and input storage."
+  },
+  {
+    term: "Spanning Tree",
+    definition:
+      "A subgraph of a connected, undirected graph that includes all vertices and is a tree (acyclic and connected). The minimum spanning tree is the spanning tree with the smallest total edge weight."
+  },
+  {
+    term: "Stack",
+    definition:
+      "A last-in-first-out (LIFO) data structure supporting push (add to top) and pop (remove from top) in O(1) time. It is used in recursion, depth-first search, and expression evaluation."
+  },
+  {
+    term: "Stable Sort",
+    definition:
+      "A sorting algorithm that maintains the relative order of records with equal keys. Examples include merge sort and insertion sort, while selection sort and heapsort are not stable by default."
+  },
+  {
+    term: "Subset",
+    definition:
+      "A set containing zero or more elements all taken from another set. The power set of a set of size n has 2^n subsets, and generating subsets is a common combinatorial task."
+  },
+  {
+    term: "Tail Recursion",
+    definition:
+      "A special case of recursion where the recursive call is the last operation in the function, allowing optimizations that convert recursion into iteration to save stack space. Languages or compilers that support tail-call optimization can execute tail-recursive functions in constant space."
+  },
+  {
+    term: "Time Complexity",
+    definition:
+      "A measure of the amount of time an algorithm takes as a function of input size, often expressed using asymptotic notation. It helps compare the efficiency of algorithms."
+  },
+  {
+    term: "Topological Sort",
+    definition:
+      "A linear ordering of vertices in a directed acyclic graph (DAG) such that for every directed edge (u,v), vertex u comes before v in the ordering. It can be computed in O(V + E) time using DFS or Kahn’s algorithm."
+  },
+  {
+    term: "Tree",
+    definition:
+      "A connected, acyclic undirected graph. As a data structure, each node can have children, and operations include traversal (preorder, inorder, postorder), insertion, and deletion."
+  },
+  {
+    term: "Undirected Graph",
+    definition:
+      "A graph in which each edge connects two vertices symmetrically, with no direction. Represented by adjacency lists or matrices, common in modeling symmetric relations."
+  },
+  {
+    term: "Union-Find",
+    definition:
+      "A data structure that keeps track of disjoint sets and supports union (merge two sets) and find (determine set representative) operations, often implemented with union by rank and path compression for nearly constant-time performance."
+  },
+  {
+    term: "Upper Bound",
+    definition:
+      "A function that serves as an asymptotic upper limit on the growth of another function, often expressed using Big O notation. It guarantees that an algorithm’s running time will not exceed this bound for sufficiently large inputs."
+  },
+  {
+    term: "Vertex Cover",
+    definition:
+      "A set of vertices in a graph such that every edge has at least one endpoint in the set. Finding the minimum vertex cover is NP-hard."
+  },
+  {
+    term: "Weighted Edge",
+    definition:
+      "An edge in a graph that has an associated numerical value (weight), representing cost, distance, or capacity. Algorithms like Dijkstra’s and Kruskal’s take edge weights into account."
+  },
+  {
+    term: "Worst-Case Analysis",
+    definition:
+      "An evaluation of an algorithm’s performance under the worst possible input of a given size, often giving an upper bound on running time or space usage. It ensures algorithm reliability by considering the most expensive scenario."
+  }
 ];

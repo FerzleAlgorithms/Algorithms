@@ -1,44 +1,6 @@
 // File: scripts/loadContent.js
 
-// ─── History Logging (unchanged) ─────────────────────────────────────────────
-const historyLog = [];
-
-// Wrap either pushState or replaceState to log into `historyLog`
-const wrapHistoryMethod = (methodName, color) => {
-  const original = history[methodName];
-  history[methodName] = function (stateObj, title, url) {
-    console.log(`%c[${methodName.toUpperCase()}] url=%s, state=%O`, `color:${color};`, url, stateObj);
-    historyLog.push({ type: methodName, url, state: stateObj });
-    return original.apply(this, arguments);
-  };
-};
-wrapHistoryMethod('pushState', 'red');
-wrapHistoryMethod('replaceState', 'darkred');
-
-window.addEventListener('popstate', (event) => {
-  console.log(
-    '%c[POPTATE] event.state=%O, location.search=%s',
-    'color:orange;',
-    event.state,
-    window.location.search
-  );
-});
-
-// Expose a helper so you can inspect the log in DevTools:
-window.printHistoryLog = () => {
-  console.groupCollapsed('History Log (chronological)');
-  historyLog.forEach((entry, idx) => {
-    const label = `#${idx + 1} [${entry.type.toUpperCase()}] url=${entry.url}`;
-    const color = entry.type === 'pushState' ? 'red' : 'darkred';
-    console.log(`%c${label}`, `color:${color};`, entry.state);
-  });
-  console.groupEnd();
-};
-
-// Disable native scrollRestoration so we control scroll jumps manually
-if ('scrollRestoration' in history) {
-  history.scrollRestoration = 'manual';
-}
+history.scrollRestoration = 'manual';
 
 // ─── Ordering Constants (unchanged) ───────────────────────────────────────────
 const TOP_LEVEL_ORDER = [
@@ -123,12 +85,6 @@ const navigateTo = (rawPath) => {
 const loadFromURLParams = () => {
   // Used on initial page load (or if someone manually types in ?path=…).
   const rawPath = new URLSearchParams(window.location.search).get('path') || 'home';
-  console.log(
-    '%c[POPSTATE] location.search=%s → loading path=%s',
-    'color:orange;',
-    window.location.search,
-    rawPath
-  );
   loadContent(`${normalizePath(rawPath)}.html`);
 };
 
@@ -173,7 +129,6 @@ function hookIframeContent(iframe) {
   head.appendChild(scriptTips);
   
   // Intercept any “?path=” link clicks inside the iframe:
-  console.log("Adding inner doc click listener");
   innerDoc.addEventListener('click', (event) => {
     const anchor = event.target.closest('a[href^=\"?path=\"]');
     if (!anchor) return;
@@ -206,7 +161,6 @@ function hookIframeContent(iframe) {
       frame.src = `${base}?cb=${Date.now()}`;
     }
     frame.scrolling = 'no';
-    console.log("embeddedDemo → loading: " + frame.src);
 
     frame.addEventListener('load', () => {
       const d = frame.contentDocument || frame.contentWindow.document;
@@ -314,7 +268,6 @@ async function loadContent(relativePath) {
     iframe.style.display = 'block';
 
     // 3) Replace the iframe’s location instead of using `.src = …`:
-    console.log("Load main‐content iframe → " + url);
     try {
       iframe.contentWindow.location.replace(url); // ← never push a new entry inside the content iframe
     } catch (crossOriginErr) {
@@ -352,7 +305,7 @@ async function loadContent(relativePath) {
       window.addEventListener('resize', resizeIframe);
     };
   } catch (e) {
-    console.error(e);
+    //console.error(e);
     iframe.style.display = 'none';
     const rawPath = getCurrentPath();
     err.innerHTML = `
@@ -399,14 +352,12 @@ document.addEventListener('DOMContentLoaded', () => {
     })
     .catch(console.error);
 
-  console.log('bound parent click');
   // Intercept any “?path=” link in the parent document (outside iframes):
   document.addEventListener('click', (event) => {
     if (event.target.closest('iframe')) return;
     const anchor = event.target.closest('a[href^=\"?path=\"]');
     if (!anchor) return;
 
-    console.log("Clicked in menu");
     event.preventDefault();
     const rawPath = new URLSearchParams(anchor.getAttribute('href').slice(1)).get('path');
     if (!rawPath) return;
@@ -432,7 +383,6 @@ window.addEventListener('message', (event) => {
 });
 
 // ─── Handle Back/Forward buttons on the top level: replace popstate handler ──
-console.log('popstate listener bound');
 window.removeEventListener('popstate', loadFromURLParams); // in case it was added
 window.addEventListener('popstate', (event) => {
   const state = event.state || {};

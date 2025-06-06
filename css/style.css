@@ -287,12 +287,11 @@ a.problem:hover {
 
   /* ── SHRINK-WRAP then expand up to 50vw of CONTENT ── */
   display: inline-block;       /* auto-size to content */
-  width: auto;                 /* allow it to grow/shrink */
-  max-width: 50vw;             /* cap the content area at 50% of viewport */
+  width: 50vw !important;
 
   /* Ensure normal wrapping at spaces, and break very long words if needed */
   white-space: normal !important;
-  overflow-wrap: break-word;
+  overflow-wrap: break-word !important;
   word-break: break-word;
 
   font-size: 0.9rem;
@@ -351,4 +350,36 @@ a.problem:hover {
   border-top: 6px solid transparent;
   border-right: none;
   border-left: 6px solid #ccc;
+}
+
+/* 5a) Centered tooltip (for terms in the middle third of the viewport) */
+.glossary-term .tooltip-content.to-center {
+  /* 1) Horizontally center against the wrapper */
+  left: 50%;
+  transform: translateX(-50%);
+  
+  /* 2) (Optional) If you prefer the tooltip *below* or *above* the term,
+     you can tweak top/ bottom / margin‐top etc. Here we use top:100%
+     so it sits immediately below the term. Adjust as needed. */
+  top: 100%;
+  margin-top: 0.4rem; /* tiny gap below the term */
+  
+  /* Remove any left/right‐specific margins */
+  margin-left: 0;
+  margin-right: 0;
+}
+
+/* 5b) (Optional) Arrow adjustment for “to‐center” */
+.glossary-term .tooltip-content.to-center::before {
+  /* If you want a little arrow pointing up from the tooltip to the term,
+     you could do something like this: */
+  content: "";
+  position: absolute;
+  bottom: 100%;            /* put arrow at the top edge of the tooltip */
+  left: 50%;
+  transform: translateX(-50%);
+  
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-bottom: 6px solid #ccc; /* same color as your tooltip border */
 }

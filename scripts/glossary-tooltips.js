@@ -13,33 +13,54 @@ let currentTip     = null;
  * right or left of the wrapper element. Adds either “to-right” or “to-left”
  * class on the `tip` <span> accordingly.
  */
+/**
+ * positionTooltip(wrapper, tip)
+ *
+ * Instead of flipping left/right by remaining space,
+ * we now look at the *horizontal center* of the term and divide
+ * the viewport into three equal “zones”:
+ *
+ *   • left third  ? always show tooltip to the right  (.to-right)
+ *   • mid third   ? center the tooltip horizontally (.to-center)
+ *   • right third ? show tooltip to the left   (.to-left)
+ */
 function positionTooltip(wrapper, tip) {
-  // 1) Get the term’s bounding box relative to the iframe viewport
+  // 1) Measure the term’s bounding box:
   const rect = wrapper.getBoundingClientRect();
 
-  // 2) Temporarily show the tooltip off-screen (hidden) to measure its width
+  // 2) Temporarily show the tooltip off-screen so we can measure it (if needed):
   tip.style.visibility = "hidden";
   tip.style.display    = "block";
   tip.style.position   = "absolute";
   tip.style.left       = "0px";
   tip.style.top        = "0px";
-  const tooltipWidth   = tip.offsetWidth;
-  // Hide it again before actual display
+  // const tooltipWidth = tip.offsetWidth; // only if you actually need it
+
+  // 3) Now clear all of those temporary inline styles:
   tip.style.display    = "";
   tip.style.visibility = "";
+  tip.style.left       = "";
+  tip.style.top        = "";
+  tip.style.position   = "";
+  // (If you ever set other inline properties here, clear them too.)
 
-  // 3) Determine the iframe’s inner width
-  const iframeWidth = window.document.documentElement.clientWidth;
+  // 4) Figure out where the term’s center lies (left/middle/right third of viewport):
+  const viewportWidth = document.documentElement.clientWidth;
+  const termCenterX   = rect.left + rect.width / 2;
 
-  // 4) If there isn't enough space to the right, flip to left
-  if (rect.right + tooltipWidth + 10 > iframeWidth) {
-    tip.classList.remove("to-right");
+  // 5) Remove any old directional class, then add one of to-right/to-center/to-left:
+  tip.classList.remove("to-right", "to-left", "to-center");
+
+  if (termCenterX < viewportWidth / 3) {
+    tip.classList.add("to-right");
+  } else if (termCenterX > (2 * viewportWidth) / 3) {
     tip.classList.add("to-left");
   } else {
-    tip.classList.remove("to-left");
-    tip.classList.add("to-right");
+    tip.classList.add("to-center");
   }
 }
+
+
 
 function buildAndWrap() {
   // --- EARLY EXIT on the glossary page ---------------------------------
@@ -67,7 +88,9 @@ function buildAndWrap() {
     "H2",
     "H3",
     "CODE",
-    "PRE"
+    "PRE",
+    "B",
+    "STRONG"
   ]);
 
   // 4) For each TEXT_NODE, wrap all matches of each glossary term
@@ -116,7 +139,7 @@ function buildAndWrap() {
             positionTooltip(wrapper, tip);
           });
           wrapper.addEventListener("mouseleave", () => {
-            tip.classList.remove("to-right", "to-left");
+            tip.classList.remove("to-right", "to-left","to-center");
             currentWrapper = null;
             currentTip     = null;
           });
@@ -190,8 +213,8 @@ if (document.readyState === "loading") {
 }
 
 // 8) Reposition any open tooltip on window resize
-window.addEventListener("resize", () => {
-  if (currentWrapper && currentTip) {
-    positionTooltip(currentWrapper, currentTip);
-  }
-});
+//window.addEventListener("resize", () => {
+//  if (currentWrapper && currentTip) {
+//    positionTooltip(currentWrapper, currentTip);
+//  }
+//});
