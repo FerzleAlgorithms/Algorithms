@@ -2,216 +2,270 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Subset-Sum Exhaustive-Search Demo</title>
-  <!-- Include existing CSS files -->
+  <title>Subset-Sum Exhaustive-Search Demo (with Minecraft Mode & Multi-Column)</title>
+
+  <!-- existing demoScripts and CSS -->
+  <script src="../../../scripts/demoScripts.js"></script>
   <link rel="stylesheet" href="/Algorithms/css/style.css">
   <link rel="stylesheet" href="/Algorithms/css/demo.css">
+
   <style>
-   
-    #summaryLabel {
-      margin: 10px 0;
-      font-size: 16px;
-      font-weight: bold;
+    /* ─── your existing styles (unchanged) ────────────────────────────────── */
+    #summaryLabel { margin: 10px 0; font-size: 16px; font-weight: bold; }
+    #solutionsLabel { margin: 5px 0 15px; font-size: 16px; font-style: italic; }
+
+    /* ─── flex container for multiple tables ─────────────────────────────── */
+    #subsetContainer {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      align-items: flex-start;
     }
-    #solutionsLabel {
-      margin: 5px 0 15px;
-      font-size: 16px;
-      font-style: italic;
-    }
-    #subsetTable {
+    .subsetTable {
       border-collapse: collapse;
       margin-top: 10px;
-      width: auto;
     }
-    #subsetTable th,
-    #subsetTable td {
+    .subsetTable th,
+    .subsetTable td {
       border: 1px solid #ccc;
       padding: 6px 10px;
       text-align: left;
       font-family: monospace;
     }
-    #subsetTable th {
+    .subsetTable th {
       background-color: #f0f0f0;
     }
-    /* Make the "Subset" column at least 150px wide */
-    #subsetTable th:nth-child(2),
-    #subsetTable td:nth-child(2) {
+    .subsetTable th:nth-child(2),
+    .subsetTable td:nth-child(2) {
       min-width: 150px;
     }
-    /* Highlight matching rows */
-    .match-row {
+    .subsetTable .match-row {
       background-color: lightgreen;
     }
-    /* Highlight the current row */
-    .current-row {
+    .subsetTable .current-row {
       outline: 2px solid dodgerblue;
+    }
+
+    /* ─── TOGGLE SWITCH (as before) ──────────────────────────────────────── */
+    #controls .switch {
+      position: relative;
+      display: inline-block;
+      width: 50px; height: 26px;
+      vertical-align: middle;
+      margin: 0 8px 0 20px;
+    }
+    #controls .switch input { opacity: 0; width: 0; height: 0; }
+    #controls .slider {
+      position: absolute; cursor: pointer;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-color: #ccc;
+      transition: .2s;
+      border-radius: 26px;
+    }
+    #controls .slider::before {
+      position: absolute; content: "";
+      height: 22px; width: 22px;
+      left: 2px; bottom: 2px;
+      background-color: white;
+      transition: .2s;
+      border-radius: 50%;
+    }
+    #controls .switch input:checked + .slider {
+      background-color: #4B7023;
+    }
+    #controls .switch input:checked + .slider::before {
+      transform: translateX(24px);
+    }
+
+    /* ─── MINECRAFT MODE ─────────────────────────────────────────────────── */
+    body.minecraft {
+      background-color: #6AA84F;
+      color: #FFF;
+      font-family: 'Courier New', monospace;
+    }
+    body.minecraft .subsetTable th {
+      background-color: #38761D;
+      color: #FFF;
+    }
+    body.minecraft .subsetTable td {
+      background-color: #A4C25F;
+      color: #FFF;
+      border-color: #274E13;
+    }
+    body.minecraft .match-row {
+      background-color: #4FA2D0;
+    }
+    body.minecraft .current-row {
+      outline: 2px solid #FFD700;
+    }
+    body.minecraft #controls input,
+    body.minecraft #controls button {
+      background-color: #8B4513;
+      color: #FFF;
+      border: 1px solid #5A3E1B;
+      font-family: 'Courier New', monospace;
+    }
+    body.minecraft #controls button:hover {
+      background-color: #A0522D;
+    }
+    body.minecraft .switch-label {
+      color: #FFF;
+      font-family: 'Courier New', monospace;
+      font-weight: bold;
     }
   </style>
 </head>
+
 <body>
   <h2>Subset-Sum Exhaustive-Search Demo</h2>
 
-  <!-- Controls -->
   <div id="controls">
     <label>Set:</label>
     <input type="text" id="inputSet" value="2,5,8,11">
+
     <label>Target:</label>
-    <input type="number" id="inputTarget" value="16">
+    <input type="number" id="inputTarget" value="16" style="width:8ch;">
+
     <button id="startBtn">Start</button>
     <button id="prevBtn" disabled>Prev</button>
     <button id="nextBtn" disabled>Next</button>
+
+    <!-- Minecraft Mode Toggle -->
+    <label class="switch">
+      <input type="checkbox" id="theme-toggle">
+      <span class="slider"></span>
+    </label>
+    <span class="switch-label">Minecraft Mode</span>
   </div>
 
-  <!-- Summary and solutions -->
   <div id="summaryLabel"></div>
   <div id="solutionsLabel"></div>
 
-  <!-- Table to list each subset and its sum -->
-  <table id="subsetTable"></table>
+  <!-- flex-wrapped container for dynamic tables -->
+  <div id="subsetContainer"></div>
 
   <script>
-    // Globals
-    let currentArray = [];
-    let targetVal = 0;
-    let steps = [];
-    let currentIndex = -1;
-    let drawnCount = 0;
+    // ─── DEMO LOGIC (mostly unchanged) ────────────────────────────────────
+    let currentArray = [], targetVal = 0, steps = [], currentIndex = -1;
 
     function parseSet(str) {
-      return str.split(',').map(s => parseInt(s.trim(), 10)).filter(x => !isNaN(x));
-    }
-
-    function setupTable() {
-      drawnCount = 0;
-      currentIndex = -1;
-      const table = document.getElementById('subsetTable');
-      table.innerHTML = '';
-      const header = document.createElement('tr');
-      const thNum = document.createElement('th');
-      thNum.textContent = '#';
-      const thSubset = document.createElement('th');
-      thSubset.textContent = 'Subset';
-      const thSum = document.createElement('th');
-      thSum.textContent = 'Sum';
-      header.appendChild(thNum);
-      header.appendChild(thSubset);
-      header.appendChild(thSum);
-      table.appendChild(header);
-      drawnCount = 1;
+      return str.split(',')
+                .map(s => parseInt(s.trim(), 10))
+                .filter(x => !isNaN(x));
     }
 
     function genSteps(arr) {
       steps = [];
-      const n = arr.length;
-      const totalMasks = 1 << n;
-      for (let mask = 0; mask < totalMasks; mask++) {
-        let subset = [];
-        let sum = 0;
+      const n = arr.length, total = 1 << n;
+      for (let mask = 0; mask < total; mask++) {
+        let subset = [], sum = 0;
         for (let j = 0; j < n; j++) {
-          if (((mask >> j) & 1) === 1) {
+          if ((mask >> j & 1) === 1) {
             subset.push(arr[j]);
             sum += arr[j];
           }
         }
-        const isMatch = (sum === targetVal);
-        steps.push({ mask, subset, sum, isMatch, size: subset.length });
+        steps.push({ mask, subset, sum, isMatch: sum === targetVal, size: subset.length });
       }
-      steps.sort((a, b) => {
-        if (a.size !== b.size) return a.size - b.size;
-        return a.mask - b.mask;
-      });
+      steps.sort((a,b) => a.size - b.size || a.mask - b.mask);
     }
 
     function displaySolutions() {
-      const solutionsLabel = document.getElementById('solutionsLabel');
-      const matches = steps.filter(s => s.isMatch).map(s => 
-        s.subset.length > 0 ? `{${s.subset.join(',')}}` : `{ }`
-      );
-      solutionsLabel.textContent = matches.length > 0
-        ? 'Solutions: ' + matches.join(', ')
-        : 'No solutions found';
+      const out = steps.filter(s => s.isMatch)
+                       .map(s => s.subset.length ? `{${s.subset.join(',')}}` : `{ }`);
+      document.getElementById('solutionsLabel').textContent =
+        out.length ? 'Solutions: '+out.join(', ') : 'No solutions found';
+    }
+
+    // ─── MULTI-COLUMN TABLE MANAGEMENT ────────────────────────────────────
+    const rowsPerTable = 20;
+    let tables = [];
+
+    function newTable() {
+      const tbl = document.createElement('table');
+      tbl.className = 'subsetTable';
+      const hdr = document.createElement('tr');
+      ['#','Subset','Sum'].forEach(txt => {
+        const th = document.createElement('th');
+        th.textContent = txt;
+        hdr.appendChild(th);
+      });
+      tbl.appendChild(hdr);
+      document.getElementById('subsetContainer').appendChild(tbl);
+      tables.push(tbl);
+    }
+
+    function setupTable() {
+      currentIndex = -1;
+      tables = [];
+      const cont = document.getElementById('subsetContainer');
+      cont.innerHTML = '';
+      newTable();
     }
 
     function renderStep(idx) {
-      const table = document.getElementById('subsetTable');
-      if (idx + 1 >= drawnCount) {
+      // pick which table
+      const ti = Math.floor(idx / rowsPerTable);
+      if (!tables[ti]) newTable();
+
+      const tbl = tables[ti];
+      // append row if not already present
+      if (!document.getElementById('row-' + idx)) {
         const step = steps[idx];
         const row = document.createElement('tr');
         row.id = 'row-' + idx;
         if (step.isMatch) row.classList.add('match-row');
 
-        const tdNum = document.createElement('td');
-        tdNum.textContent = idx + 1;
-        const tdSubset = document.createElement('td');
-        tdSubset.textContent = step.subset.length > 0
-          ? '{' + step.subset.join(',') + '}'
-          : '{ }';
-        const tdSum = document.createElement('td');
-        tdSum.textContent = step.sum;
+        const [tdNum, tdSubset, tdSum] = [0,1,2].map(() => document.createElement('td'));
+        tdNum.textContent    = idx + 1;
+        tdSubset.textContent = step.subset.length
+          ? `{${step.subset.join(',')}}`
+          : `{ }`;
+        tdSum.textContent    = step.sum;
 
-        row.appendChild(tdNum);
-        row.appendChild(tdSubset);
-        row.appendChild(tdSum);
-        table.appendChild(row);
-        drawnCount++;
+        row.append(tdNum, tdSubset, tdSum);
+        tbl.appendChild(row);
       }
 
-      const prevHighlighted = document.querySelector('.current-row');
-      if (prevHighlighted) prevHighlighted.classList.remove('current-row');
-
-      const currentRow = document.getElementById('row-' + idx);
-      if (currentRow) {
-        currentRow.classList.add('current-row');
-        currentRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }
+      // highlight
+      document.querySelectorAll('.current-row')
+              .forEach(el => el.classList.remove('current-row'));
+      const curr = document.getElementById('row-' + idx);
+      curr && (curr.classList.add('current-row'),
+               curr.scrollIntoView({ behavior:'smooth', block:'center' }));
     }
 
+    // ─── CONTROLS: Start / Prev / Next ────────────────────────────────────
     function onStart() {
-      const setText = document.getElementById('inputSet').value.trim();
-      const targetText = document.getElementById('inputTarget').value.trim();
-      if (!setText || !targetText) {
-        alert('Please enter both a set and a target.');
-        return;
-      }
-      currentArray = parseSet(setText);
-      if (currentArray.length === 0) {
-        alert('Enter a valid comma-separated list of integers.');
-        return;
-      }
-      targetVal = parseInt(targetText, 10);
-      if (isNaN(targetVal)) {
-        alert('Target must be a number.');
-        return;
-      }
+      const a = parseSet(document.getElementById('inputSet').value);
+      const t = parseInt(document.getElementById('inputTarget').value, 10);
+      if (!a.length || isNaN(t)) return alert('Enter valid set & target');
 
+      currentArray = a; targetVal = t;
       document.getElementById('summaryLabel').textContent =
-        `S = { ${currentArray.join(', ')} },   Target = ${targetVal}`;
+        `S = { ${a.join(', ')} }, Target = ${t}`;
 
       setupTable();
-      genSteps(currentArray);
+      genSteps(a);
       displaySolutions();
 
       currentIndex = 0;
-      renderStep(currentIndex);
+      renderStep(0);
       document.getElementById('prevBtn').disabled = true;
-      document.getElementById('nextBtn').disabled = (steps.length <= 1);
+      document.getElementById('nextBtn').disabled = steps.length <= 1;
     }
 
     function onPrev() {
       if (currentIndex > 0) {
-        const table = document.getElementById('subsetTable');
-        const lastRow = table.lastElementChild;
-        if (lastRow && lastRow.id === 'row-' + currentIndex) {
-          table.removeChild(lastRow);
-          drawnCount--;
-        }
+        // remove the current row entirely
+        const rem = document.getElementById('row-' + currentIndex);
+        rem && rem.parentNode.removeChild(rem);
+
         currentIndex--;
         renderStep(currentIndex);
         document.getElementById('nextBtn').disabled = false;
       }
-      if (currentIndex === 0) {
-        document.getElementById('prevBtn').disabled = true;
-      }
+      document.getElementById('prevBtn').disabled = currentIndex === 0;
     }
 
     function onNext() {
@@ -220,17 +274,20 @@
         renderStep(currentIndex);
         document.getElementById('prevBtn').disabled = false;
       }
-      if (currentIndex === steps.length - 1) {
-        document.getElementById('nextBtn').disabled = true;
-      }
+      document.getElementById('nextBtn').disabled = currentIndex === steps.length - 1;
     }
 
     document.getElementById('startBtn').addEventListener('click', onStart);
     document.getElementById('prevBtn').addEventListener('click', onPrev);
     document.getElementById('nextBtn').addEventListener('click', onNext);
-
-    // Auto-run with defaults on page load
     window.addEventListener('DOMContentLoaded', onStart);
+
+    // ─── MINECRAFT MODE TOGGLE ───────────────────────────────────────────
+    document.getElementById('theme-toggle')
+      .addEventListener('change', e => {
+        document.body.classList.toggle('minecraft', e.target.checked);
+        if (currentIndex >= 0) renderStep(currentIndex);
+      });
   </script>
 </body>
 </html>

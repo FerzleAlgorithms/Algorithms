@@ -114,12 +114,27 @@ function hookIframeContent(iframe) {
   // link.href = "/Algorithms/css/style.css"; // adjust the path as needed
   // head.appendChild(link);
 
-  // 5) Inject glossary-data.js
+  // 5) Inject glossary-data.json
   const scriptData = innerDoc.createElement("script");
   scriptData.type = "module";
   scriptData.id = "glossary-data-script";
-  scriptData.src = "/Algorithms/scripts/glossary-data.js"; // adjust path if your folder structure is different
-  head.appendChild(scriptData);
+  // remove these lines:
+  //   scriptData.src = "/Algorithms/scripts/glossary-data.json";
+  //   head.appendChild(scriptData);
+  
+  fetch("/Algorithms/scripts/glossary-data.json?cb=" + Date.now(), {
+    cache: "no-store",
+  })
+    .then(res => {
+      if (!res.ok) throw new Error("Could not load glossary JSON");
+      return res.json();
+    })
+    .then(data => {
+      window.GLOSSARY = data;      // make it global if other scripts expect it
+      // if you're using the updated tooltip code, it already fetches & runs itself
+    })
+    .catch(err => console.error(err));
+
 
   // 6) Inject glossary-tooltips.js
   const scriptTips = innerDoc.createElement("script");

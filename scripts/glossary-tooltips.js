@@ -1,54 +1,58 @@
 // File: /Algorithms/scripts/glossary-tooltips.js
 
-import { GLOSSARY } from "/Algorithms/scripts/glossary-data.js";
+// ————————————————————————————————————————————————
+// 1) Load glossary data from JSON
+// ————————————————————————————————————————————————
+let GLOSSARY = [];
 
-// --- Track the currently hovered term & tooltip to reposition on resize ---------
+function initGlossaryTooltips() {
+  fetch("/Algorithms/scripts/glossary-data.json?cb=" + Date.now(), {
+    cache: "no-store",
+  })
+    .then((res) => {
+      if (!res.ok) throw new Error("Failed to load glossary-data.json");
+      return res.json();
+    })
+    .then((data) => {
+      GLOSSARY = data;
+      scheduleBuildAndWrap();
+    })
+    .catch((err) => console.error("Error loading glossary data:", err));
+}
+
+function scheduleBuildAndWrap() {
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", () => setTimeout(buildAndWrap, 0));
+  } else {
+    // DOM is already parsed
+    setTimeout(buildAndWrap, 0);
+  }
+}
+
+// ————————————————————————————————————————————————
+// 2) Tooltip positioning (unchanged)
+// ————————————————————————————————————————————————
 let currentWrapper = null;
 let currentTip     = null;
 
-/**
- * positionTooltip(wrapper, tip)
- *
- * Measures available space to decide whether to place the tooltip to the
- * right or left of the wrapper element. Adds either “to-right” or “to-left”
- * class on the `tip` <span> accordingly.
- */
-/**
- * positionTooltip(wrapper, tip)
- *
- * Instead of flipping left/right by remaining space,
- * we now look at the *horizontal center* of the term and divide
- * the viewport into three equal “zones”:
- *
- *   • left third  ? always show tooltip to the right  (.to-right)
- *   • mid third   ? center the tooltip horizontally (.to-center)
- *   • right third ? show tooltip to the left   (.to-left)
- */
 function positionTooltip(wrapper, tip) {
-  // 1) Measure the term’s bounding box:
   const rect = wrapper.getBoundingClientRect();
 
-  // 2) Temporarily show the tooltip off-screen so we can measure it (if needed):
   tip.style.visibility = "hidden";
   tip.style.display    = "block";
   tip.style.position   = "absolute";
-  tip.style.left       = "0px";
-  tip.style.top        = "0px";
-  // const tooltipWidth = tip.offsetWidth; // only if you actually need it
+  tip.style.left       = "0";
+  tip.style.top        = "0";
 
-  // 3) Now clear all of those temporary inline styles:
   tip.style.display    = "";
   tip.style.visibility = "";
   tip.style.left       = "";
   tip.style.top        = "";
   tip.style.position   = "";
-  // (If you ever set other inline properties here, clear them too.)
 
-  // 4) Figure out where the term’s center lies (left/middle/right third of viewport):
   const viewportWidth = document.documentElement.clientWidth;
   const termCenterX   = rect.left + rect.width / 2;
 
-  // 5) Remove any old directional class, then add one of to-right/to-center/to-left:
   tip.classList.remove("to-right", "to-left", "to-center");
 
   if (termCenterX < viewportWidth / 3) {
@@ -60,103 +64,93 @@ function positionTooltip(wrapper, tip) {
   }
 }
 
-
-
+// ————————————————————————————————————————————————
+// 3) buildAndWrap + walkTree (unchanged, except use fetched GLOSSARY)
+// ————————————————————————————————————————————————
 function buildAndWrap() {
-  // --- EARLY EXIT on the glossary page ---------------------------------
-  // If <body> has class="no-tooltips", do nothing.
-  if (document.body.classList.contains("no-tooltips")) {
-    return;
-  }
-  // 1) Sort glossary terms longest?short so multi-word phrases match first
-  const terms = GLOSSARY
-    .map((item) => item.term)
-    .sort((a, b) => b.length - a.length);
+  if (document.body.classList.contains("no-tooltips")) return;
 
-  // 2) Build lookup: term ? definition
+  // 1) Sort longest?short
+  const terms = GLOSSARY.map((i) => i.term).sort((a, b) => b.length - a.length);
+
+  // 2) Build lookup
   const defLookup = {};
   GLOSSARY.forEach(({ term, definition }) => {
     defLookup[term] = definition;
   });
 
-  // 3) SKIP_TAGS: exclude tags where we don’t want tooltips inserted
+  // 3) Tags to skip
   const SKIP_TAGS = new Set([
-    "STYLE",
-    "SCRIPT",
-    "A",
-    "H1",
-    "H2",
-    "H3",
-    "CODE",
-    "PRE",
-    "B",
-    "STRONG"
+    "STYLE","SCRIPT","A","H1","H2","H3","CODE","PRE","B","STRONG"
   ]);
 
-  // 4) For each TEXT_NODE, wrap all matches of each glossary term
+  // 4) Wrap matches in text nodes
   function wrapTermsInNode(textNode) {
     if (textNode.nodeType !== Node.TEXT_NODE) return;
+    const original = textNode.textContent;
+    if (!original.trim()) return;
 
-    const originalText = textNode.textContent;
-    if (!originalText.trim()) return;
-
-    let text = originalText;
-
+    let text = original;
     terms.forEach((term) => {
-      // Build a case-insensitive, word-boundary regex for “term”
-      const escaped = term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-      const regex = new RegExp(`\\b${escaped}\\b`, "gi");
+      //const escaped = term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      //const regex   = new RegExp(`\\b${escaped}\\b`, "gi");
+      
+      // helper to escape any regex meta-chars in a piece of the term
+      const escapeRegex = s => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      // split on non-word chars (so hyphens/spaces/underscores) and escape each
+      const wordsplit = term.split(/\W+/).map(escapeRegex);
+      // allow spaces or hyphens between words
+      const corePattern = wordsplit.join("[\\s-]+");
+      // allow an optional “s” or “es” on the end (skip if term already ends in s)
+      const pluralSuffix =
+        term.toLowerCase().endsWith("s") ? "" : "(?:es|s)?";
+      // use lookarounds rather than \b so we don’t get stuck on hyphens
+      const regex = new RegExp(
+        `(?<!\\w)${corePattern}${pluralSuffix}(?!\\w)`,
+        "gi"
+      );
+  
+      if (!regex.test(text)) return;
 
-      if (!regex.test(text)) {
-        return; // no match ? skip
-      }
-
-      // Split on each match (preserving original casing via matches[])
-      const parts = text.split(regex);
+      const parts   = text.split(regex);
       const matches = text.match(regex);
+      const frag    = document.createDocumentFragment();
 
-      const frag = document.createDocumentFragment();
-      parts.forEach((plainPart, i) => {
-        if (plainPart) {
-          frag.appendChild(document.createTextNode(plainPart));
-        }
+      parts.forEach((plain, i) => {
+        if (plain) frag.appendChild(document.createTextNode(plain));
         if (matches && matches[i]) {
-          const exactMatch = matches[i];
-          const wrapper = document.createElement("span");
-          wrapper.classList.add("glossary-term");
-          wrapper.setAttribute("data-term", term);
-          wrapper.textContent = exactMatch;
+          const exact = matches[i];
+          const wrap  = document.createElement("span");
+          wrap.classList.add("glossary-term");
+          wrap.setAttribute("data-term", term);
+          wrap.textContent = exact;
 
           const tip = document.createElement("span");
           tip.classList.add("tooltip-content");
           tip.textContent = defLookup[term] || "";
-          wrapper.appendChild(tip);
+          wrap.appendChild(tip);
 
-          // --- Add dynamic positioning listeners ---------------------------
-          wrapper.addEventListener("mouseenter", () => {
-            currentWrapper = wrapper;
+          wrap.addEventListener("mouseenter", () => {
+            currentWrapper = wrap;
             currentTip     = tip;
-            positionTooltip(wrapper, tip);
+            positionTooltip(wrap, tip);
           });
-          wrapper.addEventListener("mouseleave", () => {
-            tip.classList.remove("to-right", "to-left","to-center");
-            currentWrapper = null;
-            currentTip     = null;
+          wrap.addEventListener("mouseleave", () => {
+            tip.classList.remove("to-right","to-left","to-center");
+            currentWrapper = currentTip = null;
           });
 
-          frag.appendChild(wrapper);
+          frag.appendChild(wrap);
         }
       });
 
-      // Replace the original text node with our wrapped fragment
       textNode.replaceWith(frag);
-      text = frag.textContent; // allow subsequent terms to match inside
+      text = frag.textContent;
     });
   }
 
-  // 5) Walk the DOM under “root,” skipping any node with an ancestor in SKIP_TAGS
+  // 5) Walk the DOM
   function walkTree(root) {
-    const textNodes = [];
     const walker = document.createTreeWalker(
       root,
       NodeFilter.SHOW_TEXT,
@@ -164,57 +158,28 @@ function buildAndWrap() {
         acceptNode(node) {
           let el = node.parentElement;
           while (el) {
-            if (SKIP_TAGS.has(el.tagName)) {
-              return NodeFilter.FILTER_REJECT;
-            }
+            if (SKIP_TAGS.has(el.tagName)) return NodeFilter.FILTER_REJECT;
             el = el.parentElement;
           }
           return NodeFilter.FILTER_ACCEPT;
-        },
+        }
       },
       false
     );
 
-    let node;
-    while ((node = walker.nextNode())) {
-      textNodes.push(node);
-    }
-
-    textNodes.forEach((tn) => {
-      wrapTermsInNode(tn);
-    });
+    const nodes = [];
+    let n;
+    while ((n = walker.nextNode())) nodes.push(n);
+    nodes.forEach(wrapTermsInNode);
   }
 
-  // 6) Choose which element to scan:
-  //    • If you have <div id="content">, pick that
-  //    • Otherwise <main>
-  //    • Otherwise fall back to <body>
-  const rootElement =
-    document.querySelector("#content") ||
-    document.querySelector("main") ||
-    document.body;
-
-  walkTree(rootElement);
+  const rootEl = document.querySelector("#content") ||
+                 document.querySelector("main")    ||
+                 document.body;
+  walkTree(rootEl);
 }
 
-// 7) Initialization: wait for at least DOMContentLoaded or window.load,
-//    then run buildAndWrap on the next microtask:
-if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", () => {
-    setTimeout(buildAndWrap, 0);
-  });
-} else if (document.readyState === "interactive") {
-  window.addEventListener("load", () => {
-    setTimeout(buildAndWrap, 0);
-  });
-} else {
-  // readyState === "complete"
-  setTimeout(buildAndWrap, 0);
-}
-
-// 8) Reposition any open tooltip on window resize
-//window.addEventListener("resize", () => {
-//  if (currentWrapper && currentTip) {
-//    positionTooltip(currentWrapper, currentTip);
-//  }
-//});
+// ————————————————————————————————————————————————
+// 4) Kick everything off
+// ————————————————————————————————————————————————
+initGlossaryTooltips();
