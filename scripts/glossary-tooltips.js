@@ -1,185 +1,204 @@
 // File: /Algorithms/scripts/glossary-tooltips.js
 
-// ————————————————————————————————————————————————
+// â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”
 // 1) Load glossary data from JSON
-// ————————————————————————————————————————————————
+// â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”
 let GLOSSARY = [];
 
 function initGlossaryTooltips() {
-  fetch("/Algorithms/scripts/glossary-data.json?cb=" + Date.now(), {
-    cache: "no-store",
-  })
-    .then((res) => {
+  fetch("/Algorithms/scripts/glossary-data.json?cb=" + Date.now(), { cache: "no-store" })
+    .then(res => {
       if (!res.ok) throw new Error("Failed to load glossary-data.json");
       return res.json();
     })
-    .then((data) => {
+    .then(data => {
       GLOSSARY = data;
       scheduleBuildAndWrap();
     })
-    .catch((err) => console.error("Error loading glossary data:", err));
+    .catch(err => console.error("Error loading glossary data:", err));
 }
 
+// Kick off after DOM is ready
 function scheduleBuildAndWrap() {
   if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", () => setTimeout(buildAndWrap, 0));
+    document.addEventListener("DOMContentLoaded", () => buildAndWrap());
   } else {
-    // DOM is already parsed
-    setTimeout(buildAndWrap, 0);
+    buildAndWrap();
   }
 }
 
-// ————————————————————————————————————————————————
-// 2) Tooltip positioning (unchanged)
-// ————————————————————————————————————————————————
-let currentWrapper = null;
-let currentTip     = null;
+// â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”
+// 2) Tooltip positioning by mouse, classified by wrapper center
+// â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”
+function positionTooltipAt(x, y, tip, wrapper) {
+  // 1) Make it a fixed tooltip
+  tip.style.position = "fixed";
+  tip.style.display  = "block";
 
-function positionTooltip(wrapper, tip) {
-  const rect = wrapper.getBoundingClientRect();
+  // 2) Measure wrapper and viewport
+  const wrapRect = wrapper.getBoundingClientRect();
+  const vw       = window.innerWidth;
 
-  tip.style.visibility = "hidden";
-  tip.style.display    = "block";
-  tip.style.position   = "absolute";
-  tip.style.left       = "0";
-  tip.style.top        = "0";
+  // 3) Measure natural tooltip width
+  tip.style.left = "0px";
+  const tipWidth = tip.getBoundingClientRect().width;
 
-  tip.style.display    = "";
-  tip.style.visibility = "";
-  tip.style.left       = "";
-  tip.style.top        = "";
-  tip.style.position   = "";
-
-  const viewportWidth = document.documentElement.clientWidth;
-  const termCenterX   = rect.left + rect.width / 2;
-
+  // 4) Clear old classes
   tip.classList.remove("to-right", "to-left", "to-center");
 
-  if (termCenterX < viewportWidth / 3) {
+  if (x <= vw / 3) {
+    // LEFT THIRD â†’ pop immediately to the right of the pointer
     tip.classList.add("to-right");
-  } else if (termCenterX > (2 * viewportWidth) / 3) {
-    tip.classList.add("to-left");
-  } else {
-    tip.classList.add("to-center");
+    tip.style.left = `${x + 8}px`;
+    tip.style.top  = `${y}px`;
   }
+  else if (x >= (2 * vw) / 3) {
+    // RIGHT THIRD â†’ pop immediately to the left of the pointer
+    tip.classList.add("to-left");
+    tip.style.left = `${x - tipWidth - 8}px`;
+    tip.style.top  = `${y}px`;
+  }
+  else {
+    // MIDDLE THIRD â†’ center on the mouse
+    tip.classList.add("to-center");
+    tip.style.position = "fixed";
+    tip.style.left = `${x}px`;
+    tip.style.top  = `${y + 8}px`;
+  }
+
 }
 
-// ————————————————————————————————————————————————
-// 3) buildAndWrap + walkTree (unchanged, except use fetched GLOSSARY)
-// ————————————————————————————————————————————————
+
+/*
+function positionTooltipAt(x, y, tip, wrapper) {
+  // Show tooltip as fixed element
+  tip.style.position = "fixed";
+  tip.style.display  = "block";
+
+  // Measure wrapper and tooltip
+  const wrapRect = wrapper.getBoundingClientRect();
+  const vw       = window.innerWidth;
+
+  // Determine tooltip width (reset left for accurate measure)
+  tip.style.left = "0px";
+  const tipWidth = tip.getBoundingClientRect().width;
+
+  // Clear previous direction classes
+  tip.classList.remove("to-right", "to-left", "to-center");
+
+  // Classify by wrapper center
+  const wrapCenterX = wrapRect.left + wrapRect.width / 2;
+  if (wrapCenterX <= vw / 3) {
+    // left third â†’ tooltip to right
+    tip.classList.add("to-right");
+    tip.style.left = `${wrapRect.right + 8}px`;
+    tip.style.top  = `${wrapRect.top}px`;
+  } else if (wrapCenterX >= (2 * vw) / 3) {
+    // right third â†’ tooltip to left
+    tip.classList.add("to-left");
+    tip.style.left = `${wrapRect.left - tipWidth - 8}px`;
+    tip.style.top  = `${wrapRect.top}px`;
+  } else {
+    // middle third â†’ tooltip centered above or below
+    tip.classList.add("to-center");
+    tip.style.left = `${wrapCenterX - tipWidth / 2}px`;
+    tip.style.top  = `${wrapRect.bottom + 8}px`;
+  }
+}
+*/
+// â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”
+// 3) Build & wrap glossary terms in text nodes
+// â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”
 function buildAndWrap() {
   if (document.body.classList.contains("no-tooltips")) return;
 
-  // 1) Sort longest?short
-  const terms = GLOSSARY.map((i) => i.term).sort((a, b) => b.length - a.length);
+  const rootEl = document.querySelector("#content") || document.querySelector("main") || document.body;
 
-  // 2) Build lookup
-  const defLookup = {};
-  GLOSSARY.forEach(({ term, definition }) => {
-    defLookup[term] = definition;
-  });
+  // Prepare regex patterns (longest first)
+  const patterns = GLOSSARY.map(({ term, definition }) => {
+    const escaped = term.split(/\W+/)
+      .map(s => s.replace(/[.*+?^${}()|[\\]\\]/g, "\\$&"))
+      .join("[\\s-]+");
+    const tail = term.toLowerCase().endsWith("s") ? "" : "(?:es|s)?";
+    return { term, definition, regex: new RegExp(`(?<!\\w)${escaped}${tail}(?!\\w)`, "gi") };
+  }).sort((a,b) => b.term.length - a.term.length);
 
-  // 3) Tags to skip
-  const SKIP_TAGS = new Set([
-    "STYLE","SCRIPT","A","H1","H2","H3","CODE","PRE","B","STRONG"
-  ]);
+  const SKIP = new Set(["STYLE","SCRIPT","A","H1","H2","H3","CODE","PRE","B","STRONG"]);
+  function acceptNode(node) {
+    let el = node.parentElement;
+    while (el) {
+      if (SKIP.has(el.tagName) || el.classList.contains("tooltip-content")) return NodeFilter.FILTER_REJECT;
+      el = el.parentElement;
+    }
+    return NodeFilter.FILTER_ACCEPT;
+  }
 
-  // 4) Wrap matches in text nodes
-  function wrapTermsInNode(textNode) {
-    if (textNode.nodeType !== Node.TEXT_NODE) return;
-    const original = textNode.textContent;
-    if (!original.trim()) return;
+  // Collect text nodes
+  const walker = document.createTreeWalker(rootEl, NodeFilter.SHOW_TEXT, { acceptNode }, false);
+  const textNodes = [];
+  let node;
+  while ((node = walker.nextNode())) textNodes.push(node);
 
-    let text = original;
-    terms.forEach((term) => {
-      //const escaped = term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-      //const regex   = new RegExp(`\\b${escaped}\\b`, "gi");
-      
-      // helper to escape any regex meta-chars in a piece of the term
-      const escapeRegex = s => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-      // split on non-word chars (so hyphens/spaces/underscores) and escape each
-      const wordsplit = term.split(/\W+/).map(escapeRegex);
-      // allow spaces or hyphens between words
-      const corePattern = wordsplit.join("[\\s-]+");
-      // allow an optional “s” or “es” on the end (skip if term already ends in s)
-      const pluralSuffix =
-        term.toLowerCase().endsWith("s") ? "" : "(?:es|s)?";
-      // use lookarounds rather than \b so we don’t get stuck on hyphens
-      const regex = new RegExp(
-        `(?<!\\w)${corePattern}${pluralSuffix}(?!\\w)`,
-        "gi"
-      );
-  
-      if (!regex.test(text)) return;
+  // Wrap matches in each text node
+  textNodes.forEach(textNode => {
+    const text = textNode.textContent;
+    let matches = [];
 
-      const parts   = text.split(regex);
-      const matches = text.match(regex);
-      const frag    = document.createDocumentFragment();
+    patterns.forEach(({ term, definition, regex }) => {
+      regex.lastIndex = 0;
+      let m;
+      while ((m = regex.exec(text))) {
+        matches.push({ start: m.index, end: regex.lastIndex, term, definition, matchText: m[0] });
+      }
+    });
+    if (!matches.length) return;
 
-      parts.forEach((plain, i) => {
-        if (plain) frag.appendChild(document.createTextNode(plain));
-        if (matches && matches[i]) {
-          const exact = matches[i];
-          const wrap  = document.createElement("span");
-          wrap.classList.add("glossary-term");
-          wrap.setAttribute("data-term", term);
-          wrap.textContent = exact;
+    // Filter overlapping matches
+    matches.sort((a,b) => a.start - b.start || b.end - a.end);
+    const keep = [];
+    let lastEnd = 0;
+    matches.forEach(m => {
+      if (m.start >= lastEnd) { keep.push(m); lastEnd = m.end; }
+    });
 
-          const tip = document.createElement("span");
-          tip.classList.add("tooltip-content");
-          tip.textContent = defLookup[term] || "";
-          wrap.appendChild(tip);
+    // Rebuild node content
+    const frag = document.createDocumentFragment();
+    let idx = 0;
+    keep.forEach(({ start, end, term, definition, matchText }) => {
+      if (idx < start) frag.appendChild(document.createTextNode(text.slice(idx, start)));
+      const span = document.createElement("span");
+      span.className = "glossary-term";
+      span.style.whiteSpace = "nowrap";
+      span.setAttribute("data-term", term);
+      span.textContent = matchText;
 
-          wrap.addEventListener("mouseenter", () => {
-            currentWrapper = wrap;
-            currentTip     = tip;
-            positionTooltip(wrap, tip);
-          });
-          wrap.addEventListener("mouseleave", () => {
-            tip.classList.remove("to-right","to-left","to-center");
-            currentWrapper = currentTip = null;
-          });
+      const tip = document.createElement("span");
+      tip.className = "tooltip-content";
+      tip.textContent = definition;
+      tip.style.display = "none";
+      tip.style.fontStyle = "normal";
+      span.appendChild(tip);
 
-          frag.appendChild(wrap);
-        }
+      let hoverTimeout;
+      span.addEventListener("mouseenter", evt => {
+        hoverTimeout = setTimeout(() => {
+          positionTooltipAt(evt.clientX, evt.clientY, tip, span);
+        }, 1000);
+      });
+      span.addEventListener("mouseleave", () => {
+        clearTimeout(hoverTimeout);
+        tip.style.display = "none";
+        tip.classList.remove("to-right","to-left","to-center");
       });
 
-      textNode.replaceWith(frag);
-      text = frag.textContent;
+      frag.appendChild(span);
+      idx = end;
     });
-  }
+    if (idx < text.length) frag.appendChild(document.createTextNode(text.slice(idx)));
 
-  // 5) Walk the DOM
-  function walkTree(root) {
-    const walker = document.createTreeWalker(
-      root,
-      NodeFilter.SHOW_TEXT,
-      {
-        acceptNode(node) {
-          let el = node.parentElement;
-          while (el) {
-            if (SKIP_TAGS.has(el.tagName)) return NodeFilter.FILTER_REJECT;
-            el = el.parentElement;
-          }
-          return NodeFilter.FILTER_ACCEPT;
-        }
-      },
-      false
-    );
-
-    const nodes = [];
-    let n;
-    while ((n = walker.nextNode())) nodes.push(n);
-    nodes.forEach(wrapTermsInNode);
-  }
-
-  const rootEl = document.querySelector("#content") ||
-                 document.querySelector("main")    ||
-                 document.body;
-  walkTree(rootEl);
+    textNode.replaceWith(frag);
+  });
 }
 
-// ————————————————————————————————————————————————
-// 4) Kick everything off
-// ————————————————————————————————————————————————
+// Initialize tooltips
 initGlossaryTooltips();

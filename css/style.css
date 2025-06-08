@@ -309,6 +309,7 @@ a.problem:hover {
   opacity: 1;
 }
 
+
 /* 4) (Optional) Little arrow—keep or remove as you like */
 .glossary-term .tooltip-content::before {
   content: "";
@@ -329,8 +330,12 @@ a.problem:hover {
   right: 100%;             /* immediately to the left of the term */
   margin-right: 0.4rem;    /* small gap */
 }
-
-/* 6) (Optional) Adjust arrow depending on side: */
+/* 5a) Centered tooltip (for terms in the middle third of the viewport) */
+.glossary-term .tooltip-content.to-center {
+  position: fixed;
+  right: auto;
+  transform: none; 
+}
 
 .glossary-term .tooltip-content.to-right::before {
   top: 50%;
@@ -352,22 +357,6 @@ a.problem:hover {
   border-left: 6px solid #ccc;
 }
 
-/* 5a) Centered tooltip (for terms in the middle third of the viewport) */
-.glossary-term .tooltip-content.to-center {
-  /* 1) Horizontally center against the wrapper */
-  left: 50%;
-  transform: translateX(-50%);
-  
-  /* 2) (Optional) If you prefer the tooltip *below* or *above* the term,
-     you can tweak top/ bottom / margin‐top etc. Here we use top:100%
-     so it sits immediately below the term. Adjust as needed. */
-  top: 100%;
-  margin-top: 0.4rem; /* tiny gap below the term */
-  
-  /* Remove any left/right‐specific margins */
-  margin-left: 0;
-  margin-right: 0;
-}
 
 /* 5b) (Optional) Arrow adjustment for “to‐center” */
 .glossary-term .tooltip-content.to-center::before {
@@ -376,8 +365,6 @@ a.problem:hover {
   content: "";
   position: absolute;
   bottom: 100%;            /* put arrow at the top edge of the tooltip */
-  left: 50%;
-  transform: translateX(-50%);
   
   border-left: 6px solid transparent;
   border-right: 6px solid transparent;
