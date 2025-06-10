@@ -104,23 +104,10 @@ function hookIframeContent(iframe) {
   const head = innerDoc.head || innerDoc.getElementsByTagName("head")[0];
   if (!head) return;
 
-  // 4) (Optional) Inject your main CSS if the content pages do not already link to it.
-  //    If every content page already has:
-  //        <link rel="stylesheet" href="/Algorithms/css/style.css" />
-  //    you can skip this step. Otherwise, uncomment the lines below:
-  //
-  // const link = doc.createElement("link");
-  // link.rel = "stylesheet";
-  // link.href = "/Algorithms/css/style.css"; // adjust the path as needed
-  // head.appendChild(link);
-
   // 5) Inject glossary-data.json
   const scriptData = innerDoc.createElement("script");
   scriptData.type = "module";
   scriptData.id = "glossary-data-script";
-  // remove these lines:
-  //   scriptData.src = "/Algorithms/scripts/glossary-data.json";
-  //   head.appendChild(scriptData);
   
   fetch("/Algorithms/scripts/glossary-data.json?cb=" + Date.now(), {
     cache: "no-store",
@@ -139,9 +126,17 @@ function hookIframeContent(iframe) {
   // 6) Inject glossary-tooltips.js
   const scriptTips = innerDoc.createElement("script");
   scriptTips.type = "module";
-  scriptTips.id = "glossary-tooltips-script";
-  scriptTips.src = "/Algorithms/scripts/glossary-tooltips.js";
+
+    // Remove any old copy so we don’t get duplicates
+  const old = innerDoc.getElementById("glossary-tooltips-script");
+  if (old) old.remove();
+
+  // Inject fresh copy with a timestamp to bust the cache
+  scriptTips.id  = "glossary-tooltips-script";
+  scriptTips.type= "module";
+  scriptTips.src = `/Algorithms/scripts/glossary-tooltips.js?cb=${Date.now()}`;
   head.appendChild(scriptTips);
+
   
   // Intercept any “?path=” link clicks inside the iframe:
   innerDoc.addEventListener('click', (event) => {

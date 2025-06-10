@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Algorithm Textbook – Glossary</title>
+  <link rel="stylesheet" href="/Algorithms/css/style.css" />
+  <style>
+    /* (Optional) Basic styling for the glossary list */
+    #glossary-container {
+      max-width: 800px;
+      margin: 2rem auto;
+      padding: 0 1rem;
+      font-family: Arial, sans-serif;
+    }
+    .glossary-entry {
+      margin-bottom: 1.5rem;
+    }
+    .glossary-term {
+      font-weight: bold;
+      font-size: 1.1em;
+      color: #333;
+    }
+    .glossary-definition {
+      margin-top: 0.25rem;
+      line-height: 1.4;
+    }
+  </style>
+</head>
+<body class="no-tooltips">
+  <main id="glossary-container">
+    <h1>Glossary</h1>
+    <div id="entries"></div>
+  </main>
+
+  <script type="module">
+    const container = document.getElementById("entries");
+
+    function renderGlossary(glossary) {
+      // clear any existing entries
+      container.innerHTML = "";
+
+      glossary.forEach(({ term, definition }) => {
+        const entryDiv = document.createElement("div");
+        entryDiv.className = "glossary-entry";
+
+        entryDiv.innerHTML = `
+          <div class="glossary-term">${term}</div>
+          <div class="glossary-definition">${definition}</div>
+        `;
+
+        container.appendChild(entryDiv);
+      });
+    }
+
+    // Fetch the JSON, sort it, then render
+    fetch("/Algorithms/scripts/glossary-data.json?cb=" + Date.now(), {
+      cache: "no-store",
+    })
+      .then(res => {
+        if (!res.ok) throw new Error("Network response was not ok");
+        return res.json();
+      })
+      .then(glossary => {
+        // sort alphabetically by term
+        glossary.sort((a, b) =>
+          a.term.toLowerCase().localeCompare(b.term.toLowerCase())
+        );
+        renderGlossary(glossary);
+      })
+      .catch(err => {
+        console.error("Failed to load glossary:", err);
+        container.innerHTML = "<p>Sorry, could not load the glossary.</p>";
+      });
+  </script>
+</body>
+</html>

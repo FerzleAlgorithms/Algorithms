@@ -20,6 +20,11 @@
       font-size: 1.1em;
       color: #333;
     }
+    .glossary-variants {
+      margin-top: 0.25rem;
+      font-style: italic;
+      color: #555;
+    }
     .glossary-definition {
       margin-top: 0.25rem;
       line-height: 1.4;
@@ -36,35 +41,49 @@
     const container = document.getElementById("entries");
 
     function renderGlossary(glossary) {
-      // clear any existing entries
       container.innerHTML = "";
 
-      glossary.forEach(({ term, definition }) => {
+      glossary.forEach(entry => {
+        // Support both new ({variants, definition}) and old ({term, definition}) formats
+        const rawVariants = entry.variants || (entry.term ? [entry.term] : []);
+        const definition = entry.definition || "";
+        const canonical = rawVariants[0] || "";
+        // Filter out the simple 's' plural of canonical
+        const variants = rawVariants.filter(v => v !== `${canonical}s`);
+        // Determine additional forms
+        const forms = variants.length > 1 ? variants.slice(1).join(", ") : null;
+
         const entryDiv = document.createElement("div");
         entryDiv.className = "glossary-entry";
 
-        entryDiv.innerHTML = `
-          <div class="glossary-term">${term}</div>
-          <div class="glossary-definition">${definition}</div>
-        `;
+        let html = `<div class=\"glossary-term\">${canonical}</div>`;
+        if (forms) {
+          html += `<div class=\"glossary-variants\"><em>Other Forms:</em> ${forms}</div>`;
+        }
+        html += `<div class=\"glossary-definition\">${definition}</div>`;
 
+        entryDiv.innerHTML = html;
         container.appendChild(entryDiv);
       });
     }
 
-    // Fetch the JSON, sort it, then render
-    fetch("/Algorithms/scripts/glossary-data.json?cb=" + Date.now(), {
-      cache: "no-store",
-    })
+    fetch("/Algorithms/scripts/glossary-data.json?cb=" + Date.now(), { cache: "no-store" })
       .then(res => {
         if (!res.ok) throw new Error("Network response was not ok");
         return res.json();
       })
-      .then(glossary => {
-        // sort alphabetically by term
-        glossary.sort((a, b) =>
-          a.term.toLowerCase().localeCompare(b.term.toLowerCase())
-        );
+      .then(data => {
+        // Normalize entries to new format
+        const glossary = data.map(entry => ({
+          variants: entry.variants || (entry.term ? [entry.term] : []),
+          definition: entry.definition || entry.def || ""
+        }));
+        // Sort by canonical term
+        glossary.sort((a, b) => {
+          const aTerm = (a.variants[0] || "").toLowerCase();
+          const bTerm = (b.variants[0] || "").toLowerCase();
+          return aTerm.localeCompare(bTerm);
+        });
         renderGlossary(glossary);
       })
       .catch(err => {

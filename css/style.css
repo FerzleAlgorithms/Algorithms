@@ -40,6 +40,7 @@ header h3 {
   font-style: italic;
 }
 
+/*-------------------------------------------------------------*/
 /* 1) Site layout (only on <body class="mainSite">) */
 body.mainSite {
   display: flex;
@@ -200,10 +201,7 @@ nav#menu .menu-controls button:hover {
   color: #024f9a;
   background-color: #dbeafe;   /* subtle hover background */
 }
-
-
-
-
+/*-------------------------------------------------------------*/
 /* 5) Error message below iframe (if shown) */
 body.mainSite #errorMessage {
   flex: 0 0 auto;
@@ -230,6 +228,7 @@ a:hover {
   border-radius: 5px;
   margin-top: 1em;
 }
+/*-------------------------------------------------------------*/
 
 /* 7) Problem-link styling (global) */
 a.problem {
@@ -242,6 +241,7 @@ a.problem:hover {
   color: #024f9a;
   border-color: #559ecb;
 }
+/*-------------------------------------------------------------*/
 
 /* 9) Resource-list link styling in main content */
 .resource-list a {
@@ -255,6 +255,7 @@ a.problem:hover {
   border-color: #559ecb;
 }
 
+/*-------------------------------------------------------------*/
 /* ======================
    Glossary Tooltip CSS
    ====================== */
@@ -309,17 +310,6 @@ a.problem:hover {
   opacity: 1;
 }
 
-
-/* 4) (Optional) Little arrow—keep or remove as you like */
-.glossary-term .tooltip-content::before {
-  content: "";
-  position: absolute;
-  border-left: 6px solid transparent;
-  border-right: 6px solid transparent;
-  border-bottom: 6px solid #ccc;
-  /* You can position this arrow depending on “to-right” vs “to-left” if needed */
-}
-
 /* 5) If you’re still using “.to-right” / “.to-left” classes for dynamic positioning: */
 
 .glossary-term .tooltip-content.to-right {
@@ -337,36 +327,11 @@ a.problem:hover {
   transform: none; 
 }
 
-.glossary-term .tooltip-content.to-right::before {
-  top: 50%;
-  left: -6px;
-  transform: translateY(-50%);
-  border-bottom: none;
-  border-top: 6px solid transparent;
-  border-left: none;
-  border-right: 6px solid #ccc;
+/* when we add the .highlighted class, change bg/fg */
+.glossary-term.highlighted {
+  background-color: #e2e8f0; /* #cbd5e1 A little darker if I change my mind */
+  color: #333;                  /* darken text so it’s still readable */
+  border-radius: 2px;           /* subtle rounding */
+  transition: background-color 0.2s ease;
 }
 
-.glossary-term .tooltip-content.to-left::before {
-  top: 50%;
-  right: -6px;
-  transform: translateY(-50%);
-  border-bottom: none;
-  border-top: 6px solid transparent;
-  border-right: none;
-  border-left: 6px solid #ccc;
-}
-
-
-/* 5b) (Optional) Arrow adjustment for “to‐center” */
-.glossary-term .tooltip-content.to-center::before {
-  /* If you want a little arrow pointing up from the tooltip to the term,
-     you could do something like this: */
-  content: "";
-  position: absolute;
-  bottom: 100%;            /* put arrow at the top edge of the tooltip */
-  
-  border-left: 6px solid transparent;
-  border-right: 6px solid transparent;
-  border-bottom: 6px solid #ccc; /* same color as your tooltip border */
-}
