@@ -167,7 +167,8 @@ function buildAndWrap() {
 
       const tip = document.createElement("span");
       tip.className = "tooltip-content";
-      tip.textContent = definition;
+      /*tip.textContent = definition;*/
+      tip.innerHTML = definition;
       tip.style.display = "none";
       tip.style.fontStyle = "normal";
       span.appendChild(tip);

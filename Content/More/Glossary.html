@@ -2,94 +2,120 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Algorithm Textbook – Glossary</title>
+  <title>Algorithm Textbook &ndash; Glossary</title>
   <link rel="stylesheet" href="/Algorithms/css/style.css" />
   <style>
-    /* (Optional) Basic styling for the glossary list */
+    /* Base page styling */
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      overflow: auto;
+      font-family: Arial, sans-serif;
+    }
+
+    /* Glossary container styling */
     #glossary-container {
       max-width: 800px;
       margin: 2rem auto;
       padding: 0 1rem;
-      font-family: Arial, sans-serif;
+      padding-bottom: 4rem; /* space for fixed nav */
     }
-    .glossary-entry {
-      margin-bottom: 1.5rem;
+    .glossary-entry { margin-bottom: 1rem; }
+    .glossary-term { font-weight: bold; font-size: 1.1em; color: #333; }
+    .glossary-variants { margin-top: 0.25rem; font-style: italic; color: #555; }
+    .glossary-definition { margin-top: 0.25rem; line-height: 1.4; }
+
+    /* Fixed bottom navigation bar */
+    #alpha-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      background: #ffffff;
+      padding: 0.5rem 0;
+      text-align: center;
+      box-shadow: 0 -2px 4px rgba(0,0,0,0.1);
+      z-index: 1000;
+      box-sizing: border-box;
     }
-    .glossary-term {
+    #alpha-nav a {
+      margin: 0 0.25rem;
+      text-decoration: none;
+      color: #007bff;
       font-weight: bold;
-      font-size: 1.1em;
-      color: #333;
     }
-    .glossary-variants {
-      margin-top: 0.25rem;
-      font-style: italic;
-      color: #555;
-    }
-    .glossary-definition {
-      margin-top: 0.25rem;
-      line-height: 1.4;
-    }
+    #alpha-nav a:hover { text-decoration: underline; }
   </style>
 </head>
 <body class="no-tooltips">
   <main id="glossary-container">
-    <h1>Glossary</h1>
+    <h2>Glossary</h2>
     <div id="entries"></div>
   </main>
 
+  <!-- Alphabet navigation fixed at viewport bottom -->
+  <nav id="alpha-nav"></nav>
+
   <script type="module">
-    const container = document.getElementById("entries");
+    // Build A–Z navigation links
+    const nav = document.getElementById('alpha-nav');
+    for (let i = 65; i <= 90; i++) {
+      const letter = String.fromCharCode(i);
+      const a = document.createElement('a');
+      a.href = '#';
+      a.dataset.letter = letter;
+      a.textContent = letter;
+      nav.appendChild(a);
+    }
 
-    function renderGlossary(glossary) {
-      container.innerHTML = "";
-
-      glossary.forEach(entry => {
-        // Support both new ({variants, definition}) and old ({term, definition}) formats
-        const rawVariants = entry.variants || (entry.term ? [entry.term] : []);
-        const definition = entry.definition || "";
-        const canonical = rawVariants[0] || "";
-        // Filter out the simple 's' plural of canonical
-        const variants = rawVariants.filter(v => v !== `${canonical}s`);
-        // Determine additional forms
-        const forms = variants.length > 1 ? variants.slice(1).join(", ") : null;
-
-        const entryDiv = document.createElement("div");
-        entryDiv.className = "glossary-entry";
-
-        let html = `<div class=\"glossary-term\">${canonical}</div>`;
-        if (forms) {
-          html += `<div class=\"glossary-variants\"><em>Other Forms:</em> ${forms}</div>`;
+    // Fetch and render glossary entries
+    const container = document.getElementById('entries');
+    function render(glossary) {
+      container.innerHTML = '';
+      glossary.forEach(({variants, definition}) => {
+        const term = variants[0];
+        const others = variants.slice(1);
+        const entry = document.createElement('div');
+        entry.className = 'glossary-entry';
+        let html = `<div class="glossary-term">${term}</div>`;
+        if (others.length) {
+          html += `<div class="glossary-variants"><em>Other Forms:</em> ${others.join(', ')}</div>`;
         }
-        html += `<div class=\"glossary-definition\">${definition}</div>`;
-
-        entryDiv.innerHTML = html;
-        container.appendChild(entryDiv);
+        html += `<div class="glossary-definition">${definition}</div>`;
+        entry.innerHTML = html;
+        container.appendChild(entry);
       });
     }
 
-    fetch("/Algorithms/scripts/glossary-data.json?cb=" + Date.now(), { cache: "no-store" })
-      .then(res => {
-        if (!res.ok) throw new Error("Network response was not ok");
-        return res.json();
-      })
-      .then(data => {
-        // Normalize entries to new format
-        const glossary = data.map(entry => ({
-          variants: entry.variants || (entry.term ? [entry.term] : []),
-          definition: entry.definition || entry.def || ""
-        }));
-        // Sort by canonical term
-        glossary.sort((a, b) => {
-          const aTerm = (a.variants[0] || "").toLowerCase();
-          const bTerm = (b.variants[0] || "").toLowerCase();
-          return aTerm.localeCompare(bTerm);
-        });
-        renderGlossary(glossary);
-      })
-      .catch(err => {
-        console.error("Failed to load glossary:", err);
-        container.innerHTML = "<p>Sorry, could not load the glossary.</p>";
-      });
+    document.addEventListener('DOMContentLoaded', () => {
+      fetch('/Algorithms/scripts/glossary-data.json?cb=' + Date.now(), {cache: 'no-store'})
+        .then(r => r.ok ? r.json() : Promise.reject(r))
+        .then(data => {
+          const gloss = data.map(e => ({variants: e.variants || [e.term], definition: e.definition}));
+          gloss.sort((a,b) => a.variants[0].localeCompare(b.variants[0]));
+          render(gloss);
+
+          // Build letter?element map
+          const map = {};
+          document.querySelectorAll('.glossary-entry').forEach(el => {
+            const L = el.querySelector('.glossary-term').textContent.trim()[0].toUpperCase();
+            if (!map[L]) map[L] = el;
+          });
+          const available = Object.keys(map).sort();
+
+          // Hook nav clicks
+          document.querySelectorAll('#alpha-nav a').forEach(a => {
+            a.addEventListener('click', e => {
+              e.preventDefault();
+              const L = a.dataset.letter;
+              let target = map[L] || map[available.find(ch => ch > L)];
+              if (target) target.scrollIntoView({behavior: 'smooth'});
+            });
+          });
+        })
+        .catch(() => container.innerHTML = '<p>Could not load glossary.</p>');
+    });
   </script>
 </body>
 </html>

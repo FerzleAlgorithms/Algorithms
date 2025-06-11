@@ -1,6 +1,30 @@
 [
   {
     "variants": [
+      "0-1 Knapsack Problem",
+      "0-1 Knapsack",
+      "Zero-One Knapsack Problem"
+    ],
+    "definition": "A problem of selecting items with given weights and values to maximize total value without exceeding capacity, where each item can be chosen at most once, solvable by dynamic programming in <em>O(n*W)</em> time."
+  },
+  {
+    "variants": [
+      "AVL Tree",
+      "AVL Trees"
+    ],
+    "definition": "An AVL tree is a self-balancing binary search tree in which, for every node, the heights of its left and right subtrees differ by at most one. Guarantees the height of the BST with <em>n</em> nodes is no larger than about <em>1.44 log<sub>2</sub>n</em>."
+  },
+  {
+    "variants": [
+      "Abstract Data Type",
+      "ADT",
+      "Abstract Data Types",
+      "ADTs"
+    ],
+    "definition": "A mathematical model for a data type defined by its behavior from a user's perspective, specifying possible values and operations without prescribing implementation details."
+  },
+  {
+    "variants": [
       "Adjacency List",
       "Adjacency Lists"
     ],
@@ -28,6 +52,12 @@
   },
   {
     "variants": [
+      "Approximation Algorithm"
+    ],
+    "definition": "An algorithm for optimization problems that runs in polynomial time and produces solutions within a guaranteed factor of the optimal, used when exact solutions are intractable."
+  },
+  {
+    "variants": [
       "Array",
       "Arrays"
     ],
@@ -45,14 +75,20 @@
     "variants": [
       "Asymptotic Notation"
     ],
-    "definition": "Mathematical notation (e.g., Big O, Theta, Omega) used to describe the limiting behavior of a function as its input grows toward infinity. It abstracts constant factors and lower-order terms to focus on growth rates."
+    "definition": "Mathematical notation (e.g., Big-O, Theta, Omega) used to describe the limiting behavior of a function as its input grows toward infinity. It abstracts constant factors and lower-order terms to focus on growth rates."
   },
   {
     "variants": [
-      "AVL Tree",
-      "AVL Trees"
+      "Average-Case Analysis"
     ],
-    "definition": "An AVL tree is a self-balancing binary search tree in which, for every node, the heights of its left and right subtrees differ by at most one. Guarantees the height of the BST with <em>n</em> nodes is no larger than about <em>1.44 log<sub>2</sub>n</em>."
+    "definition": "Evaluates an algorithm's expected performance over all inputs of size <em>n</em>, assuming a specified probability distribution on those inputs. It yields the expected time (or space) complexity by taking the weighted average of the cost across every possible input."
+  },
+  {
+    "variants": [
+      "B-Tree",
+      "B-Trees"
+    ],
+    "definition": "A self-balancing tree data structure that maintains sorted data and allows searches, sequential access, insertions, and deletions in logarithmic time, optimized for systems that read and write large blocks of data."
   },
   {
     "variants": [
@@ -69,9 +105,21 @@
   },
   {
     "variants": [
+      "Bellman-Ford Algorithm"
+    ],
+    "definition": "An algorithm that computes shortest paths from a single source to all vertices in a weighted digraph, even when edges can have negative weights, in <em>O(V*E)</em> time."
+  },
+  {
+    "variants": [
+      "Best-Case Analysis"
+    ],
+    "definition": "Evaluates an algorithm's performance on the most favorable inputs of size <em>n</em>, yielding the minimum time (or space) it will ever require. It characterizes the lower bound of the algorithm's resource usage under ideal conditions."
+  },
+  {
+    "variants": [
       "Binary Exponentiation"
     ],
-    "definition": "Binary exponentiation (or exponentiation by squaring) is an algorithm that computes <em>a<sup>n</sup></em> based on the binary representation of <em>n</em> in <em>O(logn)</em> time. It can be implemented left-to-right or right-to-left."
+    "definition": "Binary exponentiation (or exponentiation by squaring) is an algorithm that computes <em>a<sup>n</sup></em> based on the binary representation of <em>n</em> in <em>O(log n)</em> time. It can be implemented left-to-right or right-to-left."
   },
   {
     "variants": [
@@ -94,6 +142,21 @@
       "Binary Trees"
     ],
     "definition": "A binary tree is a tree data structure in which each node has at most two children, typically designated as the left and right child."
+  },
+  {
+    "variants": [
+      "Bipartite Graph",
+      "Bipartite Graphs",
+      "Bipartite"
+    ],
+    "definition": "A graph whose vertices can be divided into two disjoint sets such that no two vertices within the same set are adjacent."
+  },
+  {
+    "variants": [
+      "Boyer-Moore Algorithm",
+      "Boyer-Moore"
+    ],
+    "definition": "An efficient string-search algorithm that skips portions of the text to find occurrences of a pattern using bad-character and good-suffix heuristics."
   },
   {
     "variants": [
@@ -129,6 +192,13 @@
   },
   {
     "variants": [
+      "Catalan Number",
+      "Catalan Numbers"
+    ],
+    "definition": "A sequence of natural numbers with many applications in combinatorial mathematics, defined by <em>C<sub>n</sub> = (1/(n+1)) * binomial(2n, n)</em>."
+  },
+  {
+    "variants": [
       "Chained Hashing",
       "Open Hashing",
       "Separate Chaining"
@@ -137,10 +207,37 @@
   },
   {
     "variants": [
+      "Clique",
+      "Cliques",
+      "k-Clique"
+    ],
+    "definition": "A subset of vertices in an undirected graph such that every pair of distinct vertices in the subset are adjacent."
+  },
+  {
+    "variants": [
       "Coefficient",
       "Coefficients"
     ],
     "definition": "A constant multiplier of a variable or term, often appearing in polynomial expressions. In algorithm analysis, coefficients are the constant factors hidden in asymptotic notation."
+  },
+  {
+    "variants": [
+      "Coin Change Problem"
+    ],
+    "definition": "A problem asking for the number of ways to make change for a given amount using specified coin denominations or the minimum number of coins needed, often solved by dynamic programming."
+  },
+  {
+    "variants": [
+      "Combination",
+      "Combinations"
+    ],
+    "definition": "A selection of a subset of items from a set where order does not matter."
+  },
+  {
+    "variants": [
+      "Complete Graph"
+    ],
+    "definition": "A simple undirected graph in which every pair of distinct vertices is connected by an edge. The complete graph on <em>n</em> vertices is denoted <em>K<sub>n</sub></em>."
   },
   {
     "variants": [
@@ -152,7 +249,14 @@
     "variants": [
       "Computational Complexity"
     ],
-    "definition": "The amount of computationaly resources (space, time) required by an algorithm, often specified using asymptotic notation. Also refers to the field of study concerned with classifying computational problems based on their inherent difficulty and the resources required to solve them. It defines complexity classes such as P, NP, NP-hard, and NP-complete."
+    "definition": "The amount of computational resources (space, time) required by an algorithm, often specified using asymptotic notation. Also refers to the field of study concerned with classifying computational problems based on their inherent difficulty and the resources required to solve them. It defines complexity classes such as P, NP, NP-hard, and NP-complete."
+  },
+  {
+    "variants": [
+      "Connected Component",
+      "Connected Components"
+    ],
+    "definition": "A maximal set of vertices in a graph such that each pair of vertices in the set is connected by a path."
   },
   {
     "variants": [
@@ -175,6 +279,13 @@
   },
   {
     "variants": [
+      "Cut Vertex",
+      "Articulation Point"
+    ],
+    "definition": "A vertex in a connected graph whose removal (with its incident edges) increases the number of connected components of the graph."
+  },
+  {
+    "variants": [
       "DAG",
       "Directed Acyclic Graph"
     ],
@@ -186,6 +297,12 @@
       "Data Structures"
     ],
     "definition": "A way to store and organize data to enable efficient access and modification. Examples include arrays, linked lists, trees, graphs, stacks, queues, and hash tables."
+  },
+  {
+    "variants": [
+      "Decrease-and-Conquer"
+    ],
+    "definition": "An algorithm design paradigm that solves a problem by reducing it to a smaller instance of the same problem, solving that instance, and if necessary, extending its solution to the original problem."
   },
   {
     "variants": [
@@ -210,12 +327,26 @@
   },
   {
     "variants": [
+      "Deterministic Algorithm"
+    ],
+    "definition": "An algorithm that, given a particular input, will always produce the same output and follow the same sequence of state transitions."
+  },
+  {
+    "variants": [
       "Digraph",
       "Digraphs",
       "Directed Graph",
       "Directed Graphs"
     ],
     "definition": "A graph with directed edges."
+  },
+  {
+    "variants": [
+      "Dijkstra's Algorithm",
+      "Dijkstra's",
+      "Dijkstra Algorithm"
+    ],
+    "definition": "An algorithm for finding shortest paths from a single source to all other vertices in a graph with non-negative edge weights, using a priority queue for <em>O(E + V log V)</em> time performance."
   },
   {
     "variants": [
@@ -228,13 +359,20 @@
     "variants": [
       "Divide-and-Conquer"
     ],
-    "definition": "A paradigm in which a problem is recursively divided into two or more subproblems of the same (or very closedly related) type, each subproblem is solved independently, and finally the solutions are combined."
+    "definition": "A paradigm in which a problem is recursively divided into two or more subproblems of the same (or very closely related) type, each subproblem is solved independently, and finally the solutions are combined."
   },
   {
     "variants": [
       "Dynamic Programming"
     ],
     "definition": "A technique for solving problems by breaking them into overlapping subproblems, solving each subproblem once, and storing the results (memoization or tabulation). It is often used for optimization problems like the Knapsack or shortest paths."
+  },
+  {
+    "variants": [
+      "EXPTIME (Complexity Class)",
+      "EXPTIME"
+    ],
+    "definition": "The class of decision problems that can be solved by a deterministic algorithm in exponential time, i.e., <em>O(2<sup>p(n)</sup>)</em> for some polynomial <em>p</em>."
   },
   {
     "variants": [
@@ -245,9 +383,23 @@
   },
   {
     "variants": [
+      "Edit Distance",
+      "Levenshtein Distance"
+    ],
+    "definition": "The minimum number of single-character edits (insertions, deletions, substitutions) required to transform one string into another."
+  },
+  {
+    "variants": [
+      "Edmonds-Karp Algorithm",
+      "Edmonds-Karp"
+    ],
+    "definition": "An implementation of the Ford-Fulkerson method for computing maximum network flow that uses breadth-first search to find the shortest augmenting paths, running in <em>O(V*E^2)</em> time."
+  },
+  {
+    "variants": [
       "Empty Set",
       "null set",
-      "\u2205"
+      "&empty;"
     ],
     "definition": "A set containing no elements."
   },
@@ -312,13 +464,20 @@
     "variants": [
       "Exponential Time"
     ],
-    "definition": "A running time that grows exponentially with the input size, typically denoted as <em>O(c^n)</em> for some constant <em>c > 1</em>. Algoroithms with exponential time complexity are generally intractable for large inputs."
+    "definition": "A running time that grows exponentially with the input size, typically denoted as <em>O(c^n)</em> for some constant <em>c > 1</em>. Algorithms with exponential time complexity are generally intractable for large inputs."
   },
   {
     "variants": [
       "Exponentiation"
     ],
     "definition": "The process of raising a base to a power, often implemented recursively or via fast exponentiation to achieve <en>O(log n)</em> time instead of <em>O(n)</em>."
+  },
+  {
+    "variants": [
+      "Fibonacci Heap",
+      "Fibonacci Heaps"
+    ],
+    "definition": "A heap data structure consisting of a collection of trees, supporting amortized <em>O(1)</em> time for insert, decrease-key, and merge operations, and <em>O(log n)</em> for extract-min."
   },
   {
     "variants": [
@@ -344,10 +503,30 @@
   },
   {
     "variants": [
+      "Floyd-Warshall Algorithm",
+      "Floyd-Warshall"
+    ],
+    "definition": "A dynamic programming algorithm that computes shortest paths between all pairs of vertices in a weighted graph (allowing negative weights but no negative cycles) in <em>O(V^3)</em> time."
+  },
+  {
+    "variants": [
+      "Ford-Fulkerson Algorithm",
+      "Ford-Fulkerson"
+    ],
+    "definition": "A method for computing the maximum flow in a flow network by repeatedly finding augmenting paths and increasing the flow until no augmenting path exists."
+  },
+  {
+    "variants": [
       "Forest",
       "Forests"
     ],
     "definition": "A disjoint collection of trees (not the rooted kind)."
+  },
+  {
+    "variants": [
+      "Fractional Knapsack Problem"
+    ],
+    "definition": "A variant of the knapsack problem where items can be divided, allowing fractional amounts, and solved optimally by a greedy algorithm in <em>O(n log n)</em> time."
   },
   {
     "variants": [
@@ -382,6 +561,19 @@
       "Greedy-Choice Property"
     ],
     "definition": "A property that ensures a globally optimal solution can be arrived at by making a sequence of locally optimal (greedy) choices."
+  },
+  {
+    "variants": [
+      "Hamiltonian Cycle",
+      "Hamiltonian Circuit"
+    ],
+    "definition": "A cycle in a graph that visits each vertex exactly once and returns to the starting vertex."
+  },
+  {
+    "variants": [
+      "Hamiltonian Path"
+    ],
+    "definition": "A path in a graph that visits each vertex exactly once."
   },
   {
     "variants": [
@@ -431,9 +623,23 @@
   },
   {
     "variants": [
+      "Heuristic",
+      "Heuristics"
+    ],
+    "definition": "A rule-of-thumb or strategy used to guide search algorithms toward a solution more efficiently, without guaranteeing optimality."
+  },
+  {
+    "variants": [
       "Huffman Encoding"
     ],
     "definition": "A prefix-free encoding algorithm that assigns shorter codes to more frequent symbols based on a binary tree constructed from symbol frequencies. It achieves optimal variable-length codes for a given list of letter frequencies and runs in <em>O(n log n)</em> time."
+  },
+  {
+    "variants": [
+      "Inclusion-Exclusion Principle",
+      "Inclusion-Exclusion"
+    ],
+    "definition": "A combinatorial method for calculating the cardinality of the union of multiple sets by summing individual set sizes, subtracting pairwise intersections, adding triple intersections, and so on."
   },
   {
     "variants": [
@@ -457,8 +663,9 @@
   {
     "variants": [
       "Iteration",
-      "iterative",
+      "iterate",
       "iterates",
+      "iterative",
       "iterating"
     ],
     "definition": "The repetition of a process or set of instructions in a loop until a condition is met."
@@ -468,6 +675,13 @@
       "Johnson's Algorithm"
     ],
     "definition": "An algorithm for finding all-pairs shortest paths in weighted, directed graphs without negative cycles by reweighting edges using a potential function and then running Dijkstra's algorithm from each vertex. It runs in <em>O(V<sup>2</sup> log V + VxE)</em> time. It works particularly well on sparse graphs."
+  },
+  {
+    "variants": [
+      "k-ary Tree",
+      "k-ary Trees"
+    ],
+    "definition": "A rooted tree in which every node has at most <em>k</em> children, and the children are ordered. Binary Trees are 2-ary trees."
   },
   {
     "variants": [
@@ -508,69 +722,123 @@
       "Load Factor",
       "Load Factors"
     ],
-    "definition": "For hash tables, the ratio of the number of stored elements to the number of buckets, often denoted a = n/m. It affects time complexity by influencing collision frequency; resizing is typically triggered when a exceeds a threshold."
+    "definition": "For hash tables, the ratio of the number of stored elements (<em>n</em>) to the number of buckets (<em>m</em>), often denoted <em>a = n/m</em>. It affects time performance by influencing collision frequency; resizing is typically triggered when <em>a</em> exceeds a threshold (commonly <em>0.75</em>)."
   },
   {
     "variants": [
       "Logarithm",
       "Logarithms"
     ],
-    "definition": "The inverse operation to exponentiation, where log_b(a) returns the exponent x such that b^x = a. In algorithm analysis, logarithms measure growth rates, especially in divide-and-conquer algorithms."
+    "definition": "The inverse operation to exponentiation, where <em>log_b(a)</em> returns the exponent <em>x</em> such that <em>b<sup>x</sup> = a</em>. In algorithm analysis, logarithms often appear in divide-and-conquer and decrease-and-conquer algorithms."
   },
   {
     "variants": [
-      "Logarithmic Time",
-      "Logarithmic Times"
+      "Logarithmic Time"
     ],
-    "definition": "An algorithm whose running time scales as O(log n), where each step reduces the problem size multiplicatively. Binary search is a classic example."
+    "definition": "A running time of <em>O(log n)</em>. Note that the base of the logarithm does not matter since all logarithms grow at the same rate. Binary search is a classic example."
+  },
+  {
+    "variants": [
+      "Longest Common Subsequence",
+      "LCS"
+    ],
+    "definition": "Given two sequences, the longest (not necessarily contiguous) sequence that appears in both. Can be found using dynamic programming in <em>O(n*m)</em> time."
+  },
+  {
+    "variants": [
+      "Longest Increasing Subsequence",
+      "LIS"
+    ],
+    "definition": "Given a sequence of numbers, the longest subsequence in which each element is strictly greater than the previous. Solvable in <em>O(n log n)</em> time using dynamic programming and binary search."
   },
   {
     "variants": [
       "Lower Bound",
       "Lower Bounds"
     ],
-    "definition": "A theoretical minimum limit on the complexity of any algorithm solving a particular problem; for example, comparison-based sorting has a lower bound of O(n log n)."
+    "definition": "A theoretical minimum limit (that is, the best possible worst-case) on the complexity of any algorithm solving a particular problem; for example, comparison-based sorting has a lower bound of <em>O(n log n)</em>."
   },
   {
     "variants": [
       "Manhatten Distance",
-      "Manhatten Distances"
+      "L1 distance"
     ],
-    "definition": "The distance between two points measured along axes at right angles, computed as the sum of absolute differences of their coordinates. It is also called L1 distance and is used in grid-based pathfinding."
+    "definition": "The distance between two points measured along axes at right angles, computed as the sum of absolute differences of their coordinates. For example, in 2 dimensions, it is the shortest distance between two points when the only movements allowed are horizontal and vertical. It is used in grid-based pathfinding."
+  },
+  {
+    "variants": [
+      "Master Theorem"
+    ],
+    "definition": "A formula that provides asymptotic bounds for divide-and-conquer recurrences of the form <em>T(n) = a T(n/b) + f(n)</em> by comparing <em>f(n)</em> with </em>n^<sup>log<sub>b</sub>(a)</sup></em>."
+  },
+  {
+    "variants": [
+      "Matching"
+    ],
+    "definition": "A set of edges in a graph with no shared endpoints. Matching problems often involve finding a matching with maximum size or total weight."
+  },
+  {
+    "variants": [
+      "Matrix Chain Multiplication",
+      "Chain Matrix Multiplication"
+    ],
+    "definition": "A dynamic programming problem of determining the most efficient way to multiply a sequence of matrices by finding the optimal parenthesization to minimize the total number of scalar multiplications."
   },
   {
     "variants": [
       "Median of Medians"
     ],
-    "definition": "A selection algorithm that chooses a pivot by recursively computing the median of medians of subgroups, guaranteeing linear time selection. It is used to find the k-th smallest element in O(n) worst-case time."
+    "definition": "A selection algorithm that chooses a pivot by recursively computing the median of medians of subgroups, guaranteeing linear time selection. It is used to find the <em>k</em>-th smallest element in <em>O(n)</em> worst-case time."
   },
   {
     "variants": [
-      "Memoization",
-      "Memoizations"
+      "Memoization"
     ],
     "definition": "An optimization technique where the results of expensive function calls are cached and reused when the same inputs occur again. It is commonly used in dynamic programming to avoid redundant computations."
   },
   {
     "variants": [
-      "Merge Sort",
-      "Merge Sorts"
+      "Merge Sort"
     ],
-    "definition": "A divide-and-conquer sorting algorithm that recursively splits an array in half, sorts each half, and then merges the two sorted halves. It runs in O(n log n) time and uses O(n) auxiliary space."
+    "definition": "A divide-and-conquer sorting algorithm that recursively splits an array in half, sorts each half, and then merges the two sorted halves. It runs in <em>O(n log n)</em> time and uses <em>O(n)</em> auxiliary space."
   },
   {
     "variants": [
       "Minimum Spanning Tree",
-      "Minimum Spanning Trees"
+      "Minimum Spanning Trees",
+      "MST",
+      "MSTs"
     ],
-    "definition": "A spanning tree of a connected, undirected graph that has the minimum possible total edge weight. Algorithms to compute MSTs include Kruskal's and Prim's algorithms."
+    "definition": "A spanning tree of a connected, undirected, weighted graph that has the minimum possible total edge weight. Algorithms to compute MSTs include Kruskal's and Prim's algorithms."
   },
   {
     "variants": [
       "Monte Carlo Algorithm",
       "Monte Carlo Algorithms"
     ],
-    "definition": "A randomized algorithm that has a bounded running time and may produce incorrect results with a small probability. Examples include probabilistic primality tests like Miller-Rabin."
+    "definition": "A randomized algorithm that uses random sampling to compute results with a guaranteed bound on error probability and typically fast expected running time."
+  },
+  {
+    "variants": [
+      "NP (Complexity Class)",
+      "NP",
+      "Nondeterministic Polynomial time",
+      "Nondeterministic Polynomial"
+    ],
+    "definition": "The class of decision problems for which a proposed solution can be verified by a deterministic algorithm in polynomial time."
+  },
+  {
+    "variants": [
+      "NP-Complete",
+      "NPC"
+    ],
+    "definition": "A class of decision problems in NP to which every problem in NP can be reduced in polynomial time. That is, problems that are in NP and NP-Hard. If any NP-complete problem has a polynomial-time algorithm, then P = NP."
+  },
+  {
+    "variants": [
+      "NP-Hard"
+    ],
+    "definition": "A class of problem to which every problem in NP can be reduced in polynomial time. These problems are at least as hard as the hardest problems in NP. If they are also in NP, they are NP-Complete. NP-hard problems cannot be solved in polynomial time unless P = NP."
   },
   {
     "variants": [
@@ -578,20 +846,6 @@
       "Networks"
     ],
     "definition": "A graph in which vertices represent entities and edges represent connections, possibly with weights or directions. Networks model systems like computer networks, transportation systems, and social networks."
-  },
-  {
-    "variants": [
-      "NP-Complete",
-      "NP-Completes"
-    ],
-    "definition": "A class of decision problems in NP to which every problem in NP can be reduced in polynomial time and that themselves are in NP. If any NP-complete problem has a polynomial-time algorithm, then P = NP."
-  },
-  {
-    "variants": [
-      "NP-Hard",
-      "NP-Hards"
-    ],
-    "definition": "A class of problems at least as hard as the hardest problems in NP; an NP-hard problem may not be in NP (e.g., optimization versions). NP-hard problems cannot be solved in polynomial time unless P = NP."
   },
   {
     "variants": [
@@ -609,23 +863,25 @@
   {
     "variants": [
       "Optimization Problem",
-      "optimisation problem"
+      "Optimization Problems",
+      "optimisation problem",
+      "optimisation problems"
     ],
-    "definition": "A problem of finding the best solution from all feasible solutions according to some objective function."
-  },
-  {
-    "variants": [
-      "Order of Growth",
-      "Order of Growths"
-    ],
-    "definition": "A characterization of how a function's value changes as its input grows, often expressed using Big O notation. It captures the dominant term that determines resource usage for large inputs."
+    "definition": "A problem in which the goal is to find the best solution from all feasible solutions according to an objective function, typically the minimum or maximum according to some measure."
   },
   {
     "variants": [
       "Order Statistic",
-      "Order Statistics"
+      "Order Statistics",
+      "kth Order Statistic"
     ],
-    "definition": "The k-th smallest (or largest) element in an ordered list; selection algorithms like Quickselect find order statistics in expected O(n) time."
+    "definition": "The <em>k</em>-th smallest (or largest) element in an ordered list. sSelection algorithms like Quickselect find order statistics in expected <em>O(n)</em> time."
+  },
+  {
+    "variants": [
+      "Order of Growth"
+    ],
+    "definition": "A characterization of how a function's value changes as its input grows, often expressed using Big-O notation. It captures the dominant term that determines resource usage for large inputs."
   },
   {
     "variants": [
@@ -636,8 +892,20 @@
   },
   {
     "variants": [
-      "Path Compression",
-      "Path Compressions"
+      "P (Complexity Class)"
+    ],
+    "definition": "The class of decision problems that can be solved by a deterministic algorithm in polynomial time."
+  },
+  {
+    "variants": [
+      "PSPACE (Complexity Class)",
+      "PSPACE"
+    ],
+    "definition": "The class of decision problems that can be solved by a deterministic algorithm using a polynomial amount of memory space."
+  },
+  {
+    "variants": [
+      "Path Compression"
     ],
     "definition": "A technique used in the union-find data structure to flatten the structure of the tree whenever find is called by making nodes on the find path point directly to the root. It improves amortized time per operation to near-constant."
   },
@@ -646,14 +914,13 @@
       "Permutation",
       "Permutations"
     ],
-    "definition": "An arrangement of all elements of a set in a sequence or order. There are n! permutations of n distinct elements, and computing permutations is used in combinatorial algorithms."
+    "definition": "An arrangement of all elements of a set in a sequence or order. There are <em>n!</em> permutations of <em>n</em> distinct elements, and computing permutations is important in many combinatorial algorithms."
   },
   {
     "variants": [
-      "Pigeonhole Principle",
-      "Pigeonhole Principles"
+      "Pigeonhole Principle"
     ],
-    "definition": "A principle stating that if n+1 or more items are placed into n containers, at least one container must contain more than one item. It is used in proofs and to demonstrate lower bounds."
+    "definition": "A principle stating that if <em>n+1</em> or more items are placed into n containers, at least one container must contain more than one item. It is used in proofs and to demonstrate lower bounds."
   },
   {
     "variants": [
@@ -671,21 +938,28 @@
   },
   {
     "variants": [
-      "Polynomial Time",
-      "Polynomial Times"
+      "Polynomial Time"
     ],
-    "definition": "An algorithm whose running time is upper bounded by a polynomial expression in the size of the input, denoted as O(n^k) for some constant k. Problems solvable in polynomial time belong to the class P."
+    "definition": "A running time that is upper bounded by a polynomial expression in the size of the input, denoted as <em>O(n<sup>k</sup>)</em> for some constant <em>k</em>. Problems solvable in polynomial time belong to the class P."
+  },
+  {
+    "variants": [
+      "Power Set"
+    ],
+    "definition": "The set of all subsets of a set, including the empty set and the set itself. The power set a set of size <em>n</em> has <em>2<sup>n</sup></em> elements."
   },
   {
     "variants": [
       "Priority Queue",
       "Priority Queues"
     ],
-    "definition": "An abstract data type similar to a queue where each element has a priority, and elements are removed based on highest (or lowest) priority. Common implementations use binary heaps, supporting insert and extract-min/max in O(log n) time."
+    "definition": "An abstract data type similar to a queue, but where each element has a priority, and elements are removed based on highest (or lowest) priority. Common implementations use binary heaps, supporting insert and extract-min/max in <em>O(log n)</em> time."
   },
   {
     "variants": [
       "Problem Reduction",
+      "Problem Reductions",
+      "reductions",
       "reduction"
     ],
     "definition": "The process of transforming one problem into another, often to show hardness or to leverage existing algorithms."
@@ -693,59 +967,73 @@
   {
     "variants": [
       "Prune",
+      "Prunes",
       "pruned",
       "pruning"
     ],
-    "definition": "The act of eliminating branches in a search tree or recursive algorithm that cannot lead to a valid or better solution."
+    "definition": "The act of eliminating branches in a search tree or recursive algorithm that cannot lead to a valid or better solution with the goal of improving algorithm performance."
   },
   {
     "variants": [
-      "Pseudocode",
-      "Pseudocodes"
+      "Pseudocode"
     ],
     "definition": "A high-level description of an algorithm using the structural conventions of programming languages but in plain language. It abstracts away language-specific syntax to focus on algorithmic logic."
+  },
+  {
+    "variants": [
+      "Pseudopolynomial Time",
+      "Pseudopolynomial"
+    ],
+    "definition": "A running time that is polynomial in the numeric value of the input (e.g. the target sum) rather than its encoding length, common in dynamic-programming solutions to problems like subset-sum or knapsack."
   },
   {
     "variants": [
       "Queue",
       "Queues"
     ],
-    "definition": "A first-in-first-out (FIFO) data structure supporting enqueue (insert at back) and dequeue (remove from front) in O(1) time. It is used in breadth-first search, buffering, and scheduling."
+    "definition": "A first-in-first-out (FIFO) data structure supporting enqueue (insert at back) and dequeue (remove from front) in <em>O(1)</em> time. They are used in breadth-first search, buffering, scheduling, and many other places."
   },
   {
     "variants": [
-      "Radix Sort",
-      "Radix Sorts"
+      "Quickselect",
+      "Hoare's selection algorithm"
     ],
-    "definition": "A non-comparative integer sorting algorithm that processes digits of numbers from least significant to most significant (LSD) or vice versa, using counting sort as a subroutine. It runs in O(nxk) time, where k is the number of digits."
+    "definition": "A Decrease-and-Conquer algorithm to find the <em>k</em>-th smallest element in an unordered list of <em>n</em> items by partitioning like Quicksort, with an average-case time of <em>O(n)</em>."
+  },
+  {
+    "variants": [
+      "Quicksort"
+    ],
+    "definition": "A divide-and-conquer sorting algorithm that partitions an array around a pivot and recursively sorts the partitions, achieving average-case <em>O(n log n)</em> time."
+  },
+  {
+    "variants": [
+      "Radix Sort"
+    ],
+    "definition": "A non-comparison integer sorting algorithm that processes digits of numbers from least significant to most significant (LSD) or vice versa, typically using counting sort as a subroutine. It runs in <em>O(n*k)</em> time, where <em>k</em> is the number of digits."
   },
   {
     "variants": [
       "Randomized Algorithm",
       "Randomized Algorithms"
     ],
-    "definition": "An algorithm that uses randomness as part of its logic, potentially giving different outcomes on different runs. Examples include randomized quicksort and Monte Carlo algorithms."
+    "definition": "An algorithm that uses randomness as part of its logic, potentially giving different outcomes on different runs. Examples include randomized Quicksort and Monte Carlo algorithms. Often used to improve performance."
   },
   {
     "variants": [
       "Recurrence Relation",
-      "Recurrence Relations"
+      "Recurrence Relations",
+      "Recurrence",
+      "Recurrences"
     ],
     "definition": "An equation that defines a sequence recursively in terms of earlier terms. In algorithm analysis, recurrence relations express the running time of divide-and-conquer algorithms."
   },
   {
     "variants": [
       "Recursion",
-      "Recursions"
-    ],
-    "definition": "A programming technique where a function calls itself with smaller inputs until reaching a base case. It is used to solve divide-and-conquer and combinatorial problems."
-  },
-  {
-    "variants": [
-      "Recursion",
       "recursive"
     ],
-    "definition": "A process or function that calls itself directly or indirectly, typically with smaller inputs each time."
+    "definition": "A programming technique where a function calls itself with smaller inputs until reaching a base case. It is used to solve divide-and-conquer and combinatorial problems."
   },
   {
     "variants": [
@@ -759,13 +1047,6 @@
       "Red-Black Trees"
     ],
     "definition": "A self-balancing binary search tree where each node has a color (red or black) and the tree maintains specific properties to ensure balance. Operations like search, insert, and delete run in O(log n) time."
-  },
-  {
-    "variants": [
-      "Reduction",
-      "Reductions"
-    ],
-    "definition": "The process of transforming one problem into another in a way that a solution to the second problem can be converted back to a solution to the first. Reductions are used to prove hardness and complexity class membership."
   },
   {
     "variants": [
@@ -786,54 +1067,55 @@
       "boolean satisfiability",
       "satisfiability"
     ],
-    "definition": "The problem of determining if there exists an assignment of truth values to variables that makes a Boolean formula true."
+    "definition": "The problem of determining if there exists an assignment of truth values to the variables that makes a Boolean formula true."
   },
   {
     "variants": [
-      "Segment Tree",
-      "Segment Trees"
+      "Selection Sort"
     ],
-    "definition": "A binary tree data structure that stores intervals or segments, allowing efficient range queries and updates in O(log n) time. It supports operations like range sum or minimum."
+    "definition": "A simple sorting algorithm that repeatedly selects the maximum element from the unsorted portion and swaps it with the last unsorted element. Alternatively, it can do so with the minimum/first unsorted element. It has <em>O(n<sup>2</sup>)</em> time complexity and <em>O(1)</em> space usage."
   },
   {
     "variants": [
-      "Selection Sort",
-      "Selection Sorts"
+      "Shell Sort"
     ],
-    "definition": "A simple sorting algorithm that repeatedly selects the minimum element from the unsorted portion and swaps it with the first unsorted element. It has O(n<sup>2</sup>) time complexity and O(1) space usage."
+    "definition": "A generalization of insertion sort that initially sorts elements far apart using a gap sequence, reducing the gap until final insertion sort, improving average performance."
   },
   {
     "variants": [
       "Shortest Path",
       "Shortest Paths"
     ],
-    "definition": "The problem of finding a path between two vertices in a graph such that the sum of edge weights is minimized. Algorithms include Dijkstra's (for non-negative weights) and Bellman-Ford (for graphs with negative weights)."
+    "definition": "The problem of finding a path between two vertices in a graph such that the sum of edge weights (for weighted graph) or number of intermediate nodes (for unweighted graphs) is minimized . Algorithms include Breadth-First Search (for unweighted graphs), Dijkstra's (for non-negative weights) and Bellman-Ford (for graphs with negative weights)."
   },
   {
     "variants": [
-      "Sink Vertex",
-      "Sink Vertexs"
+      "Sink Vertex"
     ],
     "definition": "In a directed graph, a vertex with no outgoing edges (outdegree zero). In flow networks, the sink is the designated target node where flow is collected."
   },
   {
     "variants": [
-      "Sort",
-      "Sorts"
+      "Skip List"
     ],
-    "definition": "The process of arranging elements in a list into a specified order, usually ascending or descending. Common sorting algorithms include quicksort, mergesort, heapsort, and insertion sort."
+    "definition": "A probabilistic data structure composed of multiple levels of linked lists that provides average-case <em>O(log n)</em> time for search, insertion, and deletion."
   },
   {
     "variants": [
-      "Source Vertex",
-      "Source Vertexs"
+      "Sort",
+      "Sorting"
+    ],
+    "definition": "The process of arranging elements in a list into a specified order, usually ascending or descending. Common sorting algorithms include Quicksort, Merge Sort, Heapsort, and Insertion Sort."
+  },
+  {
+    "variants": [
+      "Source Vertex"
     ],
     "definition": "In a directed graph, a vertex with no incoming edges (indegree zero). In flow networks, the source is the designated origin node where flow is generated."
   },
   {
     "variants": [
-      "Space Complexity",
-      "Space Complexitys"
+      "Space Complexity"
     ],
     "definition": "The amount of memory an algorithm uses relative to the size of its input, often expressed using asymptotic notation. It includes both auxiliary and input storage."
   },
@@ -846,64 +1128,100 @@
   },
   {
     "variants": [
+      "Splay Tree"
+    ],
+    "definition": "A self-adjusting binary search tree that moves accessed elements to the root using rotations (splaying), ensuring amortized <em>O(log n)</em> time for operations."
+  },
+  {
+    "variants": [
       "Stable Sort",
       "Stable Sorts"
     ],
-    "definition": "A sorting algorithm that maintains the relative order of records with equal keys. Examples include merge sort and insertion sort, while selection sort and heapsort are not stable by default."
+    "definition": "A sorting algorithm that maintains the relative order of records with equal keys. Examples include Merge Sort and Insertion Sort, while Selection Sort and Heapsort are not stable by default. Particularly important when multiple passes of sorting are necessary (e.g. Radix Sort, or when sorting according to multiple fields)"
   },
   {
     "variants": [
       "Stack",
       "Stacks"
     ],
-    "definition": "A last-in-first-out (LIFO) data structure supporting push (add to top) and pop (remove from top) in O(1) time. It is used in recursion, depth-first search, and expression evaluation."
+    "definition": "A last-in-first-out (LIFO) data structure supporting push (add to top) and pop (remove from top) in <em>O(1)</em> time. It is used in recursion, depth-first search, expression evaluation, and many other places."
+  },
+  {
+    "variants": [
+      "Strongly Connected Component",
+      "Strongly Connected Components",
+      "SCC"
+    ],
+    "definition": "A maximal set of vertices in a directed graph such that every vertex is reachable from every other vertex in the set."
   },
   {
     "variants": [
       "Subset",
       "Subsets"
     ],
-    "definition": "A set containing zero or more elements all taken from another set. The power set of a set of size n has 2^n subsets, and generating subsets is a common combinatorial task."
+    "definition": "A set containing zero or more elements from another set. Generating subsets is a common combinatorial task."
   },
   {
     "variants": [
-      "Tail Recursion",
-      "Tail Recursions"
+      "Subset Sum Problem"
+    ],
+    "definition": "A decision problem of determining whether a subset of given integers sums exactly to a specified target value. Solvable in pseudopolynomial time by dynamic programming."
+  },
+  {
+    "variants": [
+      "Tail Recursion"
     ],
     "definition": "A special case of recursion where the recursive call is the last operation in the function, allowing optimizations that convert recursion into iteration to save stack space. Languages or compilers that support tail-call optimization can execute tail-recursive functions in constant space."
   },
   {
     "variants": [
-      "Time Complexity",
-      "Time Complexitys"
+      "TimSort"
+    ],
+    "definition": "A hybrid stable sorting algorithm derived from Merge Sort and Insertion Sort, optimized for real-world data by exploiting runs and achieving <em>O(n log n)</em> worst-case time."
+  },
+  {
+    "variants": [
+      "Time Complexity"
     ],
     "definition": "A measure of the amount of time an algorithm takes as a function of input size, often expressed using asymptotic notation. It helps compare the efficiency of algorithms."
   },
   {
     "variants": [
-      "Topological Sort",
-      "Topological Sorts"
+      "Topological Sort"
     ],
-    "definition": "A linear ordering of vertices in a directed acyclic graph (DAG) such that for every directed edge (u,v), vertex u comes before v in the ordering. It can be computed in O(V + E) time using DFS or Kahn's algorithm."
+    "definition": "A linear ordering of vertices in a directed acyclic graph (DAG) such that for every directed edge <em>(u,v)</em>, vertex <em>u</em> comes before <em>v</em> in the ordering. It can be computed in <em>O(V + E)</em> time using DFS or Kahn's algorithm."
+  },
+  {
+    "variants": [
+      "Traveling Salesman Problem",
+      "Traveling Salesman",
+      "TSP"
+    ],
+    "definition": "Given a finite set of 'cities' and a distance (or cost) between every ordered pair of cities, the goal is to find a Hamiltonian cycle of minimum total length. TSP is NP-hard, so currently there are no known efficient algorithms that can solve it in general."
   },
   {
     "variants": [
       "Tree",
       "Trees"
     ],
-    "definition": "A connected, acyclic undirected graph. As a data structure, each node can have children, and operations include traversal (preorder, inorder, postorder), insertion, and deletion."
+    "definition": "Ambiguous. Could mean:<ul><li><strong>unrooted tree:</strong> A connected, acyclic, undirected graph.</li><li><strong>rooted tree:</strong> A tree in which one node is distinguished as the root, and every other node has exactly one parent, establishing a hierarchical parent-child structure. All nodes are reachable from the root by a unique path. The most common subtypes are Binary Trees and k-ary Trees.</li></ul>"
   },
   {
     "variants": [
       "Undirected Graph",
       "Undirected Graphs"
     ],
-    "definition": "A graph in which each edge connects two vertices symmetrically, with no direction. Represented by adjacency lists or matrices, common in modeling symmetric relations."
+    "definition": "A graph in which the edges are unordered pairs of vertices, each representing a bidirectional connection between its two endpoints."
   },
   {
     "variants": [
-      "Union-Find",
-      "Union-Finds"
+      "Union by Rank"
+    ],
+    "definition": "A heuristic in the union-find data structure that always attaches the shorter tree under the taller one to keep trees shallow, improving the amortized performance of union and find operations."
+  },
+  {
+    "variants": [
+      "Union-Find"
     ],
     "definition": "A data structure that keeps track of disjoint sets and supports union (merge two sets) and find (determine set representative) operations, often implemented with union by rank and path compression for nearly constant-time performance."
   },
@@ -912,12 +1230,11 @@
       "Upper Bound",
       "Upper Bounds"
     ],
-    "definition": "A function that serves as an asymptotic upper limit on the growth of another function, often expressed using Big O notation. It guarantees that an algorithm's running time will not exceed this bound for sufficiently large inputs."
+    "definition": "A function that serves as an asymptotic upper limit on the growth of another function, often expressed using Big-O notation. If function <em>g(n)</em> is an upper bound on <em>f(n)</em>, then <em>f</em> grows no faster the <em>g</em> as <em>n</em> gets larger."
   },
   {
     "variants": [
-      "Vertex Cover",
-      "Vertex Covers"
+      "Vertex Cover"
     ],
     "definition": "A set of vertices in a graph such that every edge has at least one endpoint in the set. Finding the minimum vertex cover is NP-hard."
   },
@@ -927,6 +1244,13 @@
       "Weighted Edges"
     ],
     "definition": "An edge in a graph that has an associated numerical value (weight), representing cost, distance, or capacity. Algorithms like Dijkstra's and Kruskal's take edge weights into account."
+  },
+  {
+    "variants": [
+      "Weighted Graph",
+      "Weighted Graph"
+    ],
+    "definition": "A graph where each edge has a number (the weight) associated with it, often used to represent cost, distance, or capacity."
   },
   {
     "variants": [
