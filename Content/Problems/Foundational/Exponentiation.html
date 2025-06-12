@@ -5,6 +5,7 @@
   <title>Exponentiation</title>
   <link rel="stylesheet" href="../../../css/style.css">
   <link rel="stylesheet" href="../../../css/problem.css">
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>  
 </head>
 <body>
   <h1>Exponentiation</h1>
@@ -12,15 +13,15 @@
   <section>
     <h2>Problem Description</h2>
     <p>
-      Given a base <em>a</em> and a non-negative exponent <em>n</em>, compute the exponentiation <em>a</em><sup><em>n</em></sup>.
+      Given a base \(a\) and a non-negative exponent \(n\), compute the exponentiation \(a^n\).
     </p>
     <h3>Input</h3>
     <p>
-      Two integers: a base <em>a</em> and an exponent <em>n</em>, where <em>n</em> ≥ 0.
+      Two integers: a base \(a\) and an exponent \(n\), where \(n \geq 0\).
     </p>
     <h3>Output</h3>
     <p>
-      The value of <em>a</em><sup><em>n</em></sup>, i.e., <em>a</em> multiplied by itself <em>n</em> times.
+      The value of \(a^n\), i.e., \(a\) multiplied by itself \(n\) times.
     </p>
   </section>
 
@@ -53,16 +54,16 @@
   <section>
     <h2>Common Algorithms/Techniques</h2>
     <ul>
-      <li>Naïve loop multiplication (O(<em>n</em>) time)</li>
-      <li>Exponentiation by squaring / Fast power (O(log <em>n</em>) time)</li>
-      <li>Modular exponentiation (compute <em>a</em><sup><em>n</em></sup> mod <em>m</em> via repeated squaring)</li>
+      <li>Naïve loop multiplication (\(O(n)\) time)</li>
+      <li>Naïve Divide-and-conquer (\(O(n)\) time)</li>
+      <li>Binary Exponentiation (also called Exponentiation by squaring, Fast Exponentiation, and other names) (\(O(\log n)\) time)</li>
     </ul>
   </section>
 
   <section>
     <h2>Variants/Related Problems</h2>
     <ul>
-      <li>Modular exponentiation with very large exponents</li>
+      <li>Modular exponentiation (compute \(a^n\bmod m\))</li>
       <li>Exponentiation with negative exponents (computing reciprocals)</li>
       <li>Matrix exponentiation for solving linear recurrences</li>
       <li>Real-number exponentiation and power functions</li>

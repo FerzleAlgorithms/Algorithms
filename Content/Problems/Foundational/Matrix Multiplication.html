@@ -13,7 +13,8 @@
   <section>
     <h2>Problem Description</h2>
     <p>
-      Given two matrices \( A \) of size \( m \times n \) and \( B \) of size \( n \times p \), compute the product matrix \( C = A \cdot B \), where \( C \) is an \( m \times p \) matrix and each element \( c_{ij} \) is defined as:
+      Given two matrices \( A \) of size \( m \times n \) and \( B \) of size \( n \times p \)
+      with real number entries, compute the product matrix \( C = A \cdot B \), where \( C \) is an \( m \times p \) matrix and each element \( c_{ij} \) is defined as:
       \[
       c_{ij} = \sum_{k=1}^{n} a_{ik} \cdot b_{kj}
       \]
@@ -40,22 +41,51 @@
 
   <section>
     <h2>Examples</h2>
-
     <div class="example-box">
       <strong class="example-title">Example 1</strong><br>
       <strong>Input:</strong><br>
-      \( A = \begin{bmatrix}1 & 2\\ 3 & 4\end{bmatrix} \),
-      \( B = \begin{bmatrix}2 & 0\\ 1 & 2\end{bmatrix} \)<br><br>
+      \( A = \begin{bmatrix}
+        1 & 2 & 3 \\ 
+        4 & 5 & 6 \\ 
+        7 & 8 & 9
+      \end{bmatrix} \), 
+      \( B = \begin{bmatrix}
+        9 & 8 & 7 \\ 
+        6 & 5 & 4 \\ 
+        3 & 2 & 1
+      \end{bmatrix} \)<br><br>
+      <strong>Computation:</strong> Here are the computations of each entry of \(A\times B\):
+      <ul>
+  <li>\((1,1): 1\cdot9 + 2\cdot6 + 3\cdot3 = 9 + 12 + 9 = 30\)</li>
+  <li>\((1,2): 1\cdot8 + 2\cdot5 + 3\cdot2 = 8 + 10 + 6 = 24\)</li>
+  <li>\((1,3): 1\cdot7 + 2\cdot4 + 3\cdot1 = 7 + 8 + 3 = 18\)</li>
+  <li>\((2,1): 4\cdot9 + 5\cdot6 + 6\cdot3 = 36 + 30 + 18 = 84\)</li>
+  <li>\((2,2): 4\cdot8 + 5\cdot5 + 6\cdot2 = 32 + 25 + 12 = 69\)</li>
+  <li>\((2,3): 4\cdot7 + 5\cdot4 + 6\cdot1 = 28 + 20 + 6 = 54\)</li>
+  <li>\((3,1): 7\cdot9 + 8\cdot6 + 9\cdot3 = 63 + 48 + 27 = 138\)</li>
+  <li>\((3,2): 7\cdot8 + 8\cdot5 + 9\cdot2 = 56 + 40 + 18 = 114\)</li>
+  <li>\((3,3): 7\cdot7 + 8\cdot4 + 9\cdot1 = 49 + 32 + 9 = 90\)</li>
+</ul>
       <strong>Output:</strong><br>
-      \( A\times B = \begin{bmatrix}4 & 4\\ 10 & 8\end{bmatrix} \)
+      \( A \times B = \begin{bmatrix}
+        30 & 24 & 18 \\ 
+        84 & 69 & 54 \\ 
+        138 & 114 & 90
+      \end{bmatrix} \)
     </div>
     <br>
-
     <div class="example-box">
       <strong class="example-title">Example 2</strong><br>
       <strong>Input:</strong><br>
       \( A = \begin{bmatrix}1 & 0 & 2\\ -1 & 3 & 1\end{bmatrix} \),
       \( B = \begin{bmatrix}3 & 1\\ 2 & 1\\ 1 & 0\end{bmatrix} \)<br><br>
+       <strong>Computation:</strong> Here are the computations of each entry of \(A\times B\):
+  <ul>
+    <li>\((1,1): 1\cdot3 + 0\cdot2 + 2\cdot1 = 3 + 0 + 2 = 5\)</li>
+    <li>\((1,2): 1\cdot1 + 0\cdot1 + 2\cdot0 = 1 + 0 + 0 = 1\)</li>
+    <li>\((2,1): -1\cdot3 + 3\cdot2 + 1\cdot1 = -3 + 6 + 1 = 4\)</li>
+    <li>\((2,2): -1\cdot1 + 3\cdot1 + 1\cdot0 = -1 + 3 + 0 = 2\)</li>
+  </ul>
       <strong>Output:</strong><br>
       \( A\times B = \begin{bmatrix}5 & 1\\ 4 & 2\end{bmatrix} \)
     </div>
@@ -65,8 +95,8 @@
     <h2>Common Algorithms/Techniques</h2>
     <ul>
       <li>Naive matrix multiplication (triple loop)</li>
+      <li>Recursive matrix multiplication (naive divide-and-conquer)</li>
       <li>Strassen’s algorithm (divide-and-conquer)</li>
-      <li>Recursive matrix multiplication</li>
       <li>Block matrix multiplication (cache-efficient)</li>
     </ul>
   </section>
@@ -74,7 +104,7 @@
   <section>
     <h2>Variants/Related Problems</h2>
     <ul>
-      <li>Strassen's Matrix Multiplication</li>
+      <li>Dot products of vectors (How each entry of the product \(A\times B\) is defined.)</li>
       <li>Chain Matrix Multiplication</li>
       <li>Sparse Matrix Multiplication</li>
     </ul>

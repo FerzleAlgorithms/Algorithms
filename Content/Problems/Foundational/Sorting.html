@@ -30,6 +30,7 @@
     <p>
       Sorting algorithms are crucial in computing for tasks like searching efficiently, organizing databases, scheduling tasks, and improving the performance of algorithms that require sorted data. Efficient sorting impacts performance significantly in various real-world systems and applications, from database management to algorithmic trading.
     </p>
+    <p>When sorting, sometimes it matters what happens to entries that are equal. This is particularly important when sorting data on multiple fields (e.g. first name and last name). A sorting algorithm that leaves equal entries in the same relative order is called <em>stable</em>. Otherwise it is called <em>unstable</em>.</p>
   </section>
 
   <section>
@@ -49,16 +50,42 @@
 
   <section>
     <h2>Common Algorithms/Techniques</h2>
+    <p>Sorting algorithms generally fall into two types: 
+    Comparison-based and non-comparison-based. 
     <ul>
-      <li>Bubble Sort</li>
-      <li>Insertion Sort</li>
-      <li>Selection Sort</li>
-      <li>Merge Sort</li>
-      <li>Quick Sort</li>
-      <li>Heap Sort</li>
-      <li>Counting Sort (non-comparison-based)</li>
-      <li>Radix Sort (non-comparison-based)</li>
+      <li><strong>Comparison-Based Sorting Algorithms</strong>
+        <ul>
+          <li>Bubble Sort</li>
+          <li>Insertion Sort</li>
+          <li>Selection Sort</li>
+          <li>Merge Sort</li>
+          <li>Quicksort</li>
+          <li>Heapsort</li>
+        </ul>
+     </li>
+     <li><strong>Non-Comparison-Based Sorting Algorithms</strong>
+        <ul>
+          <li>Bucket Sort</li>
+          <li>Counting Sort</li>
+          <li>Radix Sort</li>
+        </ul>
+     </li>
+    <li><strong>Goofy and/or Bad Sorting Algorithms</strong>
+        <ul>
+      <li>Bogosort (randomly shuffle until the list is sorted)</li>
+      <li>Bozosort (randomly swap two elements until the list is sorted)</li>
+      <li>Stooge Sort (recursively sort overlapping two-thirds segments)</li>
+      <li>Slowsort (deliberately inefficient divide-and-conquer "slow" sort)</li>
+      <li>Sleep Sort (spawn a timer for each value and "print" after sleeping)</li>
+      <li>Bogobogosort (repeat Bogosort multiple times for extra agony)</li>
+      <li>Bead Sort (simulate gravity on beads&mdash;requires special hardware/setup)</li>
+      <li>Gravity Sort (similar to Bead Sort, but with "falling" data particles)</li>
+      <li>Quantum Bogosort (theoretical "quantum" version that tries all permutations at once)</li>
+      <li>Gnome Sort (whimsical insertion-style sort with backtracking steps)</li>
     </ul>
+   </li>
+    </ul>
+
   </section>
 
   <section>

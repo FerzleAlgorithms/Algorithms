@@ -30,7 +30,116 @@ function scheduleBuildAndWrap() {
 // ————————————————————————————————————————————————
 // 2) Tooltip positioning by mouse, classified by wrapper center
 // ————————————————————————————————————————————————
+function positionTooltipAt(x, y, tip) {
+  tip.style.position = "fixed";
+  tip.style.display  = "block";
 
+  // 1) Measure your container/frame (for horizontal clamping)
+  const frame = document.querySelector('#content') || document.querySelector('main') || document.body;
+  const frameRect = frame.getBoundingClientRect();
+
+  // 2) Reset positioning so we can measure size
+  tip.style.left = tip.style.top = "0px";
+  const tipRect = tip.getBoundingClientRect();
+  const tipWidth  = tipRect.width;
+  const tipHeight = tipRect.height;
+
+  // 3) Horizontal placement (unchanged)
+  const relX  = x - frameRect.left, third = frameRect.width/3;
+  let left;
+  tip.classList.remove("to-left","to-center","to-right");
+  if      (relX < third)                { tip.classList.add("to-right"); left = x + 8; }
+  else if (relX > 2*third)              { tip.classList.add("to-left");  left = x - tipWidth - 8; }
+  else                                  { 
+    tip.classList.add("to-center");
+    left = Math.min(
+      Math.max(x - tipWidth/2, frameRect.left + 8),
+      frameRect.right - tipWidth - 8
+    );
+  }
+  tip.style.left = `${left}px`;
+
+  // 4) Compute the mouse’s GLOBAL Y (iframe’s top + local y)
+  const margin   = 8;
+  const frameTop = window.frameElement
+                   ? window.frameElement.getBoundingClientRect().top
+                   : 0;
+  const globalY  = frameTop + y;
+
+  // 5) Ask the **parent** window how tall it is
+  const parentHeight = window.parent.innerHeight;
+
+  // 6) Flip if there isn’t room below in the **parent** viewport
+  const showAbove = (globalY + tipHeight + margin) > parentHeight;
+
+  tip.style.top = showAbove
+    ? `${y - tipHeight - margin}px`
+    : `${y + margin}px`;
+}
+
+/*
+function positionTooltipAt(x, y, tip) {
+  tip.style.position = "fixed";
+  tip.style.display  = "block";
+
+  // 1) Figure out our text‐frame (for horizontal clamping)
+  const frame = document.querySelector('#content')
+             || document.querySelector('main')
+             || document.body;
+  const frameRect = frame.getBoundingClientRect();
+
+  // 2) Reset any left/top so we can measure width & height
+  tip.style.left = "0px";
+  tip.style.top  = "0px";
+
+  // 3) Measure
+  const tipRect = tip.getBoundingClientRect();
+  const tipWidth  = tipRect.width;
+  const tipHeight = tipRect.height;
+
+  // 4) Clear previous positioning classes
+  tip.classList.remove("to-right", "to-left", "to-center");
+
+  // 5) Compute horizontal placement exactly as you had it
+  const relX  = x - frameRect.left;
+  const third = frameRect.width / 3;
+  let left;
+  if (relX < third) {
+    tip.classList.add("to-right");
+    left = x + 8;
+  }
+  else if (relX > 2*third) {
+    tip.classList.add("to-left");
+    left = x - tipWidth - 8;
+  }
+  else {
+    tip.classList.add("to-center");
+    left = x - tipWidth/2;
+    // clamp to frame
+    left = Math.min(
+      Math.max(left, frameRect.left + 8),
+      frameRect.right - tipWidth - 8
+    );
+  }
+  tip.style.left = `${left}px`;
+
+  // 6) Decide whether to show *above* or *below*
+  //    Option A: if you're in the lower half of the viewport:
+  //const showAbove = y > (window.innerHeight / 2);
+
+  //    Option B: if there’s not enough room *below*:
+  const margin = 8;
+  const showAbove = (y + tipHeight + margin) > window.innerHeight;
+
+  // 7) Finally, set top
+  if (showAbove) {
+    tip.style.top = `${y - tipHeight - margin}px`;
+  } else {
+    tip.style.top = `${y + margin}px`;
+  }
+}
+*/
+/*
 function positionTooltipAt(x, y, tip) {
   tip.style.position = "fixed";
   tip.style.display  = "block";
@@ -77,6 +186,7 @@ function positionTooltipAt(x, y, tip) {
     tip.style.top  = `${y + 8}px`;
   }
 }
+*/
 
 // ————————————————————————————————————————————————
 // 3) Build & wrap glossary terms in text nodes

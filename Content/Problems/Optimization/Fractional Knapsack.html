@@ -5,6 +5,9 @@
   <title>Fractional Knapsack</title>
   <link rel="stylesheet" href="../../../css/style.css">
   <link rel="stylesheet" href="../../../css/problem.css">
+  <script id="MathJax-script" async
+    src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
+  </script>
 </head>
 <body>
   <h1>Fractional Knapsack</h1>
@@ -12,44 +15,51 @@
   <section>
     <h2>Problem Description</h2>
     <p>
-      Given a set of <em>n</em> items, each with a weight <em>w<sub>i</sub></em> and a 
-	  value <em>v<sub>i</sub></em>, and a knapsack with capacity <em>W</em>, 
-	  determine the maximum total value you can carry. You may take fractions of items.
+      Given a set of \(n\) items, where each item \(i\) has weight \(w_i\) and value \(v_i\),
+      and a knapsack capacity \(W\), choose fractions \(x_i\in[0,1]\) for each item to
+      maximize
+      \[
+        \sum_{i=1}^n v_i \,x_i
+        \quad\text{subject to}\quad
+        \sum_{i=1}^n w_i \,x_i \;\le\; W.
+      \]
+      In other words, you may take any fraction (up to 1) of each item under the weight limit
+      to maximize total value.
     </p>
+
     <h3>Input</h3>
     <p>
-      <ul>
-        <li>An integer <em>n</em>, the number of items.</li>
-        <li>An integer <em>W</em>, the capacity of the knapsack.</li>
-        <li>For each item <em>i</em> (1 ≤ <em>i</em> ≤ <em>n</em>):
-          <ul>
-            <li>Value <em>v<sub>i</sub></em> (non-negative integer)</li>
-            <li>Weight <em>w<sub>i</sub></em> (positive integer)</li>
-          </ul>
-        </li>
-      </ul>
+      A list of \(n\) items (item \(i\) has weight \(w_i\) and value \(v_i\)), and an integer
+      knapsack capacity \(W\).
     </p>
+
     <h3>Output</h3>
     <p>
-      A single number: the maximum total value achievable with capacity ≤ <em>W</em>, 
-	  allowing fractional parts of items.
+      The fractions \(x_i\in[0,1]\) for \(i=1,\dots,n\), and the maximum total value
+      \[
+        V \;=\;\sum_{i=1}^n v_i\,x_i
+      \]
+      such that
+      \(\sum_{i=1}^n w_i\,x_i \le W\).
     </p>
   </section>
 
   <section>
     <h2>Motivation/Applications</h2>
     <p>
-      The fractional knapsack models scenarios where resources can be divided, such as loading cargo of divisible goods, investing funds across opportunities, or allocating bandwidth. Its greedy solution gives insight into resource allocation and serves as a foundation for more complex variants.
+      The fractional knapsack models scenarios where resources can be divided,
+      such as loading cargo of divisible goods, investing funds across opportunities,
+      or allocating bandwidth. Its greedy solution gives insight into resource
+      allocation and serves as a foundation for more complex variants.
     </p>
   </section>
   
-  <h2>Examples</h2>
   <section>
-
- <div class="example-box">
+    <h2>Examples</h2>
+    <div class="example-box">
       <strong class="example-title">Example 1</strong>
       <p><strong>Input:</strong></p>
-      <table  class="example-table">
+      <table class="example-table">
         <thead>
           <tr><th>Item</th><th>Value</th><th>Weight</th></tr>
         </thead>
@@ -59,15 +69,15 @@
           <tr><td>3</td><td>120</td><td>30</td></tr>
         </tbody>
       </table>
-      <p><strong>Capacity (W):</strong> 50</p>
+      <p>Capacity \(W= 50\)</p>
 
       <p><strong>Output:</strong></p>
-      <p>Take items <strong>1, 2,</strong> and <strong>2/3 of item 3</strong><br>
-	  using	  all <strong>50</strong> of the weight.</br>
-	  <br>Maximum value =
-	  <strong>240</strong>.</p>
+      <p>
+        Take items <strong>1, 2</strong>, and \(\tfrac{2}{3}\) of item 3 using all <strong>50</strong> of the weight.<br>
+        Maximum value = <strong>\(240\)</strong>.
+      </p>
     </div>
-	&nbsp; &nbsp;
+    &nbsp; &nbsp;
     <div class="example-box">
       <strong class="example-title">Example 2</strong>
       <p><strong>Input:</strong></p>
@@ -86,22 +96,20 @@
           <tr><td>8</td><td>1</td><td>4</td></tr>
         </tbody>
       </table>
-      <p><strong>Capacity (W):</strong> 15</p>
+      <p>Capacity \(W= 15\)</p>
 
       <p><strong>Output:</strong></p>
-	  <p>Take items <strong>5, 1, 6, 2,</strong> and <strong>3/10 of item 7</strong> <br>
-	  using all <strong>15</strong> of the weight.<br>
-      </br>
-	  Max value = <strong>35.6</strong>.</p>
+      <p>
+        Take items <strong>5, 1, 6, 2</strong>, and \(\tfrac{3}{10}\) of item 7 using all <strong>15</strong> of the weight.<br>
+        Maximum value = <strong>\(35.6\)</strong>.
+      </p>
     </div>
   </section>
-
 
   <section>
     <h2>Common Algorithms/Techniques</h2>
     <ul>
-      <li>Greedy by sorting items in decreasing order of value-to-weight ratio: O(<em>n</em> log <em>n</em>).</li>
-      <li>Linear-time selection if ratios precomputed and bucketed (advanced).</li>
+      <li>Greedy Algorithm that sorts items in decreasing order of value-to-weight ratio: \(O(n\log n)\).</li>
     </ul>
   </section>
 

@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>K-th Order Statistic</title>
+  <link rel="stylesheet" href="../../../css/style.css">
+  <link rel="stylesheet" href="../../../css/problem.css">
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>  
+</head>
+<body>
+  <h1>K-th Order Statistic</h1>
+
+  <section>
+    <h2>Problem Description</h2>
+    <p>
+      Given an unsorted array of \(n\) elements and an integer \(k\) (1 ≤ \(k\) ≤ \(n\)), 
+      find the element that would appear in the \(k\)-th position if the array were sorted in non-decreasing order.
+    </p>
+
+    <h3>Input</h3>
+    <p>
+      An array of \(n\) distinct (or not necessarily distinct) comparable elements (e.g., numbers),
+      and an integer \(k\), where 1 ≤ \(k\) ≤ \(n\).
+    </p>
+
+    <h3>Output</h3>
+    <p>
+      The \(k\)-th smallest element of the array (i.e., the element of rank \(k\) in sorted order).
+    </p>
+  </section>
+
+  <section>
+    <h2>Motivation/Applications</h2>
+    <p>
+      Selection of order statistics is fundamental in statistics (e.g., median finding when \(k\) = ⌈\(n\)/2⌉),
+      in database systems (e.g., finding top-\(k\) results), and in optimization (e.g., computing quantiles for
+      robust estimators). Efficient selection avoids the cost of full sorting when only one element of a specific rank
+      is required.
+    </p>
+  </section>
+
+  <section>
+    <h2>Examples</h2>
+    <div class="example-box">
+      <strong class="example-title">Example 1</strong><br>
+      <strong>Input:</strong> [7, 10, 4, 3, 20, 15], \(k = 3\)<br>
+      <strong>Output:</strong> 7<br>
+      <em>Explanation:</em> Sorted order is [3, 4, 7, 10, 15, 20], so the 3rd element is 7.
+    </div>
+    <br>
+    <div class="example-box">
+      <strong class="example-title">Example 2</strong><br>
+      <strong>Input:</strong> [12, 3, 5, 7, 4, 19, 26], \(k = 1\)<br>
+      <strong>Output:</strong> 3<br>
+      <em>Explanation:</em> Sorted order is [3, 4, 5, 7, 12, 19, 26], so the 1st element is 3.
+    </div>
+  </section>
+
+  <section>
+    <h2>Common Algorithms/Techniques</h2>
+    <ul>
+      <li>Quickselect (randomized selection, average \(O(n)\) time)</li>
+      <li>Median of Medians (deterministic selection, worst-case \(O(n)\) time)</li>
+      <li>Sort and index (\(O(n \log n)\) time, simple but not optimal for large \(n\))</li>
+      <li>Use a Min Heap. Build a Min Heap in \(O(n)\) time and then extract the minimum \(k\) times (each in \(O(\log n)\)), giving an \(O(n + k\log n)\) time algorithm using \(O(n)\) extra space.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Variants/Related Problems</h2>
+    <ul>
+      <li>Selection of the maximum, minimum, or median (\(k = 1\), \(k = n\), \(k = \lceil n/2\rceil\)</li>
+      <li>Top-\(k\) largest or smallest elements (returning a set instead of a single element)</li>
+      <li>Weighted median (order statistic with weights)</li>
+    </ul>
+  </section>
+</body>
+</html>

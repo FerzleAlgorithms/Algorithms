@@ -13,7 +13,7 @@
   font-style: italic;
 }
 .example-table {
-  width: 100%;
+  /*width: 100%;*/
   border-collapse: collapse;
   margin: 1em 0;
   font-size: 0.95rem;

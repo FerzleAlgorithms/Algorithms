@@ -57,9 +57,30 @@
       fetch('/Algorithms/scripts/glossary-data.json?cb=' + Date.now(), {cache: 'no-store'})
         .then(r => r.ok ? r.json() : Promise.reject(r))
         .then(data => {
+        /*
           const gloss = data.map(e => ({variants: e.variants || [e.term], definition: e.definition}));
           gloss.sort((a,b) => a.variants[0].localeCompare(b.variants[0]));
           render(gloss);
+          */
+          const gloss = data.map(e => {
+              const variants = e.variants || [e.term];
+          
+              // keep v[i] only if it's not just the last kept + "s"
+              const filtered = variants.reduce((keep, v) => {
+                if (
+                  keep.length === 0 ||
+                  v.toLowerCase() !== keep[keep.length - 1].toLowerCase() + 's'
+                ) {
+                  keep.push(v);
+                }
+                return keep;
+              }, []);
+          
+              return { variants: filtered, definition: e.definition };
+            })
+            .sort((a, b) => a.variants[0].localeCompare(b.variants[0]));
+          
+            render(gloss);
         })
         .catch(() => container.innerHTML = '<p>Could not load glossary.</p>');
     });

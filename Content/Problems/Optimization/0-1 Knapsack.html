@@ -5,38 +5,49 @@
   <title>0-1 Knapsack Problem</title>
   <link rel="stylesheet" href="../../../css/style.css">
   <link rel="stylesheet" href="../../../css/problem.css">
+  <script id="MathJax-script" async
+    src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
+  </script>
 </head>
 <body>
   <h1>0-1 Knapsack Problem</h1>
 
   <section>
     <h2>Problem Description</h2>
-    <p>
-      Given a set of <em>n</em> items, each with a weight <em>w<sub>i</sub></em> and a value <em>v<sub>i</sub></em>,
-      determine the maximum total value of a subset of items that can be placed into a knapsack with capacity <em>W</em>.
-      Each item may be chosen at most once (the “0-1” constraint).
-    </p>
+      <p>
+    Given a set of \(n\) items, where each item \(i\) has weight \(w_i\) and value \(v_i\),
+    and a knapsack capacity \(W\), find a subset \(S \subseteq \{1,\dots,n\}\) that
+    maximizes 
+    \[
+      \sum_{i\in S} v_i
+      \quad\text{subject to}\quad
+      \sum_{i\in S} w_i \le W.
+    \]
+    In other words, select items whose total weight does not exceed \(W\) while maximizing their total value. Each item may be chosen at most once.
+  </p>
 
     <h3>Input</h3>
     <p>
-      A list of <em>n</em> items, where item <em>i</em> has weight <em>w<sub>i</sub></em> and value <em>v<sub>i</sub></em>;
-      and an integer knapsack capacity <em>W</em>.
+      A list of \(n\) items, where item \(i\) has weight \(w_i\) and value \(v_i\);
+      and an integer knapsack capacity \(W\).
     </p>
 
     <h3>Output</h3>
-    <p>
-      The maximum total value achievable by selecting a subset of items whose total weight does not exceed <em>W</em>.
-    </p>
+<p>
+  The subset \(S \subseteq \{1,\dots,n\}\) of items to include (i.e., the list of chosen items), and the maximum total value 
+  \(\displaystyle V=\sum_{i\in S}v_i\), such that \(\displaystyle\sum_{i\in S}w_i\le W\).
+</p>
+
   </section>
 
   <section>
     <h2>Motivation/Applications</h2>
     <p>
-      The 0-1 Knapsack Problem models many resource‐allocation scenarios:  
-      budgeted project selection, cargo loading with weight limits, subset‐sum in cryptography,
-      and portfolio optimization under investment constraints.  
-      It illustrates the power of dynamic programming and serves as a gateway to more complex
-      optimization techniques.
+      The 0-1 Knapsack Problem models many resource-allocation scenarios:
+      budgeted project selection, cargo loading with weight limits, subset-sum
+      in cryptography, and portfolio optimization under investment constraints.
+      It illustrates the power of dynamic programming and serves as a gateway
+      to more complex optimization techniques.
     </p>
   </section>
 
@@ -45,68 +56,70 @@
     <div class="example-box">
       <strong class="example-title">Example 1</strong>
       <p><strong>Input:</strong></p>
-        <table class="example-table">
-          <thead>
-            <tr><th>Item</th><th>Value</th><th>Weight</th></tr>
-          </thead>
-          <tbody>
-            <tr><td>1</td><td>60</td><td>10</td></tr>
-            <tr><td>2</td><td>100</td><td>20</td></tr>
-            <tr><td>3</td><td>120</td><td>30</td></tr>
-          </tbody>
-        </table>
-      <p><strong>Capacity (W):</strong> 50</p>
+      <table class="example-table">
+        <thead>
+          <tr><th>Item</th><th>Value</th><th>Weight</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>1</td><td>60</td><td>10</td></tr>
+          <tr><td>2</td><td>100</td><td>20</td></tr>
+          <tr><td>3</td><td>120</td><td>30</td></tr>
+        </tbody>
+      </table>
+      <p>Capacity \(W= 50\)</p>
 
       <p><strong>Output:</strong></p>
-      <p>Take items <strong>2 and 3</strong></br>
-	  for a total weight of <strong>50</strong></br> 
-	  and value of <strong>220</strong>.</p>
+      <p>
+        Take items <strong>2 and 3</strong> for a total weight of
+        <strong>\(50\)</strong> and value of <strong>\(220\)</strong>.
+      </p>
     </div>
-	&nbsp; &nbsp;
+    &nbsp; &nbsp;
     <div class="example-box">
       <strong class="example-title">Example 2</strong>
       <p><strong>Input:</strong></p>
-        <table class="example-table">
-          <thead>
-            <tr><th>Item</th><th>Value</th><th>Weight</th></tr>
-          </thead>
-          <tbody>
-            <tr><td>1</td><td>12</td><td>4</td></tr>
-            <tr><td>2</td><td>4</td><td>3</td></tr>
-            <tr><td>3</td><td>5</td><td>5</td></tr>
-            <tr><td>4</td><td>3</td><td>6</td></tr>
-            <tr><td>5</td><td>8</td><td>1</td></tr>
-            <tr><td>6</td><td>8</td><td>4</td></tr>
-            <tr><td>7</td><td>12</td><td>10</td></tr>
-            <tr><td>8</td><td>1</td><td>4</td></tr>
-          </tbody>
-        </table>
-      <p><strong>Capacity (W):</strong> 15</p>
+      <table class="example-table">
+        <thead>
+          <tr><th>Item</th><th>Value</th><th>Weight</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>1</td><td>12</td><td>4</td></tr>
+          <tr><td>2</td><td>4</td><td>3</td></tr>
+          <tr><td>3</td><td>5</td><td>5</td></tr>
+          <tr><td>4</td><td>3</td><td>6</td></tr>
+          <tr><td>5</td><td>8</td><td>1</td></tr>
+          <tr><td>6</td><td>8</td><td>4</td></tr>
+          <tr><td>7</td><td>12</td><td>10</td></tr>
+          <tr><td>8</td><td>1</td><td>4</td></tr>
+        </tbody>
+      </table>
+      <p>Capacity \(W= 15\)</p>
 
       <p><strong>Output:</strong></p>
-	  <p>Take items <strong>1, 3, 5, and 6</strong><br> 
-	  for a total weight of <strong>15</strong> <br>
-	  and value of <strong>33</strong>.</p>
+      <p>
+        Take items <strong>1, 3, 5, and 6</strong> for a total weight of
+        <strong>\(15\)</strong> and value of <strong>\(33\)</strong>.
+      </p>
     </div>
   </section>
 
   <section>
     <h2>Common Algorithms/Techniques</h2>
     <ul>
-      <li>Dynamic Programming (O(<em>nW</em>) time, table‐based)</li>
-      <li>Branch and Bound / Backtracking (prune subtrees, exact for moderate n)</li>
-      <li>Meet‐in‐the‐Middle (split items into two halves, O(2<sup>n/2</sup>))</li>
-      <li>Fully Polynomial‐Time Approximation Scheme (FPTAS) for large W</li>
+      <li>Dynamic Programming (\(O(nW)\) time, table-based)</li>
+      <li>Branch and Bound / Backtracking (prune subtrees, exact for moderate \(n\))</li>
+      <li>Meet-in-the-Middle (split items into two halves, \(O(2^{n/2})\))</li>
+      <li>Fully Polynomial-Time Approximation Scheme (FPTAS, for large \(W\))</li>
     </ul>
   </section>
 
   <section>
     <h2>Variants/Related Problems</h2>
     <ul>
-      <li>Fractional Knapsack (items divisible; greedy, O(<em>n</em> log <em>n</em>))</li>
+      <li>Fractional Knapsack (items divisible; greedy, \(O(n\log n)\))</li>
       <li>Unbounded Knapsack (unlimited copies of each item)</li>
-      <li>Multi‐dimensional Knapsack (multiple resource constraints)</li>
-      <li>Subset‐Sum Problem (values = weights, decision version)</li>
+      <li>Multi-dimensional Knapsack (multiple resource constraints)</li>
+      <li>Subset-Sum Problem (values = weights, decision version)</li>
       <li>Bounded Knapsack (limits on item counts)</li>
     </ul>
   </section>

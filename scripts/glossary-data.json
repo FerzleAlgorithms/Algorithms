@@ -178,6 +178,12 @@
     "definition": "A brute-force algorithm is a straightforward, unoptimized method that solves a problem by directly performing all the basic steps dictated by the problem statement. While simple to implement, it often has very high time complexity and is used mainly when no better algorithm is known."
   },
   {
+  "variants": [
+    "Bubble sort"
+  ],
+  "definition": "Bubble sort is a simple comparison-based sorting algorithm that repeatedly steps through the list, compares adjacent elements, and swaps them if they are in the wrong order. This'bubbling' continues until no more swaps are needed. It runs in <em>O(n<sup>2</sup>>)</em> time on average and in the worst case, has a best-case of <em>O(n)</em> when the list is already sorted (with an optimized flag), and is both in-place and stable."
+},
+  {
     "variants": [
       "Bucket Sort"
     ],
@@ -232,6 +238,15 @@
       "Combinations"
     ],
     "definition": "A selection of a subset of items from a set where order does not matter."
+  },
+  {
+    "variants": [
+      "Comparison-Based",
+      "Comparison-Based Algorithm",
+      "Comparison-Based Sorting",
+      "Comparison-Based Sorting Algorithm"
+    ],
+    "definition": "A technique that compares element on a list with each other to determine their proper order. The most common comparison-based sorting algorithms are Bubble Sort, Selection Sort, Insertion Sort, Merge Sort, Quicksort, and Heapsort."
   },
   {
     "variants": [
@@ -604,7 +619,9 @@
       "Heap",
       "Heaps",
       "Binary Heap",
-      "Binary Heaps"
+      "Binary Heaps",
+      "Min Heap",
+      "Max Heap"
     ],
     "definition": "A complete binary tree satisfying the heap property (min-heap or max-heap), where each node's key is less than or equal (min-heap) or greater than or equal (max-heap) to its children's keys. Common operations, including insert, extract-min/max, and decrease-key, can be accomplished in O(log n) time."
   },
@@ -646,7 +663,14 @@
       "Insertion Sort"
     ],
     "definition": "A simple sorting algorithm that builds the final sorted array one element at a time by inserting each element into its correct position among the previously sorted elements. It runs in <em>O(n<sup>2</sup>)</em> time in the worst case, but <em>O(n)</em> time for nearly sorted input."
-  },
+  },{
+  "variants": [
+    "Integer",
+    "Integers",
+    "Whole number"
+  ],
+  "definition": "An integer is a whole number (positive, negative, or zero) with no fractional or decimal part. The set of all integers is denoted &integers;."
+},
   {
     "variants": [
       "Interpolation Search"
@@ -820,6 +844,14 @@
   },
   {
     "variants": [
+      "Non-Comparison-Based",
+      "Non-Comparison-Based Algorithm",
+      "Non-Comparison-Based Sorting"
+    ],
+    "definition": "A technque that determines the proper order or elements on a list without comparing them with each other. Examples include Counting Sort, Bucket Sort, and Radix Sort."
+  },
+  {
+    "variants": [
       "NP (Complexity Class)",
       "NP",
       "Nondeterministic Polynomial time",
@@ -895,14 +927,17 @@
       "P (Complexity Class)"
     ],
     "definition": "The class of decision problems that can be solved by a deterministic algorithm in polynomial time."
-  },
-  {
-    "variants": [
-      "PSPACE (Complexity Class)",
-      "PSPACE"
-    ],
-    "definition": "The class of decision problems that can be solved by a deterministic algorithm using a polynomial amount of memory space."
-  },
+  },{
+  "variants": [
+    "Parallel Algorithm",
+    "Parallel Algorithms",
+    "Concurrent Algorithm",
+    "Concurrent Algorithms",
+    "Parallel"
+  ],
+  "definition": "A parallel algorithm divides a problem into subtasks that run simultaneously across multiple processors or cores. By overlapping work, it can achieve speedup over its sequential counterpart&mdash;though it must manage communication and synchronization overhead between tasks."
+},
+ 
   {
     "variants": [
       "Path Compression"
@@ -959,8 +994,8 @@
     "variants": [
       "Problem Reduction",
       "Problem Reductions",
-      "reductions",
-      "reduction"
+      "reduction",
+      "reductions"
     ],
     "definition": "The process of transforming one problem into another, often to show hardness or to leverage existing algorithms."
   },
@@ -972,6 +1007,13 @@
       "pruning"
     ],
     "definition": "The act of eliminating branches in a search tree or recursive algorithm that cannot lead to a valid or better solution with the goal of improving algorithm performance."
+  }, 
+  {
+    "variants": [
+      "PSPACE (Complexity Class)",
+      "PSPACE"
+    ],
+    "definition": "The class of decision problems that can be solved by a deterministic algorithm using a polynomial amount of memory space."
   },
   {
     "variants": [
@@ -1019,6 +1061,22 @@
     ],
     "definition": "An algorithm that uses randomness as part of its logic, potentially giving different outcomes on different runs. Examples include randomized Quicksort and Monte Carlo algorithms. Often used to improve performance."
   },
+{
+  "variants": [
+    "Rational Number",
+    "Rational Numbers",
+    "Rational"
+  ],
+  "definition": "A rational number is any number expressible as a ratio <em>p/q</em>, where <em>p</em> and <em>q</em> are integers and <em>q &ne; 0</em>. The set of rational number is denoted &rationals;."
+},
+  {
+  "variants": [
+    "Real Number",
+    "Real Numbers",
+    "Real"
+  ],
+  "definition": "A real number is any value on the continuous number line, including both rational and irrational values; it can be represented by a (potentially infinite) decimal expansions. The set of real number is denoted &reals;."
+},
   {
     "variants": [
       "Recurrence Relation",
@@ -1076,6 +1134,22 @@
     "definition": "A simple sorting algorithm that repeatedly selects the maximum element from the unsorted portion and swaps it with the last unsorted element. Alternatively, it can do so with the minimum/first unsorted element. It has <em>O(n<sup>2</sup>)</em> time complexity and <em>O(1)</em> space usage."
   },
   {
+  "variants": [
+    "Sequential Algorithm",
+    "Sequential Algorithms",
+    "Serial Algorithm",
+    "Serial Algorithms"
+  ],
+  "definition": "A sequential algorithm executes its steps one after another on a single processor, with each operation completing before the next begins. Because it performs only one action at a time, its overall running time is simply the sum of its individual step times."
+},
+  {
+  "variants": [
+    "Sequential Search",
+    "Linear Search"
+  ],
+  "definition": "Sequential search, also called linear search, examines each element of a list in order until it finds the target value or reaches the end of the list. Its worst-case time complexity is <em>O(n)</em>, its best-case is <em>O(1)</em>."
+},
+  {
     "variants": [
       "Shell Sort"
     ],
@@ -1106,6 +1180,13 @@
       "Sorting"
     ],
     "definition": "The process of arranging elements in a list into a specified order, usually ascending or descending. Common sorting algorithms include Quicksort, Merge Sort, Heapsort, and Insertion Sort."
+  },
+  {
+    "variants": [
+      "Sorting Algorithm",
+      "Sorting Algorithms"
+    ],
+    "definition": "An algorithm that reordered elements in a list so that they are in order (ascending or descending), usually based on the natural order of the data type."
   },
   {
     "variants": [
