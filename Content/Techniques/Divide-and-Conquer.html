@@ -165,7 +165,6 @@
   However, it illustrates the Divide-and-Conquer pattern by splitting the problem into two smaller subproblems
   and combining the solutions.
       </p>
-
     </div>
 
     <div class="example-box">
@@ -180,75 +179,37 @@
         </ol>
       </p>
       <p>
-        Below is high-level pseudocode for Merge Sort. For full details (including the complete merge procedure), see the 
+        Below is high-level pseudocode for Merge Sort. 
+        For full details, see the 
         <a class="problem" href="?path=Algorithms/Divide-and-Conquer/Merge%20Sort">Merge Sort</a>
-        algorithm page.
+        and <a class="problem" href="?path=Algorithms/Greedy/Merge">Merge</a>
+        algorithm pages.
       </p>
       
-      <h4>I AM HERE!!!!!</h4>
-      
-      <pre><code>
-// High-level Merge Sort on array A
-function mergeSort(A):
+      <pre><code>MergeSort(A):
     if |A| = 1:
         return A
-    mid ? ?|A| / 2?
-    L ? mergeSort(A[0 : mid])      // first half
-    R ? mergeSort(A[mid : end])    // second half
-    return merge(L, R)
+    L = left half of A
+    R = right half of A
+    MergeSort(L)       // sort first half
+    MergeSort(R)       // sort second half
+    return Merge(L, R) // combine halves
 
-// Merge two already-sorted lists L and R
-function merge(L, R):
-    result ? empty list
-    while L ? [] and R ? []:
-        if L[0] = R[0]:
+Merge(L, R):  // Merge two already-sorted lists L and R
+    result = empty list
+    while L and R are not empty:
+        if L[0] <= R[0]:
             append L[0] to result
-            remove first element from L
+            remove L[0] from L
         else:
             append R[0] to result
-            remove first element from R
-    // one list is empty now—just append the rest
+            remove R[0] from R
+    // one list is empty. just append the rest of the other list
     append all remaining elements of L (if any) to result
     append all remaining elements of R (if any) to result
     return result
 </code></pre>
 
-
-      <pre><code>// Sort array A between lo and hi (first call is mergeSort(A,0,n-1))
-function mergeSort(A,lo,hi):
-    n = length(A)
-    if n <= 1:
-      return A
-    mid = (lo+hi)/2
-    left_half  = mergeSort(A,lo,mid-1)
-    right_half = mergeSort(A[mid, hi])
-    return merge(left_half, right_half)
-
-// Merges two sorted arrays L and R into a single sorted array
-function merge(L, R):
-    result = empty array of size length(L) + length(R)
-    i = 0  // index into L
-    j = 0  // index into R
-    k = 0  // index into result
-    while i < length(L) and j < length(R):
-        if L[i] <= R[j]:
-            result[k] = L[i]
-            i = i + 1
-        else:
-            result[k] = R[j]
-            j = j + 1
-        k = k + 1
-    // Copy any remaining elements
-    while i < length(L):
-        result[k] = L[i]
-        i = i + 1
-        k = k + 1
-    while j < length(R):
-        result[k] = R[j]
-        j = j + 1
-        k = k + 1
-    return result
-</code></pre>
 <p>Here is a demonstration that takes you step-by-step through the algorithm.</p>
  <div class="embeddedDemoContainer">
         <iframe
@@ -259,21 +220,19 @@ function merge(L, R):
           style="height: 400px; min-height: 400px;"
         ></iframe>
       </div>
-      <p>
-        For a complete walkthrough of Merge Sort—including animation of the split and merge steps—refer to the 
-        <a class="problem" href="?path=Algorithms/Divide-and-Conquer/Merge%20Sort">Merge Sort</a>
-        page.
-      </p>
-    </div>
     
       <p>Computing the time taken by Merge Sort is pretty straightforward.  
         Splitting the array takes \(O(1)\) (just computing the midpoint). The two recursive calls each sort a subarray of size \(\frac{n}{2}\). Merging two sorted arrays of total size \(n\) takes \(O(n)\). Hence, the recurrence is
         \[
           T(n) \;=\; 2\,T\!\bigl(\tfrac{n}{2}\bigr) \;+\; O(n),
         \]
-        which solves to \(T(n) = O(n \log n)\). Because Merge Sort splits evenly and merges in linear time, it is asymptotically optimal among comparison-based sorts.
+        which solves to \(T(n) = O(n \log n)\) (We talked about this earlier&mdash;just use the Master Theorem).
+         Because Merge Sort splits evenly and merges in linear time, 
+         it is asymptotically optimal among comparison-based sorts.
+         Merge Sort is a great example of a successful application of the divide-and-conquer technique.
       </p>
      
+    </div>
   </section>
 
   <!-- Applicability -->
