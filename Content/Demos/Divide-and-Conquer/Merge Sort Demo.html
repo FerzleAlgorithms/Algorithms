@@ -8,7 +8,7 @@
   <link rel="stylesheet" href="../../../css/demo.css">
   <title>Merge Sort Demo</title>
   <style>
-    .array-container { display: flex; gap: 12px; margin-bottom: 10px; }
+    .array-container { margin-bottom: 10px; }
     .left { background-color: #ffcc00; }
     .right { background-color: #1f77b4; }
     .compare { background: #f99; }
@@ -31,6 +31,7 @@
 	.element-wrapper {
 	  display: flex;
 	  flex-direction: column;
+    flex: 1 1 auto;
 	  align-items: center;
 	  gap: 2px;               /* space between value and index */
 	}
@@ -84,13 +85,12 @@
 		background-color:transparent;
 		border-color:transparent;
 		color:transparent
-		
 	}
 	
 
   </style>
 </head>
-<body>
+<body class="no-tooltips">
   <h1>Merge Sort Demo</h1>
   <div id="controls">
     <label>Size:<input type="number" id="size" min="5" max="20" value="16" /></label>
@@ -117,13 +117,14 @@
     <span><span class="legend-box right"></span> Right subarray</span>
     <span><span class="legend-box active-subarray"></span> Active subarray</span>
   </div>
-  <div id="main-label">Sorting Array:</div>
-  <div id="visualization" class="array-container"></div>
-  <div id="aux-label">Auxiliary Array:</div>
+  <br><strong>Sorting Array:</strong>
+  <div class="array-container" id="visualization"></div>
+  
+  <br><strong>Auxiliary Array:</strong>
   <div id="aux-container" class="array-container" style="height: 80px;"></div>
   <div id="aux-arrow"><b>↑<br>i</b></div>
-    <div id="aux-arrow2"><b>↑<br>j</b></div>
-  <div id="other-label">Conceptual Arrays (these don't really exist):</div>
+  <div id="aux-arrow2"><b>↑<br>j</b></div>
+  <br><strong>Conceptual Arrays (these don't really exist):</strong>
   <div id="subarrays"></div>
   <div id="description">Press "Next" to begin.</div>
 

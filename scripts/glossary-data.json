@@ -791,6 +791,12 @@
   },
   {
     "variants": [
+      "Marge Sort"
+    ],
+    "definition": "A hilarious misspelling of Merge Sort that occurs all too often. Somebody needs to invent an actual algorithm with this name that makes sense."
+  },
+  {
+    "variants": [
       "Master Theorem"
     ],
     "definition": "A formula that provides asymptotic bounds for divide-and-conquer recurrences of the form <em>T(n) = a T(n/b) + f(n)</em> by comparing <em>f(n)</em> with </em>n^<sup>log<sub>b</sub>(a)</sup></em>."

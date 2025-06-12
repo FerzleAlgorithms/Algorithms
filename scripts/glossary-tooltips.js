@@ -219,7 +219,19 @@ function buildAndWrap() {
   })
   .sort((a, b) => b.canonical.length - a.canonical.length);
 
-  const SKIP = new Set(["STYLE","SCRIPT","A","H1","H2","H3","CODE","PRE","B","STRONG"]);
+  const SKIP = new Set(["STYLE",
+      "SCRIPT",
+      "A",
+      "H1",
+      "H2",
+      "H3",
+      "CODE",
+      "PRE",
+      "B",
+      "BUTTON",
+      "INPUT", 
+      "OPTION",
+      "STRONG"]);
   function acceptNode(node) {
     let el = node.parentElement;
     while (el) {

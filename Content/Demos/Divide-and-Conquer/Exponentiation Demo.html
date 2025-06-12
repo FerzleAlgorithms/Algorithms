@@ -66,7 +66,7 @@
       margin-top: 10px;
       font-family: sans-serif;
       font-style: italic;
-      height: 36px;
+      height: 20px;
     }
 
     @keyframes bubbleUp {
@@ -100,7 +100,6 @@
   stroke: #666;
   stroke-width: 1.5px;
 }
-
   </style>
 </head>
 
@@ -111,11 +110,11 @@
   <div id="controls">
     <label>
       Base (a):
-      <input type="number" id="base" min="1" value="2">
+      <input type="number" id="base" min="1" value="2" style="width:4em;">
     </label>
     <label>
       Exponent (n):
-      <input type="number" id="exponent" min="0" max="127" value="15">
+      <input type="number" id="exponent" min="0" max="127" value="15" style="width:4em;">
     </label>
     <button id="compute">compute</button>
 
@@ -138,7 +137,7 @@
   <div id="buttons">
     <button id="prevBtn" onclick="prevStep()" disabled>Previous</button>
     <button id="nextBtn" onclick="nextStep()" disabled>Next</button>
-    <button id="play" onclick="togglePlay()">Play</button>
+    <button id="play" onclick="togglePlay()" disabled>Play</button>
     <label for="speed">Speed:</label>
     <select id="speed" onchange="changeSpeed()">
       <option value="1">1×</option>
@@ -193,6 +192,7 @@
     let intervalId = null;
     const prevBtn = document.getElementById('prevBtn');
     const nextBtn = document.getElementById('nextBtn');
+    const playBtn = document.getElementById('play');
 
     // Counter for total multiplications
     let multiplicationCount = 0;
@@ -491,7 +491,6 @@ function animateBubbleStep(event) {
           expLabel(leftExp), // a^((n-1)/2)
           expLabel(rightExp) // a^((n-1)/2)
         ];
-        //multiplicationCount += 2;   // two multiplications at this node
         multiplicationCount += 1;   // two multiplications at this node
       }
 
@@ -707,6 +706,7 @@ function animateBubbleStep(event) {
      * Enable/disable Prev/Next depending on stepIndex.
      */
     function updateButtons() {
+      document.getElementById('play').disabled = false;
       document.getElementById('prevBtn').disabled = (stepIndex === 0);
       document.getElementById('nextBtn').disabled = (stepIndex === steps.length - 1);
     }
