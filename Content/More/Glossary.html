@@ -25,27 +25,6 @@
     .glossary-term { font-weight: bold; font-size: 1.1em; color: #333; }
     .glossary-variants { margin-top: 0.25rem; font-style: italic; color: #555; }
     .glossary-definition { margin-top: 0.25rem; line-height: 1.4; }
-
-    /* Fixed bottom navigation bar */
-    #alpha-nav {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      width: 100%;
-      background: #ffffff;
-      padding: 0.5rem 0;
-      text-align: center;
-      box-shadow: 0 -2px 4px rgba(0,0,0,0.1);
-      z-index: 1000;
-      box-sizing: border-box;
-    }
-    #alpha-nav a {
-      margin: 0 0.25rem;
-      text-decoration: none;
-      color: #007bff;
-      font-weight: bold;
-    }
-    #alpha-nav a:hover { text-decoration: underline; }
   </style>
 </head>
 <body class="no-tooltips">
@@ -54,21 +33,7 @@
     <div id="entries"></div>
   </main>
 
-  <!-- Alphabet navigation fixed at viewport bottom -->
-  <nav id="alpha-nav"></nav>
-
   <script type="module">
-    // Build A–Z navigation links
-    const nav = document.getElementById('alpha-nav');
-    for (let i = 65; i <= 90; i++) {
-      const letter = String.fromCharCode(i);
-      const a = document.createElement('a');
-      a.href = '#';
-      a.dataset.letter = letter;
-      a.textContent = letter;
-      nav.appendChild(a);
-    }
-
     // Fetch and render glossary entries
     const container = document.getElementById('entries');
     function render(glossary) {
@@ -95,24 +60,6 @@
           const gloss = data.map(e => ({variants: e.variants || [e.term], definition: e.definition}));
           gloss.sort((a,b) => a.variants[0].localeCompare(b.variants[0]));
           render(gloss);
-
-          // Build letter?element map
-          const map = {};
-          document.querySelectorAll('.glossary-entry').forEach(el => {
-            const L = el.querySelector('.glossary-term').textContent.trim()[0].toUpperCase();
-            if (!map[L]) map[L] = el;
-          });
-          const available = Object.keys(map).sort();
-
-          // Hook nav clicks
-          document.querySelectorAll('#alpha-nav a').forEach(a => {
-            a.addEventListener('click', e => {
-              e.preventDefault();
-              const L = a.dataset.letter;
-              let target = map[L] || map[available.find(ch => ch > L)];
-              if (target) target.scrollIntoView({behavior: 'smooth'});
-            });
-          });
         })
         .catch(() => container.innerHTML = '<p>Could not load glossary.</p>');
     });

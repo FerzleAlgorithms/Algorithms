@@ -33,8 +33,63 @@
         <div id="errorMessage" 
              class="error" 
              style="display:none;">Error loading content: Page not found.</div>
-    </div>
+        </div>
   </div>
+
+ <!-- THIS lives directly under <body>, not inside #container: -->
+  <nav id="alpha-nav-overlay">
+    <!-- A–Z links go here (you can build them once on parent load) -->
+  </nav>
+
+  <script>
+    // on initial load and whenever the iframe navigates, show/hide:
+    const nav = document.getElementById('alpha-nav-overlay');
+    const iframe = document.getElementById('content');
+    function syncAlpha() {
+      let path;
+      try { path = iframe.contentWindow.location.pathname; }
+      catch { path = iframe.getAttribute('src'); }
+      nav.style.display = path.endsWith('Glossary.html') ? 'block' : 'none';
+    }
+    iframe.addEventListener('load', syncAlpha);
+    syncAlpha();
+    
+  // 1) Generate A–Z links once on parent DOM ready
+  document.addEventListener('DOMContentLoaded', () => {
+    const nav = document.getElementById('alpha-nav-overlay');
+    // clear in case it’s already there
+    nav.innerHTML = '';
+    for (let i = 65; i <= 90; i++) {
+      const letter = String.fromCharCode(i);
+      const a = document.createElement('a');
+      a.href = '#';
+      a.textContent = letter;
+      a.style.margin = '0 0.25rem';
+      // 2) on click, scroll into view inside the iframe
+      a.addEventListener('click', ev => {
+        ev.preventDefault();
+        scrollToLetterInIframe(letter);
+      });
+      nav.appendChild(a);
+    }
+  });
+
+  // 3) Helper to find & scroll the first matching term inside the iframe
+  function scrollToLetterInIframe(letter) {
+    const iframe = document.getElementById('content');
+    const doc = iframe.contentWindow.document;
+    // Assuming your glossary terms have class="glossary-term"
+    const entries = Array.from(doc.querySelectorAll('.glossary-term'));
+    // find first whose text starts ≥ letter
+    const match = entries.find(el => {
+      const text = el.textContent.trim().toUpperCase();
+      return text[0] >= letter;
+    });
+    if (match) {
+      match.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }
+  </script>
 
   <script src="scripts/loadContent.js"></script>
 </body>

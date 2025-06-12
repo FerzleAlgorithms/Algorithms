@@ -93,39 +93,12 @@ function hookIframeContent(iframe) {
   const innerDoc = iframe.contentDocument;
   if (!innerDoc) return;
 
-  // 2) Prevent duplicate injection: check if we've already added the glossary scripts
-  //    (You can guard by checking for an existing element with a known “id” or “data-” attribute.)
-  if (innerDoc.getElementById("glossary-data-script")) {
-    // Already injected; skip
-    return;
-  }
-
   // 3) Get the <head> of the iframe document
   const head = innerDoc.head || innerDoc.getElementsByTagName("head")[0];
   if (!head) return;
 
-  // 5) Inject glossary-data.json
-  const scriptData = innerDoc.createElement("script");
-  scriptData.type = "module";
-  scriptData.id = "glossary-data-script";
-  
-  fetch("/Algorithms/scripts/glossary-data.json?cb=" + Date.now(), {
-    cache: "no-store",
-  })
-    .then(res => {
-      if (!res.ok) throw new Error("Could not load glossary JSON");
-      return res.json();
-    })
-    .then(data => {
-      window.GLOSSARY = data;      // make it global if other scripts expect it
-      // if you're using the updated tooltip code, it already fetches & runs itself
-    })
-    .catch(err => console.error(err));
-
-
   // 6) Inject glossary-tooltips.js
   const scriptTips = innerDoc.createElement("script");
-  scriptTips.type = "module";
 
     // Remove any old copy so we don’t get duplicates
   const old = innerDoc.getElementById("glossary-tooltips-script");
@@ -135,6 +108,7 @@ function hookIframeContent(iframe) {
   scriptTips.id  = "glossary-tooltips-script";
   scriptTips.type= "module";
   scriptTips.src = `/Algorithms/scripts/glossary-tooltips.js?cb=${Date.now()}`;
+  
   head.appendChild(scriptTips);
 
   

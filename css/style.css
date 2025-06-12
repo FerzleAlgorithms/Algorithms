@@ -171,20 +171,6 @@ nav#menu .menu-controls {
 }
 
 nav#menu .menu-controls button {
-  font-size: 0.85em;
-  padding: 2px 6px;
-  cursor: pointer;
-  border-radius: 4px;
-  border: 1px solid #94a3b8;
-  background-color: #cbd5e1;
-}
-
-
-nav#menu .menu-controls button:hover {
-  background-color: #a8b7cc;
-}
-
-nav#menu .menu-controls button {
   background: none;
   border: none;
   padding: 2px 4px;
@@ -198,7 +184,7 @@ nav#menu .menu-controls button {
 }
 
 nav#menu .menu-controls button:hover {
-  color: #024f9a;
+  color: #024f9a; /* old color? #a8b7cc; */
   background-color: #dbeafe;   /* subtle hover background */
 }
 /*-------------------------------------------------------------*/
@@ -276,7 +262,7 @@ a.problem:hover {
   box-sizing: content-box !important;
 
   /* Hidden until hover */
-  display: none;
+  /*display: none;*/
   position: absolute;
   top: 0; /* adjust if you’d rather pop it slightly lower (e.g. top: 110%) */
 
@@ -334,4 +320,23 @@ a.problem:hover {
   border-radius: 2px;           /* subtle rounding */
   transition: background-color 0.2s ease;
 }
+/*-----------------------------------------------------------------------*/
+/* Related to alphabet menu for glossary page. */
+#alpha-nav-overlay {
+  position: fixed;
+  bottom: 0;              /* stick to window bottom */
+  left: 50%;              /* center based on pageWrapper’s midpoint */
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 1050px;      /* same as #pageWrapper */
+  box-sizing: border-box;
+  padding: 0.5rem 0 0.5rem 190px; /* indent by your 190px sidebar */
+  background: #fff;
+  text-align: center;
+  box-shadow: 0 -2px 4px rgba(0,0,0,0.1);
+  z-index: 1000;
+}
 
+
+
+/*-----------------------------------------------------------------------*/
