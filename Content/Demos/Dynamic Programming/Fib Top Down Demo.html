@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Memoized Fibonacci Demo</title>
+  <script src="../../scripts/demoScripts.js"></script>
+  <link rel="stylesheet" href="../../css/style.css">
+  <link rel="stylesheet" href="../../css/demo.css">
+  <style>
+    svg { width: 100%; min-height: 600px; display: block; margin: 0 auto; overflow: visible; }
+    .link-line { stroke: #777; stroke-width: 1; }
+    .node-circle { stroke: #333; fill: #fff; transition: fill 0.3s; }
+    .node-call { fill: #f8d3d3; }
+    .node-computed { fill: #d3f8d3; }
+    .node-cached { fill: #d3d3f8; }
+    .node-current { stroke: #f00; stroke-width: 3; }
+    .node-text, .node-label { font-family: sans-serif; pointer-events: none; }
+    .node-text { font-size: 12px; text-anchor: middle; dominant-baseline: middle; }
+    .node-label { font-size: 10px; text-anchor: end; dominant-baseline: hanging; }
+    #controls { font-family: sans-serif; margin-bottom: 10px; }
+    #commentary { margin-top: 8px; font-style: italic; font-family: sans-serif; }
+  </style>
+</head>
+<body>
+  <h2>Memoized Fibonacci Demo</h2>
+  <div id="controls">
+    n:<input id="inputN" type="number" min="2" max="20" value="6">
+    <button id="prev" disabled>Previous</button>
+    <button id="next" disabled>Next</button>
+    <button id="play">Play</button>
+    Speed:<select id="speed"><option value="1">1×</option><option value="2">2×</option><option value="4">4×</option></select>
+    <span id="count">Calls:0</span>
+    <div id="commentary"></div>
+  </div>
+  <svg id="svg"><g id="links"></g><g id="nodes"></g></svg>
+  <script>
+    const memo = {};
+    class FibNode { constructor(n){ this.n=n; this.id=FibNode.nextId++; this.left=null; this.right=null; this.parent=null; this.value=null; this.depth=0; this.x=0; this.y=0; }} FibNode.nextId=0;
+    const svg=document.getElementById('svg'), linkLayer=svg.querySelector('#links'), nodeLayer=svg.querySelector('#nodes'), NS='http://www.w3.org/2000/svg';
+    let root, allNodes, events, idx, callCount, playing, timer;
+    const vGap=80, r=15;
+
+    function buildFull(n, depth=0, parent=null){ const node=new FibNode(n); node.depth=depth; node.parent=parent; allNodes.push(node); if(n>=2){node.left=buildFull(n-1,depth+1,node);node.right=buildFull(n-2,depth+1,node);} return node; }
+    function assignPositions(){ const width=svg.clientWidth, span=width/4; (function layout(n,x,s){ n.x=x; n.y=n.depth*vGap+r*2; if(n.left) layout(n.left,x-s,s/2); if(n.right) layout(n.right,x+s,s/2); })(root,width/2,span); }
+    function generateMemoEvents(n,seen=new Set()){ if(!n)return; if(!seen.has(n.n)){seen.add(n.n); events.push({type:'call',node:n,cached:false}); generateMemoEvents(n.left,seen); generateMemoEvents(n.right,seen); events.push({type:'return',node:n,cached:false});} else {events.push({type:'call',node:n,cached:true}); events.push({type:'return',node:n,cached:true});}}
+    function clearSvg(){ linkLayer.innerHTML=''; nodeLayer.innerHTML=''; }
+    function updateComment(msg){ document.getElementById('commentary').textContent=msg; }
+    function drawLink(n){ const p=n.parent, dx=n.x-p.x, dy=n.y-p.y, d=Math.hypot(dx,dy)||1, ux=dx/d, uy=dy/d, line=document.createElementNS(NS,'line'); line.setAttribute('x1',p.x+ux*r); line.setAttribute('y1',p.y+uy*r); line.setAttribute('x2',n.x-ux*r); line.setAttribute('y2',n.y-uy*r); line.classList.add('link-line'); linkLayer.appendChild(line);}    
+    function drawCall(n,ca){ if(!document.getElementById('node-'+n.id)){ if(n.parent) drawLink(n); const c=document.createElementNS(NS,'circle'); c.setAttribute('cx',n.x); c.setAttribute('cy',n.y); c.setAttribute('r',r); c.id='node-'+n.id; c.classList.add('node-circle'); nodeLayer.appendChild(c); const l=document.createElementNS(NS,'text'); l.setAttribute('x',n.x+r*1.5); l.setAttribute('y',n.y+r*0.8); l.classList.add('node-label'); l.textContent=`F(${n.n})`; nodeLayer.appendChild(l); const t=document.createElementNS(NS,'text'); t.setAttribute('x',n.x); t.setAttribute('y',n.y); t.id='text-'+n.id; t.classList.add('node-text'); nodeLayer.appendChild(t);} allNodes.forEach(x=>{const e=document.getElementById('node-'+x.id); if(e) e.classList.remove('node-current','node-call','node-cached');}); const el=document.getElementById('node-'+n.id); el.classList.add(ca?'node-cached':'node-call','node-current'); document.getElementById('count').textContent=`Calls:${++callCount}`; updateComment(ca?`Retrieve F(${n.n}) from cache`:`Calling F(${n.n})`);}    
+    function drawReturn(n, ca) {
+      if (!ca) {
+        n.value = n.n < 2 ? n.n : n.left.value + n.right.value;
+        memo[n.n] = n.value;
+        const el = document.getElementById('node-' + n.id);
+        const txt = document.getElementById('text-' + n.id);
+        if (el && txt) {
+          el.classList.remove('node-call', 'node-cached');
+          el.classList.add('node-computed');
+          txt.textContent = n.value;
+        }
+        updateComment(`Returning F(${n.n}) = ${n.value}`);
+      } else {
+        n.value = memo[n.n];
+        allNodes.forEach(x => {
+          if (x.n === n.n) {
+            const el = document.getElementById('node-' + x.id);
+            const txt = document.getElementById('text-' + x.id);
+            if (el && txt) {
+              el.classList.remove('node-call', 'node-cached');
+              el.classList.add('node-computed', 'node-current');
+              txt.textContent = x.value;
+            }
+          }
+        });
+        updateComment(`Retrieve F(${n.n}) = ${n.value} (cached)`);
+      }
+    }
+
+    function renderUpTo(k) {
+      clearSvg();
+      callCount = 0;
+      document.getElementById('count').textContent = 'Calls:0';
+      updateComment('');
+      // Render events up to k
+      for (let i = 0; i < k; i++) {
+        const ev = events[i];
+        if (ev.type === 'call') drawCall(ev.node, ev.cached);
+        else drawReturn(ev.node, ev.cached);
+      }
+      idx = k;
+      document.getElementById('prev').disabled = idx === 0;
+      document.getElementById('next').disabled = idx >= events.length;
+      // If finished all steps, show completion commentary and clear highlights
+      if (idx === events.length) {
+        updateComment('Memoized fibonacci demo complete');
+        // remove all current highlights
+        allNodes.forEach(n => {
+          const el = document.getElementById('node-' + n.id);
+          if (el) el.classList.remove('node-current');
+        });
+      }
+    }
+    function init() {
+      allNodes = [];
+      FibNode.nextId = 0;
+      events = [];
+      idx = 0;
+      callCount = 0;
+      playing = false;
+      clearInterval(timer);
+      document.getElementById('count').textContent = 'Calls:0';
+      updateComment('');
+      const n = parseInt(document.getElementById('inputN').value, 10);
+      root = buildFull(n);
+      assignPositions();
+      clearSvg();
+      generateMemoEvents(root);
+      renderUpTo(0);
+    }
+    document.getElementById('prev').onclick = () => renderUpTo(idx - 1);
+    document.getElementById('next').onclick = () => renderUpTo(idx + 1);
+    document.getElementById('play').onclick = function() {
+      if (playing) {
+        clearInterval(timer);
+        playing = false;
+        this.textContent = 'Play';
+      } else {
+        playing = true;
+        this.textContent = 'Pause';
+        timer = setInterval(() => renderUpTo(idx + 1), 1000 / +document.getElementById('speed').value);
+      }
+    };
+    document.getElementById('inputN').onchange = init;
+    window.onload = init;
+  </script>
+</body>
+</html>

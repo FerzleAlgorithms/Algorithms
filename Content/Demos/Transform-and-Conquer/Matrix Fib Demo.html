@@ -1,0 +1,873 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Matrix Fibonacci Demo </title>
+
+  <!--
+    (Assumes same folder structure as your other demos:
+      • demoScripts.js
+      • style.css
+      • demo.css
+  ) -->
+  <script src="../../../scripts/demoScripts.js"></script>
+  <link rel="stylesheet" href="../../../css/style.css">
+  <link rel="stylesheet" href="../../../css/demo.css">
+
+  <style>
+
+  /* ─── ALIGN ALL THREE GRIDS IN A ROW ─── */
+#matrix-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5em;
+  margin-bottom: 0.5em;
+}
+
+/* Each “matrix-with-label” wraps one 2×2 box plus its label underneath */
+.matrix-with-label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* The little M^n or M label below each grid */
+.matrix-label {
+  margin-top: 0.25em;
+  font-weight: bold;
+  font-family: sans-serif;
+}
+
+/* The “operator” nodes (= or ×) */
+.matrix-operator {
+  font-size: 1.5em;
+  font-weight: bold;
+  line-height: 1;          /* keep it vertically centered */
+  user-select: none;
+}
+
+/* Ensure every 2×2 has the same styling as before */
+.matrix-container {
+  display: inline-grid;
+  grid-template-columns: repeat(2, 50px);
+  grid-template-rows: repeat(2, 50px);
+  gap: 5px;
+}
+.matrix-element {
+  border: 1px solid #666;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-family: monospace;
+  font-size: 1em;
+  width: 50px;
+  height: 50px;
+  box-sizing: border-box;
+}
+    
+
+    /* 1) Make the “has-exponent” container position:relative, so we can place a superscript inside. */
+    .has-exponent {
+      position: relative;
+    }
+
+    /* 2) Style for the little “^n” box. */
+    /*    • position absolute, top/right just outside the grid. */
+    /*    • smaller font so it looks like a superscript. */
+    .matrix-exponent {
+      position: absolute;
+      top: -8px;
+      right: -8px;
+      font-size: 0.75em;
+      background: rgba(255,255,255,0.8);
+      padding: 2px 4px;
+      border-radius: 2px;
+      border: 1px solid #666;
+    }
+
+    /* ─── CONTAINER FOR THE WHOLE DEMO ─── */
+    .demo-container {
+      max-width: 650px;
+      margin: 20px auto;
+      font-family: sans-serif;
+      position: relative; /* for absolute‐positioned clones */
+    }
+    h2 {
+      text-align: center;
+      margin-bottom: 1em;
+    }
+
+    /* ─── CONTROLS ─── */
+    .controls {
+      margin-bottom: 1em;
+    }
+    .input-row {
+      display: flex;
+      align-items: center;
+      gap: 0.75em;
+      margin-bottom: 0.75em;
+    }
+    .input-row label {
+      font-weight: bold;
+    }
+    .button-row {
+      display: flex;
+      align-items: center;
+      gap: 0.5em;
+    }
+    button {
+      padding: 0.3em 0.6em;
+      font-size: 1em;
+      cursor: pointer;
+    }
+    button:disabled {
+      opacity: 0.5;
+      cursor: default;
+    }
+    #speed-select {
+      margin-left: 0.25em;
+    }
+
+    /* ─── LEGEND ABOVE MATRICES ─── */
+    .legend {
+      margin-bottom: 1em;
+      font-family: sans-serif;
+      display: flex;
+      align-items: center;
+      gap: 1.5em;
+      justify-content: center;
+    }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 0.3em;
+    }
+    .legend-box {
+      display: inline-block;
+      width: 18px;
+      height: 18px;
+      border: 1px solid #000;
+      vertical-align: middle;
+    }
+    .legend-box.base {
+      background-color: #d0e7ff; /* light blue for base matrix */
+    }
+    .legend-box.result {
+      background-color: #d0ffd0; /* light green for result matrix */
+    }
+
+
+        /* ─── LEGEND BOX COLORS ─── */
+    .legend-box.base {
+      background-color: #d0e7ff;   /* light blue = Base Matrix M */
+    }
+    .legend-box.prev {
+      background-color: #ffe7a8;   /* peach/orange = Previous Power Mⁱ⁻¹ */
+    }
+    .legend-box.power {
+      background-color: #d0ffd0;   /* light green = Current Power Mᶦ */
+    }
+
+    /* ─── ACTUAL MATRIX CONTAINERS ─── */
+    .base-mat {
+      background: rgba(208, 231, 255, 0.3);  /* faint light-blue background */
+    }
+    .prev-mat {
+      background: rgba(255, 231, 168, 0.3);  /* faint peach/orange background */
+    }
+    .power-mat {
+      background: rgba(208, 255, 208, 0.3);  /* faint light-green background */
+    }
+    /* ─── MATRICES ROW ─── */
+    #matrix-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 2em;
+      margin-bottom: 0.5em;
+    }
+
+    /* ─── BASE MATRIX DISPLAY ─── */
+    #base-matrix {
+      display: flex;
+      align-items: center;
+      gap: 0.5em;
+      font-weight: bold;
+    }
+    #base-matrix .matrix-container {
+      background: rgba(208, 231, 255, 0.3); /* faint blue background */
+      padding: 3px;
+      border-radius: 4px;
+    }
+
+    /* ─── DYNAMIC RESULT MATRIX DISPLAY ─── */
+    #matrix-display {
+      width: fit-content;
+      height: fit-content;
+      background: rgba(208, 255, 208, 0.3); /* faint green background */
+      padding: 3px;
+      border-radius: 4px;
+    }
+
+    /* ─── COMMON MATRIX ELEMENT STYLING ─── */
+    .matrix-container {
+      display: inline-grid;
+      grid-template-columns: repeat(2, 50px);
+      grid-template-rows: repeat(2, 50px);
+      gap: 5px;
+    }
+    .matrix-element {
+      border: 1px solid #666;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-family: monospace;
+      font-size: 1em;
+      width: 50px;
+      height: 50px;
+      box-sizing: border-box;
+      /* keep them in front when animating */
+      position: relative;
+    }
+
+    /* ─── SMASHED TRANSITION CLONE ─── */
+    .matrix-clone {
+      position: absolute;
+      display: inline-grid;
+      grid-template-columns: repeat(2, 50px);
+      grid-template-rows: repeat(2, 50px);
+      gap: 5px;
+      opacity: 1;
+      transition: transform 0.5s ease, opacity 0.5s ease;
+      z-index: 100;
+    }
+    .matrix-clone .matrix-element {
+      border: 1px solid #666;
+      background-color: #d0e7ff; /* same as base */
+    }
+
+    /* ─── COMMENT & STATS AREA ─── */
+    .comment {
+      margin-top: 0.5em;
+      font-style: italic;
+      min-height: 1.5em;
+      text-align: center;
+    }
+    .stats {
+      margin-top: 0.5em;
+      font-style: italic;
+      min-height: 1.2em;
+      text-align: center;
+    }
+
+    /* ─── STEP TABLE ─── */
+    table {
+      border-collapse: collapse;
+      margin-top: 1em;
+      width: 100%;
+      font-family: monospace;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 0.4em;
+      text-align: center;
+    }
+    th {
+      background: #f0f0f0;
+    }
+    .current-row td {
+      background-color: #fffb91;
+    }
+  </style>
+</head>
+<body>
+  <div class="demo-container">
+    <h2>Matrix‐Multiplcation Fibonacci Demo </h2>
+
+    <!-- (1) Controls: enter n, compute; then steppers -->
+    <div class="controls">
+      <div class="input-row">
+        <label><strong>Enter n:</strong>
+          <input id="n-input" type="number" value="5" min="0" />
+        </label>
+        <button id="compute-btn">Compute</button>
+      </div>
+      <div class="button-row">
+        <button id="prev-btn" disabled>Previous</button>
+        <button id="next-btn" disabled>Next</button>
+        <button id="play-btn">Play</button>
+        <label for="speed-select">Speed:</label>
+        <select id="speed-select">
+          <option value="1">1×</option>
+          <option value="2">2×</option>
+          <option value="4">4×</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- (2) LEGEND ABOVE MATRICES -->
+<div class="legend">
+  <div class="legend-item">
+    <span class="legend-box base"></span> Base Matrix (M)
+  </div>
+  <div class="legend-item">
+    <span class="legend-box prev"></span> Previous Power (Mⁱ⁻¹)
+  </div>
+  <div class="legend-item">
+    <span class="legend-box power"></span> Current Power (Mᶦ)
+  </div>
+</div>
+
+<div id="matrix-row">
+  <!-- (3b) Factor #1: always the base M -->
+  <div id="factor1-box" class="matrix-with-label">
+    <div class="matrix-container base-mat" id="factor1"></div>
+    <div class="matrix-label">M</div>
+  </div>
+
+  <!-- multiplication sign -->
+  <div class="matrix-operator" id="mult-sign">×</div>
+
+  <!-- (3c) Factor #2: previous power Mⁱ⁻¹ -->
+  <div id="factor2-box" class="matrix-with-label">
+    <div class="matrix-container prev-mat" id="factor2"></div>
+    <div class="matrix-label">M<sup id="prev-exponent">0</sup></div>
+  </div>
+
+  <!-- equals sign -->
+  <div class="matrix-operator">=</div>
+
+  <!-- (3a) Power matrix Mᶦ -->
+  <div id="power-box" class="matrix-with-label">
+    <div class="matrix-container power-mat" id="power-matrix"></div>
+    <div class="matrix-label">M<sup id="power-exponent">0</sup></div>
+  </div>
+</div>
+
+
+
+    <!-- (4) Comment & stats -->
+    <div class="comment" id="comment"><br></div>
+    <div class="stats" id="stats"></div>
+
+    <!-- (5) Table of computation for each power step -->
+    <table id="step-table">
+      <thead>
+        <tr>
+          <th>Step i</th>
+          <th>r<sub>00</sub></th>
+          <th>r<sub>01</sub></th>
+          <th>r<sub>10</sub></th>
+          <th>r<sub>11</sub></th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Rows appended here -->
+      </tbody>
+    </table>
+  </div>
+
+  <script>
+    /****************************************************************************************
+     * 1) GLOBAL VARIABLES & DOM REFERENCES
+     ****************************************************************************************/
+    let events = [];         // [ {type:'init', matrix:…}, {type:'compute', i:…, prev:…, next:…, comps:…}, … ]
+    let pointer = -1;        // index into events
+    let playing = false;
+    let lastDirection = 'next'; // <— new
+    let intervalId = null;
+
+    const nInput        = document.getElementById('n-input');
+    const computeBtn    = document.getElementById('compute-btn');
+    const prevBtn       = document.getElementById('prev-btn');
+    const nextBtn       = document.getElementById('next-btn');
+    const playBtn       = document.getElementById('play-btn');
+    const speedSelect   = document.getElementById('speed-select');
+    const baseContainer = document.getElementById('factor1');
+    const matrixDiv     = document.getElementById('power-matrix');
+    const commentDiv    = document.getElementById('comment');
+    const statsDiv      = document.getElementById('stats');
+    const stepTableBody = document.querySelector('#step-table tbody');
+
+    // Fixed base matrix M = [[0,1],[1,1]]
+    const baseM = [
+      [0, 1],
+      [1, 1]
+    ];
+
+    /****************************************************************************************
+     * 2) UTILITY FUNCTIONS
+     ****************************************************************************************/
+
+    // Multiply two 2×2 matrices A × B
+    function multiply2x2(A, B) {
+      const a00 = A[0][0], a01 = A[0][1];
+      const a10 = A[1][0], a11 = A[1][1];
+      const b00 = B[0][0], b01 = B[0][1];
+      const b10 = B[1][0], b11 = B[1][1];
+      return [
+        [a00 * b00 + a01 * b10,  a00 * b01 + a01 * b11],
+        [a10 * b00 + a11 * b10,  a10 * b01 + a11 * b11]
+      ];
+    }
+
+    // Build computation strings for each entry at step i
+    function buildCompStrings(prev) {
+      const a00 = prev[0][0], a01 = prev[0][1];
+      const a10 = prev[1][0], a11 = prev[1][1];
+      return {
+        r00: `${a00} × 0 + ${a01} × 1 = ${a01}`,
+        r01: `${a00} × 1 + ${a01} × 1 = ${a00 + a01}`,
+        r10: `${a10} × 0 + ${a11} × 1 = ${a11}`,
+        r11: `${a10} × 1 + ${a11} × 1 = ${a10 + a11}`
+      };
+    }
+
+    // Deep-copy a 2×2 matrix
+    function copyMatrix2x2(M) {
+      return [
+        [M[0][0], M[0][1]],
+        [M[1][0], M[1][1]]
+      ];
+    }
+
+    /****************************************************************************************
+     * 3) BUILD THE EVENT SEQUENCE FOR A GIVEN n
+     ****************************************************************************************/
+    function buildEvents(n) {
+      const evs = [];
+      // (A) Initialization: show the base M as M¹ on step 0
+      evs.push({ type: 'init', matrix: copyMatrix2x2(baseM) });
+
+      // (B) For i = 2..n, multiply by baseM each time
+      let cumulative = copyMatrix2x2(baseM);
+      for (let i = 1; i <= n; i++) {
+        const prev = copyMatrix2x2(cumulative);
+        const comps = buildCompStrings(prev);
+        const nextMat = multiply2x2(prev, baseM);
+        cumulative = copyMatrix2x2(nextMat);
+        evs.push({ type: 'compute', i: i, prev: prev, next: nextMat, comps: comps });
+      }
+      return evs;
+    }
+
+    //****************************************************************************************
+//  * SMASHED TRANSITION: CLONE BASE (M) → MOVE INTO PREVIOUS (M^(i−1)) → THEN UPDATE BOTH
+//  *
+//  *   Once “M” (base) hits “Mⁱ⁻¹”, we scale/fade out the old Mⁱ⁻¹ clone; then we remove both,
+//  *   and call onComplete() so that Demo 10 can re-render both factor2 (Mⁱ⁻¹) and power (Mⁱ).
+//  ****************************************************************************************/
+function smashBaseIntoPrev(nextMatrix, prevMatrix, onComplete) {
+    // ── Compute transition duration (only when auto‐playing) ──
+  const baseDurationMs = 500; // the same 0.5s that your CSS .matrix-clone rule uses
+  let durationMs;
+
+  if (playing) {
+    // NOTE: speedSelect is already defined in the outer scope,
+    // so do NOT re-declare it here.
+    const speedValue = parseInt(speedSelect.value, 10) || 1;
+    durationMs = baseDurationMs / speedValue;
+  } else {
+    durationMs = baseDurationMs;
+  }
+
+  // (1) Grab the DOM nodes
+  const baseEl = document.getElementById('factor1');
+  const prevEl = document.getElementById('factor2');
+
+  // (2) Measure their on-screen positions
+  const baseRect = baseEl.getBoundingClientRect();
+  const prevRect = prevEl.getBoundingClientRect();
+
+  // (3) Clone both so we can animate them absolutely
+  const baseClone = baseEl.cloneNode(true);
+  const prevClone = prevEl.cloneNode(true);
+
+  baseClone.classList.add('matrix-clone');
+  prevClone.classList.add('matrix-clone');
+  document.body.appendChild(baseClone);
+  document.body.appendChild(prevClone);
+
+  // ← override the CSS transition‐timing based on durationMs
+baseClone.style.transition = `transform ${durationMs}ms ease, opacity ${durationMs}ms ease`;
+prevClone.style.transition = `transform ${durationMs}ms ease, opacity ${durationMs}ms ease`;
+
+
+  // (4) Position each clone over its original
+  baseClone.style.left = baseRect.left + 'px';
+  baseClone.style.top  = baseRect.top  + 'px';
+  prevClone.style.left = prevRect.left + 'px';
+  prevClone.style.top  = prevRect.top  + 'px';
+
+  // (5) Force reflow so the transforms below animate
+  baseClone.getBoundingClientRect();
+  prevClone.getBoundingClientRect();
+
+  // (6) Compute vector from base → prev
+  const deltaX = prevRect.left - baseRect.left;
+  const deltaY = prevRect.top  - baseRect.top;
+
+  // (7) Animate: slide baseClone into prev position and slightly shrink + fade,
+  //     while simultaneously shrinking/fading out prevClone.
+  baseClone.style.transform = `translate(${deltaX}px, ${deltaY}px) scale(0.8)`;
+  baseClone.style.opacity   = '0.8';
+
+  prevClone.style.transform = `scale(0)`;
+  prevClone.style.opacity   = '0';
+
+  // (8) Once the baseClone’s transition ends, remove both clones and invoke onComplete()
+  baseClone.addEventListener('transitionend', () => {
+    baseClone.remove();
+    prevClone.remove();
+    onComplete();
+  }, { once: true });
+}
+
+    /****************************************************************************************
+     * 5) RENDER A 2×2 MATRIX INTO #matrix-display (called after smash animation)
+     ****************************************************************************************/
+    function renderResultMatrix(matrix) {
+      matrixDiv.innerHTML = '';
+      const container = document.createElement('div');
+      container.className = 'matrix-container';
+      for (let r = 0; r < 2; r++) {
+        for (let c = 0; c < 2; c++) {
+          const cell = document.createElement('div');
+          cell.className = 'matrix-element';
+          cell.textContent = matrix[r][c];
+          container.appendChild(cell);
+        }
+      }
+      matrixDiv.appendChild(container);
+    }
+
+    /****************************************************************************************
+     * 6) REBUILD THE ENTIRE DISPLAY BASED ON “pointer”
+     ****************************************************************************************/
+     function rebuildDisplay() {
+  stepTableBody.innerHTML = '';
+
+  if (pointer < 0) {
+    // Nothing yet
+    matrixDiv.innerHTML = '';
+    commentDiv.innerHTML = '<br>';
+    statsDiv.textContent = '';
+    prevBtn.disabled = true;
+    nextBtn.disabled = true;
+    return;
+  }
+
+  const ev = events[pointer];
+
+  // 1) For init: show M¹ on the left and M⁰=I on the right
+  if (ev.type === 'init') {
+    document.getElementById('power-exponent').textContent = '1';
+    document.getElementById('prev-exponent').textContent  = '0';
+  } else {
+    // compute events: i=1 means M² = M¹×M, so “power” gets exponent = i+1, “prev” gets exponent = i
+    document.getElementById('power-exponent').textContent = (ev.i + 1);
+    document.getElementById('prev-exponent').textContent  = ev.i;
+  }
+
+  // Count how many compute events up to pointer
+  let computeCount = 0;
+  for (let idx = 0; idx <= pointer; idx++) {
+    if (events[idx].type === 'compute') computeCount++;
+  }
+
+  // ─── SHOW OR SMASH DEPENDING ON ev.type ───
+  if (ev.type === 'init') {
+    // (a) Fill “power” on the left with M (not I)
+    const powerContainer = document.getElementById('power-matrix');
+    powerContainer.innerHTML = '';
+    const baseData = [[0, 1], [1, 1]]; // ← M
+    for (let r = 0; r < 2; r++) {
+      for (let c = 0; c < 2; c++) {
+        const cell = document.createElement('div');
+        cell.className = 'matrix-element';
+        cell.textContent = baseData[r][c];
+        powerContainer.appendChild(cell);
+      }
+    }
+
+    // (b) Fill “factor1” (always the base M)
+    const factor1Container = document.getElementById('factor1');
+    factor1Container.innerHTML = '';
+    for (let r = 0; r < 2; r++) {
+      for (let c = 0; c < 2; c++) {
+        const cell = document.createElement('div');
+        cell.className = 'matrix-element';
+        cell.textContent = baseData[r][c];
+        factor1Container.appendChild(cell);
+      }
+    }
+
+    // (c) Fill “factor2” with M⁰ = Identity
+    const factor2Container = document.getElementById('factor2');
+    factor2Container.innerHTML = '';
+    const I = [[1, 0], [0, 1]];
+    for (let r = 0; r < 2; r++) {
+      for (let c = 0; c < 2; c++) {
+        const cell = document.createElement('div');
+        cell.className = 'matrix-element';
+        cell.textContent = I[r][c];
+        factor2Container.appendChild(cell);
+      }
+    }
+
+  } else if (ev.type === 'compute') {
+    // (A) Clear out the “power” area so smash will be visible
+    matrixDiv.innerHTML = '';
+
+    // (B) Smash base (M) into prev (Mⁱ⁻¹); once animation completes, redraw factor2 & power
+    const computeIndex = pointer; // ← capture current pointer
+       if (lastDirection === 'next') {
+      // ── FORWARD SMASH ──
+      smashBaseIntoPrev(
+        /* nextMatrix = */ ev.next,
+        /* prevMatrix = */ ev.prev,
+        /* onComplete = */ () => {
+          if (pointer !== computeIndex) return;
+
+          // 1) Rewrite #factor2 as ev.prev (Mⁱ⁻¹)
+          const factor2Container = document.getElementById('factor2');
+          factor2Container.innerHTML = '';
+          for (let r = 0; r < 2; r++) {
+            for (let c = 0; c < 2; c++) {
+              const cell = document.createElement('div');
+              cell.className = 'matrix-element';
+              cell.textContent = ev.prev[r][c];
+              factor2Container.appendChild(cell);
+            }
+          }
+
+          // 2) Render new power matrix Mⁱ
+          renderResultMatrix(ev.next);
+        }
+      );
+    } else {
+      // ── REVERSE SMASH ── (undoing a compute step)
+      reverseSmashPrevIntoPower(
+        /* currPrevMatrix = */ ev.prev,
+        /* currNextMatrix = */ ev.next,
+        /* onComplete = */ () => {
+          if (pointer !== computeIndex) return;
+
+          // After reverse animation completes, re-render Factor2 as ev.prev (Mⁱ⁻¹)
+         // and Power as ev.next (Mⁱ). That steps back exactly one power.
+         const factor2Container = document.getElementById('factor2');
+         factor2Container.innerHTML = '';
+         for (let r = 0; r < 2; r++) {
+           for (let c = 0; c < 2; c++) {
+             const cell = document.createElement('div');
+            cell.className = 'matrix-element';
+             cell.textContent = ev.prev[r][c];
+             factor2Container.appendChild(cell);
+           }
+         }
+
+         // Then re-render “power” (Mⁱ) as ev.next
+         renderResultMatrix(ev.next);
+        }
+      );
+    
+    } 
+  }
+  // ─── end of “show vs smash” block ───
+
+  // Build step table rows up to pointer
+  for (let idx = 0; idx <= pointer; idx++) {
+    const e = events[idx];
+    if (e.type === 'compute') {
+      const tr = document.createElement('tr');
+      if (idx === pointer) tr.classList.add('current-row');
+
+      const tdStep = document.createElement('td');
+      tdStep.textContent = e.i;
+      const td00   = document.createElement('td');
+      td00.textContent = e.comps.r00;
+      const td01   = document.createElement('td');
+      td01.textContent = e.comps.r01;
+      const td10   = document.createElement('td');
+      td10.textContent = e.comps.r10;
+      const td11   = document.createElement('td');
+      td11.textContent = e.comps.r11;
+
+      tr.appendChild(tdStep);
+      tr.appendChild(td00);
+      tr.appendChild(td01);
+      tr.appendChild(td10);
+      tr.appendChild(td11);
+      stepTableBody.appendChild(tr);
+    }
+  }
+
+  // Update comment & stats
+  if (ev.type === 'init') {
+    commentDiv.textContent = 'Start state (no processing has been made yet)';
+  } else if (ev.type === 'compute') {
+    commentDiv.textContent = `Step ${ev.i}: Multiply by M → F(${ev.i})`;
+  }
+
+  const totalMults = computeCount * 8;
+  const totalAdds  = computeCount * 4;
+  statsDiv.textContent = `Total multiplications: ${totalMults}, Total additions: ${totalAdds}`;
+
+  prevBtn.disabled = (pointer <= 0);
+  nextBtn.disabled = (pointer >= events.length - 1);
+}
+
+/**
+ *  ─── REVERSE SMASH: animate Mⁱ⁻¹ (in #factor2) back up into #power-matrix,
+ *  then call onComplete() so rebuildDisplay() can redraw Factor2 and Power.
+ *
+ *  @param {number[][]} currPrevMatrix  The 2×2 data for Mⁱ⁻¹ (ev.prev).
+ *  @param {number[][]} currNextMatrix  The 2×2 data for Mⁱ   (ev.next).
+ *  @param {() => void} onComplete      Callback after the reverse animation finishes.
+ */
+ function reverseSmashPrevIntoPower(currPrevMatrix, currNextMatrix, onComplete) {
+  // (1) Grab DOM nodes for “factor2” (Mⁱ⁻¹) and “power” (Mⁱ)
+  const prevEl  = document.getElementById('factor2');
+  const powerEl = document.getElementById('power-matrix');
+
+  // (2) Measure their on‐screen positions
+  const prevRect  = prevEl.getBoundingClientRect();
+  const powerRect = powerEl.getBoundingClientRect();
+
+  // (3) Clone both so we can animate them absolutely
+  const prevClone  = prevEl.cloneNode(true);
+  const powerClone = powerEl.cloneNode(true);
+
+  prevClone.classList.add('matrix-clone');
+  powerClone.classList.add('matrix-clone');
+  document.body.appendChild(prevClone);
+  document.body.appendChild(powerClone);
+
+  // ── Make sure “prevClone” stays peach/orange (Mⁱ⁻¹) instead of default blue ──
+  const prevCells = prevClone.querySelectorAll('.matrix-element');
+  prevCells.forEach(cell => {
+    cell.style.backgroundColor = 'rgba(255, 231, 168, 0.3)';
+    cell.style.borderColor       = '#666';
+  });
+
+  // (4) Position each clone exactly over its original on the page
+  prevClone.style.left  = prevRect.left  + 'px';
+  prevClone.style.top   = prevRect.top   + 'px';
+  powerClone.style.left = powerRect.left + 'px';
+  powerClone.style.top  = powerRect.top  + 'px';
+
+  // (5) Force reflow so the CSS transitions will take effect
+  prevClone.getBoundingClientRect();
+  powerClone.getBoundingClientRect();
+
+  // (6) Compute how far we need to move “factor2 → power”
+  const deltaX = powerRect.left - prevRect.left;
+  const deltaY = powerRect.top  - prevRect.top;
+
+  // (7) Animate: slide prevClone into power position (keep its original size),
+  //     while shrinking/fading out powerClone:
+  prevClone.style.transform = `translate(${deltaX}px, ${deltaY}px) scale(1)`;
+  prevClone.style.opacity   = '1';
+
+  powerClone.style.transform = `scale(0)`;
+  powerClone.style.opacity   = '0';
+
+  // (8) Once prevClone’s transition ends, remove both clones and invoke onComplete()
+  prevClone.addEventListener('transitionend', () => {
+    prevClone.remove();
+    powerClone.remove();
+    onComplete();
+  }, { once: true });
+}
+
+    /****************************************************************************************
+     * 7) CONTROLS: “Compute”, “Next”, “Previous”, “Play”
+     ****************************************************************************************/
+     computeBtn.addEventListener('click', () => {
+    const n = parseInt(nInput.value, 10);
+    if (isNaN(n) || n < 0) {
+      alert('Please enter a nonnegative integer for n.');
+      return;
+    }
+    events = buildEvents(n);
+    pointer = 0;             // ← start at the “init” event immediately
+    rebuildDisplay();
+    nextBtn.disabled = false;
+  });
+
+
+    nextBtn.addEventListener('click', () => {
+      if (pointer < events.length - 1) {
+        pointer++;
+        lastDirection = 'next';
+        rebuildDisplay();
+      }
+    });
+
+    prevBtn.addEventListener('click', () => {
+      if (pointer > 0) {
+        pointer--;
+        lastDirection = 'prev';      // ← mark that we’re moving backward
+        rebuildDisplay();
+      }
+    });
+
+    playBtn.addEventListener('click', () => {
+      if (playing) {
+        playing = false;
+        playBtn.textContent = 'Play';
+        clearInterval(intervalId);
+        intervalId = null;
+      } else {
+        playing = true;
+        playBtn.textContent = 'Pause';
+        const speed = parseInt(speedSelect.value, 10) || 1;
+        const delay = 1000 / speed;
+        intervalId = setInterval(() => {
+          if (pointer < events.length - 1) {
+            pointer++;
+            rebuildDisplay();
+          } else {
+            playing = false;
+            playBtn.textContent = 'Play';
+            clearInterval(intervalId);
+            intervalId = null;
+          }
+        }, delay);
+      }
+    });
+
+    speedSelect.addEventListener('change', () => {
+      if (playing) {
+        clearInterval(intervalId);
+        playing = false;
+        playBtn.textContent = 'Play';
+        playBtn.click();
+      }
+    });
+
+    window.addEventListener('DOMContentLoaded', () => {
+  // 1) disable “Previous” (there is nothing to go back to yet)
+  prevBtn.disabled = true;
+
+  // 2) set Play button text
+  playBtn.textContent = 'Play';
+
+  // 3) auto‐compute using the default value in the “Enter n” input
+  const initialN = parseInt(nInput.value, 10);
+  if (!isNaN(initialN) && initialN >= 0) {
+    // build the event sequence for n = initialN
+    events = buildEvents(initialN);
+    // point at the “init” event right away
+    pointer = 0;
+    // render that initial state (fills in M¹ and I)
+    rebuildDisplay();
+    // since there is now at least one event, enable “Next”
+    nextBtn.disabled = false;
+  }
+});
+
+  </script>
+</body>
+</html>

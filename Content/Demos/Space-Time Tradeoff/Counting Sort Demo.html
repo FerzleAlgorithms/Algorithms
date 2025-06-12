@@ -4,15 +4,26 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Counting Sort Demo</title>
-  <script src="../../../scripts/demoScripts.js" defer></script>
+  <script src="../../../scripts/demoScripts.js"></script>
   <link rel="stylesheet" href="../../../css/style.css">
   <link rel="stylesheet" href="../../../css/demo.css">
   <style>
     #controls, #buttons { margin: 10px 0; }
     #description { margin-top: 10px; font-style: italic; }
     #phase-label, #minmax-label { margin: 10px 0; font-weight: bold; }
-    .count-wrapper { display: flex; flex-direction: column; align-items: center; }
-    .count-label { font-size: 0.8em; margin-top: 4px; }
+
+    /* Re‐using these for both input‐elements and count‐elements */
+    .count-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin: 0 4px;
+    }
+    .count-label {
+      font-size: 0.8em;
+      margin-top: 4px;
+    }
+
     /* Arrow indicator under input */
     #input-container {
       position: relative;
@@ -28,13 +39,41 @@
       pointer-events: none;
     }
     .arrow {
+	margin-top: 15px;
       position: absolute;
       font-size: 1.2em;
       display: none;
       text-align: center;
       transform: translateX(-50%);
     }
-    .array-container { margin-bottom: 30px; }
+    .array-container { margin-bottom: 30px; display: flex; }
+
+   
+    /* Highlight styles 
+    .comparing { background: #f99; }
+    .finished  { background: #9f9; }
+	 Container holds both boxes side by side */
+#minmax-container {
+  display: flex;
+  gap: 12px;                /* space between Min‐box and Max‐box */
+  margin-bottom: 10px;      /* optional vertical spacing */
+  font-family: sans-serif;
+  font-size: 0.95em;
+}
+
+/* Each individual box */
+.min-max-box {
+  border: 1px solid #ccc;   /* light gray border */
+  background: #f9f9f9;      /* subtle off-white background */
+  padding: 6px 10px;        /* some breathing room inside */
+  border-radius: 4px;       /* slight rounding on corners */
+}
+
+/* Make the numeric value stand out */
+.min-max-box span {
+  font-weight: bold;
+}
+
   </style>
 </head>
 <body>
@@ -61,13 +100,15 @@
     </select>
   </div>
 
-  <div id="phase-label"><strong>Phase:</strong> <span id="phase-name">Initialization</span></div>
-  <div id="minmax-label">
-    <strong>Range:</strong>
+  <div id="minmax-container">
+  <div class="min-max-box">
     Min: <span id="curr-min"></span>
-    Max: <span id="curr-max"></span>
-    (size <span id="range-size"></span>)
   </div>
+  <div class="min-max-box">
+    Max: <span id="curr-max"></span>
+  </div>
+</div>
+
 
   <div id="input-label"><strong>Input Array:</strong></div>
   <div class="array-container" id="input-container">
@@ -100,8 +141,7 @@
       output_count:     'Determine Position',
       output_place:     'Place Element',
       output_end:       'Output Complete',
-      done:             'Complete'
-    };
+      };
 
     function record(state) {
       steps.push({
@@ -124,32 +164,54 @@
       const output = Array(input.length).fill(null);
       steps = [];
 
-      // First pass: find min and max
-      let currMin = input[0], currMax = input[0];
-      let currMinIdx = 0, currMaxIdx = 0;
-      record({ input, count: [], output, phase: 'range_init', index: 0, currMinIdx, currMaxIdx, min: currMin });
+      // ---------- Initial “blank” record, no arrow, null min/max -----------
+      record({
+        input:       input,
+        count:       [],
+        output:      output,
+        phase:       'start',
+        index:       -1,      // arrow hidden
+        value:       null,
+        outPos:      null,
+        min:         null,
+        currMinIdx:  null,
+        currMaxIdx:  null,
+        inc:         false
+      });
+
+      // ------ 1st pass: find min/max  ------
+      let currMin    = input[0], 
+          currMax    = input[0];
+      let currMinIdx = 0, 
+          currMaxIdx = 0;
+      // Show initial min/max at index 0
+      record({ 
+        input, count: [], output, 
+        phase: 'range_init', 
+        index: 0, 
+        currMinIdx, currMaxIdx, 
+        min: currMin 
+      });
 
       for (let i = 1; i < input.length; i++) {
         record({ input, count: [], output, phase: 'range_check', index: i, currMinIdx, currMaxIdx, min: currMin });
         if (input[i] < currMin) {
-          currMin = input[i];
-          currMinIdx = i;
+          currMin = input[i]; currMinIdx = i;
           record({ input, count: [], output, phase: 'range_update_min', index: i, currMinIdx, currMaxIdx, min: currMin });
         }
         if (input[i] > currMax) {
-          currMax = input[i];
-          currMaxIdx = i;
+          currMax = input[i]; currMaxIdx = i;
           record({ input, count: [], output, phase: 'range_update_max', index: i, currMinIdx, currMaxIdx, min: currMin });
         }
       }
       record({ input, count: [], output, phase: 'range_end', currMinIdx, currMaxIdx, min: currMin });
 
-      // Now initialize count using discovered range
+      // ------ 2nd pass: initialize count array  ------
       const min = currMin, max = currMax;
       const count = Array(max - min + 1).fill(0);
       record({ input, count, output, phase: 'init', min });
 
-      // Counting occurrences
+      // ------ 3rd pass: counting occurrences  ------
       input.forEach((v, i) => {
         let inc = false;
         record({ inc, input, count, output, phase: 'count', index: i, value: v, min });
@@ -159,7 +221,7 @@
       });
       record({ input, count, output, phase: 'count_end', min });
 
-      // Prefix sum
+      // ------ 4th pass: prefix sum  ------
       for (let i = 1; i < count.length; i++) {
         record({ input, count, output, phase: 'prefix_select', index: i, min });
         count[i] += count[i - 1];
@@ -167,7 +229,7 @@
       }
       record({ input, count, output, phase: 'prefix_end', min });
 
-      // Build output
+      // ------ 5th pass: build output  ------
       for (let i = input.length - 1; i >= 0; i--) {
         const v = input[i];
         record({ input, count, output, phase: 'output_input', index: i, value: v, min });
@@ -177,8 +239,7 @@
         record({ input, count, output, phase: 'output_place', index: i, outPos: pos, value: v, min });
       }
       record({ input, count, output, phase: 'output_end', min });
-      record({ input, count, output, phase: 'done', min });
-
+      
       return steps;
     }
 
@@ -187,10 +248,11 @@
       const container = document.getElementById('input-container');
       const cells     = container.querySelectorAll('.element');
 
-      if (i < 0 || i >= cells.length) {
-        arrow.style.display = 'none';
-        return;
-      }
+       if (!cells[i]) {
+    arrow.style.display = 'none';
+    return;
+  }
+
       const target = cells[i];
       arrow.style.width = `${target.offsetWidth}px`;
       arrow.style.left  = `${target.offsetLeft + target.offsetWidth / 2}px`;
@@ -199,12 +261,11 @@
     }
 
     function render() {
-      const inpC       = document.getElementById('input-container');
-      const cntC       = document.getElementById('count-container');
-      const outC       = document.getElementById('output-container');
-      const desc       = document.getElementById('description');
-      const phaseLabel = document.getElementById('phase-name');
-      const rangeEl    = document.getElementById('range-size');
+      const inpC = document.getElementById('input-container');
+      const cntC = document.getElementById('count-container');
+      const outC = document.getElementById('output-container');
+      const desc = document.getElementById('description');
+      const rangeEl = document.getElementById('range-size');
 
       inpC.innerHTML = '<div id="input-arrow" class="arrow">↑</div>';
       cntC.innerHTML = '';
@@ -212,42 +273,67 @@
       if (!steps.length) return;
 
       const st = steps[cur];
-      phaseLabel.textContent = phaseNames[st.phase] || st.phase;
 
-      st.input.forEach(v => {
+      // --- Build the **INPUT** array with index‐labels under each element ---
+      st.input.forEach((v, i) => {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'count-wrapper'; 
         const d = document.createElement('div');
         d.className = 'element';
         d.textContent = v;
-        inpC.appendChild(d);
+        const lbl = document.createElement('div');
+        lbl.className = 'count-label';
+        lbl.textContent = i;       // <-- show the input‐index
+        wrapper.appendChild(d);
+        wrapper.appendChild(lbl);
+        inpC.appendChild(wrapper);
       });
 
-      if (st.phase.startsWith('range')) {
-        document.getElementById('curr-min').textContent = st.input[st.currMinIdx];
-        document.getElementById('curr-max').textContent = st.input[st.currMaxIdx];
+      // --- If we’re still finding the range (phases start with “range” or “start”) ---
+      if (st.phase.startsWith('range') || st.phase === 'start') {
+        document.getElementById('curr-min').textContent = st.currMinIdx !== null
+          ? st.input[st.currMinIdx]
+          : '';
+        document.getElementById('curr-max').textContent = st.currMaxIdx !== null
+          ? st.input[st.currMaxIdx]
+          : '';
 
         positionInputArrow(st.index);
 
         switch (st.phase) {
+          case 'start':
+            desc.innerHTML = `Click "Next" to begin`;
+            break;
+
           case 'range_init':
-            desc.textContent = `Start range at index 0 (${st.input[0]})`;
+            desc.innerHTML = `Start range at index 0 (<strong>${st.input[0]}</strong>)<br>` +
+                             `Min = <strong>${st.input[0]}</strong><br>` +
+                             `Max = <strong>${st.input[0]}</strong>`;
             break;
+
           case 'range_check':
-            desc.textContent = `Checking index ${st.index} (${st.input[st.index]})`;
+            desc.innerHTML = `Checking index ${st.index} (<strong>${st.input[st.index]}</strong>)`;
             break;
+
           case 'range_update_min':
-            desc.textContent = `New min: ${st.input[st.index]} at index ${st.index}`;
+            desc.innerHTML = `New min: <strong>${st.input[st.index]}</strong> at index <strong>${st.index}</strong>`;
             break;
+
           case 'range_update_max':
-            desc.textContent = `New max: ${st.input[st.index]} at index ${st.index}`;
+            desc.innerHTML = `New max: <strong>${st.input[st.index]}</strong> at index <strong>${st.index}</strong>`;
             break;
+
           case 'range_end':
-            desc.textContent = `Range determined: min=${st.input[st.currMinIdx]}, max=${st.input[st.currMaxIdx]}`;
-            rangeEl.textContent = st.count ? st.count.length : '';
+            desc.innerHTML = 
+              `Range determined:<br>` +
+              `Min = <strong>${st.input[st.currMinIdx]}</strong>, ` +
+              `Max = <strong>${st.input[st.currMaxIdx]}</strong>`;
             break;
         }
         return;
       }
 
+      // --- Build the **COUNT** array, but now show each bucket’s index (0,1,2,...) below ---
       if (st.count && st.count.length) {
         st.count.forEach((c, i) => {
           const wrapper = document.createElement('div');
@@ -257,30 +343,45 @@
           d.textContent = c;
           const lbl = document.createElement('div');
           lbl.className = 'count-label';
-          lbl.textContent = st.min + i;
+          lbl.textContent = i;   // <-- show the bucket‐index rather than “min + i”
           wrapper.appendChild(d);
           wrapper.appendChild(lbl);
           cntC.appendChild(wrapper);
         });
       }
 
-      st.output.forEach(v => {
-        const d = document.createElement('div');
-        d.className = 'element';
-        if (v !== null) d.textContent = v;
-        outC.appendChild(d);
-      });
-      st.output.forEach((v, i) => {
-        if (v !== null) outC.children[i].classList.add('finished');
-      });
+      
+      // --- Build the **OUTPUT** array **with** index‐labels under each cell ---
+st.output.forEach((v, i) => {
+  const wrapper = document.createElement('div');
+  wrapper.className = 'count-wrapper';    // re‐use the same wrapper style
+  const cell = document.createElement('div');
+  cell.className = 'element';
+  if (v !== null) cell.textContent = v;
+  const lbl = document.createElement('div');
+  lbl.className = 'count-label';
+  lbl.textContent = i;                     // ← here’s your index
 
+  wrapper.appendChild(cell);
+  wrapper.appendChild(lbl);
+  outC.appendChild(wrapper);
+});
+
+// now mark “finished” just like before, but on the inner .element
+st.output.forEach((v, i) => {
+  if (v !== null) outC.children[i].querySelector('.element').classList.add('finished');
+});
+
+
+      // --- Clear any “comparing” highlight from all three containers ---
       [inpC, cntC, outC].forEach(container =>
         Array.from(container.children).forEach(c => c.classList.remove('comparing'))
       );
 
+      // --- Now handle each phase after range‐finding: ---
       switch (st.phase) {
         case 'init':
-          desc.textContent = 'Initial state.';
+          desc.textContent = 'Count array initialized. Begin Counting.';
           inpC.querySelectorAll('.element').forEach(el => el.classList.remove('active'));
           const target = inpC.querySelectorAll('.element')[st.index];
           if (target) target.classList.add('active');
@@ -288,76 +389,82 @@
 
         case 'count':
           const ccIdx = st.value - st.min;
-
           if (st.inc === false) {
             desc.innerHTML =
-              `Value <strong>${st.value}</strong> at index <strong>${st.index}</strong> →<br>` +
-              `count index = <strong>${st.value} − ${st.min} = ${ccIdx}</strong>`;
+              `Value <strong>${st.value}</strong> at index <strong>${st.index}</strong><br>` +
+              `→ count index = <strong>${st.value} − ${st.min} = ${ccIdx}</strong>`;
           } else {
-            desc.innerHTML =
-              `increment <code>count[${ccIdx}]</code>`;
+            desc.innerHTML = `Increment <code>count[${ccIdx}]</code>`;
           }
-
           inpC.querySelectorAll('.element')[st.index].classList.add('comparing');
           positionInputArrow(st.index);
           cntC.children[ccIdx].querySelector('.element').classList.add('comparing');
           break;
 
         case 'count_end':
-          desc.textContent = 'Counting phase complete.';
+          desc.textContent = 'Counting phase complete. Beginning prefix summation';
           positionInputArrow(-1);
           break;
 
-        case 'prefix_select':
-          const cIdx = st.index, pIdx = st.index - 1;
-          desc.textContent = `Selecting count[${st.min + pIdx}] and count[${st.min + cIdx}] to sum.`;
-          positionInputArrow(-1);
-          cntC.children[cIdx].querySelector('.element').classList.add('comparing');
-          cntC.children[pIdx].querySelector('.element').classList.add('comparing');
-          break;
+       case 'prefix_select':
+  // cIdx = the index we’re about to update
+  // pIdx = the previous index that will be added in
+  const cIdx = st.index;
+  const pIdx = st.index - 1;
+  desc.textContent = 
+    `count[${cIdx}] = count[${pIdx}] + count[${cIdx}]`;
+  positionInputArrow(-1);
+  cntC.children[cIdx].querySelector('.element').classList.add('comparing');
+  cntC.children[pIdx].querySelector('.element').classList.add('comparing');
+  break;
 
-        case 'prefix_calc':
-          desc.textContent = `Updating count[${st.min + st.index}] to ${st.count[st.index]} (sum of previous + current).`;
-          positionInputArrow(-1);
-          cntC.children[st.index].querySelector('.element').classList.add('comparing');
-          break;
+case 'prefix_calc':
+  // At this point, st.count[st.index] has already been updated to 
+  // count[st.index - 1] + old count[st.index]. We display the new value explicitly:
+  const newVal = st.count[st.index];
+  const prevVal = st.count[st.index - 1];
+  const oldVal  = newVal - prevVal; // since newVal = oldVal + prevVal
+  desc.textContent = 
+    `count[${st.index}] = ${newVal}`;
+  positionInputArrow(-1);
+  cntC.children[st.index].querySelector('.element').classList.add('comparing');
+  break;
 
         case 'prefix_end':
-          desc.textContent = 'Prefix summation complete.';
+          desc.textContent = 'Prefix summation complete. Beginning placement phase.';
           positionInputArrow(-1);
           break;
 
         case 'output_input':
-          desc.textContent = `Selecting input element ${st.value} at index ${st.index}.`;
+          desc.innerHTML = `Selecting input element <strong>${st.value}</strong> at index ${st.index}.`;
           inpC.querySelectorAll('.element')[st.index].classList.add('comparing');
           positionInputArrow(st.index);
           break;
 
         case 'output_count':
-          desc.innerHTML = `Determining position from count[${st.value - st.min}] -1 <br>(output index = ${st.count[st.value - st.min]} - 1 = ${st.count[st.value - st.min]-1}).`;
+          desc.innerHTML = 
+            `Determining position.
+			<br> Output index = <strong>count[${st.value} - ${st.min}] - 1</strong> = ${st.count[st.value - st.min]} - 1 = ${st.count[st.value - st.min] - 1}` ;
           inpC.querySelectorAll('.element')[st.index].classList.add('comparing');
           positionInputArrow(st.index);
           cntC.children[st.value - st.min].querySelector('.element').classList.add('comparing');
           break;
 
         case 'output_place':
-          desc.innerHTML = `Placing value ${st.value} at output index ${st.outPos}.
-		  <br> decremented count[${st.value - st.min}]`;
+          desc.innerHTML = 
+            `Placing value <strong>${st.value}</strong> at output index <strong>${st.outPos}</strong>.<br>` +
+            `Decremented count[${st.value - st.min}]`;
           inpC.querySelectorAll('.element')[st.index].classList.add('comparing');
           positionInputArrow(st.index);
           cntC.children[st.value - st.min].querySelector('.element').classList.add('comparing');
-          outC.children[st.outPos].classList.add('finished');
-          break;
+           break;
 
         case 'output_end':
-          desc.textContent = 'Output building complete.';
-          positionInputArrow(-1);
-          break;
-
-        case 'done':
           desc.textContent = 'Counting Sort complete!';
           positionInputArrow(-1);
           break;
+
+        
       }
     }
 

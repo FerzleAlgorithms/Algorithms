@@ -1,0 +1,843 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Divide & Conquer Exponentiation Demo</title>
+  <!-- Link to the same CSS files used in the Heapsort demo -->
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="demo.css">
+
+  <style>
+    /* =============================================
+       Custom CSS for Binary Exponentiation Demo
+       ============================================= */
+
+    /* === Node coloring for different states === */
+    /* Default treeNode circle fill comes from demo.css (.treeNode circle { fill: #cce3ff; ... }) */
+
+    /* ← Insert these default rules right here: */
+  .treeNode circle {
+    fill: #cce3ff;
+    stroke: #2a2a2a;
+    stroke-width: 1.5px;
+  }
+  .treeNode text {
+    font-size: 16px;
+    text-anchor: middle;
+    dominant-baseline: middle;
+    fill: #0a0a0a;
+  }
+
+  /* Mark a node where the multiplication for that node has just been performed */
+  .treeNode.multiplied circle {
+    fill: lightgreen;
+    stroke: #666;
+    stroke-width: 1.5px;
+  }
+
+  .treeNode.leaf circle {
+  fill: lightgreen;
+  stroke: #666;
+  stroke-width: 1.5px;
+}
+
+   /* 1) pull in the demo.css base .legend-box */
+.legend-box {
+  display: inline-block;
+  width: 15px;
+  height: 15px;
+  vertical-align: middle;
+  margin-left: 10px;
+  border-radius: 4px;
+  border: 1px solid #333;
+  background-color: transparent;
+}
+
+/* 2) only override the fill & border-color per state */
+.legend-box.current {
+  background-color: orange;
+  border-color: #666;   /* a darker orange */
+}
+
+.legend-box.multiplied {
+  background-color: lightgreen;
+  border-color: #666;
+}
+
+    
+
+    /* Adjust the spacing for controls */
+    #controls {
+      margin-bottom: 10px;
+    }
+    #controls input[type="number"] {
+      width: 60px;
+      margin-right: 8px;
+      padding: 4px;
+    }
+    #controls button {
+      margin-right: 8px;
+    }
+
+    /* Multiplication counter styling */
+    #multiplier-counter {
+      margin: 10px 0;
+      font-family: sans-serif;
+      font-size: 16px;
+    }
+
+    /* Commentary area styling (reusing demo.css styles) */
+    #commentary {
+      margin-top: 10px;
+      font-family: sans-serif;
+      font-style: italic;
+      height: 36px;
+    }
+
+    @keyframes bubbleUp {
+  to { transform: translate(var(--dx), var(--dy)); }
+  }
+  .treeNode.bubble {
+    /* duration comes from --anim-duration, or fall back to 1000ms at 1× */
+    animation: bubbleUp var(--anim-duration, 1000ms) ease-out forwards;
+  }
+
+
+  /* 1) Default (all nodes blue) */
+.treeNode circle {
+  fill: #cce3ff;          /* light-blue */
+  stroke: #2a2a2a;        /* dark outline */
+  stroke-width: 1.5px;
+}
+
+ /* Highlight the currently active (being processed) node */
+  .treeNode.current circle {
+   /* fill it orange, and give it a darker orange outline */
+   fill: orange;
+    stroke: #2a2a2a;      /* ← use the same black as the other nodes */
+   stroke-width: 3px;
+ }
+
+/* 3) “Done multiplying” (or leaf/base case) → green */
+.treeNode.multiplied circle,
+.treeNode.leaf circle {
+  fill: lightgreen;
+  stroke: #666;
+  stroke-width: 1.5px;
+}
+
+/* Add space between the step-buttons and the legend */
+#buttons {
+  margin-bottom: 10px;
+}
+  
+  </style>
+</head>
+
+<body>
+  <h2>Divide & Conquer Exponentiation Demo</h2>
+
+  <!-- Controls to input Base (a) and Exponent (n), and to compute the demo -->
+  <div id="controls">
+    <label>
+      Base (a):
+      <input type="number" id="base" min="1" value="2">
+    </label>
+    <label>
+      Exponent (n):
+      <input type="number" id="exponent" min="0" max="127" value="15">
+    </label>
+    <button id="compute">compute</button>
+
+    <!-- ← Insert your slider here: -->
+    <label style="margin-left:16px;">
+      Node spacing:
+      <input
+        type="range"
+        id="spacingSlider"
+        min="50"
+        max="850"
+        step="10"
+        value="300"
+      >
+    </label>
+  </div>
+
+
+  <!-- Buttons to step through the recursion tree -->
+  <div id="buttons">
+    <button id="prevBtn" onclick="prevStep()" disabled>Previous</button>
+    <button id="nextBtn" onclick="nextStep()" disabled>Next</button>
+    <button id="play" onclick="togglePlay()">Play</button>
+    <label for="speed">Speed:</label>
+    <select id="speed" onchange="changeSpeed()">
+      <option value="1">1×</option>
+      <option value="2">2×</option>
+      <option value="4">4×</option>
+      <option value="8">8×</option>
+    </select>
+  </div>
+
+  <!-- Custom legend for node states -->
+  <div class="legend">
+    <strong>Legend:</strong>
+    <span class="legend-box current"></span><span class="legend-label">Current Node</span>
+    <span class="legend-box multiplied"></span><span class="legend-label">Completed Multiplication</span>
+  </div>
+
+  <!-- Display total multiplications so far -->
+  <div id="multiplier-counter">
+    <strong>Total multiplications:</strong> <span id="multCount">0</span>
+  </div>
+
+  <!-- Commentary area for descriptions of each step -->
+  <div id="commentary"></div>
+
+  <!-- SVG container for drawing the recursion tree -->
+  <svg
+    id="svg"
+    width="900"
+    height="600"
+    preserveAspectRatio="xMinYMin meet"
+    style="display: block; margin: 0; overflow: visible;"
+  >
+    <g id="linkLayer"></g>
+    <g id="nodeLayer"></g>
+  </svg>
+
+  <script>
+    /* =============================================
+       JavaScript for Binary Exponentiation Demo
+       ============================================= */
+
+    // Global settings for node spacing
+    const settings = { hSpread: 300, nodeFont: 16, circleR: 20 };
+    const levelVGap = 80;         // vertical gap between tree levels
+    const rootY = 0;
+
+    // Step array and control variables
+    let rootX = settings.hSpread;
+    let steps = [];
+    let stepIndex = 0;
+    let playing = false;
+    let intervalId = null;
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+
+    // Counter for total multiplications
+    let multiplicationCount = 0;
+
+    // Unique ID generator for nodes
+    let nextNodeId = 0;
+
+    // Called when "generate Tree" is clicked
+    document.getElementById('compute').addEventListener('click', initializeDemo);
+
+
+
+    /**
+ * Finds the two “bubble” nodes in the current SVG,
+ * clones them as absolutely‐positioned elements,
+ * animates them into the parent’s spot, then removes them.
+ */
+function animateBubbleStep(event) {
+  // 1) Which nodes are bubbling?
+  const bubbleInfo = event.nodes
+    .filter(n => n.status === 'bubble')
+    .map(n => ({ path: n.path }));
+  if (bubbleInfo.length === 0) return Promise.resolve();
+  
+  // 2) Clone & position them
+  const clones = bubbleInfo.map(({ path }) => {
+    const orig = document.querySelector(`g.treeNode[data-path="${path}"]`);
+    const rect = orig.getBoundingClientRect();
+    const clone = orig.cloneNode(true);
+    Object.assign(clone.style, {
+      position: 'absolute',
+      left: `${rect.left}px`,
+      top:  `${rect.top}px`,
+      transformOrigin: 'center',
+      transition:     'transform 0.5s ease, opacity 0.5s ease'
+    });
+    document.body.appendChild(clone);
+    return { clone, path };
+  });
+
+  // 3) Kick off the move→fade
+  clones.forEach(({ clone, path }) => {
+    const parentPath = path.slice(0, -1);
+    const parentG = document.querySelector(`g.treeNode[data-path="${parentPath}"]`);
+    const pRect   = parentG.getBoundingClientRect();
+    const cRect   = clone.getBoundingClientRect();
+    // center→center
+    const dx = (pRect.left + pRect.width/2) - (cRect.left + cRect.width/2);
+    const dy = (pRect.top  + pRect.height/2) - (cRect.top  + cRect.height/2);
+    // let the CSS transition run
+    requestAnimationFrame(() => {
+      clone.style.transform = `translate(${dx}px, ${dy}px) scale(0.6)`;
+      clone.style.opacity   = '0';
+    });
+  });
+
+  // 4) Return a Promise that resolves when *all* clones finish
+  return new Promise(resolve => {
+    let done = 0;
+    clones.forEach(({ clone }) => {
+      clone.addEventListener('transitionend', () => {
+        clone.remove();
+        if (++done === clones.length) resolve();
+      }, { once: true });
+    });
+  });
+}
+
+    function initializeDemo() {
+  // 1) clear any existing drawing/commentary
+  document.getElementById('linkLayer').innerHTML = '';
+  document.getElementById('nodeLayer').innerHTML = '';
+  document.getElementById('commentary').textContent = '';
+  document.getElementById('multCount').textContent = '0';
+
+  // 2) reset your globals/state
+  steps = [];
+  stepIndex = 0;
+  // — give us a default 1× delay of 1000 ms —
+  window.stepDelay = 1000;
+
+  playing = false;
+  if (intervalId) {
+    clearInterval(intervalId);
+    intervalId = null;
+  }
+  multiplicationCount = 0;
+  nextNodeId = 0;
+
+
+
+    // 1) push an initial “empty” snapshot so we can truly undo the first node
+  //    event.nodes = [] → renderTree will draw nothing
+  pushEvent(
+    '', 
+    [], 
+    0
+);
+
+  // 3) **clear the old “nodes” buffer** so buildExpSteps starts fresh
+  buildExpSteps.nodes = null;
+
+  // 4) parse inputs
+  const a = parseInt(document.getElementById('base').value, 10);
+  const n = parseInt(document.getElementById('exponent').value, 10);
+   if (isNaN(a) || isNaN(n) || a < 1 || n < 0 || n > 127) {
+    alert('Please enter a valid base (≥1) and exponent between 0 and 127.');
+    return;
+  }
+
+  // 5) rebuild the steps from scratch
+  buildExpSteps(a, n, null, '');
+
+
+  pushEvent(
+  `Demo complete. Final answer: ${a}<sup>${n}</sup> = ${Math.pow(a, n)}`,
+  buildExpSteps.nodes,
+  multiplicationCount
+);
+
+
+  // 6) enable buttons & render first step
+  updateButtons();
+  renderStep();
+}
+
+    /**
+     * buildExpSteps(a, n, parentId, path)
+     * Recursively constructs the events array for visualizing binary exponentiation.
+     *
+     * - a: the base.
+     * - n: the exponent at this node.
+     * - parentId: the unique ID of the parent node (null for root).
+     * - path: a string of 'L'/'R' indicating this node's position in the tree.
+     */
+    function buildExpSteps(a, n, parentId, path) {
+      const nodeId = nextNodeId++;
+      // always display a^n (base cases get 1 or “a”)
+      let label;
+      if (n === 0) {
+        label = `1`;
+      } else if (n === 1) {
+        label = `${a}`;
+      } else {
+        label = `${a}^${n}`;
+      }
+      // Create a new node object with default status. Will mutate status per event.
+      const newNode = { id: nodeId, path: path, label: label, status: '' };
+
+      // Add this node to the global "current nodes list" for all future events
+      // We'll keep a single array of nodes and mutate it. Then each event will capture a snapshot.
+      if (!buildExpSteps.nodes) {
+        buildExpSteps.nodes = [];
+      }
+      buildExpSteps.nodes.push(newNode);
+
+      // --- EVENT: Node Creation (mark as current) ---
+ // 1) clear any existing “current” flags so only one node is orange
+ buildExpSteps.nodes.forEach(n => {
+   if (n.status === 'current') n.status = '';
+ });
+
+ // 2) mark this new node as the one being visited
+ newNode.status = 'current';
+
+ // 3) snapshot it (so it renders orange)
+ pushEvent(
+   `Create node ${label}${parentId !== null ? ` under parent ${parentId}` : ''}.`,
+   buildExpSteps.nodes,
+   multiplicationCount
+ );
+
+ // 4) immediately clear it so on the next step it goes back to blue
+ newNode.status = '';
+
+      // Check for base case
+      // Base cases exactly as in your C++ snippet
+      if (n === 1) {
+        newNode.status = 'leaf';
+        pushEvent(`Base case: n=1 -> return ${a}`, buildExpSteps.nodes, multiplicationCount);
+        return nodeId;
+      } else if (n === 0) {
+        newNode.status = 'leaf';
+        pushEvent(`Base case: n=0 -> return 1`, buildExpSteps.nodes, multiplicationCount);
+        return nodeId;
+      }
+
+           // Not a leaf => compute how to split exponent
+      let leftExp, rightExp;
+      if (n % 2 === 0) {
+        // even exponent: a^n = f(n/2) * f(n/2)
+        leftExp  = n / 2;
+        rightExp = n / 2;
+        pushEvent(
+          `Even case: n%2=0 → return binExp(${a},${leftExp}) * binExp(${a},${rightExp})`,
+          buildExpSteps.nodes,
+          multiplicationCount
+        );
+      } else {
+        // odd exponent: a^n = f((n-1)/2) * f((n+1)/2)
+        leftExp  = (n - 1) / 2;
+        rightExp = (n + 1) / 2;
+        pushEvent(
+          `Odd case: n%2=1 → return binExp(${a},${leftExp}) * binExp(${a},${rightExp})`,
+          buildExpSteps.nodes,
+          multiplicationCount
+        );
+      }
+
+      // —— NEW: compute child-labels the same way we did for parent
+      const childLabel = exp => {
+      if (exp === 0) return '1';
+      if (exp === 1) return `${a}`;
+      // wrap the exponent in a <sup> tag
+      if (exp % 2 === 0) {
+        return `${a}<sup>${exp}</sup>`;
+      } else {
+        // odd: show the pulled-out base with its exponent
+        return `${a}*${a}<sup>${exp - 1}</sup>`;
+      }
+    };
+      // pushEvent(
+      //   `Split ${label} into ${childLabel(leftExp)} (left) and ${childLabel(rightExp)} (right). Now generating left subtree...`,
+      //   buildExpSteps.nodes,
+      //   multiplicationCount
+      // );
+
+      // --- RECURSE on left child ---
+      buildExpSteps(a, leftExp, nodeId, path + 'L');
+
+        // After left subtree is done, re-mark this parent as the “current” (orange) node
+        // 1) clear any other .current flags:
+        buildExpSteps.nodes.forEach(nd => { if (nd.status === 'current') nd.status = ''; });
+        // 2) mark *this* node (the parent) as current
+        newNode.status = 'current';
+
+        // 3) snapshot with the orange parent in place
+        pushEvent(
+        `Finished left recursive calls for ${a}<sup>${n}</sup>. Now calling the right side...`,
+        buildExpSteps.nodes,
+        multiplicationCount
+      );
+
+
+        // 4) (optional) clear it right away so the next step can restyle as needed
+        newNode.status = '';
+
+
+      // --- RECURSE on right child ---
+      buildExpSteps(a, rightExp, nodeId, path + 'R');
+
+      // ── SAVE each child’s pre-bubble status ──
+      const originalStatuses = {};
+      ['L','R'].forEach(dir => {
+        const child = buildExpSteps.nodes.find(n => n.path === path + dir);
+        if (child) originalStatuses[child.path] = child.status;
+      });
+
+      
+     // --- BUBBLE STEP: mark both children as 'bubble' ---
+     ['L','R'].forEach(dir => {
+       const child = buildExpSteps.nodes.find(n => n.path === path + dir);
+       if (child) child.status = 'bubble';
+     });
+      pushEvent(
+        'Performing multiplcation…',
+        buildExpSteps.nodes,
+        multiplicationCount
+      );
+
+
+     // ── RESTORE each child back to its original status ──
+    ['L','R'].forEach(dir => {
+      const child = buildExpSteps.nodes.find(n => n.path === path + dir);
+      if (child && originalStatuses.hasOwnProperty(child.path)) {
+        child.status = originalStatuses[child.path];
+      }
+    });
+
+      // After both children are done: perform multiplication at this node
+      // …after computing leftExp/rightExp…
+        // …after computing leftExp/rightExp…
+      newNode.status = 'multiplied';
+
+      // a helper to show “a^e” as HTML
+      const expLabel = e => `${a}<sup>${e}</sup>`;
+
+      // build the two factors you actually want to multiply
+      let factors;
+      if (n % 2 === 0) {
+        // even case → a^n = a^(n/2) * a^(n/2)
+        factors = [
+          expLabel(leftExp),
+          expLabel(rightExp)
+        ];
+        multiplicationCount += 1;   // one multiplication at this node
+      } else {
+        // odd case → a^n = a * a^((n-1)/2) * a^((n-1)/2)
+        factors = [
+          `${a}`,            // the “pulled‐out” base
+          expLabel(leftExp), // a^((n-1)/2)
+          expLabel(rightExp) // a^((n-1)/2)
+        ];
+        multiplicationCount += 2;   // two multiplications at this node
+      }
+
+      // join them with “ * ” so you get “2<sup>3</sup> * 2<sup>3</sup>”
+      const childExpr = factors.join(' * ');
+
+     // 1) collapse the label right *before* we snapshot it
+     newNode.label  = `${a}^${n}`;
+     newNode.status = 'multiplied';
+
+     // 2) now snapshot the multiplication frame with the collapsed label
+     pushEvent(
+      `${childExpr} = ${a}<sup>${n}</sup> = ${Math.pow(a, n)}`,
+        buildExpSteps.nodes,
+        multiplicationCount
+      );
+
+
+      // Clear status so it does not remain highlighted in future steps
+      //newNode.status = '';
+      return nodeId;
+    }
+
+    /**
+     * Helper to push a new snapshot event into the global steps array.
+     *
+     * - description: text to show in the commentary.
+     * - nodesArr: the up-to-now list of node objects (with statuses).
+     * - multCount: current multiplication count.
+     */
+    function pushEvent(description, nodesArr, multCount) {
+      // Deep‐copy the nodes array (so future mutations don't alter past events)
+      const snapshotNodes = nodesArr.map(n => ({
+        id: n.id,
+        path: n.path,
+        label: n.label,
+        status: n.status
+      }));
+      steps.push({
+        nodes: snapshotNodes,
+        description: description,
+        multCount: multCount
+      });
+    }
+
+    /**
+     * computeNodePositionByPath(path)
+     * Given a path string of 'L'/'R' from the root, compute (x,y) for that node.
+     */
+    function computeNodePositionByPath(path) {
+      let x = rootX;
+      let y = rootY;
+      let h = settings.hSpread;
+      for (const dir of path) {
+        h = h / 2;
+        y += 1;
+        x += dir === 'L' ? -h : +h;
+      }
+      return { x: x, y: y * levelVGap + 40 };
+    }
+
+    /**
+     * renderStep()
+     * Render the current event (stepIndex) onto the SVG and other UI elements.
+     */
+    function renderStep() {
+      const event = steps[stepIndex];
+      // update counter & commentary
+      document.getElementById('multCount').textContent    = event.multCount;
+      document.getElementById('commentary').innerHTML     = event.description;
+      // draw the tree as of this snapshot
+      renderTree(event.nodes);
+
+      // if this is our “Bubbling…” snapshot, run the animation
+      if (event.description.startsWith('Performing')) {
+         // disable Next (we’ll auto-advance), but allow Prev to work
+        nextBtn.disabled = true;
+        prevBtn.disabled = (stepIndex === 0);
+
+      // wait exactly one play-step before moving on
+       setTimeout(() => renderStepIndex(stepIndex + 1), window.stepDelay);
+      } else {
+        // normal case: just enable/disable Prev/Next
+        prevBtn.disabled = (stepIndex === 0);
+        nextBtn.disabled = (stepIndex === steps.length - 1);
+      }
+    }
+
+    // helper to jump to a new stepIndex and re-render
+    function renderStepIndex(i) {
+      stepIndex = i;
+      renderStep();
+  }
+
+
+    /**
+     * renderTree(nodes)
+     * Given a list of node snapshots (with path, label, status), draw them all and their edges.
+     */
+    function renderTree(nodes) {
+      const svg = document.getElementById('svg');
+      const linkLayer = document.getElementById('linkLayer');
+      const nodeLayer = document.getElementById('nodeLayer');
+
+      // Clear previous drawing
+      linkLayer.innerHTML = '';
+      nodeLayer.innerHTML = '';
+
+      // Build a map from path → node object (for quick parent lookup)
+      const pathToNode = {};
+      for (const n of nodes) {
+        pathToNode[n.path] = n;
+      }
+
+      // First, draw edges for every node with a parent (path length ≥1)
+      for (const n of nodes) {
+        if (n.path.length === 0) continue; // root has no parent
+        const parentPath = n.path.slice(0, -1);
+        if (!pathToNode[parentPath]) continue; // in case of any anomaly
+
+        const childPos = computeNodePositionByPath(n.path);
+        const parentPos = computeNodePositionByPath(parentPath);
+
+        // Draw a line from parent to child
+        const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        line.setAttribute('x1', parentPos.x);
+        line.setAttribute('y1', parentPos.y);
+        line.setAttribute('x2', childPos.x);
+        line.setAttribute('y2', childPos.y);
+        line.setAttribute('stroke', '#888');
+        line.setAttribute('stroke-width', '1px');
+        linkLayer.appendChild(line);
+      }
+
+      // Then, draw each node as a <g class="treeNode"> group
+      for (const n of nodes) {
+        const pos = computeNodePositionByPath(n.path);
+
+        const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+        g.setAttribute('class', 'treeNode');
+
+
+         // if this node was marked for bubbling, add the class so CSS can animate it
+         if (n.status === 'bubble') {
+           // compute my position...
+            const me     = computeNodePositionByPath(n.path);
+            // ...and my parent’s
+            const parent = computeNodePositionByPath(n.path.slice(0, -1));
+            const dx = parent.x - me.x;
+            const dy = parent.y - me.y;
+            // shove those into CSS vars so the @keyframes can read them
+            g.style.setProperty('--dx', dx + 'px');
+            g.style.setProperty('--dy', dy + 'px');
+
+            g.classList.add('bubble');
+            g.style.setProperty('--anim-duration', window.stepDelay + 'ms');
+            g.classList.add('multiplied');
+
+         }
+
+
+        // tell us which node this is, so we can query/clone it later
+        g.setAttribute('data-path', n.path);
+
+        // Add additional classes based on status
+        if (n.status === 'current') {
+          g.classList.add('current');
+        } else if (n.status === 'multiplied') {
+          g.classList.add('multiplied');
+        } else if (n.status === 'leaf') {
+          g.classList.add('leaf');
+        }
+
+        // Draw circle
+        const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        circle.setAttribute('cx', pos.x);
+        circle.setAttribute('cy', pos.y);
+        circle.setAttribute('r', settings.circleR);
+        g.appendChild(circle);
+
+        // Draw the label with a superscripted exponent
+        const valueText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        valueText.setAttribute('x',       pos.x);
+        valueText.setAttribute('y',       pos.y);
+        valueText.setAttribute('text-anchor',      'middle');
+        valueText.setAttribute('dominant-baseline','middle');
+
+        // split your stored label "a^n" into ["a","n"]
+        const [baseStr, expStr] = n.label.split('^');
+
+        // first tspan: the base
+        const baseTspan = document.createElementNS('http://www.w3.org/2000/svg', 'tspan');
+        baseTspan.textContent = baseStr;
+        baseTspan.setAttribute('font-size', settings.nodeFont);
+        valueText.appendChild(baseTspan);
+
+        // second tspan: the exponent, shifted up
+        const expTspan = document.createElementNS('http://www.w3.org/2000/svg', 'tspan');
+        expTspan.textContent = expStr;
+        expTspan.setAttribute('baseline-shift', 'super');
+        // shrink the exponent a bit so it looks natural
+        expTspan.setAttribute('font-size', settings.nodeFont * 0.6);
+        valueText.appendChild(expTspan);
+
+         g.appendChild(valueText);
+        nodeLayer.appendChild(g);
+
+      }
+    }
+
+    /**
+     * updateButtons()
+     * Enable/disable Prev/Next depending on stepIndex.
+     */
+    function updateButtons() {
+      document.getElementById('prevBtn').disabled = (stepIndex === 0);
+      document.getElementById('nextBtn').disabled = (stepIndex === steps.length - 1);
+    }
+
+    function nextStep() {
+      if (stepIndex < steps.length - 1) {
+        stepIndex++;
+        renderStep();
+      }
+      if (stepIndex === steps.length - 1 && playing) {
+        // Stop playing when reaching last step
+        playing = false;
+        document.getElementById('play').textContent = 'Play';
+        clearInterval(intervalId);
+        intervalId = null;
+      }
+    }
+
+   function prevStep() {
+  if (stepIndex > 0) {
+    // Step once back…
+    stepIndex--;
+    // …but if that's our bubble‐only snapshot, step back _again_
+    if (steps[stepIndex].description.startsWith('Bubbling') && stepIndex > 0) {
+      stepIndex--;
+    }
+    renderStep();
+  }
+}
+
+
+    function togglePlay() {
+      if (playing) {
+        // Pause
+        playing = false;
+        document.getElementById('play').textContent = 'Play';
+        clearInterval(intervalId);
+        intervalId = null;
+      } else {
+        // Start playing
+        playing = true;
+        document.getElementById('play').textContent = 'Pause';
+        const speed = parseInt(document.getElementById('speed').value, 10);
+        const delay = 1000 / speed;
+        window.stepDelay = delay;
+        intervalId = setInterval(() => {
+          if (stepIndex < steps.length - 1) {
+            nextStep();
+          } else {
+            // Once done, stop automatically
+            playing = false;
+            document.getElementById('play').textContent = 'Play';
+            clearInterval(intervalId);
+            intervalId = null;
+          }
+        }, delay);
+      }
+    }
+
+    function changeSpeed() {
+      if (playing) {
+        // Restart the interval with the new speed
+        clearInterval(intervalId);
+        playing = false;
+        document.getElementById('play').textContent = 'Play';
+        togglePlay();
+      }
+    }
+
+    // Clear any static storage between different builds
+    buildExpSteps.nodes = null;
+
+const slider = document.getElementById('spacingSlider');
+slider.addEventListener('input', e => {
+  const s = +e.target.value;
+  settings.hSpread = s;
+  rootX            = s;
+
+  if (stepIndex < steps.length - 1) {
+    // ─── Mid-demo ───
+    // Re-draw only the nodes in THIS step,
+    // so you won’t suddenly see the whole tree green.
+    renderTree( steps[stepIndex].nodes );
+  } else {
+    // ─── Demo finished ───
+    // Now you really want the entire built tree,
+    // so use the complete node list.
+    renderTree( buildExpSteps.nodes );
+  }
+});
+
+
+  </script>
+</body>
+</html>
+
+
+
+
+

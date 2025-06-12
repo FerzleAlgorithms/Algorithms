@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Horner’s Rule with Factoring Demo</title>
+
+  <!--
+    (Assumes the same folder structure as before:
+      • demoScripts.js
+      • style.css
+      • demo.css
+  ) -->
+  <script src="../../../scripts/demoScripts.js"></script>
+  <link rel="stylesheet" href="../../../css/style.css">
+  <link rel="stylesheet" href="../../../css/demo.css">
+
+  <style>
+
+
+    /* ─── ORIGINAL POLYNOMIAL (id="poly-display") ─── */
+    .polynomial {
+      margin-bottom: 0;       /* no extra space below the “initial” line */
+      font-size: 1.2em;       /* keep the same size as before */
+    }
+
+    /* ─── FACTORED LINES ─── */
+    .factored {
+      margin: 0;              /* no top/bottom margin at all */
+      font-size: 1.2em;       /* same size as .polynomial */
+      /* font-family: inherit;*/ /* remove monospace so it matches .polynomial */
+      white-space: pre-wrap;  /* still need to allow <br> to wrap */
+    }
+
+    .term {
+      padding: 0 0.2em;
+    }
+    .term.current {
+      background-color: #fffb91;
+      font-weight: bold;
+    }
+
+    .factored .current {
+      background-color: #fffb91;
+      font-weight: bold;
+    }
+
+    /***** BUTTON / CONTROL STYLING *****/
+    .controls {
+      margin-bottom: 1em;
+    }
+    button {
+      padding: 0.3em 0.6em;
+      margin-left: 0.5em;
+      font-size: 1em;
+      cursor: pointer;
+    }
+    button:disabled {
+      opacity: 0.5;
+      cursor: default;
+    }
+    #play {
+      margin-left: 0.5em;
+    }
+    #speed {
+      margin-left: 0.25em;
+    }
+
+    .input-row {
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 0.75em;
+    }
+
+    /***** TABLE STYLING *****/
+    table {
+      border-collapse: collapse;
+      margin-top: 1em;
+      width: auto;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 0.4em;
+      text-align: center;
+      font-family: monospace;
+    }
+    th {
+      background: #f0f0f0;
+    }
+    .highlight-cell {
+      background-color: #fffb91;
+    }
+
+    /***** COMMENT & STATS AREA *****/
+    .comment {
+      margin-top: 0.5em;
+      font-style: italic;
+      min-height: 2em;
+    }
+    .stats {
+      margin-top: 0.5em;
+      font-style: italic;
+      min-height: 1em;
+    }
+  </style>
+</head>
+<body>
+  <div class="demo-container">
+    <h2>Horner’s Rule </h2>
+
+    <div class="controls">
+      <!-- (1) “Create Coefficients” input, then “Enter x” on same line -->
+      <div class="input-row">
+        <label>
+          <strong>Coefficients (a₀, a₁, …, aₙ):</strong>
+          <!-- Default changed to 1,-2,3,-4,5,-6,7 -->
+          <input
+            id="coeff-input"
+            type="text"
+            value="1,-2,3,-4,5,-6,7"
+            size="30"
+            placeholder="e.g. 1,-2,3,-4,5,-6,7"
+          >
+        </label>
+        <button id="create-coeffs-btn">Create Coefficients</button>
+
+        <!-- “Enter x” on same row -->
+        <label style="margin-left: 1.5em;">
+          <strong>Enter x:</strong>
+          <input id="x-input" type="number" value="2">
+        </label>
+      </div>
+
+      <!-- (2) Play/Prev/Next and Speed controls -->
+      <div class="button-row">
+        <button id="prev-btn" disabled>Previous</button>
+        <button id="next-btn">Next</button>
+        <button id="play">Play</button>
+        <label for="speed">Speed:</label>
+        <select id="speed">
+          <option value="1">1×</option>
+          <option value="2">2×</option>
+          <option value="4">4×</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- (3) Display the “current expanded polynomial” -->
+    <div class="polynomial" id="poly-display">
+      <!-- e.g. 1 – 2x + 3x² – 4x³ + 5x⁴ – 6x⁵ + 7x⁶ -->
+    </div>
+
+    <!-- (4) Display the factored forms, one per line -->
+    <div class="factored" id="factored-display">
+      <!-- e.g. 1 + x(–2 + x(3 + x(–4 + x(5 + x(–6 + x(7)))))) -->
+    </div>
+
+    <!-- (5) Once factoring is done, show the Horner table below -->
+    <div class="comment" id="comment">
+      <br>
+    </div>
+    <div class="stats" id="stats">
+      <!-- e.g. “Total multiplications: …, Total additions: …” -->
+    </div>
+
+    <table id="step-table">
+      <thead>
+        <tr>
+          <th>i</th>
+          <th>a[i]</th>
+          <th>Computation</th>
+          <th>Result</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Rows will be appended here -->
+      </tbody>
+    </table>
+  </div>
+
+  <script>
+    /****************************************************************************************
+     * 1) GLOBAL VARIABLES & DOM REFERENCES
+     ****************************************************************************************/
+    let coefficients = [1, -2, 3, -4, 5, -6, 7]; // default changed
+    let events = [];      // sequence: factoring events first, then Horner events
+    let pointer = -1;     // current event index
+    let playing = false;
+    let intervalId = null;
+
+    const polyDisplay      = document.getElementById('poly-display');
+    const factoredDisplay  = document.getElementById('factored-display');
+    const stepTableBody    = document.querySelector('#step-table tbody');
+    const xInput           = document.getElementById('x-input');
+    const nextBtn          = document.getElementById('next-btn');
+    const prevBtn          = document.getElementById('prev-btn');
+    const commentDiv       = document.getElementById('comment');
+    const statsDiv         = document.getElementById('stats');
+    const playBtn          = document.getElementById('play');
+    const speedSelect      = document.getElementById('speed');
+
+    const coeffInput       = document.getElementById('coeff-input');
+    const createCoeffsBtn  = document.getElementById('create-coeffs-btn');
+
+
+    /****************************************************************************************
+     * 2) UTILITY: build the “expanded polynomial” HTML (with <sup>)
+     ****************************************************************************************/
+    function buildExpandedHTML(coeffs, startIndex = 0) {
+      const n = coeffs.length - 1;
+      const terms = [];
+
+      for (let j = startIndex; j <= n; j++) {
+        const a = coeffs[j];
+        if (a === 0) continue;
+
+        let sign = '';
+        if (terms.length > 0) {
+          sign = (a > 0) ? '+ ' : '- ';
+        } else {
+          sign = (a < 0) ? '- ' : '';
+        }
+
+        const absA = Math.abs(a);
+        let termStr = '';
+        const power = j - startIndex;
+
+        if (power === 0) {
+          termStr = `${absA}`;
+        } else {
+          termStr = (absA !== 1 ? `${absA}` : '') + 'x' + (power > 1 ? `<sup>${power}</sup>` : '');
+        }
+
+        terms.push(sign + termStr);
+      }
+
+      return terms.join(' ');
+    }
+
+
+    /****************************************************************************************
+     * 3) UTILITY: Build all “factoring” steps (but skip the fully expanded one)
+     *
+     *    We return an array of length (degree), each entry is the nested form at that step.
+     *    We wrap the innermost parentheses in <span class="current">…</span> so it’s highlighted.
+     ****************************************************************************************/
+    function buildFactoringSteps(coeffs) {
+      const n = coeffs.length - 1;
+      const steps = [];
+
+      // For k = 1..n, build:
+      //   a[0] + x( a[1] + x( a[2] + … x( a[n] )…))
+      // and highlight the k-th “innermost parentheses” each time.
+
+      for (let k = 1; k <= n; k++) {
+        // Build the inner expanded string for indices [k..n]:
+        const innerExpanded = buildExpandedHTML(coeffs, k);
+
+        // Wrap k−1 more levels of: a[j] + x( … ) for j = k−1 down to 1:
+        let nested = innerExpanded;
+        for (let j = k - 1; j >= 1; j--) {
+          nested = `${coeffs[j] > 0 ? coeffs[j] : coeffs[j]} + x(${nested})`;
+        }
+
+        // Finally prepend a[0] + x( … ):
+        let fullNested = `${coeffs[0]} + x(${nested})`;
+
+            // Now: store the raw nested string; do NOT highlight yet
+      steps.push({
+        raw: fullNested,   // fullNested = "a[0] + x(a[1] + x(a[2] + …))"
+        step: k
+      });
+      }
+
+      return steps;
+    }
+
+    // Wraps the content inside the k-th “x(” … “)” in <span class="current">…</span>
+    function highlightKthParentheses(str, k) {
+      let count = 0;
+      let startIdx = -1;
+      for (let i = 0; i < str.length - 1; i++) {
+        if (str[i] === 'x' && str[i + 1] === '(') {
+          count++;
+          if (count === k) {
+            startIdx = i + 2; // after the "("
+            break;
+          }
+        }
+      }
+      if (startIdx < 0) return str;
+
+      let depth = 1;
+      let endIdx = -1;
+      for (let j = startIdx; j < str.length; j++) {
+        if (str[j] === '(') depth++;
+        else if (str[j] === ')') {
+          depth--;
+          if (depth === 0) {
+            endIdx = j;
+            break;
+          }
+        }
+      }
+      if (endIdx < 0) return str;
+
+      const before = str.slice(0, startIdx);
+      const toWrap = str.slice(startIdx, endIdx);
+      const after = str.slice(endIdx);
+      return before + `<span class="current">${toWrap}</span>` + after;
+    }
+
+
+    /****************************************************************************************
+     * 4) BUILD THE HORNER EVENT SEQUENCE (after factoring steps).
+     ****************************************************************************************/
+    function buildHornerEvents(coeffs, xVal, rowStartIdx) {
+      const n = coeffs.length - 1;
+      const evs = [];
+      let cumulative = 0;
+      let rowIdx = rowStartIdx;
+
+      // (A) Initialization event: result = a[n]
+      const a_n = coeffs[n];
+      cumulative = a_n;
+      evs.push({
+      type: 'init',
+      i: n,
+      coeff: a_n,
+      computation: `${a_n}`,     // just “7” (for example)
+      formula: 'result = a[n]',
+      result: a_n,
+      rowIdx: rowIdx++
+    });
+
+      // (B) For i = n−1 down to 0:
+      for (let i = n - 1; i >= 0; i--) {
+        // 1) Multiply
+        const prevVal = cumulative;
+        const multRes = prevVal * xVal;
+
+        // 2) Add a[i]
+        const addRes = multRes + coeffs[i];
+        evs.push({
+        type: 'compute',
+        i: i,
+        coeff: coeffs[i],
+        prev: prevVal,
+        x: xVal,
+        // Show both multiplication and addition:
+        computation: `${prevVal} × ${xVal} + ${coeffs[i]}`,
+        formula: `result = x * result + a[i]`,         
+        result: addRes,
+        rowIdx: rowIdx++
+      });
+
+        cumulative = addRes;
+      }
+
+      // (C) Done event:
+      evs.push({
+        type: 'done',
+        final: cumulative,
+        rowIdx: rowIdx
+      });
+
+      return evs;
+    }
+
+
+    /****************************************************************************************
+     * 5) COMBINE FACTORING + HORNER into events[].
+     ****************************************************************************************/
+    function rebuildAllEvents() {
+      events = [];
+
+      // 1) Build factoring steps (skip the fully expanded)
+      const factoringSteps = buildFactoringSteps(coefficients);
+      factoringSteps.forEach((obj, idx) => {
+           events.push({
+      type: 'factor',
+      raw:  obj.raw,
+      step: obj.step
+    });
+      });
+
+      // 2) Build Horner steps (starting at row = number of factoring steps)
+      const xVal = parseFloat(xInput.value) || 0;
+      const hornerEvs = buildHornerEvents(coefficients, xVal, factoringSteps.length);
+      hornerEvs.forEach(e => events.push(e));
+
+      // 3) Reset pointer
+      pointer = -1;
+    }
+
+
+    /****************************************************************************************
+     * 6) RENDER THE CURRENT POLYNOMIAL (expanded, always)
+     ****************************************************************************************/
+    function renderPolynomial() {
+      polyDisplay.innerHTML = '';
+      const expanded = buildExpandedHTML(coefficients, 0);
+      polyDisplay.innerHTML = expanded;
+    }
+
+
+    /****************************************************************************************
+     * 7) REBUILD ALL VISUALS BASED ON “pointer”
+     ****************************************************************************************/
+    function rebuildDisplay() {
+      // Clear highlights from previous step
+      document.querySelectorAll('.factored .current').forEach(el => el.classList.remove('current'));
+      stepTableBody.innerHTML = '';
+
+      if (pointer < 0) {
+        // Nothing to show yet: wipe out the factored‐form pane as well
+        factoredDisplay.innerHTML = '';
+
+        commentDiv.innerHTML = '<br>';
+        statsDiv.textContent = '';
+        prevBtn.disabled = true;
+        nextBtn.disabled = false;
+        return;
+      }
+
+      const ev = events[pointer];
+      const numFactoringSteps = coefficients.length - 1; // we built exactly this many
+
+        // After (each compute event = one mult + one add)
+      let totalMult = 0, totalAdd = 0;
+      for (let i = 0; i <= pointer; i++) {
+        const e = events[i];
+        if (e.type === 'compute') {
+          totalMult++;
+          totalAdd++;
+        }
+      }
+
+      if (ev.type === 'factor') {
+        // Show **all factoring steps from 1 up to ev.step**, each on its own line:
+        const lines = [];
+        for (let k = 1; k <= ev.step; k++) {
+          const idx = k - 1; 
+          lines.push(events[idx].raw);
+        }
+        factoredDisplay.innerHTML = lines.join('<br>');
+
+        commentDiv.innerHTML = `Factoring step ${ev.step} of ${numFactoringSteps} (for visuals not part of the algorithm)`;
+        statsDiv.textContent = '';
+        prevBtn.disabled = (pointer < 0);
+        nextBtn.disabled = (pointer >= events.length - 1);
+      }
+      else {
+  // Re-show every factoring line (1..degree), but only highlight the bottom (fully nested) line:
+const numFactoringSteps = coefficients.length - 1;
+
+const allLines = [];
+for (let k = 1; k <= numFactoringSteps; k++) {
+  if (k < numFactoringSteps) {
+    allLines.push(events[k - 1].raw);
+  }
+  else {
+    if (ev.type === 'init') {
+      // highlight just the k-th coefficient during init
+      allLines.push(
+        highlightKthParentheses(events[k - 1].raw, ev.i)
+      );
+    }
+      else if (ev.type === 'compute' && ev.i === 0) {
+    // ***LAST compute step*** (i = 0): wrap entire bottom polynomial
+    allLines.push(
+      `<span class="current">${events[k - 1].raw}</span>`
+    );
+  }
+    else if (ev.type === 'compute') {
+      // any other compute: highlight only the coefficient at ev.i
+      allLines.push(
+        highlightKthParentheses(events[k - 1].raw, ev.i)
+      );
+    }
+    else if (ev.type === 'done') {
+      // final “Done” event: keep the entire polynomial highlighted
+      allLines.push(
+        `<span class="current">${events[k - 1].raw}</span>`
+      );
+    }
+    else {
+      allLines.push(events[k - 1].raw);
+    }
+  }
+}
+factoredDisplay.innerHTML = allLines.join('<br>');
+
+
+  // Build the Horner table up to “pointer”
+  const horStart = numFactoringSteps;
+  const rows = {};
+
+  for (let idx = horStart; idx <= pointer; idx++) {
+    const he = events[idx];
+    if (he.type === 'init') {
+      const tr = document.createElement('tr');
+      const tdI = document.createElement('td'); tdI.textContent = he.i;
+      const tdA = document.createElement('td'); tdA.textContent = he.coeff;
+      const tdC = document.createElement('td'); tdC.textContent = he.computation;
+      const tdR = document.createElement('td'); tdR.textContent = he.result;
+
+      tr.appendChild(tdI);
+      tr.appendChild(tdA);
+      tr.appendChild(tdC);
+      tr.appendChild(tdR);
+      rows[he.rowIdx] = tr;
+      stepTableBody.appendChild(tr);
+
+      if (idx === pointer) {
+        tdC.classList.add('highlight-cell');
+      }
+    }
+    else if (he.type === 'compute') {
+    const tr = document.createElement('tr');
+    const tdI = document.createElement('td');
+      tdI.textContent = he.i;
+    const tdA = document.createElement('td');
+      tdA.textContent = he.coeff;
+    const tdC = document.createElement('td');
+      tdC.textContent = he.computation;
+    const tdR = document.createElement('td');
+      tdR.textContent = he.result;
+
+    tr.appendChild(tdI);
+    tr.appendChild(tdA);
+    tr.appendChild(tdC);
+    tr.appendChild(tdR);
+    rows[he.rowIdx] = tr;
+    stepTableBody.appendChild(tr);
+
+    if (idx === pointer) {
+      tdC.classList.add('highlight-cell');
+    }
+  }
+    // (he.type === 'done' adds no new row)
+  }
+
+  // Update comment & stats for Horner
+  if (ev.type === 'done') {
+    commentDiv.innerHTML = `Done! Final answer = ${ev.final}`;
+  } else {
+    commentDiv.innerHTML = ev.formula;
+  }
+  statsDiv.textContent = `Total multiplications: ${totalMult}, Total additions: ${totalAdd}`;
+
+  prevBtn.disabled = (pointer <= 0);
+  nextBtn.disabled = (pointer >= events.length - 1);
+}
+
+    }
+
+
+    /****************************************************************************************
+     * 8) CONTROLS: next / previous / play
+     ****************************************************************************************/
+    nextBtn.addEventListener('click', () => {
+      if (pointer < events.length - 1) {
+        pointer++;
+        rebuildDisplay();
+      }
+    });
+    prevBtn.addEventListener('click', () => {
+      if (pointer > -1) {
+        pointer--;
+        rebuildDisplay();
+      }
+    });
+
+    playBtn.addEventListener('click', () => {
+      if (playing) {
+        playing = false;
+        playBtn.textContent = 'Play';
+        clearInterval(intervalId);
+        intervalId = null;
+      } else {
+        playing = true;
+        playBtn.textContent = 'Pause';
+        const speed = parseInt(speedSelect.value, 10) || 1;
+        const delay = 1000 / speed;
+        intervalId = setInterval(() => {
+          if (pointer < events.length - 1) {
+            pointer++;
+            rebuildDisplay();
+          } else {
+            playing = false;
+            playBtn.textContent = 'Play';
+            clearInterval(intervalId);
+            intervalId = null;
+          }
+        }, delay);
+      }
+    });
+    speedSelect.addEventListener('change', () => {
+      if (playing) {
+        clearInterval(intervalId);
+        playing = false;
+        playBtn.textContent = 'Play';
+        playBtn.click();
+      }
+    });
+
+
+    /****************************************************************************************
+     * 9) WHEN “Create Coefficients” OR “x” CHANGES: re‐initialize
+     ****************************************************************************************/
+    createCoeffsBtn.addEventListener('click', () => {
+      const parsed = coeffInput.value
+        .split(',')
+        .map(s => parseFloat(s.trim()))
+        .filter(n => !isNaN(n));
+
+      if (parsed.length > 0) {
+        coefficients = parsed;
+        initializeDemo();
+      } else {
+        alert('Please enter at least one valid numeric coefficient, separated by commas.');
+      }
+    });
+    xInput.addEventListener('change', () => {
+      initializeDemo();
+    });
+
+
+    /****************************************************************************************
+     * 10) INITIALIZE DEMO (on load or whenever coeffs/x change)
+     ****************************************************************************************/
+    function initializeDemo() {
+      renderPolynomial();
+      rebuildAllEvents();
+      rebuildDisplay();
+    }
+
+    // Run on page load
+    initializeDemo();
+
+  </script>
+</body>
+</html>
+

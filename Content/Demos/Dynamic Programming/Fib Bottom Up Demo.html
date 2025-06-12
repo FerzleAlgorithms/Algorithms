@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Dynamic Programming (Bottom-Up) Fibonacci Demo</title>
+
+  <script src="/Algorithms/scripts/demoScripts.js"></script>
+  <link rel="stylesheet" href="/Algorithms/css/style.css">
+  <link rel="stylesheet" href="/Algorithms/css/demo.css">
+
+  <style>
+    /* ─── CONTROLS & INPUT ─── */
+    .controls {
+      margin-bottom: 1em;
+    }
+    .input-row {
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 0.75em;
+    }
+    button {
+      padding: 0.3em 0.6em;
+      margin-left: 0.5em;
+      font-size: 1em;
+      cursor: pointer;
+    }
+    button:disabled {
+      opacity: 0.5;
+      cursor: default;
+    }
+    #play {
+      margin-left: 0.5em;
+    }
+    #speed {
+      margin-left: 0.25em;
+    }
+
+    /* ─── DP TABLE STYLING ─── */
+    .dp-table-container {
+      margin-top: 1em;
+    }
+    #dp-table {
+      border-collapse: collapse;
+      margin-top: 0.5em;
+      width: 100%;
+      max-width: 600px;
+    }
+    #dp-table th,
+    #dp-table td {
+      border: 1px solid #ccc;
+      padding: 0.4em;
+      text-align: center;
+      font-family: monospace;
+      width: 1fr;
+    }
+    #dp-table th {
+      background: #e0e0e0;
+    }
+    .highlight-lookup {
+      background-color: #b3e5fc; /* Light blue for lookup */
+    }
+    .highlight-current {
+      background-color: #fffb91; /* Yellow for current fill */
+      font-weight: bold;
+    }
+
+    /* ─── TABLE STYLING ─── */
+    table {
+      border-collapse: collapse;
+      margin-top: 1em;
+      width: auto;
+    }
+    th,
+    td {
+      border: 1px solid #ccc;
+      padding: 0.4em;
+      text-align: center;
+      font-family: monospace;
+    }
+    th {
+      background: #f0f0f0;
+    }
+    .highlight-cell {
+      background-color: #fffb91;
+    }
+
+    /* ─── COMMENT & STATS AREA ─── */
+    .comment {
+      margin-top: 0.5em;
+      font-style: italic;
+      min-height: 2em;
+    }
+    .stats {
+      margin-top: 0.5em;
+      font-style: italic;
+      min-height: 1em;
+    }
+  </style>
+</head>
+<body>
+  <div class="demo-container">
+    <h2>Dynamic Programming (Bottom-Up) Fibonacci</h2>
+
+    <div class="controls">
+      <!-- (1) “Enter n” input and “Set n” button on the same line -->
+      <div class="input-row">
+        <label>
+          <strong>Enter n:</strong>
+          <input id="n-input" type="number" value="10" min="0" style="width: 4em;" />
+        </label>
+        <button id="create-n-btn">Set n</button>
+      </div>
+
+      <!-- (2) Play/Prev/Next and Speed controls -->
+      <div class="button-row">
+        <button id="prev-btn" disabled>Previous</button>
+        <button id="next-btn">Next</button>
+        <button id="play">Play</button>
+        <label for="speed">Speed:</label>
+        <select id="speed">
+          <option value="1">1×</option>
+          <option value="2">2×</option>
+          <option value="4">4×</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- (NEW) DP TABLE VISUALIZATION -->
+    <div class="dp-table-container">
+      <h3>DP Table (F[0..n])</h3>
+      <table id="dp-table">
+        <!-- Headers and body will be built dynamically -->
+      </table>
+    </div>
+
+    <!-- (4) Comment & stats area -->
+    <div class="comment" id="comment"><br /></div>
+    <div class="stats" id="stats"></div>
+
+    <!-- (5) Table showing each step of the bottom-up DP computation -->
+    <table id="step-table">
+      <thead>
+        <tr>
+          <th>i</th>
+          <th>F[i-2]</th>
+          <th>F[i-1]</th>
+          <th>Computation</th>
+          <th>Result</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Rows will be appended here -->
+      </tbody>
+    </table>
+  </div>
+
+  <script>
+    /****************************************************************************************
+     * 1) GLOBAL VARIABLES & DOM REFERENCES
+     ****************************************************************************************/
+    let nValue = 10; // default n
+    let dpArray = []; // stores the DP array: F[0..n]
+    let events = []; // sequence of events (init and compute), then done
+    let pointer = -1; // current event index
+    let playing = false;
+    let intervalId = null;
+
+    const stepTableBody = document.querySelector('#step-table tbody');
+    const nInput = document.getElementById('n-input');
+    const createNBtn = document.getElementById('create-n-btn');
+    const prevBtn = document.getElementById('prev-btn');
+    const nextBtn = document.getElementById('next-btn');
+    const playBtn = document.getElementById('play');
+    const speedSelect = document.getElementById('speed');
+    const commentDiv = document.getElementById('comment');
+    const statsDiv = document.getElementById('stats');
+    const dpTable = document.getElementById('dp-table');
+
+    /****************************************************************************************
+     * 2) BUILD THE DP BOTTOM-UP FIBONACCI EVENTS
+     *
+     *    For n ≥ 0:
+     *      - Event 0: init F[0] = 0
+     *      - If n ≥ 1: Event 1: init F[1] = 1
+     *      - For i = 2..n: Event: compute F[i] = F[i-1] + F[i-2].
+     *    Finally: a “done” event with final = F[n].
+     ****************************************************************************************/
+    function buildDPFibEvents(n) {
+      events = [];
+      dpArray = [];
+
+      // (A) Initialization for F[0]
+      dpArray[0] = 0;
+      events.push({
+        type: 'init',
+        i: 0,
+        result: 0,
+      });
+
+      // (B) Initialization for F[1], if n ≥ 1
+      if (n >= 1) {
+        dpArray[1] = 1;
+        events.push({
+          type: 'init',
+          i: 1,
+          result: 1,
+        });
+      }
+
+      // (C) Bottom-Up DP computation for i = 2..n
+      for (let i = 2; i <= n; i++) {
+        const prev2 = dpArray[i - 2];
+        const prev1 = dpArray[i - 1];
+        const curr = prev1 + prev2;
+        dpArray[i] = curr;
+        events.push({
+          type: 'compute',
+          i: i,
+          prev2: prev2,
+          prev1: prev1,
+          computation: `${prev1} + ${prev2}`,
+          result: curr,
+        });
+      }
+
+      // (D) Done event
+      events.push({
+        type: 'done',
+        final: dpArray[n],
+      });
+
+      // Reset pointer
+      pointer = -1;
+    }
+
+    /****************************************************************************************
+     * 3) BUILD AND RENDER THE DP TABLE STRUCTURE
+     *
+     *    Creates a header row with indices 0..n, and an empty body row for values.
+     ****************************************************************************************/
+    function buildDPTableStructure(n) {
+      dpTable.innerHTML = '';
+
+      // Create header
+      const thead = document.createElement('thead');
+      const headerRow = document.createElement('tr');
+      for (let idx = 0; idx <= n; idx++) {
+        const th = document.createElement('th');
+        th.textContent = idx;
+        headerRow.appendChild(th);
+      }
+      thead.appendChild(headerRow);
+      dpTable.appendChild(thead);
+
+      // Create body row
+      const tbody = document.createElement('tbody');
+      const bodyRow = document.createElement('tr');
+      for (let idx = 0; idx <= n; idx++) {
+        const td = document.createElement('td');
+        td.textContent = ''; // initially blank
+        bodyRow.appendChild(td);
+      }
+      tbody.appendChild(bodyRow);
+      dpTable.appendChild(tbody);
+    }
+
+    /****************************************************************************************
+     * 4) RENDER THE DP TABLE BASED ON POINTER
+     *
+     *    Fills in known dpArray values up to currentIndex, highlights lookups and current.
+     ****************************************************************************************/
+    function renderDPTable() {
+      if (!dpTable.querySelector('tbody')) return; // if structure not built yet
+
+      const tbodyRow = dpTable.querySelector('tbody tr');
+      const cells = Array.from(tbodyRow.children);
+
+      // Clear all highlight classes
+      cells.forEach((cell) => {
+        cell.classList.remove('highlight-lookup', 'highlight-current');
+      });
+
+      if (pointer < 0) {
+        // Before any event, leave all cells blank
+        cells.forEach((cell) => (cell.textContent = ''));
+        return;
+      }
+
+      // Determine current event
+      const ev = events[pointer];
+      let currentIndex = -1;
+      if (ev.type === 'init' || ev.type === 'compute') {
+        currentIndex = ev.i;
+      } else if (ev.type === 'done') {
+        currentIndex = nValue;
+      }
+
+      // Fill in dp values up to currentIndex
+      for (let j = 0; j <= nValue; j++) {
+        if (j <= currentIndex) {
+          cells[j].textContent = dpArray[j];
+        } else {
+          cells[j].textContent = '';
+        }
+      }
+
+      // Highlight lookups and current fill
+      if (ev.type === 'compute') {
+        const lookup1 = ev.i - 2;
+        const lookup2 = ev.i - 1;
+        // Highlight the two lookup cells
+        if (lookup1 >= 0) cells[lookup1].classList.add('highlight-lookup');
+        if (lookup2 >= 0) cells[lookup2].classList.add('highlight-lookup');
+        // Highlight the current cell being filled
+        cells[ev.i].classList.add('highlight-current');
+      } else if (ev.type === 'init') {
+        // Highlight the cell being initialized
+        cells[ev.i].classList.add('highlight-current');
+      } else if (ev.type === 'done') {
+        // Highlight the final cell
+        cells[nValue].classList.add('highlight-current');
+      }
+    }
+
+    /****************************************************************************************
+     * 5) REBUILD ALL VISUALS BASED ON “pointer”
+     ****************************************************************************************/
+    function rebuildDisplay() {
+      // 1) Update DP Table first
+      renderDPTable();
+
+      // 2) Clear previous step-table rows and comment/stats
+      stepTableBody.innerHTML = '';
+      commentDiv.innerHTML = '<br>';
+      statsDiv.textContent = '';
+
+      if (pointer < 0) {
+        // Disable prev; enable next if events exist
+        prevBtn.disabled = true;
+        nextBtn.disabled = false;
+        return;
+      }
+
+      // Count how many additions have occurred so far
+      let totalAdds = 0;
+      for (let k = 0; k <= pointer; k++) {
+        if (events[k].type === 'compute') {
+          totalAdds++;
+        }
+      }
+
+      // Build step-table rows up to pointer
+      for (let idx = 0; idx <= pointer; idx++) {
+        const e = events[idx];
+        if (e.type === 'init') {
+          // Row for F[0] or F[1]: columns i, F[i-2] blank, F[i-1] blank, computation blank, result
+          const tr = document.createElement('tr');
+          const tdI = document.createElement('td');
+          tdI.textContent = e.i;
+          const tdP2 = document.createElement('td');
+          tdP2.textContent = '';
+          const tdP1 = document.createElement('td');
+          tdP1.textContent = '';
+          const tdC = document.createElement('td');
+          tdC.textContent = '';
+          const tdR = document.createElement('td');
+          tdR.textContent = e.result;
+          tr.appendChild(tdI);
+          tr.appendChild(tdP2);
+          tr.appendChild(tdP1);
+          tr.appendChild(tdC);
+          tr.appendChild(tdR);
+          stepTableBody.appendChild(tr);
+          if (idx === pointer) {
+            tdR.classList.add('highlight-cell');
+            commentDiv.textContent = `Initialize F[${e.i}] = ${e.result}`;
+          }
+        } else if (e.type === 'compute') {
+          // Row for computation: columns i, F[i-2], F[i-1], "F[i-1] + F[i-2]", result
+          const tr = document.createElement('tr');
+          const tdI = document.createElement('td');
+          tdI.textContent = e.i;
+          const tdP2 = document.createElement('td');
+          tdP2.textContent = e.prev2;
+          const tdP1 = document.createElement('td');
+          tdP1.textContent = e.prev1;
+          const tdC = document.createElement('td');
+          tdC.textContent = e.computation;
+          const tdR = document.createElement('td');
+          tdR.textContent = e.result;
+          tr.appendChild(tdI);
+          tr.appendChild(tdP2);
+          tr.appendChild(tdP1);
+          tr.appendChild(tdC);
+          tr.appendChild(tdR);
+          stepTableBody.appendChild(tr);
+          if (idx === pointer) {
+            tdC.classList.add('highlight-cell');
+            commentDiv.textContent = `Compute F[${e.i}] = F[${e.i - 1}] + F[${e.i - 2}] (lookup in DP table)`;
+          }
+        }
+        // 'done' does not produce a table row
+      }
+
+      // Handle the 'done' event if pointer points to it
+      const lastEv = events[pointer];
+      if (lastEv.type === 'done') {
+        commentDiv.textContent = `Done! Final Fibonacci number F[${nValue}] = ${lastEv.final}`;
+      }
+
+      // Update stats
+      statsDiv.textContent = `Total additions so far: ${totalAdds}`;
+
+      // Enable/disable buttons
+      prevBtn.disabled = pointer <= 0;
+      nextBtn.disabled = pointer >= events.length - 1;
+    }
+
+    /****************************************************************************************
+     * 6) CONTROL HANDLERS: next / previous / play / speed
+     ****************************************************************************************/
+    nextBtn.addEventListener('click', () => {
+      if (pointer < events.length - 1) {
+        pointer++;
+        rebuildDisplay();
+      }
+    });
+    prevBtn.addEventListener('click', () => {
+      if (pointer > -1) {
+        pointer--;
+        rebuildDisplay();
+      }
+    });
+    playBtn.addEventListener('click', () => {
+      if (playing) {
+        playing = false;
+        playBtn.textContent = 'Play';
+        clearInterval(intervalId);
+        intervalId = null;
+      } else {
+        playing = true;
+        playBtn.textContent = 'Pause';
+        const speed = parseInt(speedSelect.value, 10) || 1;
+        const delay = 1000 / speed;
+        intervalId = setInterval(() => {
+          if (pointer < events.length - 1) {
+            pointer++;
+            rebuildDisplay();
+          } else {
+            // Reached the end; stop playing
+            playing = false;
+            playBtn.textContent = 'Play';
+            clearInterval(intervalId);
+            intervalId = null;
+          }
+        }, delay);
+      }
+    });
+    speedSelect.addEventListener('change', () => {
+      if (playing) {
+        clearInterval(intervalId);
+        playing = false;
+        playBtn.textContent = 'Play';
+      }
+    });
+
+    /****************************************************************************************
+     * 7) WHEN “Set n” BUTTON IS CLICKED: (re)initialize demo
+     ****************************************************************************************/
+    createNBtn.addEventListener('click', () => {
+      const parsed = parseInt(nInput.value, 10);
+      if (!isNaN(parsed) && parsed >= 0) {
+        nValue = parsed;
+        initializeDemo();
+      } else {
+        alert('Please enter a valid nonnegative integer for n.');
+      }
+    });
+
+    /****************************************************************************************
+     * 8) INITIALIZE DEMO (on load or whenever n changes)
+     ****************************************************************************************/
+    function initializeDemo() {
+      // 1) Build events based on the new nValue
+      buildDPFibEvents(nValue);
+
+      // 2) Build DP table structure for indices 0..n
+      buildDPTableStructure(nValue);
+
+      // 3) Reset pointer and render initial state
+      pointer = -1;
+      rebuildDisplay();
+    }
+
+    // Run on page load
+    initializeDemo();
+  </script>
+</body>
+</html>

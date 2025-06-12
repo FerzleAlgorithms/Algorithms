@@ -222,23 +222,32 @@
     }
 
     function drawLink(node) {
-      if (!node.parent) return;
-      const radius = 10;
-      const offset = 8;
-      let parent = node.parent;
-      let x1 = parent.x + (parent.left === node ? -offset : offset);
-      let y1 = parent.y + radius;
-      let x2 = node.x;
-      let y2 = node.y - radius;
-      let line = document.createElementNS(svgNS, 'line');
-      line.setAttribute('x1', x1);
-      line.setAttribute('y1', y1);
-      line.setAttribute('x2', x2);
-      line.setAttribute('y2', y2);
-      line.setAttribute('class', 'link-line');
-      line.setAttribute('id', 'link-' + node.id);
-      document.getElementById('linkLayer').appendChild(line);
-    }
+  if (!node.parent) return;
+  const r      = 10;                // circle radius
+  const parent = node.parent;
+  // vector from parent to child
+  const dx     = node.x - parent.x;
+  const dy     = node.y - parent.y;
+  const dist   = Math.sqrt(dx*dx + dy*dy) || 1;
+  const ux     = dx / dist;         // unit‐vector x
+  const uy     = dy / dist;         // unit‐vector y
+  // start at parent’s circumference
+  const x1 = parent.x + ux * r;
+  const y1 = parent.y + uy * r;
+  // end at child’s circumference
+  const x2 = node.x   - ux * r;
+  const y2 = node.y   - uy * r;
+  // draw it
+  const line = document.createElementNS(svgNS, 'line');
+  line.setAttribute('x1', x1);
+  line.setAttribute('y1', y1);
+  line.setAttribute('x2', x2);
+  line.setAttribute('y2', y2);
+  line.setAttribute('class', 'link-line');
+  line.setAttribute('id',    'link-' + node.id);
+  document.getElementById('linkLayer').appendChild(line);
+}
+
 
     function drawNode(node) {
       clearCurrentHighlights();

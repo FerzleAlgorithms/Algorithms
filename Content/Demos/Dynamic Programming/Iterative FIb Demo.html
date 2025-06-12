@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Iterative Fibonacci Demo</title>
+
+  <!--
+    Assumes the same folder structure as the Horner demo:
+      • demoScripts.js
+      • style.css
+      • demo.css
+  -->
+  <script src="../../../scripts/demoScripts.js"></script>
+  <link rel="stylesheet" href="../../../css/style.css">
+  <link rel="stylesheet" href="../../../css/demo.css">
+
+  <style>
+    /* ─── CONTROLS & INPUT ─── */
+    .controls {
+      margin-bottom: 1em;
+    }
+    .input-row {
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 0.75em;
+    }
+    button {
+      padding: 0.3em 0.6em;
+      margin-left: 0.5em;
+      font-size: 1em;
+      cursor: pointer;
+    }
+    button:disabled {
+      opacity: 0.5;
+      cursor: default;
+    }
+    #play {
+      margin-left: 0.5em;
+    }
+    #speed {
+      margin-left: 0.25em;
+    }
+
+    /* ─── SEQUENCE DISPLAY ─── */
+    .sequence {
+      margin-top: 1em;
+      font-family: monospace;
+      font-size: 1.1em;
+    }
+    .sequence .current {
+      background-color: #fffb91;
+      font-weight: bold;
+      padding: 0 0.2em;
+    }
+
+    /* ─── TABLE STYLING ─── */
+    table {
+      border-collapse: collapse;
+      margin-top: 1em;
+      width: auto;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 0.4em;
+      text-align: center;
+      font-family: monospace;
+    }
+    th {
+      background: #f0f0f0;
+    }
+    .highlight-cell {
+      background-color: #fffb91;
+    }
+
+    /* ─── COMMENT & STATS AREA ─── */
+    .comment {
+      margin-top: 0.5em;
+      font-style: italic;
+      min-height: 2em;
+    }
+    .stats {
+      margin-top: 0.5em;
+      font-style: italic;
+      min-height: 1em;
+    }
+  </style>
+</head>
+<body>
+  <div class="demo-container">
+    <h2>Iterative Fibonacci</h2>
+
+    <div class="controls">
+      <!-- (1) “Enter n” input and “Set n” button on the same line -->
+      <div class="input-row">
+        <label>
+          <strong>Enter n:</strong>
+          <input id="n-input" type="number" value="10" min="0" style="width: 4em;">
+        </label>
+        <button id="create-n-btn">Set n</button>
+      </div>
+
+      <!-- (2) Play/Prev/Next and Speed controls -->
+      <div class="button-row">
+        <button id="prev-btn" disabled>Previous</button>
+        <button id="next-btn">Next</button>
+        <button id="play">Play</button>
+        <label for="speed">Speed:</label>
+        <select id="speed">
+          <option value="1">1×</option>
+          <option value="2">2×</option>
+          <option value="4">4×</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- (3) Display the Fibonacci sequence up to current index -->
+    <div class="sequence">
+        <strong>F:</strong>&nbsp;<span id="sequence-display"></span>
+    </div>
+  
+
+    <!-- (4) Comment & stats area -->
+    <div class="comment" id="comment">
+      <br>
+    </div>
+    <div class="stats" id="stats"></div>
+
+    <!-- (5) Table showing each step of the iteration -->
+    <table id="step-table">
+      <thead>
+        <tr>
+          <th>i</th>
+          <th>F[i-2]</th>
+          <th>F[i-1]</th>
+          <th>Computation</th>
+          <th>F[i]</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Rows will be appended here -->
+      </tbody>
+    </table>
+  </div>
+
+  <script>
+    /****************************************************************************************
+     * 1) GLOBAL VARIABLES & DOM REFERENCES
+     ****************************************************************************************/
+    let nValue = 10;          // default n
+    let fibSequence = [];     // stores the full Fibonacci sequence up to F[n]
+    let events = [];          // sequence of events (init and compute), then done
+    let pointer = -1;         // current event index
+    let playing = false;
+    let intervalId = null;
+
+    const sequenceDisplay  = document.getElementById('sequence-display');
+    const stepTableBody    = document.querySelector('#step-table tbody');
+    const nInput           = document.getElementById('n-input');
+    const createNBtn       = document.getElementById('create-n-btn');
+    const prevBtn          = document.getElementById('prev-btn');
+    const nextBtn          = document.getElementById('next-btn');
+    const playBtn          = document.getElementById('play');
+    const speedSelect      = document.getElementById('speed');
+    const commentDiv       = document.getElementById('comment');
+    const statsDiv         = document.getElementById('stats');
+
+    /****************************************************************************************
+     * 2) BUILD THE FIBONACCI EVENTS (INITIALIZATION + COMPUTATION)
+     *
+     *    For n ≥ 0:
+     *      - Event 0: init F[0] = 0
+     *      - If n ≥ 1: Event 1: init F[1] = 1
+     *      - For i = 2..n: Event: compute F[i] = F[i-1] + F[i-2].
+     *    Finally: a “done” event with final = F[n].
+     ****************************************************************************************/
+    function buildFibEvents(n) {
+      events = [];
+      fibSequence = [];
+
+      // ─── Step 0: create the zero‐filled array (length n+1) ───
+      // This event does not put any F[i] into fibSequence yet; it merely
+      // signals “draw all 0’s in a bracketed array.”
+      events.push({ type: 'create-array' });
+
+      // (A) Initialization for F[0]
+      fibSequence[0] = 0;
+      events.push({
+        type: 'init',
+        i: 0,
+        result: 0
+      });
+
+      // (B) Initialization for F[1], if n ≥ 1
+      if (n >= 1) {
+        fibSequence[1] = 1;
+        events.push({
+          type: 'init',
+          i: 1,
+          result: 1
+        });
+      }
+
+      // (C) Iterative computation for i = 2..n
+      for (let i = 2; i <= n; i++) {
+        const prev2 = fibSequence[i - 2];
+        const prev1 = fibSequence[i - 1];
+        const curr = prev1 + prev2;
+        fibSequence[i] = curr;
+        events.push({
+          type: 'compute',
+          i: i,
+          prev2: prev2,
+          prev1: prev1,
+          computation: `${prev1} + ${prev2}`,
+          result: curr
+        });
+      }
+
+      // (D) Done event
+      events.push({
+        type: 'done',
+        final: fibSequence[n]
+      });
+
+      // Reset pointer
+      pointer = -1;
+    }
+
+    /****************************************************************************************
+     * 3) RENDER THE CURRENT FIBONACCI SEQUENCE UP TO POINTER
+     *
+     *    Highlights the "current" index. For pointer < 0, nothing shows.
+     *    For pointer pointing at an event with index i, highlight f[i].
+     ****************************************************************************************/
+     function renderSequence() {
+    // ─── If we haven't even stepped once, show nothing. ───
+    if (pointer < 0) {
+      sequenceDisplay.innerHTML = '';
+      return;
+    }
+
+    // (1) Make a length-(nValue+1) array, all "0" by default:
+    const displayArr = new Array(nValue + 1).fill('0');
+
+    // (2) Figure out which index is “current,” if any:
+    let currentIndex = -1;
+    const ev = events[pointer];
+    if (ev.type === 'init' || ev.type === 'compute') {
+      currentIndex = ev.i;
+    } else if (ev.type === 'done') {
+      currentIndex = nValue;
+    }
+    // Note: if ev.type === 'create-array', currentIndex stays -1,
+    // which leaves all elements as "0" and no highlighting.
+
+    // (3) Overwrite displayArr[0..currentIndex] with actual fibSequence values:
+    for (let j = 0; j <= currentIndex; j++) {
+      displayArr[j] = String(fibSequence[j]);
+    }
+
+    // (4) Wrap the “current” slot in <span class="current">…</span>:
+    const spans = displayArr.map((val, j) => {
+      return (j === currentIndex)
+        ? `<span class="current">${val}</span>`
+        : val;
+    });
+
+    // (5) Finally render with brackets:
+    sequenceDisplay.innerHTML = '[ ' + spans.join(' , ') + ' ]';
+  }
+
+
+    /****************************************************************************************
+     * 4) REBUILD ALL VISUALS BASED ON “pointer”
+     ****************************************************************************************/
+    function rebuildDisplay() {
+      // Clear previous table rows and comment/stats
+      stepTableBody.innerHTML = '';
+      commentDiv.innerHTML = '<br>';
+      statsDiv.textContent = '';
+
+      // Always re-render the sequence up to current pointer
+      renderSequence();
+
+      if (pointer === 0 && events[0].type === 'create-array') {
+      commentDiv.textContent = `Created array of zeros (length ${nValue + 1}). Ready to initialize F[0].`;
+      prevBtn.disabled = false;
+      nextBtn.disabled = false;
+      return;
+    }
+
+      if (pointer < 0) {
+        // Disable prev; enable next if events exist
+        prevBtn.disabled = true;
+        nextBtn.disabled = false;
+        return;
+      }
+
+      // Count how many additions have occurred so far
+      let totalAdds = 0;
+      for (let k = 0; k <= pointer; k++) {
+        if (events[k].type === 'compute') {
+          totalAdds++;
+        }
+      }
+
+      // Build table rows up to pointer
+      for (let idx = 0; idx <= pointer; idx++) {
+        const e = events[idx];
+        if (e.type === 'init') {
+          // Row for F[0] or F[1]: columns i, F[i-2] blank, F[i-1] blank, computation blank, result
+          const tr = document.createElement('tr');
+          const tdI = document.createElement('td'); tdI.textContent = e.i;
+          const tdP2 = document.createElement('td'); tdP2.textContent = '';
+          const tdP1 = document.createElement('td'); tdP1.textContent = '';
+          const tdC = document.createElement('td'); tdC.textContent = '';
+          const tdR = document.createElement('td'); tdR.textContent = e.result;
+          tr.appendChild(tdI);
+          tr.appendChild(tdP2);
+          tr.appendChild(tdP1);
+          tr.appendChild(tdC);
+          tr.appendChild(tdR);
+          stepTableBody.appendChild(tr);
+          if (idx === pointer) {
+            tdR.classList.add('highlight-cell');
+            commentDiv.textContent = `Initialize F[${e.i}] = ${e.result}`;
+          }
+        }
+        else if (e.type === 'compute') {
+          // Row for computation: columns i, F[i-2], F[i-1], "F[i-1] + F[i-2]", result
+          const tr = document.createElement('tr');
+          const tdI = document.createElement('td'); tdI.textContent = e.i;
+          const tdP2 = document.createElement('td'); tdP2.textContent = e.prev2;
+          const tdP1 = document.createElement('td'); tdP1.textContent = e.prev1;
+          const tdC = document.createElement('td'); tdC.textContent = e.computation;
+          const tdR = document.createElement('td'); tdR.textContent = e.result;
+          tr.appendChild(tdI);
+          tr.appendChild(tdP2);
+          tr.appendChild(tdP1);
+          tr.appendChild(tdC);
+          tr.appendChild(tdR);
+          stepTableBody.appendChild(tr);
+          if (idx === pointer) {
+            tdC.classList.add('highlight-cell');
+            commentDiv.textContent = `Compute F[${e.i}] = F[${e.i - 1}] + F[${e.i - 2}]`;
+          }
+        }
+        // 'done' does not produce a table row
+      }
+
+      // After building rows, handle the 'done' event if pointer points to it
+      const lastEv = events[pointer];
+      if (lastEv.type === 'done') {
+        commentDiv.textContent = `Done! Final Fibonacci number F[${nValue}] = ${lastEv.final}`;
+      }
+
+      // Update stats
+      statsDiv.textContent = `Total additions so far: ${totalAdds}`;
+
+      // Enable/disable buttons
+      prevBtn.disabled = (pointer <= 0);
+      nextBtn.disabled = (pointer >= events.length - 1);
+    }
+
+    /****************************************************************************************
+     * 5) CONTROL HANDLERS: next / previous / play / speed
+     ****************************************************************************************/
+    nextBtn.addEventListener('click', () => {
+      if (pointer < events.length - 1) {
+        pointer++;
+        rebuildDisplay();
+      }
+    });
+    prevBtn.addEventListener('click', () => {
+      if (pointer > -1) {
+        pointer--;
+        rebuildDisplay();
+      }
+    });
+    playBtn.addEventListener('click', () => {
+      if (playing) {
+        playing = false;
+        playBtn.textContent = 'Play';
+        clearInterval(intervalId);
+        intervalId = null;
+      } else {
+        playing = true;
+        playBtn.textContent = 'Pause';
+        const speed = parseInt(speedSelect.value, 10) || 1;
+        const delay = 1000 / speed;
+        intervalId = setInterval(() => {
+          if (pointer < events.length - 1) {
+            pointer++;
+            rebuildDisplay();
+          } else {
+            // Reached the end; stop playing
+            playing = false;
+            playBtn.textContent = 'Play';
+            clearInterval(intervalId);
+            intervalId = null;
+          }
+        }, delay);
+      }
+    });
+    speedSelect.addEventListener('change', () => {
+      if (playing) {
+        clearInterval(intervalId);
+        playing = false;
+        playBtn.textContent = 'Play';
+      }
+    });
+
+    /****************************************************************************************
+     * 6) WHEN “Set n” BUTTON IS CLICKED: (re)initialize demo
+     ****************************************************************************************/
+    createNBtn.addEventListener('click', () => {
+      const parsed = parseInt(nInput.value, 10);
+      if (!isNaN(parsed) && parsed >= 0) {
+        nValue = parsed;
+        initializeDemo();
+      } else {
+        alert('Please enter a valid nonnegative integer for n.');
+      }
+    });
+
+    /****************************************************************************************
+     * 7) INITIALIZE DEMO (on load or whenever n changes)
+     ****************************************************************************************/
+    function initializeDemo() {
+      // 1) Build events based on the new nValue
+      buildFibEvents(nValue);
+
+      // 2) Reset pointer and render initial state
+      pointer = -1;
+      rebuildDisplay();
+    }
+
+    // Run on page load
+    initializeDemo();
+  </script>
+</body>
+</html>

@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Fractional Knapsack Demo</title>
+  <script src="../../scripts/demoScripts.js"></script>
+  <link rel="stylesheet" href="../../css/style.css">
+  <link rel="stylesheet" href="../../css/demo.css">
+  <style>
+    /* === Shared styling with Heapsort Demo for consistency === */
+    body { font-family: sans-serif; margin: 20px; }
+    #buttons { margin: 10px 0; }
+    #buttons button, #buttons select { margin-right: 8px; }
+    .legend { margin-top: 10px; }
+    .legend-box { display: inline-block; width: 16px; height: 16px; margin-right: 4px; vertical-align: middle; border: 1px solid #666; }
+    .legend-label { margin-right: 16px; vertical-align: middle; font-size: 14px; }
+    #commentary { margin-top: 10px; font-style: italic; height: 40px; }
+    .array-container { display: flex; margin-top: 10px; align-items: flex-end; }
+    .element-wrapper { display: flex; flex-direction: column; align-items: center; margin-right: 8px; }
+    .element { width: 40px; height: 40px; line-height: 40px; text-align: center; border: 1px solid #333; font-size: 0.75em;}
+   .index-label {font-size: 0.8em;margin-top: 4px;color: #333;width: 40px;display: block;text-align: center;}
+    .final { background-color: lightblue; }
+    .array-container { margin-bottom: 44px}
+
+     /* ───────────────── Fractional‐Knapsack Array Colors ───────────────── */
+    .v-element { background-color: #cce3ff; }   /* values (v) */
+    .w-element { background-color: #f4cccc; }   /* weights (w) */
+    .p-element { background-color: #b6d8a9; }   /* ratios (p) */
+    .s-element { background-color: #f6a94c; }   /* solution (s) */
+
+    .legend-box.v { background-color: #cce3ff; }
+    .legend-box.w { background-color: #f4cccc; }
+    .legend-box.p { background-color: #b6d8a9; }
+    .legend-box.s { background-color: #f6a94c; }
+
+    .element-wrapper { position: relative; display: inline-block; }
+  .pointer {
+    position: absolute;
+    bottom: -2.5em;
+    left: 50%;
+    transform: translateX(-50%);
+    font-weight: bold;
+   color: #000;
+   line-height: 1;
+   text-align: center;
+   /* font-size: 1.4em; */
+  }
+
+  /* arrow retains the larger size */
+  .pointer-arrow {
+    font-size: 1.4em;
+    line-height: 1;
+  }
+  /* label “i” smaller */
+  .pointer-label {
+    font-size: 0.7em;
+    line-height: 1;
+  }
+
+  /* root variable for animation duration */
+:root { --sort-anim-duration: 500ms; }
+
+@keyframes sort-move {
+  0%   { transform: translateY(0)    scale(1);   }
+  50%  { transform: translateY(-20px) scale(1.1); }
+  100% { transform: translateY(0)    scale(1);   }
+}
+
+/* apply the keyframe whenever .moved is toggled */
+.element-wrapper.moved {
+  animation: sort-move var(--sort-anim-duration) ease-in-out;
+}
+
+
+  </style>
+</head>
+<body>
+  <h2>Fractional Knapsack Demo</h2>
+  <!-- 1) NEW: Single‐line v/w inputs above all other buttons -->
+  <div id="arrayInputs" style="margin-bottom:10px; white-space: nowrap;">
+    <label for="vArrayInput">v (Values):</label>
+    <input type="text"
+           id="vArrayInput"
+           placeholder="e.g. 60,100,120"
+           style="width:300px; margin: 0 8px;">
+
+    <label for="wArrayInput">Weights (w):</label>
+    <input type="text"
+           id="wArrayInput"
+           placeholder="e.g. 10,20,30"
+           style="width:300px; margin: 0 8px;">
+
+    <button id="createItemsBtn">Create items</button>
+  </div>
+
+  <div id="buttons">
+    <!-- ◀️ Move Item-size & Capacity here, before the main controls ▶️ -->
+    <label for="itemSizeInput">Item size:</label>
+    <input type="number"
+           id="itemSizeInput"
+           min="1"
+           max="20"
+           placeholder="n"
+           style="width: 50px;">
+    <button id="randomItemBtn">Random items</button>
+
+    <label for="capacityInput" style="margin-left:16px;">W (Capacity):</label>
+    <input type="number"
+           id="capacityInput"
+           min="0"
+           placeholder="W"
+           style="width: 50px;">
+    <button id="setWeightBtn">Set weight</button>
+    <button id="prevBtn" onclick="prevStep()" disabled>Previous</button>
+    <button id="nextBtn" onclick="nextStep()" disabled>Next</button>
+    <button id="playBtn">Play</button>
+    <label for="speed">Speed:</label>
+    <select id="speed">
+      <option value="1">1×</option>
+      <option value="2">2×</option>
+      <option value="4">4×</option>
+    </select>
+
+  </div>
+  <div class="legend">
+    <span class="legend-box v"></span><span class="legend-label">v (Values)</span>
+    <span class="legend-box w"></span><span class="legend-label">w (Weights)</span>
+    <span class="legend-box p"></span><span class="legend-label">p (Ratios)</span>
+    <span class="legend-box s"></span><span class="legend-label">s (Solutions)</span>
+  </div>
+  <div id="commentary"></div>
+
+  <!-- Display arrays: v above w, then p, then s -->
+  <div><strong>v (Values):</strong></div>
+  <div class="array-container" id="v-array"></div>
+  <div><strong>w (Weights):</strong></div>
+  <div class="array-container" id="w-array"></div>
+  <div><strong>p (Ratios):</strong></div>
+  <div class="array-container" id="p-array"></div>
+  <div><strong>s (Solutions):</strong></div>
+  <div class="array-container" id="s-array"></div>
+  <div style="margin-top:10px"><strong>W (Capacity) :</strong> <span id="capacity"></span></div>
+  <!-- solutionContainer starts hidden -->
+  <div id="solutionContainer" style="margin-top:10px; display:none;">
+  <strong>Solution :</strong> <span id="solution">0.000</span>
+  </div>
+
+  <script>
+    // Initial data
+    const v = [23, 87, 14, 65, 42, 99, 31, 56, 77, 12];
+    const w = [24, 51, 19, 83, 37, 46, 10, 92, 28, 60];
+    let W = 50;                          // capacity
+    document.getElementById('capacity').textContent = W;
+
+    // Arrays to track (we’ll create them inside buildSteps)
+    let p =[];
+    let s = [];
+
+    // Steps and control variables
+    let steps = [];
+    let current = 0;
+    let playing = false;
+    let intervalId = null;
+
+    // --- NEW CONTROLS SETUP ---
+  const itemSizeInput    = document.getElementById('itemSizeInput');
+   const randomItemBtn    = document.getElementById('randomItemBtn');
+   const wCountInput      = document.getElementById('wCountInput');
+   const vCountInput      = document.getElementById('vCountInput');
+   const createItemsBtn   = document.getElementById('createItemsBtn');
+   const capacityInput    = document.getElementById('capacityInput');
+   const setWeightBtn     = document.getElementById('setWeightBtn');
+
+
+   function recordStep(description) {
+      steps.push({
+        v: v.slice(),
+        w: w.slice(),
+        p: p.slice(),
+        s: s.slice(),
+        W: W,
+        description
+      });
+    }
+
+  function resetDemo() {
+  steps = [];
+  current = 0;
+  // start with p and s empty so they won’t render until buildSteps()
+  p = [];
+  s = [];
+   document.getElementById('solutionContainer').style.display = 'none';
+  buildSteps();
+  renderStep();
+}
+
+   // 1) randomize both v & w to same length:
+   randomItemBtn.addEventListener('click', () => {
+     const n = parseInt(itemSizeInput.value, 10);
+     if (n > 20) {
+      alert('Maximum number of items is 20');
+      return;
+    }
+     if (!n || n < 1) { alert('Enter a valid item size'); return; }
+     v.length = w.length = n;
+     for (let i = 0; i < n; i++) {
+       v[i] = Math.floor(Math.random()*100)+1;
+       w[i] = Math.floor(Math.random()*100)+1;
+     }
+     resetDemo();
+   });
+
+   // 2) parse comma-separated v & w arrays, enforce equal length
+  const vArrayInput = document.getElementById('vArrayInput');
+  const wArrayInput = document.getElementById('wArrayInput');
+  createItemsBtn.addEventListener('click', () => {
+    const vText = vArrayInput.value.trim();
+    const wText = wArrayInput.value.trim();
+    if (!vText || !wText) {
+      alert('Please enter both v and w arrays.');
+      return;
+    }
+    const vArr = vText.split(',').map(x => parseFloat(x.trim()));
+    const wArr = wText.split(',').map(x => parseFloat(x.trim()));
+    if (vArr.length > 20) {
+      alert('Maximum number of items is 20');
+      return;
+    }
+    if (vArr.some(isNaN) || wArr.some(isNaN)) {
+      alert('All entries must be valid numbers.');
+      return;
+    }
+    if (vArr.length !== wArr.length) {
+      alert('v and w must have the same number of elements.');
+      return;
+    }
+    // commit to your demo arrays:
+    v.length = w.length = vArr.length;
+    for (let i = 0; i < vArr.length; i++) {
+      v[i] = vArr[i];
+      w[i] = wArr[i];
+    }
+    resetDemo();
+  });
+
+   // 3) set capacity W:
+   setWeightBtn.addEventListener('click', () => {
+     const newW = parseInt(capacityInput.value, 10);
+     if (isNaN(newW) || newW < 0) { alert('Enter a valid W'); return; }
+     W = newW;
+     document.getElementById('capacity').textContent = W;
+     resetDemo();
+   });
+
+    // Utility to record a step
+    function recordStep(description, pointers = {}) {
+      steps.push({
+        v: v.slice(),
+        w: w.slice(),
+        p: p.slice(),
+        s: s.slice(),
+        W: W,
+        description,
+        pointers
+      });
+    }
+
+    // Build steps following provided algorithm logic
+    function buildSteps() {
+
+      recordStep('');
+      // 1) Create ratio array p
+      p = new Array(v.length).fill(0);
+      recordStep('Creating p (ratio) array', { pIdx: 0 });
+
+    for (let i = 0; i < v.length; i++) {
+  // compute true ratio
+  const ratio = v[i] / w[i];
+  // round to at most 3 decimal places
+  // (use Number(...) to strip any trailing zeros)
+  const displayRatio = Number(ratio.toFixed(3));
+
+  // store it
+  p[i] = ratio;
+
+  // show the actual (rounded) value
+  recordStep(
+    `p[${i}] = v[${i}]/w[${i}] = ${displayRatio}`,
+    { pIdx: i }
+  );
+}
+
+
+       // ── Sort values, weights & ratios together ──
+       recordStep('Sorting p by descending order with v and w being sorted together with p for some O(n logn) algorithm');
+       // 1) compute the new order of indices
+       const order = p.map((_, i) => i)
+                     .sort((i, j) => p[j] - p[i]);
+       // 2) build sorted arrays in that order
+       const sortedP = order.map(i => p[i]);
+       const sortedV = order.map(i => v[i]);
+       const sortedW = order.map(i => w[i]);
+       // 3) overwrite the originals in lock-step
+       for (let k = 0; k < order.length; k++) {
+         p[k] = sortedP[k];
+         v[k] = sortedV[k];
+         w[k] = sortedW[k];
+       }
+       // 4) animate the now-sorted bars
+      recordStep('sorted', { animate: true });
+
+      // 2) Create solution array s
+      s = new Array(v.length).fill(0);
+      recordStep('Created solution array s');
+
+      // Greedy fill
+      recordStep('Finding Solution: while W > 0');
+      let idx = 0;
+      let totalSolution = 0;
+        while (W > 0 && idx < v.length) {
+        // pre-compute everything
+        const weightTaken   = Math.min(W, w[idx]);
+        const prevW         = W;
+        const valueTaken    = weightTaken * p[idx];
+        s[idx] = valueTaken;
+        const prevSol       = totalSolution;
+        totalSolution      += valueTaken;
+        W                  -= weightTaken;
+
+        // 3b) single combined recordStep with pointer on s[idx]
+        recordStep(
+          `weightTaken = min(w[${idx}], W) = (${w[idx]}, ${prevW}) = ${weightTaken}; ` +
+          `s[${idx}] = ${weightTaken} × ${p[idx].toFixed(3)} = ${valueTaken.toFixed(3)};\n` +
+          `solution = ${prevSol.toFixed(3)} + ${valueTaken.toFixed(3)} = ${totalSolution.toFixed(3)};  ` +
+          `W = ${prevW} - ${weightTaken} = ${W};\n`,
+          { sIdx: idx }
+        );
+        idx++;
+      }
+
+      // Final answer
+      recordStep(
+      `Demo is finished.`
+    );
+    }
+
+    // Rendering functions
+    function renderArray(arrayId, data, highlights = {}, pointerIndex = null) {
+      const container = document.getElementById(arrayId);
+      container.innerHTML = '';
+      data.forEach((val, i) => {
+        const wrapper = document.createElement('div');
+        wrapper.classList.add('element-wrapper');
+              // ── add pointer if this is the current index ──
+                if (pointerIndex === i) {
+          const ptr = document.createElement('div');
+          ptr.classList.add('pointer');
+          // separate arrow and label for independent sizing
+          ptr.innerHTML =
+            '<span class="pointer-arrow">↑</span><br>' +
+            '<span class="pointer-label">i</span>';
+          wrapper.appendChild(ptr);
+        }
+        const elem = document.createElement('div');
+        elem.classList.add('element');
+           // give each array its color
+        if      (arrayId === 'v-array') elem.classList.add('v-element');
+        else if (arrayId === 'w-array') elem.classList.add('w-element');
+        else if (arrayId === 'p-array') elem.classList.add('p-element');
+        else if (arrayId === 's-array') elem.classList.add('s-element');
+               elem.textContent = typeof val === 'number'
+         // round both ratios *and* solution values
+         ? ((arrayId === 'p-array' || arrayId === 's-array')
+         ? val.toFixed(2).replace(/\.?0+$/, '')
+         : val)
+         : val;
+        if (highlights[i]) elem.classList.add(highlights[i]);
+        const label = document.createElement('div');
+        label.classList.add('index-label');
+        label.textContent = i;
+        wrapper.appendChild(elem);
+        wrapper.appendChild(label);
+        container.appendChild(wrapper);
+      });
+    }
+
+    function renderStep() {
+  const step = steps[current];
+  renderArray('v-array', step.v, {}, step.pointers.vIdx);
+  renderArray('w-array', step.w, {}, step.pointers.wIdx);
+  renderArray('p-array', step.p, {}, step.pointers.pIdx);
+  renderArray('s-array', step.s, step.s.map(v=>v>0?'final':null), step.pointers.sIdx);
+  document.getElementById('capacity').textContent = step.W;
+
+  // once we hit the “Finding Solution” step, show & update the solution display
+  const solContainer = document.getElementById('solutionContainer');
+  if (solContainer.style.display === 'none' && step.description.includes('Finding Solution')) {
+    solContainer.style.display = '';
+  }
+  // always update the running total from s[]
+  const totalSol = step.s.reduce((sum, x) => sum + x, 0);
+  document.getElementById('solution').textContent = totalSol.toFixed(3);
+
+  // replace newlines with <br> so they show up on separate lines
+  document.getElementById('commentary').innerHTML =
+  step.description.replace(/\n/g, '<br>');
+  document.getElementById('prevBtn').disabled = !current;
+  document.getElementById('nextBtn').disabled = current === steps.length - 1;
+
+  // ←— NEW: if this step has animate:true, pop all three arrays
+  if (step.pointers.animate) {
+    ['v-array','w-array','p-array'].forEach(id => {
+      document.querySelectorAll(`#${id} .element-wrapper`).forEach(wr => {
+        // ensure any previous .moved is gone
+        wr.classList.remove('moved');
+        // force a reflow so the animation will restart
+        void wr.offsetWidth;
+        // now trigger the keyframe
+        wr.classList.add('moved');
+        wr.addEventListener(
+          'animationend',
+          () => wr.classList.remove('moved'),
+          { once: true }
+        );
+      });
+    });
+  }
+}
+
+    function nextStep() {
+      if (current < steps.length - 1) current++;
+      renderStep();
+      if (current === steps.length - 1) stopPlay();
+    }
+
+    function prevStep() {
+      if (current > 0) current--;
+      renderStep();
+    }
+
+
+    function updateAnimDuration() {
+  const speed = parseInt(document.getElementById('speed').value, 10) || 1;
+  // base 500ms at 1×, scales down as you crank the speed up
+  document.documentElement.style.setProperty(
+    '--sort-anim-duration',
+    `${500 / speed}ms`
+  );
+}
+
+// call once and on every speed change:
+document.getElementById('speed').addEventListener('change', updateAnimDuration);
+updateAnimDuration();
+
+
+// ─── Factor out a single‐step advance ──────────────────────
+function stepOnce() {
+  if (current < steps.length - 1) {
+    current++;
+    renderStep();
+  } else {
+    stopPlay();
+  }
+}
+
+// ─── Start auto‐play ──────────────────────
+function play() {
+  if (playing) return;
+  playing = true;
+  document.getElementById('playBtn').textContent = 'Pause';
+  const speed = parseInt(document.getElementById('speed').value, 10) || 1;
+  intervalId = setInterval(stepOnce, 1000 / speed);
+}
+
+// ─── Stop auto‐play ──────────────────────
+function stopPlay() {
+  playing = false;
+  clearInterval(intervalId);
+  document.getElementById('playBtn').textContent = 'Play';
+}
+
+// ─── Attach to the Play/Pause button ──────────────────────
+document.getElementById('playBtn').addEventListener('click', () =>
+  playing ? stopPlay() : play()
+);
+
+// ─── Reconfigure speed on‐the‐fly ──────────────────────
+function updateSpeed() {
+  const speed = parseInt(document.getElementById('speed').value, 10) || 1;
+  // (optional) tweak any CSS animation timing you’re using:
+  document.documentElement.style.setProperty(
+    '--sort-anim-duration',
+    `${500 / speed}ms`
+  );
+  // if we’re already playing, restart at the new rate
+  if (playing) {
+    clearInterval(intervalId);
+    intervalId = setInterval(stepOnce, 1000 / speed);
+  }
+}
+
+// ─── Wire up the speed dropdown ──────────────────────
+document.getElementById('speed').addEventListener('change', updateSpeed);
+// initialize once in case play starts at ≠1×
+updateSpeed();
+
+    // Initialize demo
+    buildSteps();
+    renderStep();
+  </script>
+</body>
+</html>

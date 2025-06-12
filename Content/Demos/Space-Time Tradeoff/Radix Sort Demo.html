@@ -4,13 +4,12 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Radix Sort Demo</title>
-  <script src="/Algorithms/scripts/demoScripts.js"></script>
-  <link rel="stylesheet" href="/Algorithms/css/style.css">
-  <link rel="stylesheet" href="/Algorithms/css/demo.css">
+  <script src="../../../scripts/demoScripts.js"></script>
+  <link rel="stylesheet" href="../../../css/style.css">
+  <link rel="stylesheet" href="../../../css/demo.css">
   <style>
     #controls, #buttons { margin: 10px 0; }
     #description { margin-top: 10px; font-style: italic; }
-    #phase-label, #digit-label { margin: 10px 0; font-weight: bold; }
     .count-wrapper { display: flex; flex-direction: column; align-items: center; }
     .count-label { font-size: 0.8em; margin-top: 4px; }
     #input-container { position: relative; }
@@ -36,6 +35,14 @@
     /* Styles for Play/Pause and Speed controls */
     #play { margin-left: 10px; }
     #speed { margin-left: 5px; }
+
+    .digit-box {
+      border: 1px solid #ccc;   /* light gray border */
+      background: #f9f9f9;      /* subtle off-white background */
+      padding: 6px 10px;        /* some breathing room inside */
+      border-radius: 4px;       /* slight rounding on corners */
+      display: inline-block;
+    }
   </style>
 </head>
 <body>
@@ -63,10 +70,11 @@
     </select>
   </div>
 
-  <div id="phase-label"><strong>Phase:</strong> <span id="phase-name">Initialization</span></div>
-  <div id="digit-label"><strong>Digit:</strong> <span id="digit-pos">0</span></div>
+  <div id="digit-label" class="digit-box">
+    <strong>Digit:</strong> <span id="digit-pos">0</span>
+  </div>
 
-  <div id="input-label"><strong>Input Array:</strong></div>
+  <div id="input-label" style="margin-top: 20px"><strong>Input Array:</strong></div>
   <div class="array-container" id="input-container">
     <div id="input-arrow" class="arrow">↑</div>
   </div>
@@ -92,7 +100,7 @@
       output_input: 'Select Element',
       output_count: 'Determine Position',
       output_place: 'Place Element',
-      output_end: 'Output Complete',
+      copy: 'copy',
       digit_end: 'Digit Complete',
       done: 'Sorting Complete'
     };
@@ -139,34 +147,41 @@
           const dig = Math.floor(v / Math.pow(base, d)) % base;
           record({ input, count, output, phase: 'output_input', index: i, value: v, digit: d });
           record({ input, count, output, phase: 'output_count', index: i, value: v, digit: d });
+          // Decrement happens here:
           const pos = --count[dig];
           output[pos] = v;
           record({ input, count, output, phase: 'output_place', index: i, value: v, outPos: pos, digit: d });
         }
-        record({ input, count, output, phase: 'output_end', digit: d });
         record({ input, count, output, phase: 'digit_end', digit: d });
         input = output.slice();
-      }
+		if(d<2){
+		       record({ input, count, output, phase: 'copy', digit: d });
+		       }
+		}
       record({ input, count: [], output: input.slice(), phase: 'done', digit: null });
       return steps;
     }
 
-    function positionInputArrow(i) {
-      const arrow = document.getElementById('input-arrow');
-      const container = document.getElementById('input-container');
-      const cells = container.querySelectorAll('.element');
-      if (i >= 0 && i < cells.length) {
-        const target = cells[i].getBoundingClientRect();
-        const parent = container.getBoundingClientRect();
-        const centerX = (target.left - parent.left) + (target.width / 2);
-        const topY = (target.bottom - parent.top) + 2;
-        arrow.style.left = `${centerX}px`;
-        arrow.style.top = `${topY}px`;
-        arrow.style.display = 'block';
-      } else {
-        arrow.style.display = 'none';
-      }
-    }
+     function positionInputArrow(i) {
+   const arrow = document.getElementById('input-arrow');
+   const container = document.getElementById('input-container');
+  // grab the wrappers, not the raw element
+  const wrappers = container.querySelectorAll('.count-wrapper');
+  if (i >= 0 && i < wrappers.length) {
+    // position relative to the wrapper so we include the label
+    const target = wrappers[i].getBoundingClientRect();
+     const parent = container.getBoundingClientRect();
+    const centerX = (target.left   - parent.left) + (target.width  / 2);
+    // now target.bottom is below both cell+label
+    const topY    = (target.bottom - parent.top)  + 2;
+     arrow.style.left    = `${centerX}px`;
+     arrow.style.top     = `${topY}px`;
+     arrow.style.display = 'block';
+   } else {
+     arrow.style.display = 'none';
+   }
+ }
+
 
     window.addEventListener('resize', () => {
       const st = steps[cur];
@@ -178,7 +193,6 @@
       const cntC = document.getElementById('count-container');
       const outC = document.getElementById('output-container');
       const desc = document.getElementById('description');
-      const phaseLabel = document.getElementById('phase-name');
       const digitLabel = document.getElementById('digit-pos');
 
       if (!steps.length) return;
@@ -191,17 +205,27 @@
       outC.innerHTML = '';
 
       const st = steps[cur];
-      phaseLabel.textContent = phaseNames[st.phase] || st.phase;
       digitLabel.textContent = st.digit != null ? st.digit + 1 : '';
 
-      // Render input values padded to 3 digits with digit spans
-      st.input.forEach(v => {
-        const dElem = document.createElement('div');
-        dElem.className = 'element';
-        const str = String(v).padStart(3, '0');
-        dElem.innerHTML = str.split('').map(c => `<span class="digit">${c}</span>`).join('');
-        inpC.appendChild(dElem);
-      });
+      // — Build the INPUT array with index labels —
+st.input.forEach((v, i) => {
+  const wrapper = document.createElement('div');
+  wrapper.className = 'count-wrapper';      // same vertical‐stack style
+
+  const cell = document.createElement('div');
+  cell.className = 'element';
+  const str = String(v).padStart(3, '0');
+  cell.innerHTML = str.split('').map(c => `<span class="digit">${c}</span>`).join('');
+
+  const lbl = document.createElement('div');
+  lbl.className = 'count-label';
+  lbl.textContent = i;                       // ← input‐index
+
+  wrapper.appendChild(cell);
+  wrapper.appendChild(lbl);
+  inpC.appendChild(wrapper);
+});
+
 
       // Render count array
       st.count.forEach((c, i) => {
@@ -218,16 +242,28 @@
         cntC.appendChild(wrapper);
       });
 
-      // Render output values padded to 3 digits
-      st.output.forEach(v => {
-        const dElem = document.createElement('div');
-        dElem.className = 'element';
-        if (v !== null) {
-          const str = String(v).padStart(3, '0');
-          dElem.innerHTML = str.split('').map(c => `<span class="digit">${c}</span>`).join('');
-        }
-        outC.appendChild(dElem);
-      });
+     // — Build the OUTPUT array with index labels —
+st.output.forEach((v, i) => {
+  const wrapper = document.createElement('div');
+  wrapper.className = 'count-wrapper';
+
+  const cell = document.createElement('div');
+  cell.className = 'element';
+  if (v !== null) {
+    const str = String(v).padStart(3, '0');
+    cell.innerHTML = str.split('').map(c => `<span class="digit">${c}</span>`).join('');
+  }
+
+  const lbl = document.createElement('div');
+  lbl.className = 'count-label';
+  lbl.textContent = i;                     // ← output‐index
+
+  wrapper.appendChild(cell);
+  wrapper.appendChild(lbl);
+  outC.appendChild(wrapper);
+});
+
+
 
       // clear previous highlights
       document.querySelectorAll('.comparing').forEach(el => el.classList.remove('comparing'));
@@ -245,90 +281,121 @@
 
       switch (st.phase) {
         case 'digit_init':
-          desc.textContent = `Preparing for digit pass ${st.digit + 1}.`;
+          desc.textContent = `Start digit pass ${st.digit + 1}`;
           positionInputArrow(-1);
-          if (st.digit > 0) {
-            inpC.querySelectorAll('.element').forEach(el => el.classList.add('finished'));
-          }
+          
           break;
 
         case 'count':
-          desc.textContent = `Counting digit ${st.digit + 1} of value ${st.value} at index ${st.index}.`;
-          const inpCells = inpC.querySelectorAll('.element');
-          inpCells[st.index].classList.add('comparing');
-          highlightDigit(st.index);
-          cntC.children[Math.floor(st.value / Math.pow(10, st.digit)) % 10]
-              .querySelector('.element').classList.add('comparing');
-          positionInputArrow(st.index);
+          {
+            const dig = Math.floor(st.value / Math.pow(10, st.digit)) % 10;
+            desc.innerHTML = `Value <strong>${st.value}</strong> at index ${st.index} → value = ${dig}`;
+            const inpCells = inpC.querySelectorAll('.element');
+            inpCells[st.index].classList.add('comparing');
+            highlightDigit(st.index);
+            cntC.children[dig].querySelector('.element').classList.add('comparing');
+            positionInputArrow(st.index);
+          }
           break;
 
         case 'count_increment':
-          const bucket = Math.floor(st.value / Math.pow(10, st.digit)) % 10;
-          desc.textContent = `Incremented bucket ${bucket} for value ${st.value}.`;
-          const inpCells2 = inpC.querySelectorAll('.element');
-          inpCells2[st.index].classList.add('comparing');
-          highlightDigit(st.index);
-          cntC.children[bucket].querySelector('.element').classList.add('count-incremented');
-          positionInputArrow(st.index);
+          {
+            const bucket = Math.floor(st.value / Math.pow(10, st.digit)) % 10;
+            desc.textContent = `Increment count[${bucket}]`;
+            const inpCells2 = inpC.querySelectorAll('.element');
+            inpCells2[st.index].classList.add('comparing');
+            highlightDigit(st.index);
+            cntC.children[bucket].querySelector('.element').classList.add('count-incremented');
+            positionInputArrow(st.index);
+          }
           break;
 
         case 'count_end':
-          desc.textContent = 'Counting occurrences complete.';
+          desc.textContent = 'Counting complete. Beginning prefix summation';
           positionInputArrow(-1);
           break;
 
         case 'prefix_select':
-          desc.textContent = `Selecting count of bucket ${st.index - 1} and ${st.index} for prefix sum.`;
-          cntC.children[st.index - 1].querySelector('.element').classList.add('comparing');
-          cntC.children[st.index].querySelector('.element').classList.add('comparing');
+          {
+            const i = st.index;
+            const prev = i - 1;
+            desc.textContent = `count[${i}] = count[${prev}] + count[${i}]`;
+            cntC.children[prev].querySelector('.element').classList.add('comparing');
+            cntC.children[i].querySelector('.element').classList.add('comparing');
+          }
           break;
 
         case 'prefix_calc':
-          desc.textContent = `Updating bucket ${st.index} to ${st.count[st.index]}.`;
-          cntC.children[st.index].querySelector('.element').classList.add('comparing');
+          {
+            const newVal = st.count[st.index];
+            desc.textContent = `Updated count[${st.index}] = ${newVal}`;
+            cntC.children[st.index].querySelector('.element').classList.add('comparing');
+          }
           break;
 
         case 'prefix_end':
-          desc.textContent = 'Prefix summation complete.';
+          desc.textContent = 'Prefix summation complete. Starting placement phase.';
           break;
 
         case 'output_input':
-          desc.textContent = `Selecting value ${st.value} for placement.`;
+          desc.textContent = `Select value ${st.value} at index ${st.index}`;
           const inpI = inpC.querySelectorAll('.element');
           inpI[st.index].classList.add('comparing');
-          highlightDigit(st.index);
+          positionInputArrow(st.index);
           break;
 
         case 'output_count':
           {
             const bucket = Math.floor(st.value / Math.pow(10, st.digit)) % 10;
+            // st.count[bucket] has not yet been decremented in UI; we highlight the count cell here
             const countVal = st.count[bucket];
             const position = countVal - 1;
             desc.innerHTML =
-              `Determining position from count.<br>` +
-              `Index = count[${bucket}] - 1 = ${countVal} - 1 = ${position}`;
+              `pos = count[${bucket}] − 1 = ${countVal} − 1 = ${position}`;
             const inpCells = inpC.querySelectorAll('.element');
             inpCells[st.index].classList.add('comparing');
             highlightDigit(st.index);
             cntC.children[bucket].querySelector('.element').classList.add('comparing');
+            positionInputArrow(st.index);
           }
           break;
 
-        case 'output_place':
-          desc.textContent = `Placing value ${st.value} at output index ${st.outPos}.`;
-          outC.children[st.outPos].classList.add('finished');
-          break;
+       case 'output_place':
+  {
+    // 1) Place the output
+    outC.children[st.outPos]
+        .querySelector('.element')
+        .classList.add('finished');
 
-        case 'output_end':
-          desc.textContent = 'Building output complete.';
+    // 2) Re-highlight the input element (so it stays blue)
+    const inpElems = inpC.querySelectorAll('.element');
+    inpElems[st.index].classList.add('comparing');
+
+    // 3) Re-highlight the count bucket that we just decremented
+    const bucket = Math.floor(st.value / Math.pow(10, st.digit)) % 10;
+    cntC.children[bucket].querySelector('.element').classList.add('comparing');
+
+    // 4) Keep the arrow pointing at the input
+    positionInputArrow(st.index);
+	 desc.textContent = `Placed value ${st.value} at index ${st.index}`;
+  }
+ 
+          
+  break;
+
+
+		 case 'copy':
+		 inpC.querySelectorAll('.element').forEach(el => el.classList.add('finished'));
+          
+          desc.textContent = `Copied output to input`;
           break;
 
         case 'digit_end':
-          desc.textContent = `Digit pass ${st.digit + 1} complete.`;
+          desc.textContent = `Digit pass ${st.digit + 1} complete`;
           break;
 
         case 'done':
-          desc.textContent = 'Sorting Complete. Showing only final output.';
+          desc.textContent = 'Sorting complete';
           document.getElementById('digit-label').classList.add('hidden');
           document.getElementById('input-label').classList.add('hidden');
           document.getElementById('count-label').classList.add('hidden');
@@ -386,7 +453,7 @@
     });
 
     // ─────────────────────────────────────────────────────────────
-    // Play/Pause & Speed functionality (following Merge Sort pattern)
+    // Play/Pause & Speed functionality
     // ─────────────────────────────────────────────────────────────
 
     document.getElementById('play').addEventListener('click', () => {
