@@ -47,6 +47,7 @@
         "Accumulative Polynomial Demo.html",
         "Bubble Sort Demo.html",
         "Fibonacci 5 Naive Demo.html",
+        "Fibonacci Naive Demo edit.html",
         "Fibonacci Naive Demo.html",
         "Polynomial Evaluation Demo.html",
         "Polynomial Evaluation Old Demo.html",
@@ -56,20 +57,25 @@
     },
     {
       "Decrease-and-Conquer": [
-        "Accumulative Polynomial Demo.html",
+        "Binary Exponentiation RTL Demo.html",
+        "Binary Search Demo.html",
         "Hoare Partition Demo.html",
         "Insertion Sort Demo.html"
       ]
     },
     {
       "Divide-and-Conquer": [
+        "Exponentiation Demo.html",
         "Merge Sort Demo.html",
         "QuickSort Demo.html"
       ]
     },
     {
       "Dynamic Programming": [
-        "Coin Row Demo.html"
+        "Coin Row Demo.html",
+        "Fib Bottom Up Demo.html",
+        "Fib Top Down Demo.html",
+        "Iterative FIb Demo.html"
       ]
     },
     {
@@ -80,6 +86,7 @@
     },
     {
       "Greedy": [
+        "Greedy Fractional Knapsack Demo.html",
         "Huffman Encoding Demo.html",
         "Kruskals Algorithm Demo.html",
         "Merge Demo.html",
@@ -91,6 +98,13 @@
         "Bucket Sort Demo.html",
         "Counting Sort Demo.html",
         "Radix Sort Demo.html"
+      ]
+    },
+    {
+      "Transform-and-Conquer": [
+        "Heapsort Demo.html",
+        "Horner Rule Demo.html",
+        "Matrix Fib Demo.html"
       ]
     }
   ],

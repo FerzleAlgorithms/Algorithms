@@ -4,8 +4,9 @@
   <meta charset="UTF-8">
   <title>Divide & Conquer Exponentiation Demo</title>
   <!-- Link to the same CSS files used in the Heapsort demo -->
-  <link rel="stylesheet" href="style.css">
-  <link rel="stylesheet" href="demo.css">
+  <script src="../../../scripts/demoScripts.js"></script>
+  <link rel="stylesheet" href="../../../css/style.css">
+  <link rel="stylesheet" href="../../../css/demo.css">
 
   <style>
     /* =============================================
@@ -41,17 +42,6 @@
   stroke-width: 1.5px;
 }
 
-   /* 1) pull in the demo.css base .legend-box */
-.legend-box {
-  display: inline-block;
-  width: 15px;
-  height: 15px;
-  vertical-align: middle;
-  margin-left: 10px;
-  border-radius: 4px;
-  border: 1px solid #333;
-  background-color: transparent;
-}
 
 /* 2) only override the fill & border-color per state */
 .legend-box.current {
@@ -63,21 +53,6 @@
   background-color: lightgreen;
   border-color: #666;
 }
-
-    
-
-    /* Adjust the spacing for controls */
-    #controls {
-      margin-bottom: 10px;
-    }
-    #controls input[type="number"] {
-      width: 60px;
-      margin-right: 8px;
-      padding: 4px;
-    }
-    #controls button {
-      margin-right: 8px;
-    }
 
     /* Multiplication counter styling */
     #multiplier-counter {
@@ -126,16 +101,11 @@
   stroke-width: 1.5px;
 }
 
-/* Add space between the step-buttons and the legend */
-#buttons {
-  margin-bottom: 10px;
-}
-  
   </style>
 </head>
 
 <body>
-  <h2>Divide & Conquer Exponentiation Demo</h2>
+  <h2>Exponentiation Demo (Naive Divide & Conquer)</h2>
 
   <!-- Controls to input Base (a) and Exponent (n), and to compute the demo -->
   <div id="controls">
@@ -196,8 +166,8 @@
   <!-- SVG container for drawing the recursion tree -->
   <svg
     id="svg"
-    width="900"
-    height="600"
+    width="600"
+    height="400"
     preserveAspectRatio="xMinYMin meet"
     style="display: block; margin: 0; overflow: visible;"
   >
@@ -212,7 +182,7 @@
 
     // Global settings for node spacing
     const settings = { hSpread: 300, nodeFont: 16, circleR: 20 };
-    const levelVGap = 80;         // vertical gap between tree levels
+    const levelVGap = 50;         // vertical gap between tree levels
     const rootY = 0;
 
     // Step array and control variables
@@ -444,11 +414,6 @@ function animateBubbleStep(event) {
         return `${a}*${a}<sup>${exp - 1}</sup>`;
       }
     };
-      // pushEvent(
-      //   `Split ${label} into ${childLabel(leftExp)} (left) and ${childLabel(rightExp)} (right). Now generating left subtree...`,
-      //   buildExpSteps.nodes,
-      //   multiplicationCount
-      // );
 
       // --- RECURSE on left child ---
       buildExpSteps(a, leftExp, nodeId, path + 'L');
@@ -526,7 +491,8 @@ function animateBubbleStep(event) {
           expLabel(leftExp), // a^((n-1)/2)
           expLabel(rightExp) // a^((n-1)/2)
         ];
-        multiplicationCount += 2;   // two multiplications at this node
+        //multiplicationCount += 2;   // two multiplications at this node
+        multiplicationCount += 1;   // two multiplications at this node
       }
 
       // join them with “ * ” so you get “2<sup>3</sup> * 2<sup>3</sup>”

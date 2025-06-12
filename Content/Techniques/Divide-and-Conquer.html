@@ -15,16 +15,75 @@
   
   <!-- Motivation & Introduction -->
   <section id="introduction">
-    <h2>Introduction</h2>
-    <p>
-      Divide-and-Conquer is a powerful algorithmic technique that solves a problem by breaking it into two or more smaller subproblems of the same type, recursively solving each subproblem, and then combining their solutions to produce a solution to the original problem.  
-      Formally, if a problem of size \(n\) can be divided into \(a\) subproblems each of size \(n/b\), and the cost to combine the subsolutions is \(O(f(n))\), then the overall running time \(T(n)\) satisfies the recurrence
-      \[
-        T(n) \;=\; a\,T\!\bigl(\tfrac{n}{b}\bigr) \;+\; O\bigl(f(n)\bigr).
-      \]
-      When \(a \ge 2\) and \(b \ge 2\), this often leads to sublinear recurrences such as \(T(n)=2T(n/2)+O(n)\), which solves to \(O(n\log n)\). Divide-and-Conquer is the foundation of many classic algorithms (e.g., sorting, searching, and exponentiation) and often yields asymptotically faster solutions than naive approaches.
-    </p>
-  </section>
+  <h2>Introduction</h2>
+<section>
+  <p>
+    Divide-and-Conquer is a powerful algorithmic paradigm that solves a problem by breaking it into two or more smaller subproblems of the same type, recursively solving each subproblem, and then combining their solutions to produce an answer to the original problem. This approach underpins many classic algorithms such as Merge Sort and Quicksort, and often yields asymptotically faster solutions than straightforward iterative methods.
+  </p>
+
+<h3>Analyzing Divide-and-Conquer Algorithms</h3>
+  <p>
+    A common way to analyze many divide-and-conquer algorithms is to express their running time with a recurrence relation. Formally, if a problem of size \(n\) can be divided into \(a\) subproblems each of size \(n/b\), and the cost to combine those subsolutions is \(f(n)\), then the overall running time \(T(n)\) satisfies
+  </p>
+  \[
+    T(n) \;=\; a\,T\!\bigl(\tfrac{n}{b}\bigr) \;+\; f(n).
+  \]
+
+  <p>
+  Recurrences of this form can be solved using the the Master Theorem. 
+  Given \(a\), \(b\), and \(f(n)\) (or just a bound \(O(f(n))\), 
+  the Master Theorem can be used with very little effort to obtain a 
+  closed form for \(T(n)\) most of the time (there are some subtle cases that require a bit more effort).
+  Here is one of the most simple versions of the Master Theorem, provided without proof.
+  </p>
+  <div class="theorem">
+  <p>
+  <strong>Master Theorem: </strong>
+    Consider the recurrence<br>
+    \[T(n) = a\,T\bigl(n/b\bigr) + O(n^d),\]
+    where \(a \ge 1\), \(b > 1\), and \(d \ge 0\).
+  </p>
+  <p>The solution depends on the relationship between \(d\) and \(\log_b a\):</p>
+  <ul>
+    <li><strong>Case 1:</strong> If \(d < \log_b a\), then  
+      \(T(n) = \Theta\bigl(n^{\log_b a}\bigr)\).</li>
+    <li><strong>Case 2:</strong> If \(d = \log_b a\), then  
+      \(T(n) = \Theta\bigl(n^d \,\log n\bigr)\).</li>
+    <li><strong>Case 3:</strong> If \(d > \log_b a\), then  
+      \(T(n) = \Theta\bigl(n^d\bigr)\).</li>
+  </ul>
+  <p>
+    There are more general variants of the Master Theorem that handle, for example, non-polynomial \(f(n)\), uneven subproblem sizes, or extra logarithmic factors.
+  </p>
+</div>
+    <div class="example-box">
+      <strong class="example-title">Example</strong>
+      <p>If we can solve a problem by splitting the original problem into two problems of half the size, 
+      and combining the solutions to subproblems takes linear time, then  
+      \(a = 2\), \(b = 2\), and \(f(n)=O(n)\), so \(d=1\). This yields the recurrence
+  \[
+    T(n) \;=\; 2\,T\!\bigl(\tfrac{n}{2}\bigr) + O(n).
+  \]
+   In this case,  
+    \(\displaystyle \log_b a = \log_2 2 = 1 = d\), so we fall into Case 2, giving solution
+    \(\displaystyle T(n) = \Theta(n\log n).\)
+  </p>
+  <p>If you recognize this as an analysis of the complexity of Merge Sort, good job!</p>
+  </div>
+
+  <p>
+  This clean analysis applies neatly to divide-and-conquer algorithms that split their work evenly.
+    However, not every divide-and-conquer strategy falls into this simple mold. For instance, 
+    Quicksort's running time depends on how the pivot divides the input: in the worst case you get
+  </p>
+  \[
+    T(n) \;=\; T(n-1) + O(n),
+  \]
+  <p>
+    which has closed form \(T(n)=O(n^2)\).  
+    Quicksort's average-case is \(O(n\log n)\), but requires a probabilistic analysis that is a lot more involved.
+  </p>
+</section>
 
   <section id="examples">
     <h2>Examples</h2>
@@ -32,7 +91,8 @@
     <div class="example-box">
       <strong class="example-title">Example 1: Exponentiation (Divide-and-Conquer)</strong>
       <p>
-        Suppose you want to compute \(x^n\) for a given \(x\) and nonnegative integer \(n\). A straightforward recursive approach might subtract 1 from the exponent at each call, resulting in \(O(n)\) time. Instead, the Divide-and-Conquer version makes two recursive calls on roughly half the exponent, then multiplies the results. Here is one way to implement it, where \(\lfloor n/2\rfloor + \lceil n/2\rceil = n\):
+        Suppose you want to compute \(x^n\) for a given real number \(x\) and nonnegative integer \(n\). A straightforward recursive approach might subtract 1 from the exponent at each call, resulting in \(O(n)\) time. Instead, the Divide-and-Conquer version makes two recursive calls on roughly half the exponent, then multiplies the results. Here is one way to implement it, where \(\lfloor n/2\rfloor + \lceil n/2\rceil = n\)
+        (Check for yourself that this works for both even and odd values of \(n\)):
       </p>
       <pre><code>function expDC(x, n):
     if n == 0:
@@ -43,24 +103,69 @@
     // Conquer by multiplying subresults
     return left * right
 </code></pre>
-      <p>
-        <strong>Explanation:</strong>  
-        When \(n = 0\), return 1. Otherwise, split \(n\) into two parts \(\lfloor n/2\rfloor\) and \(\lceil n/2\rceil\), recursively compute \(x^{\lfloor n/2\rfloor}\) and \(x^{\lceil n/2\rceil}\), then multiply. This satisfies the recurrence
-        \[
-          T(n) \;=\; 2\,T\!\bigl(\tfrac{n}{2}\bigr) \;+\; O(1),
-        \]
-        which solves to \(T(n) = O(n)\). Although this is not asymptotically better than a linear loop, it illustrates the Divide-and-Conquer pattern by splitting the problem into two smaller subproblems.
-      </p>
+<p>Here is a demonstration that visualizes the recursive calls used in this algorithm.</p>
+
       <!-- If a demo is available, embed it here; otherwise, remove this container. -->
       <div class="embeddedDemoContainer">
         <iframe
           class="embeddedDemo"
-          src="/Algorithms/Content/Demos/Divide and Conquer/Exponentiation Demo.html"
+          src="/Algorithms/Content/Demos/Divide-and-Conquer/Exponentiation Demo.html"
           allow="fullscreen"
           name="Exponentiation-DC-demo"
-          style="height: 300px; min-height: 300px;"
         ></iframe>
       </div>
+  <p> 
+  If you ran the demo on one or more inputs and looked at the multiplication count, you should see 
+  that the algorithm seems to use \(n-1\) multiplications to compute \(x^n\), the same 
+  number that the straightforward for loop would use. 
+  We will not prove that it is exactly \(n-1\) here (although it indeed is), 
+  but we will show that it is linear (\(O(n)\)).
+  Let  \(T(n)\) be the number of multiplications performed by <code>expDC(x,n)</code>.  
+  On each call, the algorithm does the following:
+  <ol>
+    <li>Split \(n\) into \(\lceil n/2\rceil\) and \(\lfloor n/2\rfloor\).</li>
+    <li>Compute \(y_1 = expDC(x,\lceil n/2\rceil)\) and  
+        \(y_2 = expDC(x,\lfloor n/2\rfloor)\).</li>
+    <li>Return \(y_1 \times y_2\).</li>
+  </ol>
+  Note that
+  \[
+    y_1 \times y_2
+    \;=\;
+    x^{\lceil n/2\rceil}\times x^{\lfloor n/2\rfloor}
+    \;=\;
+    x^{\lceil n/2\rceil + \lfloor n/2\rfloor}
+    \;=\;
+    x^n.
+  \]
+  </p>
+  <p>
+    Since combining the two halves requires one multiplication, the recurrence for \(T(n)\) is
+  </p>
+  \[
+    T(n) \;=\; T\!\bigl(\lceil n/2\rceil\bigr)
+             \;+\;
+             T\!\bigl(\lfloor n/2\rfloor\bigr)
+             \;+\;
+             1.
+  \]
+  Because floors and ceiling generally only chnage the solution to a recurrence relation by a constant factor,
+  we can simplify this to 
+  \[
+  \begin{aligned}
+    T(n) &= T\bigl(n/2\bigr) + T\bigl(n/2\bigr) + 1,\\
+         &= 2\,T\bigl(n/2\bigr) + 1,
+  \end{aligned}     
+  \]
+  which yields \(T(n) = O(n)\) (Check for yourself using the Master Theorem). 
+  </p>
+  <p>This algorithm is not asymptotically better than a linear loop, 
+  and it has higher overhead due to the recursive calls, so it is not actually a great example
+  to implement in practice. 
+  However, it illustrates the Divide-and-Conquer pattern by splitting the problem into two smaller subproblems
+  and combining the solutions.
+      </p>
+
     </div>
 
     <div class="example-box">
