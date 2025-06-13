@@ -11,7 +11,6 @@
   <link rel="stylesheet" href="/Algorithms/css/chapter.css">
 </head>
 <body>
-
   <h1>Quicksort</h1>
 
   <h2>Problem Solved</h2>
@@ -26,7 +25,7 @@
     partitions the array into elements less than or equal to <em>pivot</em> and 
     greater than <em>pivot</em>, with <em>pivot</em> being placed in its proper location. 
     This is referred to as the partition step, and involves an algorithm like 
-    <a class="problem" href="?path=Algorithms%2FHoare%20Partition">Hoare's Partition</a>.
+    <a class="problem" href="?path=Algorithms/Decrease-and-Conquer/Hoare Partition">Hoare's Partition</a>.
     If you are not already familiar with Hoare's Partition, you should read that section before continuing.
     Then Quicksort recursively sorts each half of the array. 
     This reduces the problem size at each recursive step.
@@ -47,7 +46,7 @@
         </li>
         <li>
           <strong>Partition the segment</strong> 
-          (e.g. using <a class="problem" href="?path=Algorithms%2FHoare%20Partition">Hoare's Partition</a>)
+          (e.g. using <a class="problem" href="?path=Algorithms/Decrease-and-Conquer/Hoare Partition">Hoare's Partition</a>)
           The array now has three regions:
           <ul>
             <li>The elements on the left part are all less than or equal to the pivot, but may be out of order.</li>
@@ -210,7 +209,7 @@ def partition(A, lo, hi):
   <p>
   <b>Time Complexity</b>
   Define \(T(n)\) as the running time required to sort an array of size \(n\) using Quicksort.
-  As we saw in the <a class="problem" href="?path=Algorithms%2FHoare%20Partition">Hoare's Partition</a>
+  As we saw in the <a class="problem" href="?path=Algorithms/Decrease-and-Conquer/Hoare Partition">Hoare's Partition</a>
   section, the partitioning procedure requires \(O(n)\) time.
  In the best case, each pivot divides the array into two subarrays of size 
   approximately \(\tfrac{n}{2}\), the recursive calls to Quicksort will take 
@@ -428,7 +427,7 @@ There are various ways to improve the pivot selection for Quicksort to avoid the
 <!-- 2. Partitioning algorithms -->
 <h3>Partitioning Algorithm Options</h3>
 <ul>
-  <li><strong><a class="problem" href="?path=Algorithms/Hoare%20Partition" target="_blank">Hoare’s Partition</a></strong>: two-pointer scheme that swaps out-of-place elements until the pointers cross.</li>
+  <li><strong><a class="problem" href="?path=Algorithms/Decrease-and-Conquer/Hoare Partition" target="_blank">Hoare’s Partition</a></strong>: two-pointer scheme that swaps out-of-place elements until the pointers cross.</li>
   <li>
   <strong>Lomuto’s Partition Scheme</strong>: Throughout execution, the array is divided into three contiguous regions—elements known to be less than the pivot, unexamined elements, and elements known to be greater than or equal to the pivot—and the partitioning gradually moves items from the unknown region into the other two.
 </li>

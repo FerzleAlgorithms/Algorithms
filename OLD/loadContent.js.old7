@@ -2,7 +2,7 @@
 
 history.scrollRestoration = 'manual';
 
-// ─── Ordering Constants ───────────────────────────────────────────────────────
+// ─── Ordering Constants (unchanged) ───────────────────────────────────────────
 const TOP_LEVEL_ORDER = [
   'Home',
   'Problems',
@@ -34,7 +34,7 @@ const ALGORITHMS_ORDER = [
 // For "Demos", we just mirror the same order as the algorithm names:
 const DEMOS_ORDER = [...ALGORITHMS_ORDER];
 
-// ─── Utility Functions ────────────────────────────────────────────────────────
+// ─── Utility Functions (unchanged) ──────────────────────────────────────────
 // Return the current “path” either from history.state or URL param or fallback
 const getCurrentPath = () =>
   history.state?.path ||
@@ -54,28 +54,6 @@ const getKey = (entry) =>
     ? entry.replace(/\.html$/, '')
     : Object.keys(entry)[0];
 
-// ─── Resize Helpers ──────────────────────────────────────────────────────────
-// Get the iframe's Document object (handles both contentDocument & contentWindow)
-const getIframeDocument = (frame) =>
-  frame.contentDocument || frame.contentWindow.document;
-
-// Compute the “auto + 5% up to 250px” height for any iframe‐doc combo
-const computeIframeHeight = (doc) => {
-  const body = doc.body;
-  const html = doc.documentElement;
-  const contentHeight = Math.max(
-    body.scrollHeight, body.offsetHeight,
-    html.clientHeight, html.scrollHeight, html.offsetHeight
-  );
-  const marginBottom = parseFloat(
-    doc.defaultView.getComputedStyle(body).marginBottom
-  ) || 0;
-  const baseHeight = contentHeight + marginBottom;
-  const fivePct = Math.ceil(baseHeight * 0.05);
-  const buffer = Math.min(250, fivePct);
-  return baseHeight + buffer;
-};
-
 // ─── Navigation / Scroll‐State / Content Loading ─────────────────────────────
 let pendingScrollRestore = null;
 
@@ -83,15 +61,15 @@ const navigateTo = (rawPath) => {
   const currentPath = getCurrentPath();
   if (rawPath === currentPath) return;
 
-  // 1) Save old scroll position
+  // ─── 1) Save the *old* scroll position into the current history entry:
   const oldScrollY = window.pageYOffset;
   history.replaceState(
     { path: currentPath, scrollY: oldScrollY },
     '',
-    `?path=${normalizePath(currentPath)}`
+    `?path=${ normalizePath(currentPath) }`
   );
 
-  // 2) Push new entry
+  // ─── 2) Push the new entry with scrollY = 0
   const safe = normalizePath(rawPath);
   history.pushState(
     { path: rawPath, scrollY: 0 },
@@ -99,77 +77,128 @@ const navigateTo = (rawPath) => {
     `?path=${safe}`
   );
 
-  // 3) Load
+  // ─── 3) Immediately jump to top and load the new content
   window.scrollTo(0, 0);
   loadContent(`${safe}.html`);
 };
 
 const loadFromURLParams = () => {
+  // Used on initial page load (or if someone manually types in ?path=…).
   const rawPath = new URLSearchParams(window.location.search).get('path') || 'home';
   loadContent(`${normalizePath(rawPath)}.html`);
 };
 
 // ─── iframe Hooking & Resizing ───────────────────────────────────────────────
 function hookIframeContent(iframe) {
-  const innerDoc = getIframeDocument(iframe);
+  const innerDoc = iframe.contentDocument;
   if (!innerDoc) return;
 
-  // Inject glossary-tooltips.js (fresh each time)
-  const head = innerDoc.head || innerDoc.getElementsByTagName('head')[0];
-  const old = innerDoc.getElementById('glossary-tooltips-script');
+  // 3) Get the <head> of the iframe document
+  const head = innerDoc.head || innerDoc.getElementsByTagName("head")[0];
+  if (!head) return;
+
+  // 6) Inject glossary-tooltips.js
+  const scriptTips = innerDoc.createElement("script");
+
+    // Remove any old copy so we don’t get duplicates
+  const old = innerDoc.getElementById("glossary-tooltips-script");
   if (old) old.remove();
-  const scriptTips = innerDoc.createElement('script');
-  scriptTips.id = 'glossary-tooltips-script';
-  scriptTips.type = 'module';
+
+  // Inject fresh copy with a timestamp to bust the cache
+  scriptTips.id  = "glossary-tooltips-script";
+  scriptTips.type= "module";
   scriptTips.src = `/Algorithms/scripts/glossary-tooltips.js?cb=${Date.now()}`;
+  
   head.appendChild(scriptTips);
 
-  // Intercept any “?path=” links inside the iframe
+  
+  // Intercept any “?path=” link clicks inside the iframe:
   innerDoc.addEventListener('click', (event) => {
-    const anchor = event.target.closest('a[href^="?path="]');
+    const anchor = event.target.closest('a[href^=\"?path=\"]');
     if (!anchor) return;
     event.preventDefault();
     const raw = new URLSearchParams(anchor.getAttribute('href').slice(1)).get('path');
     if (!raw) return;
+
+    // If it’s already the current path in the parent, do nothing
     const parentPath = getCurrentPath.call(window.parent);
     if (raw === parentPath) return;
+
+    // Ask the parent to navigate (this pushes a new top‐level history entry)
     window.parent.postMessage({ type: 'navigate', path: raw }, '*');
   });
 
-  // External links break out to top window
-  innerDoc.querySelectorAll('a[href]:not([href^="?path="])')
-    .forEach(a => a.target = '_top');
+  // Any external link (not “?path=”) should break out to the top window:
+  innerDoc.querySelectorAll('a[href]:not([href^=\"?path=\"])').forEach((a) => {
+    a.target = '_top';
+  });
 
-  // Auto‐resize any embeddedDemo iframes
+  // Resize any embeddedDemo iframe inside this iframe—but use replace() instead of src=...
   innerDoc.querySelectorAll('iframe.embeddedDemo').forEach((frame) => {
     const base = frame.src.split('?')[0];
+    // ─── REPLACE the location instead of assigning src, so we never push a new entry inside this iframe: ───
     try {
-      frame.contentWindow.location.replace(`${base}?cb=${Date.now()}`);
-    } catch {
+      frame.contentWindow.location.replace(`${base}?cb=${Date.now()}`); // ← avoids extra iframe history
+    } catch (crossOriginErr) {
+      // If cross‐origin, fall back to plain src assignment (it WILL push a history entry,
+      // but there’s no other choice if the iframe is not same‐origin).
       frame.src = `${base}?cb=${Date.now()}`;
     }
     frame.scrolling = 'no';
 
     frame.addEventListener('load', () => {
-      const d = getIframeDocument(frame);
-      if (!d) return;
+      const d    = frame.contentDocument || frame.contentWindow.document;
+      const body = d.body;
       const html = d.documentElement;
-      const resize = () => {
+    
+      const resizeFn = () => {
+        // Allow it to shrink if needed
         frame.style.height = 'auto';
-        frame.style.height = `${computeIframeHeight(d)}px`;
+    
+        // Compute the true content height
+        const contentHeight = Math.max(
+          body.scrollHeight, body.offsetHeight,
+          html.clientHeight, html.scrollHeight, html.offsetHeight
+        );
+    
+        // Include any bottom margin on <body>
+        const marginBottom = parseFloat(
+          d.defaultView.getComputedStyle(body).marginBottom
+        ) || 0;
+    
+        const baseHeight = contentHeight + marginBottom;
+        // compute 5% of the base
+        const fivePct = Math.ceil(baseHeight * 0.05);
+        // pick the smaller buffer
+        const buffer = Math.min(250, fivePct);
+        // round up to avoid fractional pixels
+        const finalHeight = baseHeight + buffer;
+        
+        console.log("baseHeight:", baseHeight,
+                    "5%:", Math.ceil(fivePct),
+                    "buffer used:", Math.ceil(buffer),
+                    "finalHeight:", finalHeight);
+        
+        frame.style.height = `${finalHeight}px`;
       };
-      resize();
-      new MutationObserver(resize).observe(html, {
+    
+      // Initial sizing
+      resizeFn();
+    
+      // Watch for DOM changes
+      new MutationObserver(resizeFn).observe(html, {
         subtree: true,
         childList: true,
         attributes: true
       });
-      setTimeout(resize, 500);
+    
+      // Optional: catch late MathJax / highlight.js tweaks
+      setTimeout(resizeFn, 500);
     });
   });
 }
 
-// ─── Build Sidebar Menu ───────────────────────────────────────────────────────
+// ─── Build Sidebar Menu (unchanged) ─────────────────────────────────────────
 const buildMenu = (chapters) => {
   const menuContainer = document.querySelector('#menu');
   menuContainer.innerHTML = `
@@ -181,6 +210,7 @@ const buildMenu = (chapters) => {
   `;
   const menuRoot = menuContainer.querySelector('ul');
 
+  // Recursive helper to build a nested <ul> structure
   const buildList = (items, container, pathPrefix, orderList = [], level = 1) => {
     items
       .sort((a, b) => {
@@ -195,6 +225,7 @@ const buildMenu = (chapters) => {
           const a = document.createElement('a');
           a.textContent = raw.replace(/Demo$/, '').trim();
           a.href = `?path=${encodeURIComponent(pathPrefix + raw)}`;
+          // Slightly decrease font size with each deeper level
           a.style.fontSize = `${1 - (level - 1) * 0.1}em`;
           li.appendChild(a);
         } else {
@@ -226,11 +257,13 @@ const buildMenu = (chapters) => {
     li.appendChild(span);
 
     const ul = document.createElement('ul');
+    // Choose an ordering list if this section is Problems, Algorithms, or Demos
     const orderList = {
       Problems: PROBLEMS_ORDER,
       Algorithms: ALGORITHMS_ORDER,
       Demos: DEMOS_ORDER
     }[sectionName] || [];
+
     buildList(contents, ul, `${sectionName}/`, orderList);
     li.appendChild(ul);
     menuRoot.appendChild(li);
@@ -244,31 +277,66 @@ async function loadContent(relativePath) {
   const url = `Content/${relativePath}`;
 
   try {
+    // 1) Check the file exists (no‐cache):
     const res = await fetch(url, { cache: 'no-cache' });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    await res.text(); // just to confirm it exists
+    await res.text(); // we only need to be sure it exists
 
+    // 2) Hide any previous error:
     err.style.display = 'none';
     iframe.style.display = 'block';
 
+    // 3) Replace the iframe’s location instead of using `.src = …`:
     try {
-      iframe.contentWindow.location.replace(url);
-    } catch {
+      iframe.contentWindow.location.replace(url); // ← never push a new entry inside the content iframe
+    } catch (crossOriginErr) {
+      // If that fails (very rare, since Content/ is same‐origin), fall back to `.src`
       iframe.src = `${url}?_=${Date.now()}`;
     }
 
+      // 4) Once the new document is loaded in the iframe, hook it and restore scroll if needed:
     iframe.onload = () => {
       hookIframeContent(iframe);
-
       let firstResize = true;
-      const resizeIframe = () => {
-        const prevY = window.pageYOffset;
-        iframe.style.height = 'auto';
-        const d = getIframeDocument(iframe);
-        if (!d) return;
-        const finalHeight = computeIframeHeight(d);
-        iframe.style.height = `${finalHeight}px`;
 
+      const resizeIframe = () => {
+        // remember scroll position
+        const prevY = window.pageYOffset;
+      
+        // allow content to shrink if needed
+        iframe.style.height = 'auto';
+      
+        // get document inside iframe
+        const d    = iframe.contentDocument || iframe.contentWindow.document;
+        const body = d.body;
+        const html = d.documentElement;
+      
+        // compute the true content height
+        const contentHeight = Math.max(
+          body.scrollHeight, body.offsetHeight,
+          html.clientHeight, html.scrollHeight, html.offsetHeight
+        );
+      
+        // include any bottom margin on <body>
+        const bodyStyle    = d.defaultView.getComputedStyle(body);
+        const marginBottom = parseFloat(bodyStyle.marginBottom) || 0;
+        
+        const baseHeight = contentHeight + marginBottom;
+        // compute 5% of the base
+        const fivePct = Math.ceil(baseHeight * 0.05);
+        // pick the smaller buffer
+        const buffer = Math.min(250, fivePct);
+        // round up to avoid fractional pixels
+        const finalHeight = baseHeight + buffer;
+        
+        console.log("baseHeight:", baseHeight,
+                    "5%:", Math.ceil(fivePct),
+                    "buffer used:", Math.ceil(buffer),
+                    "finalHeight:", finalHeight);
+        
+        iframe.style.height = `${finalHeight}px`;
+      
+        // restore scroll position (once for the first resize, then always)
         if (firstResize && pendingScrollRestore !== null) {
           window.scrollTo(0, parseInt(pendingScrollRestore, 10));
           pendingScrollRestore = null;
@@ -279,17 +347,15 @@ async function loadContent(relativePath) {
       };
 
       resizeIframe();
-      const d = getIframeDocument(iframe);
-      if (d) {
-        new MutationObserver(resizeIframe).observe(d.documentElement, {
-          subtree: true,
-          childList: true,
-          attributes: true
-        });
-      }
+      new MutationObserver(resizeIframe).observe(iframe.contentDocument.documentElement, {
+        subtree: true,
+        childList: true,
+        attributes: true
+      });
       window.addEventListener('resize', resizeIframe);
     };
   } catch (e) {
+    //console.error(e);
     iframe.style.display = 'none';
     const rawPath = getCurrentPath();
     err.innerHTML = `
@@ -302,8 +368,10 @@ async function loadContent(relativePath) {
   }
 }
 
-// ─── Scroll Position Preservation ────────────────────────────────────────────
+// ─── Scroll Position Preservation (unchanged) ───────────────────────────────
 window.addEventListener('beforeunload', () => {
+  // This ensures that if someone does a *hard* reload (F5) or navigates away and comes back,
+  // we still have a fallback scroll position. But popState will handle virtual‐page scroll.
   sessionStorage.setItem('scrollPos', window.pageYOffset);
 });
 window.addEventListener('load', () => {
@@ -316,6 +384,7 @@ window.addEventListener('load', () => {
 
 // ─── App Initialization ──────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
+  // Fetch the JSON that describes all chapters & their files
   fetch('scripts/chapters.json')
     .then((res) => res.json())
     .then((chaptersData) => {
@@ -328,20 +397,24 @@ document.addEventListener('DOMContentLoaded', () => {
         .querySelector('#collapseAll')
         .onclick = () => document.querySelectorAll('#menu li').forEach((li) => li.classList.remove('open'));
 
+      // On initial page load, read ?path=… and load content
       loadFromURLParams();
     })
     .catch(console.error);
 
+  // Intercept any “?path=” link in the parent document (outside iframes):
   document.addEventListener('click', (event) => {
     if (event.target.closest('iframe')) return;
-    const anchor = event.target.closest('a[href^="?path="]');
+    const anchor = event.target.closest('a[href^=\"?path=\"]');
     if (!anchor) return;
+
     event.preventDefault();
     const rawPath = new URLSearchParams(anchor.getAttribute('href').slice(1)).get('path');
     if (!rawPath) return;
     navigateTo(rawPath);
   });
 
+  // Listen for fullscreen requests from demos:
   window.addEventListener('message', (event) => {
     const msg = event.data;
     if (msg?.type === 'demo-fullscreen') {
@@ -359,11 +432,14 @@ window.addEventListener('message', (event) => {
   }
 });
 
-// ─── Handle Back/Forward buttons ─────────────────────────────────────────────
-window.removeEventListener('popstate', loadFromURLParams);
+// ─── Handle Back/Forward buttons on the top level: replace popstate handler ──
+window.removeEventListener('popstate', loadFromURLParams); // in case it was added
 window.addEventListener('popstate', (event) => {
   const state = event.state || {};
+  // 1) Read scrollY from state (if present), otherwise default to 0
   pendingScrollRestore = typeof state.scrollY === 'number' ? state.scrollY : 0;
+
+  // 2) Navigate to the saved path
   const rawPath = state.path || 'home';
-  loadContent(`${normalizePath(rawPath)}.html`);
+  loadContent(`${ normalizePath(rawPath) }.html`);
 });

@@ -696,6 +696,13 @@
   },
   {
     "variants": [
+    "Iterative Algorithm",
+    "Iterative Algorithms"
+    ],
+    "definition": "An iterative algorithm solves a problem by explicitly repeating a set of steps using loops (e.g., for or while loops) until a termination condition is met."
+  },
+  {
+    "variants": [
       "Johnson's Algorithm"
     ],
     "definition": "An algorithm for finding all-pairs shortest paths in weighted, directed graphs without negative cycles by reweighting edges using a potential function and then running Dijkstra's algorithm from each vertex. It runs in <em>O(V<sup>2</sup> log V + VxE)</em> time. It works particularly well on sparse graphs."
@@ -1098,6 +1105,14 @@
       "recursive"
     ],
     "definition": "A programming technique where a function calls itself with smaller inputs until reaching a base case. It is used to solve divide-and-conquer and combinatorial problems."
+  },
+   {
+    "variants": [
+    "Recursive Algorithm",
+    "Recursive Algorithms"
+    
+    ],
+    "definition": "A recursive algorithm solves a problem by calling itself on one or more smaller instances of the same problem. It must include at least one base case that can be solved directly, ensuring that the recursion terminates."
   },
   {
     "variants": [

@@ -5,18 +5,17 @@
   <title>Technique: Divide-and-Conquer</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github.min.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js"></script>
-  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>  
   <script src="/Algorithms/scripts/chapterScripts.js"></script>
   <link rel="stylesheet" href="/Algorithms/css/style.css">
   <link rel="stylesheet" href="/Algorithms/css/chapter.css">
 </head>
-<body class="technique-page">
+<body>
   <h1>Divide-and-Conquer</h1>
   
   <!-- Motivation & Introduction -->
   <section id="introduction">
   <h2>Introduction</h2>
-<section>
   <p>
     Divide-and-Conquer is a powerful algorithmic paradigm that solves a problem by breaking it into two or more smaller subproblems of the same type, recursively solving each subproblem, and then combining their solutions to produce an answer to the original problem. This approach underpins many classic algorithms such as Merge Sort and Quicksort, and often yields asymptotically faster solutions than straightforward iterative methods.
   </p>
@@ -234,317 +233,685 @@ Merge(L, R):  // Merge two already-sorted lists L and R
      
     </div>
   </section>
-
-  <!-- Applicability -->
-  <section id="applicability">
-    <h2>When to Use</h2>
-    <ul>
-      <li>
-        <strong>Problems That Naturally Split in Half:</strong>  
-        When the input can be divided evenly (or nearly evenly) into smaller subproblems of the same type. Examples include sorting an array, multiplying large integers via Karatsuba’s method, or computing discrete transforms.
-      </li>
-      <li>
-        <strong>Asymptotically Faster Solutions:</strong>  
-        When a naive approach is \(O(n^2)\) or worse and a Divide-and-Conquer recurrence yields \(O(n \log n)\) or better. For example, Merge Sort is \(O(n \log n)\) versus Selection Sort’s \(O(n^2)\).
-      </li>
-      <li>
-        <strong>Parallelism Opportunities:</strong>  
-        When you can solve subproblems independently and in parallel (e.g., sorting left and right halves concurrently). Many Divide-and-Conquer algorithms map well to multi-core or distributed settings.
-      </li>
-      <li>
-        <strong>Structured Recurrences with Known Solutions:</strong>  
-        When the recurrence matches a standard form (\(T(n) = a\,T(n/b) + O(n^d)\)), allowing direct application of the Master Theorem to derive asymptotic complexity.
-      </li>
-      <li>
-        <strong>Large Input Sizes Where Recursion Overhead Is Acceptable:</strong>  
-        When the overhead of recursion and combining subsolutions is outweighed by the asymptotic gains. For huge arrays, Merge Sort outperforms quadratic sorts despite recursive calls.
-      </li>
-      <li>
-        <strong>Divide-and-Conquer on Non-Array Structures:</strong>  
-        When problems on trees or graphs can be split by removing an edge or finding a centroid—e.g., algorithms for closest pairs of points (plane sweep with recursion) or Strassen’s matrix multiplication.
-      </li>
-    </ul>
-    <p>
-      In summary, use Divide-and-Conquer when a problem decomposes naturally into smaller subproblems of the same form, and when combining their solutions can be done efficiently (often in linear or near-linear time).
-    </p>
-  </section>
-
-  <section id="limitations">
-    <h2>Limitations</h2>
-    <ul>
-      <li>
-        <strong>Overhead of Recursion:</strong>  
-        Recursive calls incur function-call overhead and extra memory for the call stack. For small \(n\), the overhead may outweigh asymptotic benefits.
-      </li>
-      <li>
-        <strong>Combining Cost Must Be Efficient:</strong>  
-        If merging or combining subresults is more than \(O(n)\) (e.g., naïve matrix multiplication’s combine step is \(O(n^3)\)), the overall complexity may not improve.
-      </li>
-      <li>
-        <strong>Not All Problems Decompose Evenly:</strong>  
-        Some inputs may split into highly unbalanced subproblems, leading to recurrences that degrade to \(O(n^2)\) or worse (e.g., quicksort’s worst-case partitioning).
-      </li>
-      <li>
-        <strong>Stack Depth &amp; Tail Recursion:</strong>  
-        Deep recursion can cause stack overflow for large inputs if the depth is \(O(n)\). Tail-recursive optimizations may help, but not all Divide-and-Conquer recurrences are tail-recursive.
-      </li>
-      <li>
-        <strong>Difficulty Handling Overlapping Subproblems:</strong>  
-        When subproblems overlap significantly, a pure Divide-and-Conquer approach may recompute the same results multiple times. In such cases, Dynamic Programming (memoization) is often preferable.
-      </li>
-      <li>
-        <strong>Extra Memory for Temporary Arrays:</strong>  
-        Merge Sort requires \(O(n)\) extra space to merge two halves. In-place variants exist but are more complex to implement and may have hidden overhead.
-      </li>
-      <li>
-        <strong>Parallelism Overhead:</strong>  
-        While subproblems can run in parallel, task-creation overhead, synchronization, and memory bandwidth can limit actual speedup on multi-core systems.
-      </li>
-    </ul>
-  </section>
-
-  <!-- Implementation Tips & Common Pitfalls -->
-  <section id="tips">
-    <h2>Implementation Tips &amp; Common Pitfalls</h2>
-    <ul>
-      <li>
-        <strong>Ensure Balanced Splitting:</strong>  
-        To achieve the best asymptotic bound, split the problem as evenly as possible (e.g., floor/ceil \(n/2\)). An unbalanced split (e.g., size \(n-1\) and \(1\)) can degrade performance to \(O(n^2)\).
-      </li>
-      <li>
-        <strong>Optimize the Combine Step:</strong>  
-        In Merge Sort, merging two sorted lists in \(O(n)\) is critical. If merging is implemented naïvely (e.g., by inserting elements one at a time), the combine cost may balloon to \(O(n \log n)\) per level.
-      </li>
-      <li>
-        <strong>Watch for Off-by-One in Base Cases:</strong>  
-        Always handle small inputs (e.g., \(n \le 1\)) explicitly to prevent infinite recursion. For odd \(n\), decide consistently whether to place the extra element in the left or right half.
-      </li>
-      <li>
-        <strong>Reuse Temporary Arrays When Possible:</strong>  
-        Allocating new arrays at each merge can incur \(O(n)\) overhead per recursion level. If memory permits, reuse a single auxiliary array to reduce allocation overhead.
-      </li>
-      <li>
-        <strong>Consider Tail-Recursion or Iterative Conversion:</strong>  
-        If the recursion depth is a concern, rewrite some divide-or-conquer calls to use an explicit stack or convert tail-recursive parts to iterative loops.
-      </li>
-      <li>
-        <strong>Combine in Place When Feasible:</strong>  
-        In-place merge algorithms (though trickier) can reduce memory usage. Be aware they may trade off speed for space.
-      </li>
-      <li>
-        <strong>Memoize Overlapping Subproblems:</strong>  
-        If you detect that subproblems repeat (e.g., computing Fibonacci with divide-and-conquer), add memoization to avoid redundant work. Otherwise, a pure divide-and-conquer approach may blow up exponentially.
-      </li>
-      <li>
-        <strong>Parallel Divide-and-Conquer:</strong>  
-        When parallelizing, pick a granularity threshold: do not spawn new threads for very small subproblems. Instead, solve small cases sequentially to avoid thread-creation overhead exceeding computation time.
-      </li>
-    </ul>
-  </section>
-
-  <!-- Canonical Algorithms -->
-  <section id="algorithms">
-    <h2>Algorithms Using This Technique</h2>
-    <ul>
-      <li>
-        <a class="problem" href="?path=Algorithms/Divide-and-Conquer/Merge%20Sort">
-          Merge Sort
-        </a>
-        – Split array in half, sort each recursively, then merge in \(O(n)\), yielding \(O(n \log n)\).
-      </li>
-      <li>
-        <a class="problem" href="?path=Algorithms/Divide-and-Conquer/Quick%20Sort">
-          Quick Sort
-        </a>
-        – Partition array around a pivot, recursively sort partitions; average \(O(n \log n)\), worst \(O(n^2)\).
-      </li>
-      <li>
-        <a class="problem" href="?path=Algorithms/Divide-and-Conquer/Closest%20Pair%20of%20Points">
-          Closest Pair of Points
-        </a>
-        – Divide set of points by vertical line, recursively find closest pair in each half, then check across boundary in \(O(n)\), for total \(O(n \log n)\).
-      </li>
-      <li>
-        <a class="problem" href="?path=Algorithms/Divide-and-Conquer/Strauss%20Matrix%20Multiplication">
-          Strassen’s Matrix Multiplication
-        </a>
-        – Divide \(n \times n\) matrices into four \(\frac{n}{2} \times \frac{n}{2}\) submatrices, perform 7 recursive multiplications instead of 8, yielding \(O(n^{\log_2 7}) \approx O(n^{2.81})\).
-      </li>
-      <li>
-        <a class="problem" href="?path=Algorithms/Divide-and-Conquer/Binary%20Search">
-          Binary Search
-        </a>
-        – Recursively halve a sorted array to locate a key in \(O(\log n)\).
-      </li>
-      <li>
-        <a class="problem" href="?path=Algorithms/Divide-and-Conquer/Karatsuba%20Integer%20Multiplication">
-          Karatsuba Integer Multiplication
-        </a>
-        – Split digits into halves, recursively multiply, then combine cross terms in \(O(n^{\log_2 3}) \approx O(n^{1.585})\).
-      </li>
-      <li>
-        <a class="problem" href="?path=Algorithms/Divide-and-Conquer/Exponentiation%20by%20Squaring">
-          Exponentiation by Squaring
-        </a>
-        – Recursively compute \(x^{\lfloor n/2\rfloor}\), square it, and multiply by \(x\) if \(n\) is odd; runs in \(O(\log n)\). (This variant only makes one recursive call on \(n/2\).)
-      </li>
-      <li>
-        <a class="problem" href="?path=Algorithms/Divide-and-Conquer/Strassen%20Matrix%20Multiplication">
-          Strassen’s Algorithm (again)
-        </a>
-        – See above for details on reducing the number of subcalls in matrix multiplication.
-      </li>
-      <li>
-        <a class="problem" href="?path=Algorithms/Divide-and-Conquer/FFT">
-          Fast Fourier Transform (Cooley–Tukey)
-        </a>
-        – Recursively split an \(n\)-point DFT into two \(\frac{n}{2}\)-point DFTs (even and odd indices) and combine in \(O(n)\), yielding \(O(n \log n)\).
-      </li>
-    </ul>
-  </section>
-
-  <!-- Real-World Applications -->
-  <section id="applications">
-    <h2>Real-World Applications</h2>
-    <ul>
-      <li>
-        <strong>Large-Scale Sorting:</strong>  
-        Merge Sort and Quick Sort power many standard library implementations (e.g., Java’s \texttt{Arrays.sort()}).
-      </li>
-      <li>
-        <strong>High-Performance Computing:</strong>  
-        Strassen’s and other fast matrix-multiplication algorithms are used in scientific computing libraries (e.g., BLAS, LAPACK) to accelerate linear algebra routines.
-      </li>
-      <li>
-        <strong>Signal Processing:</strong>  
-        Fast Fourier Transform (FFT) divides an \(n\)-point DFT into two \(\tfrac{n}{2}\)-point transforms, enabling efficient convolution and spectral analysis in \(O(n \log n)\).
-      </li>
-      <li>
-        <strong>Computational Geometry:</strong>  
-        The Closest Pair of Points algorithm and other geometric queries (e.g., computing convex hull) rely on Divide-and-Conquer to achieve \(O(n \log n)\).
-      </li>
-      <li>
-        <strong>Database Query Optimization:</strong>  
-        External Merge Sort (a variant of Merge Sort) is used to sort data blocks on disk when memory is too small to hold the entire dataset, breaking into runs, sorting each, then merging in passes.
-      </li>
-      <li>
-        <strong>Parallel and Distributed Systems:</strong>  
-        Divide-and-Conquer algorithms can spawn independent tasks for subproblems, making them suitable for map-reduce frameworks (e.g., parallel sort, parallel matrix multiplication).
-      </li>
-      <li>
-        <strong>Polynomial Multiplication:</strong>  
-        Karatsuba and similar algorithms use Divide-and-Conquer to multiply large integers or polynomials in subquadratic time, critical for cryptographic applications.
-      </li>
-      <li>
-        <strong>Image Processing:</strong>  
-        Quadtree decompositions (Divide-and-Conquer on two dimensions) are used for image compression and representation by subdividing regions until uniformity is achieved.
-      </li>
-      <li>
-        <strong>Computational Finance:</strong>  
-        Monte Carlo simulations and option pricing models sometimes employ Divide-and-Conquer to subdivide the simulation domain and aggregate results more efficiently.
-      </li>
-    </ul>
-  </section>
-
-  <!-- Summary -->
-  <section id="summary">
-    <h2>Summary &amp; Key Takeaways</h2>
-    <p>
-      Divide-and-Conquer solves problems by recursively splitting them into smaller subproblems, solving each subproblem, and then combining the results. When the subproblems are of size \(\tfrac{n}{b}\) and there are \(a\) such subproblems with a combine cost of \(O(f(n))\), the running time satisfies
+<section id="applicability">
+  <h2>When to Use</h2>
+  The following are some of the reasons that algorithms like Quicksort, Merge Sort, Strassen's Algorithm, 
+  and divide-and-conquer algorithms for problems like Convex Hull, Closest Pair, Discrete Fourier Transforms,
+  and many other problems work well. 
+  <ul>
+    <li>
+      <strong>Natural Divide Step:</strong>
+      When the problem can be split into two or more independent subproblems of smaller size 
+      (often roughly size \(n/b\) for some \(b>1\)).
+    </li>
+    <li>
+      <strong>Efficient Combine Step:</strong>
+      When merging or combining \(a\) subsolutions of total size \(n\) takes \(O(n^d)\) with \(d \le \log_b a\), the recurrence
       \[
-        T(n) \;=\; a\,T\!\bigl(\tfrac{n}{b}\bigr) \;+\; O\bigl(f(n)\bigr).
+        T(n) = a\,T(n/b) + O(n^d)
       \]
-      By applying the Master Theorem, you can determine whether the solution is asymptotically better than naive methods. Classic examples include Merge Sort (\(O(n \log n)\)), Quick Sort (average \(O(n \log n)\)), and Strassen’s Matrix Multiplication (\(O(n^{2.81})\)).
-    </p>
-    <ul>
-      <li><strong>Divide step:</strong> Break the problem into smaller subproblems of approximately equal size.</li>
-      <li><strong>Conquer step:</strong> Recursively solve each subproblem until reaching a base case (often \(n \le 1\)).</li>
-      <li><strong>Combine step:</strong> Merge or combine the subsolutions in \(O(f(n))\) work to form the final answer for the original problem.</li>
-      <li><strong>Recurrence relations:</strong> Use the Master Theorem to solve recurrences of the form \(T(n) = a\,T(n/b) + O(n^d)\).</li>
-      <li><strong>Balance matters:</strong> Ensure subproblems are as balanced as possible. Unbalanced splits degrade performance toward worst-case recurrences.</li>
-      <li><strong>Space/time trade-offs:</strong> Some Divide-and-Conquer algorithms require extra space (e.g., Merge Sort’s \(O(n)\) auxiliary array). In-place variants exist but can be more complex.</li>
-      <li><strong>Parallelizable:</strong> Independent subproblems can often be solved concurrently, but watch for overhead in task creation and synchronization.</li>
-    </ul>
-  </section>
+      falls under case 1 (\(d < \log_b a\)) or case 2 (\(d = \log_b a\)) of the Master Theorem, 
+      both of which improve on algorithms whose best non-recursive versions cost \(O(n^d)\). Examples:
+      <ul>
+        <li>
+          <em>Merge Sort:</em>
+          \(a=2\), \(b=2\), \(d=1=\log_2 2\).  
+          Case 2 gives  
+          \(T(n)=2\,T(n/2)+O(n)=O(n\log n)\),  
+          improving over simple quadratic sorts (e.g. Insertion Sort or Bubble Sort) that run in \(O(n^2)\).
+        </li>
+        <li>
+          <em>Strassen's Matrix Multiply:</em>
+          \(a=7\), \(b=2\), \(d=2<\log_2 7\approx2.81\).  
+          Case 1 yields  
+          \(T(n)=7\,T(n/2)+O(n^2)=O(n^{\log_2 7})\approx O(n^{2.81})\),  
+          improving on the classical triple-loop algorithm's \(O(n^3)\) cost.
+        </li>
+      </ul>
+    </li>
+    <li>
+      <strong>Balanced Subproblems:</strong>
+      When each recursive call works on a piece of similar size, so you avoid "skinny" partitions that degrade
+       performance.
+    </li>
+    <li>
+      <strong>Parallelism:</strong>
+      When independent subproblems can run concurrently on multiple cores or machines (for example, a parallel Merge Sort, Quicksort, or Strassen's matrix multiplication).
+    </li>
+    <li>
+      <strong>Memory &amp; Cache Efficiency:</strong>
+      When breaking the problem into smaller pieces helps each subproblem fit in fast memory (cache/registers).
+    </li>
+    <li>
+      <strong>Large Input Sizes:</strong>
+      When \(n\) is large enough that the overhead of recursion and function calls is small relative to the asymptotic gains.
+    </li>
+  </ul>
+  <p>
+    In short, reach for divide-and-conquer whenever a problem naturally breaks into smaller 
+    subproblems that can solved independetly and can be comibed efficiently (often in linear time) 
+    such that the cost of solving and combining them recursively yields clear asymptotic or practical benefits.
+  </p>
+</section>
 
-  <!-- Reading Comprehension Questions -->
-  <section id="reading-questions">
-    <h2>Reading Comprehension Questions</h2>
+<section id="limitations">
+  <h2>Limitations</h2>
+  <ul>
+    <li>
+      <strong>Recursive Overhead:</strong>
+      Function-call overhead and extra stack frames can dominate when \(n\) is small or when the combine step is simple, making an iterative or non-recursive method faster in practice.
+    </li>
+    <li>
+      <strong>Inefficient Combine Steps:</strong>
+      If combining subresults takes superlinear time \(O(n^d)\) with \(d > \log_b a\), then
+      \[
+        T(n) = a\,T(n/b) + O(n^d) = O(n^d),
+      \]
+      offering no asymptotic advantage over direct algorithms.
+    </li>
+    <li>
+      <strong>Unbalanced Splits:</strong>
+      When subproblem sizes are highly skewed, the result can be much less efficient than with even splits,
+      sometimes negating all of the benefit of the approach.
+      For instance, when Quicksort has poor pivot choices, the algorithm degrades to \(O(n^2)\)
+      instead of the average-case \(O(n\log n)\).
+      In the case of Quicksort, there are ways of avoiding these bad splits, but when that is not possible,
+      divide-and-conquer may not be a good choice.
+    </li>
+    <li>
+      <strong>Stack and Tail-Call Limits:</strong>
+      Deep recursion may exhaust the call stack. In languages without tail-call optimization, you may need to convert to an explicit stack or iterative loop.
+    </li>
+    <li>
+      <strong>Overlapping Subproblems:</strong>
+      Divide-and-conquer repeats work on overlapping subproblems. When overlap is significant, dynamic programming or memoization often yields better performance.
+    </li>
+    <li>
+      <strong>Extra Memory Usage:</strong>
+      Many divide-and-conquer algorithms allocate temporary storage (for example, Merge Sort requires \(O(n)\) extra space), which can be a drawback in memory-constrained environments.
+    </li>
+    <li>
+      <strong>Parallelization Overhead:</strong>
+      While subproblems are parallelizable, task-creation, synchronization, and limited memory bandwidth can reduce or negate expected speedups.
+    </li>
+    <li>
+      <strong>Constant Factors in Practice:</strong>
+      The improved asymptotic bound may hide large constant factors. 
+      Thus, it is often the case that simpler algorithms are better for smaller inputs.
+      For instance, Insertion Sort is often better than Quicksort for small arrays (e.g. \(n=10\) or \(20\)),
+      and Strassen's Algorithm is only better than the standard \(O(n^3)\) algorithm when  
+      \(n>1000\), and even then the gains can be quite moderate (some estimates are about 10% improvement).
+    </li>
+  </ul>
+</section>
+<section id="implementation-tips">
+  <h2>Implementation Tips</h2>
+  <ul>
+    <li>
+      <strong>Choose a good base case threshold:</strong>
+      For small \(n\), switch to an iterative algorithm to avoid recursion overhead. The value of \(n\)
+      and what algorithm to switch to depends heavily on each problem. For instance with Quicksort, 
+      Insertion Sort is often called when \(n<20\).
+    </li>
+    <li>
+      <strong>Balanced splitting:</strong>
+      Ensure subproblems are roughly equal in size (for example, use median-of-three or random pivot selection in Quicksort) for optimal performance.
+    </li>
+    <li>
+      <strong>Avoid repeated allocations:</strong>
+      Preallocate temporary buffers or auxiliary arrays once and pass them through recursive calls rather than reallocating at each level.
+    </li>
+    <li>
+      <strong>Optimize the combine step:</strong>
+      Implement merges or other combine operations efficiently. 
+      For instance, with some effort and the use of an auxilliary array, the Merge step of Merge Sort can be
+      made a lot more efficient by merging back and forth from the original and auxiliary arrays. Of course 
+      this makes the algorithm more complicated to implement correctly, but it does make it faster.
+    </li>
+    <li>
+      <strong>Use index arithmetic instead of slicing:</strong>
+      Pass index ranges (\(\mathrm{lo},\mathrm{hi}\)) or pointers rather than copying subarrays to reduce both time and space overhead.
+    </li>
+    <li>
+      <strong>Prevent integer overflow in midpoint calculation:</strong>
+      Compute 
+      \[
+        \mathrm{mid} = \mathrm{lo} + \frac{\mathrm{hi}-\mathrm{lo}}{2}
+      \]
+      instead of \((\mathrm{lo}+\mathrm{hi})/2\). This is mainly relevant if you are working with very large arrays.
+    </li>
+    <li>
+      <strong>Watch for off-by-one errors in base cases:</strong>
+      Handle very small inputs (for example, \(n \le 1\)) explicitly and decide consistently how to split odd sizes.
+    </li>
+    <li>
+      <strong>Tail-call optimization / iterative conversion:</strong>
+      Recurse on the smaller subproblem first and use loops or an explicit stack for the larger one to limit recursion depth.
+    </li>
+    <li>
+      <strong>In-place vs out-of-place combine:</strong>
+      Decide whether to overwrite the input or use auxiliary space&mdash;an in-place algorithm saves memory but can be trickier to implement, and sometimes sacrifices time efficiency.
+    </li>
+    <li>
+      <strong>Memoize overlapping subproblems:</strong>
+      Add memoization when subproblems repeat (for example, naive Fibonacci) to avoid exponential recomputation.
+    </li>
+    <li>
+      <strong>Parallel divide-and-conquer granularity:</strong>
+      Only spawn concurrent tasks for sufficiently large subproblems to avoid thread-creation and synchronization overhead.
+    </li>
+  </ul>
+</section>
+
+<section id="common-pitfalls">
+  <h2>Common Pitfalls</h2>
+  <ul>
+    <li>
+      <strong>Off-by-one errors:</strong>
+      Incorrect bounds (for example, using \(\lfloor n/2\rfloor\) vs \(\lceil n/2\rceil\)) can omit or duplicate elements.
+    </li>
+    <li>
+      <strong>Stack overflow:</strong>
+      Deep or unbalanced recursion may exceed the call stack; guard against this with tail recursion or an explicit stack.
+    </li>
+    <li>
+      <strong>Excessive memory usage:</strong>
+      Copying subarrays at each recursion level can lead to \(O(n\log n)\) space instead of \(O(n)\).
+    </li>
+    <li>
+      <strong>Base-case overhead:</strong>
+      Forgetting to switch to a simpler method for small \(n\) may make the recursive version slower than an iterative algorithm.
+    </li>
+    <li>
+      <strong>Incorrect combine complexity:</strong>
+      Implementing merge or multiply steps suboptimally can raise \(d\) above \(\log_b a\), losing asymptotic improvements.
+    </li>
+    <li>
+      <strong>Neglecting non-power-of-two sizes:</strong>
+      Assuming \(n\) is a power of two can lead to incorrect behavior or uneven splits.
+    </li>
+    <li>
+      <strong>Recomputing overlapping subproblems:</strong>
+      Without memoization, overlapping work (for example, naive divide-and-conquer Fibonacci) can blow up exponentially.
+    </li>
+    <li>
+      <strong>Large constant factors:</strong>
+      High constants in recursion or combine steps may make an asymptotically better algorithm slower for practical \(n\).
+    </li>
+    <li>
+      <strong>Unbalanced splits:</strong>
+      Poor pivot choices or uneven division can degrade performance significantly.
+    </li>
+    <li>
+      <strong>Parallelization overhead:</strong>
+      Task creation, synchronization, and memory-bandwidth limits can negate expected speedups.
+    </li>
+  </ul>
+</section>
+<section id="algorithms-using-technique">
+  <h2>Algorithms Using This Technique</h2>
+  <ul>
+    <li>
+      <a href="?path=Algorithms/Divide-and-Conquer/Quicksort">Quicksort</a>: selects a pivot, 
+      puts it in its correct place, 
+      the elements less than the pivot to the left and 
+      the elements greater than pivot to the right, then recursively sorts each part; 
+      average-case runtime \(O(n \log n)\), worst-case \(O(n^2)\).
+    </li>
+    <li>
+      <a href="?path=Algorithms/Divide-and-Conquer/Merge Sort">Merge Sort</a>: divides the array in half, recursively sorts each half, and merges them in \(O(n)\) time, for an overall runtime of \(O(n \log n)\).
+    </li>
+    <li>
+      <a href="?path=Algorithms/Divide-and-Conquer/ClosestPair">Closest Pair of Points</a>: splits points by x-coordinate, recursively finds the closest pair in each half, and checks cross-boundary pairs in linear time, yielding \(O(n \log n)\).
+    </li>
+    <li>
+      <a href="?path=Algorithms/Divide-and-Conquer/Strassens">Strassen's Matrix Multiplication</a>: multiplies two \(n\times n\) matrices by computing seven products of size \(n/2\), achieving runtime \(O(n^{\log_2 7})\approx O(n^{2.81})\).
+    </li>
+    <li>
+      <a href="?path=Algorithms/Divide-and-Conquer/Exponentiation">Exponentiation</a>: 
+      computes \(x^n\) by recursively computing \(x^{\lfloor n/2\rfloor}\) and \(x^{\lceil n/2\rceil}\)
+      and multiplying them. Requires \(n-1=O(n)\) multiplications. 
+      This is a bad example of the use of divide-and-conquer since a simple for loop does the same number
+      of multiplications, uses less space, and is easier to implement.
+    </li>
+    <li>
+      <a href="?path=Algorithms/Divide-and-Conquer/Convex Hull">Convex Hull</a>: splits the point set, computes hulls in each subset, and merges the hulls in linear time, for \(O(n \log n)\) overall.
+    </li>
+    <li>
+      <strong>Karatsuba Integer Multiplication</strong>: splits integers into halves, 
+      uses three half-size multiplications instead of four, and takes linear time to combine subsolutions, 
+      yielding runtime \(O(n^{\log_2 3})\approx O(n^{1.59})\).
+    </li>
+    <li>
+      <strong>Fast Fourier Transform (FFT)</strong>: Computes the Discrete Fourier Transform (DFT)
+      by recursively separating even and odd coefficients, achieving \(O(n \log n)\).
+    </li>
+  </ul>
+</section>
+
+<section id="real-world-applications">
+  <h2>Real-World Applications</h2>
+  <ul>
+    <li>
+      <strong>Standard Library Sorting:</strong>
+      Languages like Java (<code>Arrays.sort()</code>) and C++ (<code>std::sort</code>) employ Quicksort, Merge Sort, or hybrids to sort large arrays in \(O(n \log n)\).
+    </li>
+    <li>
+      <strong>Signal Processing:</strong>
+      The Fast Fourier Transform (FFT) computes the \(n\)-point discrete Fourier transform in \(O(n \log n)\) by recursively splitting data into even and odd components.
+    </li>
+    <li>
+      <strong>Computational Geometry:</strong>
+      Algorithms for Closest Pair of Points and Convex Hull split point sets and merge partial hulls or nearest pairs in \(O(n \log n)\).
+    </li>
+    <li>
+      <strong>External Sorting:</strong>
+      External Merge Sort handles data larger than memory by creating sorted runs on disk and merging them in \(O(n \log n)\) I/O passes.
+    </li>
+    <li>
+      <strong>Cryptographic Multiplication:</strong>
+      Karatsuba's and Toom-Cook algorithms multiply large integers or polynomials in subquadratic time 
+      (e.g. \(O(n^{\log_{2}3})\approx O(n^{1.59})\)), critical for RSA and ECC (Elliptic Curve Cryptography).
+    </li>
+    <li>
+      <strong>Image Compression & Representation:</strong>
+      Quadtree decomposition encodes images by recursively subdividing regions until pixel values are uniform, enabling efficient storage and level-of-detail rendering.
+    </li>
+    <li>
+      <strong>Big Data & Parallel Processing:</strong>
+      MapReduce frameworks and parallel Quicksort distribute partitions across compute nodes, sorting massive datasets concurrently.
+    </li>
+    <li>
+      <strong>Financial Simulations:</strong>
+      Monte Carlo methods for option pricing split simulation trials into independent batches and combine results to estimate risk and fair values more efficiently.
+    </li>
+    <li>
+      <strong>Spatial & Interval Data Structures:</strong>
+      Building segment trees or kd-trees in \(O(n \log n)\) uses divide-and-conquer to support fast range and nearest-neighbor queries.
+    </li>
+  </ul>
+</section>
+
+<section id="summary">
+  <h2>Summary &amp; Key Takeaways</h2>
+  <p>
+    Divide-and-conquer works by <em>dividing</em> a problem of size \(n\) into \(a\) independent subproblems of size \(n/b\), <em>conquering</em> each by recursion, and <em>combining</em> their results in \(O(f(n))\) time.  Writing \(f(n)=O(n^d)\) for some constant \(d\ge0\) gives the recurrence
+    \[
+      T(n) \;=\; a\,T\!\bigl(\tfrac{n}{b}\bigr)\;+\;O(n^d).
+    \]
+    The Master Theorem then compares \(d\) to \(\log_b a\):
+  </p>
+  <ul>
+    <li>
+      <strong>If \(d < \log_b a\):</strong>  
+      the leaf-level work \(n^{\log_b a}\) dominates, so  
+      \(T(n)=O\bigl(n^{\log_b a}\bigr)\).
+    </li>
+    <li>
+      <strong>If \(d = \log_b a\):</strong>  
+      divide and combine costs balance, so  
+      \(T(n)=O\bigl(n^d\log n\bigr)\).
+    </li>
+    <li>
+      <strong>If \(d > \log_b a\):</strong>  
+      the combine cost dominates, so  
+      \(T(n)=O\bigl(n^d\bigr)\).
+    </li>
+  </ul>
+  <p>
+    <strong>Key steps:</strong>
+  </p>
+  <ul>
+    <li><strong>Divide:</strong> split into roughly equal subproblems.</li>
+    <li><strong>Conquer:</strong> recurse until a simple base case.</li>
+    <li><strong>Combine:</strong> merge solutions in \(O(n^d)\) time.</li>
+  </ul>
+  <p>
+    <strong>Why it matters:</strong> When \(d\le\log_b a\), divide-and-conquer yields asymptotic speedups 
+    (e.g. \(O(n\log n)\) or better versus \(O(n^2)\)), plus good cache locality and easy parallelism. 
+  </p><p> 
+    <strong>Watch out for:</strong> Recursion overhead, extra memory use, 
+    and unbalanced splits that push you into the third case.
+  </p>
+</section>
+
+
+
+<section id="reading-questions">
+  <h2>Reading Comprehension Questions</h2>
+  <ol>
+    <li>
+      <strong>Divide-Conquer Pattern</strong><br>
+      Describe the three main steps of a divide-and-conquer algorithm.
+    </li>
+    <li>
+      <strong>Recurrence Derivation</strong><br>
+      How does dividing into \(a\) subproblems of size \(n/b\) with combine cost \(O(n^d)\) lead to the recurrence  
+      \[
+        T(n) = a\,T\bigl(n/b\bigr) + O(n^d)\;?
+      \]
+    </li>
+    <li>
+      <strong>Master Theorem Cases</strong><br>
+      What are the three cases of the Master Theorem based on comparing \(d\) and \(\log_b a\), and what is the bound on \(T(n)\) in each case?
+    </li>
+    <li>
+      <strong>Master Theorem Examples</strong><br>
+      For Merge Sort, Strassen's Matrix Multiplication, and Karatsuba Multiplication, identify \(a\), \(b\), and \(d\), and state which Master Theorem case applies.
+    </li>
+    <li>
+      <strong>Exponentiation Example</strong><br>
+      In the exponentiation example, why does splitting \(n\) into \(\lfloor n/2\rfloor\) and \(\lceil n/2\rceil\) still compute \(x^n\) correctly? Why is it not a good application of divide-and-conquer?
+    </li>
+    <li>
+      <strong>Merge Sort Space</strong><br>
+      Why does Merge Sort require \(O(n)\) extra space, and what role does the auxiliary array play?
+    </li>
+    <li>
+      <strong>Merge Complexity</strong><br>
+      Explain why merging two sorted lists of total length \(n\) takes \(O(n)\) time, and how this influences Merge Sort's overall runtime.
+    </li>
+    <li>
+      <strong>Limitations</strong><br>
+      Name one limitation of divide-and-conquer algorithms discussed on the page and explain its impact.
+    </li>
+    <li>
+      <strong>Implementation Tip</strong><br>
+      Choose one implementation tip from the page and describe how it improves performance or correctness.
+    </li>
+    <li>
+      <strong>Common Pitfall</strong><br>
+      Name one common pitfall and explain how it can degrade performance or cause errors.
+    </li>
+    <li>
+      <strong>Parallelism Benefit</strong><br>
+      Describe one scenario where divide-and-conquer's natural parallelism yields real-world speedups.
+    </li>
+    <li>
+      <strong>When to Use</strong><br>
+      Summarize one key condition under which divide-and-conquer is especially effective.
+    </li>
+  </ol>
+  <button id="toggleAnswers" aria-expanded="false">Show Answers</button>
+  <div id="answers" hidden>
     <ol>
       <li>
-        <strong>What are the three main steps of a Divide-and-Conquer algorithm, and why is each step important?</strong>
+        <strong>Answer:</strong><br>
+        <em>Divide:</em> split the input of size \(n\) into \(a\) subproblems of size \(n/b\).<br>
+        <em>Conquer:</em> solve each subproblem recursively until a base case is reached.<br>
+        <em>Combine:</em> merge or assemble subresults in \(O(n^d)\) time to form the final solution.
       </li>
       <li>
-        <strong>Explain how the recurrence \(T(n) = 2\,T(n/2) + O(n)\) leads to \(O(n \log n)\) time complexity using the Master Theorem.</strong>
+        <strong>Answer:</strong><br>
+        You perform \(a\) recursive calls on inputs of size \(n/b\), each costing \(T(n/b)\), and then do \(O(n^d)\) work to combine their results, yielding  
+        \[
+          T(n)=a\,T(n/b)+O(n^d).
+        \]
       </li>
       <li>
-        <strong>In the exponentiation example, why does splitting \(n\) into \(\lfloor n/2\rfloor\) and \(\lceil n/2\rceil\) still compute \(x^n\) correctly?</strong> Describe how the two recursive calls combine to form \(x^n\).
+        <strong>Answer:</strong><br>
+        Compare \(d\) to \(\log_b a\):<ul><li>
+        If \(d<\log_b a\), then \(T(n)=O(n^{\log_b a})\).
+        </li><li>If \(d=\log_b a\), then \(T(n)=O(n^d\log n)\).
+        </li><li>If \(d>\log_b a\), then \(T(n)=O(n^d)\).
+        </li></ul>
       </li>
       <li>
-        <strong>Why does Merge Sort require \(O(n)\) extra space, and what is the role of that auxiliary array?</strong>
+        <strong>Answer:</strong><br>
+        <ul><li>Merge Sort: \(a=2\), \(b=2\), \(d=1\); since \(d=\log_2 2\), case 2 applies, yielding \(O(n\log n)\).
+        </li><li>Strassen's: \(a=7\), \(b=2\), \(d=2\); since \(d<\log_2 7\), case 1 applies yielding \(O(n^{\log_2 7})\).
+        </li><li>Karatsuba: \(a=3\), \(b=2\), \(d=1\); since \(d<\log_2 3\), case 1 applies yielding \(O(n^{\log_2 3})\).
+        </li></ul>
       </li>
       <li>
-        <strong>Under what conditions does Quick Sort degrade to \(O(n^2)\), and how can you mitigate that risk?</strong>
+        <strong>Answer:</strong><br>
+        Splitting into \(\lfloor n/2\rfloor\) and \(\lceil n/2\rceil\) works because  
+        \[
+          \lfloor n/2\rfloor + \lceil n/2\rceil = n,
+        \]
+        so the recursive calls compute \(x^{\lfloor n/2\rfloor}\) and \(x^{\lceil n/2\rceil}\), and multiplying them gives  
+        \(\,x^{\lfloor n/2\rfloor}\times x^{\lceil n/2\rceil}=x^n\).  
+        It is not a good divide-and-conquer example because it uses \(n-1\) multiplications&mdash;the same as a simple loop&mdash;and adds recursion overhead without reducing the asymptotic work.
       </li>
       <li>
-        <strong>Describe one real-world scenario where Divide-and-Conquer’s parallelism is particularly beneficial.</strong>
+        <strong>Answer:</strong><br>
+        Merge Sort needs an auxiliary array of size \(n\) to hold merged output when combining two sorted halves. This buffer lets you merge in \(O(n)\) time before copying back.
       </li>
       <li>
-        <strong>For Karatsuba’s integer multiplication, what are the values of \(a\) and \(b\) in the recurrence \(T(n) = a\,T(n/b) + O(n)\), and what is the resulting exponent in the time complexity \(O(n^{\log_b a})\)?</strong>
+        <strong>Answer:</strong><br>
+        Merging two sorted lists of total length \(n\) takes \(O(n)\) because each element is examined and placed exactly once. Since Merge Sort does this at each of \(\log n\) levels, the total is \(O(n\log n)\).
       </li>
       <li>
-        <strong>Explain why merging two sorted lists of total length \(n\) takes \(O(n)\) time. How does this affect the overall Merge Sort complexity?</strong>
+        <strong>Answer:</strong><br>
+        One limitation is extra memory usage: some algorithms (e.g. Merge Sort) require \(O(n)\) auxiliary space, which can be prohibitive in memory-constrained environments.
+      </li>
+      <li>
+        <strong>Answer:</strong><br>
+        Preallocate and reuse temporary buffers across recursive calls to avoid repeated allocations, reducing both time and memory overhead.
+      </li>
+      <li>
+        <strong>Answer:</strong><br>
+        Off-by-one errors in computing split bounds can omit or duplicate elements, leading to incorrect results or infinite recursion.
+      </li>
+      <li>
+        <strong>Answer:</strong><br>
+        In parallel Merge Sort, the two halves can be sorted simultaneously on separate cores, cutting wall-clock time roughly in half on a two-core machine for large inputs (and even more given more cores).
+      </li>
+      <li>
+        <strong>Answer:</strong><br>
+        Divide-and-conquer is effective when subproblems are independent and the combine cost \(O(n^d)\) does not exceed the leaf work \(O(n^{\log_b a})\), ensuring asymptotic improvement and clear parallelism.
       </li>
     </ol>
-    <button id="toggleAnswers" class="show-answer" aria-expanded="false">
-      Show Answers
-    </button>
-    <div id="answers" class="answer" hidden>
-      <ol>
-        <li>
-          <strong>Answer:</strong><br>
-          The three main steps are:
-          <ul>
-            <li><strong>Divide:</strong> Split the problem into smaller subproblems. This must be done so that each subproblem is of roughly equal size to achieve the best recurrence.</li>
-            <li><strong>Conquer:</strong> Recursively solve each subproblem until reaching a base case (usually when the input size is small enough to solve directly in \(O(1)\) time).</li>
-            <li><strong>Combine:</strong> Merge or combine the subsolutions to form the final solution. The cost of combining often determines the additive term \(O(f(n))\) in the recurrence.</li>
-          </ul>
-        </li>
-        <li>
-          <strong>Answer:</strong><br>
-          For \(T(n) = 2\,T(n/2) + O(n)\), compare \(n\) to \(n^{\log_{2} 2} = n^{1}\). Since the combine cost \(O(n)\) matches \(n^{\log_{2}2}\), we are in the second case of the Master Theorem, which yields \(T(n) = O(n \log n)\).
-        </li>
-        <li>
-          <strong>Answer:</strong><br>
-          Splitting \(n\) into \(\lfloor n/2\rfloor\) and \(\lceil n/2\rceil\) ensures that \(\lfloor n/2\rfloor + \lceil n/2\rceil = n\). The two recursive calls compute \(x^{\lfloor n/2\rfloor}\) and \(x^{\lceil n/2\rceil}\). Multiplying them yields \(x^{\lfloor n/2\rfloor} \times x^{\lceil n/2\rceil} = x^{\lfloor n/2\rfloor + \lceil n/2\rceil} = x^{n}\).
-        </li>
-        <li>
-          <strong>Answer:</strong><br>
-          Merge Sort uses an auxiliary array of size \(n\) to hold the merged result when combining two sorted halves. Merging requires comparing elements from each half and placing them into a separate buffer in sorted order; once merged, you copy back into the original array. This auxiliary array ensures the merge step runs in \(O(n)\) time.
-        </li>
-        <li>
-          <strong>Answer:</strong><br>
-          Quick Sort degrades to \(O(n^{2})\) when the pivot partitions the array very unevenly—e.g., picking the first element in an already sorted array splits into subarrays of sizes \(n-1\) and \(0\). Mitigation strategies include:
-          <ul>
-            <li>Choosing a random pivot (Randomized Quick Sort).</li>
-            <li>Using “median-of-three” pivot selection (median of first, middle, last elements).</li>
-            <li>Switching to Insertion Sort for small subarrays (below a threshold \(k\)).</li>
-          </ul>
-        </li>
-        <li>
-          <strong>Answer:</strong><br>
-          In parallel sorting (e.g., multi-threaded Merge Sort), the two recursive sorts can run on separate cores simultaneously. On a machine with \(p\) cores, each level of recursion can spawn up to \(p\) threads (until granularity threshold). This significantly reduces wall-clock time for large \(n\).
-        </li>
-        <li>
-          <strong>Answer:</strong><br>
-          Karatsuba multiplies two \(n\)-digit numbers by splitting each into halves of size \(\tfrac{n}{2}\). It performs 3 recursive multiplications on halves, so \(a=3\) and \(b=2\). The time complexity is \(O\bigl(n^{\log_{2}3}\bigr)\approx O(n^{1.585})\).
-        </li>
-        <li>
-          <strong>Answer:</strong><br>
-          Merging takes \(O(n)\) because each of the \(n\) elements from both lists is examined exactly once to decide which subarray to pull from, and placed into the result. Since each level of Merge Sort merges subarrays totaling \(n\) elements, and there are \(\log n\) levels, the total cost is \(O(n \log n)\).
-        </li>
+  </div>
+</section>
+
+<section id="in-class-activities">
+  <h2>In-Class Activities</h2>
+  <ol>
+    <li>
+      <strong>Recurrence Identification and Solution:</strong>  
+      Look at the algorithms from the page (e.g. Strassen's, Merge Sort, etc.). 
+      For each, state recurrence \(T(n)=a\,T(n/b)+O(n^d)\), identify the constants \(a\), \(b\) and \(d\),
+      and use the Master Theorem to determine computational complexity.
+    </li>
+    <li>
+      <strong>Master Theorem Practice:</strong>  
+      For each of the following recurrences, apply the Master Theorem and give the tight bound on \(T(n)\):  
+      <ol type='a'>
+        <li>\(T(n)=2\,T(n/2)+O(1)\)</li>
+        <li>\(T(n)=3\,T(n/3)+O(n)\)</li>
+        <li>\(T(n)=4\,T(n/2)+O(n^2)\)</li>
       </ol>
-    </div>
+    </li>
+    <li>
+      <strong>Merge Sort Trace:</strong>  
+      Hand-execute Merge Sort on the array \([7,2,5,3,8,1,4,6]\). Draw the recursive calls using a tree-like
+      structure.
+      Show each divide step, and for one merge step, count how many comparisons and moves occur.
+    </li>
+    <li>
+      <strong>Recursive vs Iterative Exponentiation:</strong>  
+      For \(n=13\), simulate both the divide-and-conquer exponentiation and the simple loop. 
+      Count total multiplications and discuss the overhead of recursion.
+    </li>
+    <li>
+      <strong>Recursion Tree Drawing:</strong>  
+      Draw the recursion tree for \(T(n)=2\,T(n/2)+O(n)\). Label work at each level and sum to confirm \(O(n\log n)\).
+    </li>
+    <li>
+      <strong>The Good and Bads of Mergesort:</strong>  
+      Think about the various downsides of Merge Sort and ways you can deal with them.
+      Then discuss the upsides of Merge Sort. Compare it to other sorting algorithms.
+    </li>
+    <li><strong>Better Exponentiation:</strong>
+    It turns out that the bad divide-and-conquer exponentiation algorithm can be redeemed without that
+    much work. Discuss how the algorithm can be fixed to actually be worth implementing.
+    What design technique does your algorithm use?
+    </li>
+    <li>
+      <strong>Counterfeit Coin Search:</strong><br>
+      You have 27 coins, one heavier than the rest, and a two-pan balance scale
+      (that allows you to tell which of two piles of coins is heavier). 
+      <ol type='a'>
+        <li>Devise a divide-and-conquer strategy to solve this problem. 
+        Your algorithm should be as efficient as possible,
+      where efficiency is measured by the number of wieghings.</li>
+        <li>Derive a recurrence relation for your algorithm and solve it.</li>
+        <li>Generalize your solution to \(n\) coins (assume \(n\) is a power of 3).</li>
+      </ol>
+    </li>
+    <li>
+      <strong>Count Inversions</strong><br>
+      An inversion in an array \(A\) is a pair \((i,j)\) such that \(i \lt j\) and \(A[i] \gt A[j]\). 
+      In other words, the elements are "out of order" compared to being in a sorted array.
+      Given an array of \(n\) numbers, our goal is to count the number of inversions.
+      <ol type='a'>
+        <li>Write pseudocode for a simple iterative algorithm to solve the problem.</li>
+        <li>Determine the computational complexity of your algorithm</li>
+        <li>Write pseudocode for a divide-and-conquer algorithm that splits the array in half, 
+        recursively counts inversions in each half, and counts "cross-inversions" 
+        during a merge in \(O(n)\) time.</li>
+        <li>Derive and solve a recurrence relation for your algorithm.</li>
+        <li>Compare the two algorithms. Which approach is better and why?</li>
+      </ol>
+    </li>
+  </ol>
+</section>
+<section id="problems">
+  <h2>Problems</h2>
+
+  <section id="basic-problems">
+    <h3>Basic Problems</h3>
+    <ol>
+      <li>
+        <strong>Master Theorem Practice:</strong><br>
+        Use the Master Theorem to find tight bounds for:
+        <ol type='a'>
+          <li>\(T(n) = 3\,T(n/3) + O(n)\)</li>
+          <li>\(T(n) = 4\,T(n/2) + O(n^2)\)</li>
+          <li>\(T(n) = 7\,T(n/3) + O(n^2)\)</li>
+          <li>\(T(n) = 4\,T(n/5) + O(n^3)\)</li>
+          <li>\(T(n) = 7\,T(n/8) + O(n^2)\)</li>
+        </ol>
+      </li>
+     
+      <li>
+        <strong>Min and Max:</strong><br>
+        Design a divide-and-conquer algorithm to find both the minimum and maximum of an 
+        array of \(n\) numbers using fewer than \(2n-2\) comparisons. Derive and solve its recurrence.
+        Is your algorithm better than a brute-force or greedy approach? Explain.
+      </li>
+      <li>
+        <strong>Counterfeit Coin:</strong><br>
+        You have \(3^n\) coins with one heavier counterfeit and a balance scale. 
+        Devise a Divide-and-Conquer strategy splitting into three piles to solve this problem.
+        Provide clear code/pseudocode, derive and solve a recurrence relation for the worst-case complexity
+        o your algorithm. 
+      </li>
+      <li>
+        <strong>Inversion Counting:</strong><br> 
+        An inversion in an array \(A\) is a pair \((i,j)\) such that \(i \lt j\) and \(A[i] \gt A[j]\). 
+        In other words, the elements are "out of order" compared to being in a sorted array.
+        Describe a divide-and-conquer algorithm to count inversions in an array with complexity \(O(n\log n)\) time. 
+        Provide pseudocode, derive and solve the recurrence for its complexity, 
+        and compare it to the naive \(O(n^2)\) method.
+      </li>
+      <li>
+  <strong>Majority Element Variants</strong><br>
+  The <em>majority element</em> of an array \(A\) is an element that appears 
+  more than \(\lfloor n/2\rfloor\) times.  
+  This problem explores various algorithms to find the majority element of an array.
+  For the purposes of this problem, we will assume that the array <i>has</i> a majority element,
+  and we just need to determine what its value is.
+  <ol type="a">
+    <li>
+      <strong>Divide-and-Conquer</strong><br>
+      Consider this pseudocode:
+      <pre><code>majorityDC(A, lo, hi):
+    if lo == hi:
+      return A[lo]
+    mid = floor((lo + hi)/2)
+    leftMaj  = majorityDC(A, lo, mid)
+    rightMaj = majorityDC(A, mid+1, hi)
+    if leftMaj == rightMaj:
+      return leftMaj
+    leftCount  = count(A, lo, hi, leftMaj)    // O(hi-lo+1)
+    rightCount = count(A, lo, hi, rightMaj)   // O(hi-lo+1)
+    return (leftCount > rightCount) ? leftMaj : rightMaj
+</code></pre>
+      <ol type='i'>
+        <li>Give and determine the computational complexity of an implementation of 
+        <code>count(A, lo, hi, value)</code> that counts the number of occurrences of \(value\)
+        in the array \(A\) between indices \(lo\) and \(hi\) (inclusive of both).</li>
+        <li>Derive the recurrence for the running time of <code>majorityDC(A, 0, n-1)</code> and solve it.</li>
+      </ol>
+    </li>
+    <li>
+      <strong>Hash-Map Counting</strong><br>
+      Describe an algorithm that scans the array once, uses a hash map to track frequencies, and then finds any key whose count exceeds \(\frac{hi - lo + 1}{2}\).  Give its time and space complexity.
+    </li>
+    <li>
+      <strong>Boyer-Moore Majority Vote</strong><br>
+      Look up the Boyer-Moore voting algorithm. Write it out in pseudocode, 
+      prove that it finds the majority element in one pass, and state its time and space complexity.
+    </li>
+    <li>
+      <strong>Comparison</strong><br>
+      Compare the three methods in terms of:
+      <ul>
+        <li>Time complexity</li>
+        <li>Space usage</li>
+        <li>Practical considerations (e.g. ease of implementation, constant factors, stability under adversarial inputs)</li>
+      </ul>
+    </li>
+  </ol>
+</li>
+
+    </ol>
   </section>
+
+  <section id="advanced-problems">
+    <h3>Advanced Problems</h3>
+    <ol>
+      <li>
+        <strong>Convex Hull Merge:</strong><br>
+        In the divide-and-conquer convex hull algorithm, two hulls of total size \(n\) are merged in \(O(n)\) time.  
+        Explain how the merge works and why it is linear.
+      </li>
+      <li>
+        <strong>Strassen’s Recurrence:</strong><br>
+        For Strassen’s matrix multiplication, write the recurrence  
+        \(T(n)=7\,T(n/2)+O(n^2)\), identify \(\log_2 7\), and derive the runtime \(O\bigl(n^{\log_2 7}\bigr)\).
+      </li>
+      <li>
+        <strong>FFT Recurrence:</strong><br>
+        Given the Cooley–Tuk FFT pseudocode that splits size \(n\) into two size-\(n/2\) FFTs and does \(O(n)\) work to combine, derive  
+        \(T(n)=2\,T(n/2)+O(n)\) and solve to \(O(n\log n)\).
+      </li>
+      <li>
+        <strong>Kd-Tree Construction:</strong><br>
+        Describe how to build a kd-tree on \(n\) points in \(O(n\log n)\) by recursively splitting on alternating axes. Write the recurrence and solve it.
+      </li>
+      <li>
+        <strong>External Merge Sort I/O:</strong><br>
+        In an external-memory model with block size \(B\), external merge sort does \(O(n/B)\) work per merge. Write the I/O recurrence for merging \(k\) runs and discuss the optimal choice of \(k\).
+      </li>
+      <li>
+        <strong>Hybrid Strassen:</strong><br>
+        Propose a hybrid algorithm that uses Strassen’s method down to a threshold \(n_0\) and then switches to the classical \(O(n^3)\) multiply. Discuss how to choose \(n_0\) to minimize runtime.
+      </li>
+      <li>
+        <strong>Median-of-Medians Selection:</strong><br>
+        Find a reference that discusses the Median-of-Medians Selection algorithm.
+        Give pseudocode for the algorithm that gives enough detail that you are able to do a complete
+        complexity analysis of the algorithm.
+        Derive the recurrence \(T(n)=T(n/5)+T(7n/10)+O(n)\) for its worst-case compliexity 
+        and show that \(T(n)=O(n)\).
+      </li>
+    </ol>
+  </section>
+</section>
+
+
 </body>
 </html>
