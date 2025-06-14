@@ -866,50 +866,170 @@ Merge(L, R):  // Merge two already-sorted lists L and R
     </li>
   </ol>
 </li>
-
     </ol>
   </section>
+  
+<section id="advanced-problems">
+  <h2>Advanced Problems</h2>
+  <ol>
+    <li>
+      <strong>Maximum Subarray Sum</strong><br>
+      Given an array <code>A[0..n-1]</code> of possibly positive and negative numbers, the goal is to find the contiguous subarray <code>A[i..j]</code> whose sum is maximal.
+      <ol type="a">
+        <li>Devise a brute-force algorithm to solve the problem.</li>
+        <li>Determine the worst-case time complexity of your brute-force method.</li>
+        <li>Devise a divide-and-conquer algorithm: clearly describe the divide, conquer, and combine steps.</li>
+        <li>Give and solve a recurrence for its worst-case running time.</li>
+        <li>(Optional) Devise a linear-time algorithm 
+        (Hint: If you get stuck an your professor allows it, research Kadane's method).</li>
+        <li>Determine the worst-case complexity of your algorithm from part (e).</li>
+        <li>Compare and contrast the algorithms from parts (a), (c), and (e).</li>
+      </ol>
+    </li>
+    <li>
+      <strong>Skyline Problem</strong><br>  
+      You are given a list of buildings, each described by a 
+      triple \((L_i,H_i,R_i)\) meaning a rectangle spanning from x-coordinate \(L_i\) 
+      to \(R_i\) with height \(H_i\).  The desired output is the skyline: 
+      a sequence of key points \(\{(x_0,h_0),(x_1,h_1),\dots\}\) where the visible height changes,
+      given in increasing order of the \(x\)-coordinate.
+      <blockquote>
+      <strong>Example:</strong><br>
+      <strong>Input:</strong> five buildings \((1,2,3)\), \((2,4,5)\), \((4,3,6)\), \((7,5,9)\), \((8,2,10)\).<br>
+      <strong>Output:</strong> key points \((1,2),(2,4),(5,3),(6,0),(7,5),(9,2),(10,0)\).  
+    
+      <p>Here is a sketch of the input (colored boxes) and output (black lines). 
+      Notice that the output points are not always the high points, but instead the new height of the next segment,
+      which might be larger or smaller than the curent height.</p>
+      <svg width="400" height="280" viewBox="-1 0.5 12 6" preserveAspectRatio="none">
+        <!-- buildings -->
+        <rect x="2" y="2" width="3" height="4" fill="lightgreen"/>
+        <rect x="4" y="3" width="2" height="3" fill="lightblue"/>
+        <rect x="7" y="1" width="2" height="5" fill="lightgoldenrodyellow"/>
+        <rect x="8" y="4" width="2" height="2" fill="lightpink"/>
+        <rect x="1" y="4" width="2" height="2" fill="lightcoral"/>
+    
+        <!-- corner labels -->
+        <text x="0.5" y="3.8" font-size="0.3">(1,2)</text>
+        <text x="2.5" y="3.8" font-size="0.3">(3,2)</text>
+        <text x="1.5" y="1.8" font-size="0.3">(2,4)</text>
+        <text x="4.5" y="1.8" font-size="0.3">(5,4)</text>
+        <text x="3.5" y="2.8" font-size="0.3">(4,3)</text>
+        <text x="5.5" y="2.8" font-size="0.3">(6,3)</text>
+        <text x="6.5" y="0.8" font-size="0.3">(7,5)</text>
+        <text x="8.5" y="0.8" font-size="0.3">(9,5)</text>
+        <text x="7.5" y="3.8" font-size="0.3">(8,2)</text>
+        <text x="9.5" y="3.8" font-size="0.3">(10,2)</text>
+    
+        <!-- skyline contour -->
+        <polyline
+          points="
+            1,4   2,4
+            2,2   5,2
+            5,3   6,3
+            6,6   7,6
+            7,1   9,1
+            9,4  10,4
+            10,6"
+          fill="none" stroke="black" stroke-width="0.05"/>
+        <g id="skyline-keypoints" fill="black">
+          <circle cx="1"  cy="4" r="0.1"/>
+          <circle cx="2"  cy="2" r="0.1"/>
+          <circle cx="5"  cy="3" r="0.1"/>
+          <circle cx="6"  cy="6" r="0.1"/>
+          <circle cx="7"  cy="1" r="0.1"/>
+          <circle cx="9"  cy="4" r="0.1"/>
+          <circle cx="10" cy="6" r="0.1"/>
+        </g>
+            <!-- x-axis -->
+            <line x1="0" y1="6" x2="10" y2="6" stroke="black" stroke-width="0.02"/>
+            <!-- ticks and labels -->
+            <g id="y-axis" stroke="black" stroke-width="0.02" fill="black" font-size="0.3" text-anchor="end">
+          <!-- axis line -->
+          <line x1="0" y1="6" x2="0" y2="1"/>
+          <!-- ticks and labels -->
+          <line x1="0" y1="5" x2="-0.2" y2="5"/><text x="-0.3" y="5" alignment-baseline="middle">1</text>
+          <line x1="0" y1="4" x2="-0.2" y2="4"/><text x="-0.3" y="4" alignment-baseline="middle">2</text>
+          <line x1="0" y1="3" x2="-0.2" y2="3"/><text x="-0.3" y="3" alignment-baseline="middle">3</text>
+          <line x1="0" y1="2" x2="-0.2" y2="2"/><text x="-0.3" y="2" alignment-baseline="middle">4</text>
+          <line x1="0" y1="1" x2="-0.2" y2="1"/><text x="-0.3" y="1" alignment-baseline="middle">5</text>
+        </g>
+        <g stroke="black" stroke-width="0.02">
+          <line x1="1" y1="6" x2="1" y2="5.8"/><text x="1" y="6.3" font-size="0.3" text-anchor="middle">1</text>
+          <line x1="2" y1="6" x2="2" y2="5.8"/><text x="2" y="6.3" font-size="0.3" text-anchor="middle">2</text>
+          <line x1="3" y1="6" x2="3" y2="5.8"/><text x="3" y="6.3" font-size="0.3" text-anchor="middle">3</text>
+          <line x1="4" y1="6" x2="4" y2="5.8"/><text x="4" y="6.3" font-size="0.3" text-anchor="middle">4</text>
+          <line x1="5" y1="6" x2="5" y2="5.8"/><text x="5" y="6.3" font-size="0.3" text-anchor="middle">5</text>
+          <line x1="6" y1="6" x2="6" y2="5.8"/><text x="6" y="6.3" font-size="0.3" text-anchor="middle">6</text>
+          <line x1="7" y1="6" x2="7" y2="5.8"/><text x="7" y="6.3" font-size="0.3" text-anchor="middle">7</text>
+          <line x1="8" y1="6" x2="8" y2="5.8"/><text x="8" y="6.3" font-size="0.3" text-anchor="middle">8</text>
+          <line x1="9" y1="6" x2="9" y2="5.8"/><text x="9" y="6.3" font-size="0.3" text-anchor="middle">9</text>
+          <line x1="10" y1="6" x2="10" y2="5.8"/><text x="10" y="6.3" font-size="0.3" text-anchor="middle">10</text>
+        </g>
+      </svg>
+      </blockquote> 
+      <ol type="a">
+        <li>Describe a straightforward algorithm and give its worst-case complexity.</li>
+        <li>Devise a divide-and-conquer algorithm: specify how you split the building set, 
+        how you merge two skylines, and why merge takes \(O(n)\) time.</li>
+        <li>Derive and solve the recurrence for your divide-and-conquer algorithm.</li>
+        <li>(Optional) Describe the sweep-line + max-heap approach and explain why it has
+        a worst-case complexity of \(O(n \log n)\).</li>
+        <li>Compare the approaches in terms of complexity and implementation difficulty.</li>
+      </ol>
+    </li>
+  
+    <li>
+      <strong>Multi-Way Merge</strong><br>
+      You have \(k\) sorted lists containing a total of \(n\) elements; merge them into one sorted list.
+      <ol type="a">
+        <li>Describe the naive strategy and derive its worst-case complexity.</li>
+        <li>Devise a divide-and-conquer algorithm: explain how you split the \(k\) lists, 
+        how you merge results, and why each merge is \(O(n)\).</li>
+        <li>Write and solve the recurrence for the worst-case complexity of your divide-and-conquer 
+        algorithm in terms of \(n\) and \(k\).</li>
+        <li>Describe the heap-based approach using a min-heap of size \(k\) and 
+        show that its worst-case complexity is \(O(n \log k)\) time.</li>
+        <li>Compare the three methods in terms of implementation and complexity.</li>
+      </ol>
+    </li>
+    <li>
+  <strong>Counting Line-Segment Intersections</strong><br>
+  You are given an integer \(n\) and a list of \(n\) line segments in the plane.  
+  Each segment is specified by its two endpoints  
+  \((x_{i1},y_{i1})\) and\((x_{i2},y_{i2})\),
+  where all coordinates are real numbers (or integers), and no segment has zero length.  
+  You may assume no three segments meet at a single point.
+  The goal is to count the number of unordered pairs \(\{i,j\}\) with \(1\le i\lt j\le n\) whose corresponding segments intersect at a point (including interior or endpoint intersections).
 
-  <section id="advanced-problems">
-    <h3>Advanced Problems</h3>
-    <ol>
-      <li>
-        <strong>Convex Hull Merge:</strong><br>
-        In the divide-and-conquer convex hull algorithm, two hulls of total size \(n\) are merged in \(O(n)\) time.  
-        Explain how the merge works and why it is linear.
-      </li>
-      <li>
-        <strong>Strassen’s Recurrence:</strong><br>
-        For Strassen’s matrix multiplication, write the recurrence  
-        \(T(n)=7\,T(n/2)+O(n^2)\), identify \(\log_2 7\), and derive the runtime \(O\bigl(n^{\log_2 7}\bigr)\).
-      </li>
-      <li>
-        <strong>FFT Recurrence:</strong><br>
-        Given the Cooley–Tuk FFT pseudocode that splits size \(n\) into two size-\(n/2\) FFTs and does \(O(n)\) work to combine, derive  
-        \(T(n)=2\,T(n/2)+O(n)\) and solve to \(O(n\log n)\).
-      </li>
-      <li>
-        <strong>Kd-Tree Construction:</strong><br>
-        Describe how to build a kd-tree on \(n\) points in \(O(n\log n)\) by recursively splitting on alternating axes. Write the recurrence and solve it.
-      </li>
-      <li>
-        <strong>External Merge Sort I/O:</strong><br>
-        In an external-memory model with block size \(B\), external merge sort does \(O(n/B)\) work per merge. Write the I/O recurrence for merging \(k\) runs and discuss the optimal choice of \(k\).
-      </li>
-      <li>
-        <strong>Hybrid Strassen:</strong><br>
-        Propose a hybrid algorithm that uses Strassen’s method down to a threshold \(n_0\) and then switches to the classical \(O(n^3)\) multiply. Discuss how to choose \(n_0\) to minimize runtime.
-      </li>
+  <ol type="a">
+    <li>
+      Describe a brute-force/exhaustive search algorithm and determine its worst-case time complexity.
+    </li>
+    <li>(Difficult)
+      Devise a divide-and-conquer strategy to solve the problem. 
+      <ol type='i'>
+          <li>Explain how you split by a vertical line, 
+          how you count within each half recursively, and how you count "cross-line" intersections.</li>
+        <li>Explain why counting cross intersections costs \(O(n\log n)\).</li>
+        <li>Explain why the worst-case complexity of the algorithm is given by the recurrence  
+              \(\;T(n)=2\,T(n/2)+O(n\log n)\), and show that the closed form is  \(T(n)=O(n\log^2 n)\).</li>
+        <li>Suggest any improvements or alternative strategies that are more efficient.</li>
+      </ol>
+      </ol>
+    </li>
       <li>
         <strong>Median-of-Medians Selection:</strong><br>
         Find a reference that discusses the Median-of-Medians Selection algorithm.
+        In your own words, explain how the algorithm works.
         Give pseudocode for the algorithm that gives enough detail that you are able to do a complete
         complexity analysis of the algorithm.
         Derive the recurrence \(T(n)=T(n/5)+T(7n/10)+O(n)\) for its worst-case compliexity 
         and show that \(T(n)=O(n)\).
       </li>
-    </ol>
-  </section>
+  </ol>
+</section>
+  
 </section>
 
 
