@@ -165,6 +165,7 @@
   ],
   "Techniques": [
     "Brute Force.html",
+    "Decrease-and-Conquer.html",
     "Divide-and-Conquer.html",
     "Exhaustive Search.html"
   ]

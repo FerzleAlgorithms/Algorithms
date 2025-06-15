@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Technique: Decrease-and-Conquer</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js"></script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>  
+  <script src="/Algorithms/scripts/chapterScripts.js"></script>
+  <link rel="stylesheet" href="/Algorithms/css/style.css">
+  <link rel="stylesheet" href="/Algorithms/css/chapter.css">
+</head>
+<body>
+  <h1>Decrease-and-Conquer</h1>
+  
+  <!-- Motivation & Introduction -->
+  <section id="introduction">
+    <h2>Introduction</h2>
+    Decrease-and-Conquer is an algorithmic paradigm in which a problem of size \(n\) is solved by 
+    reducing it to a single smaller instance, solving that recursively, and then doing a bit of 
+    additional work to produce the final result.  There are three common flavors:
+    <ul>
+      <li><strong>Decrease-by-a-Constant:</strong> each step reduces \(n\) by a fixed amount 
+      (e.g. \(n-c\) for some constant \(c\)); examples include Insertion Sort, 
+      computing \(n!\) based on the recursive definition, and a topological sort algorithm.</li>
+      <li><strong>Decrease-by-a-Constant-Factor:</strong> each step reduces \(n\) by dividing by a 
+      constant \(b>1\); examples include binary exponentiation and binary search.</li>
+      <li><strong>Variable-Size-Decrease:</strong> the amount by which \(n\) shrinks depends on the 
+      input (often via a pivot or selection); Binary Search and Quickselect are classic examples.</li>
+    </ul>
+<p>We will provide examples of each flavor.</p>
+  </section>
+
+  <!-- Decrease by a Constant -->
+  <section id="decrease-by-constant">
+    <h2>Decrease-by-a-Constant</h2>
+
+    <p>
+      In this variant, each recursive call handles an input of size \(n-1\) (or \(n-c\) for constant \(c\)), and the extra work per step is usually \(O(1)\).
+    </p>
+
+    <div class="example-box">
+      <strong class="example-title">Example 1: Factorial (Decrease-by-a-Constant)</strong>
+      <p>
+        The factorial of a nonnegative integer \(n\) is defined by
+        \[
+          n! = 
+          \begin{cases}
+            1, & n = 0,\\
+            n \times (n-1)!, & n > 0.
+          \end{cases}
+        \]
+        For example, 
+        \[
+        \begin{array}{rcl}
+        5! &=& 5 \times 4! \\
+           &=& 5 \times 4 \times 3! \\
+           &=& 5 \times 4 \times 3 \times 2! \\
+           &=& 5 \times 4 \times 3 \times 2 \times 1! \\
+           &=& 5 \times 4 \times 3 \times 2 \times 1 \\
+           &=& 120
+        \end{array}
+        \]
+        The obvious algorithm to compute \(n!\) is a recursive algorithm based
+        directly on the definition.
+      </p>
+      <pre><code>factorial(n):
+    if n <= 1:
+      return 1
+    else:
+      return n * factorial(n - 1)
+</code></pre>
+      <p>
+       Here is a simple demo demostrating how the algorithm works.
+      </p>
+      <!-- If a demo is available, embed it here; otherwise, remove this container. -->
+      <div class="embeddedDemoContainer">
+        <iframe
+          class="embeddedDemo"
+          src="/Algorithms/Content/Demos/Decrease-and-Conquer/Factorial Demo.html"
+          allow="fullscreen"
+          name="Factorial-DecrConst-demo"
+        ></iframe>
+      </div>
+      <section id="factorial-analysis">
+  <p>
+  Since this algorithm computes \(n!\) by first computing \((n-1)!\) before multiplying by \(n\), 
+  it is a clear example of a decrease-by-a-constant variation (where \(c=1\)). 
+  </p>
+  <p>
+  It is not difficult to determine that this is a linear-time algorithm. 
+    Let \(T(n)\) be the time to compute <code>factorial(n)</code>.
+    For \(n > 1\), each call does one recursive call on size \(n-1\) plus a constant amount of work: so</p>
+     \[
+    T(n) = T(n-1) + c,\quad n > 1
+    \]
+    for some constant \(c\). The base case is \(T(1) = 1\) since the algorithm executes just one conditional statement
+    and then returns 1. This is easy to solve using iteration:
+  \[
+    \begin{aligned}
+    T(n) &= T(n-1) + c\\
+         &= \bigl(T(n-2) + c\bigr) + c = T(n-2) + 2c\\
+         &= \bigl(T(n-3) + c\bigr) + 2c = T(n-3) + 3c\\
+         &\;\;\vdots\\
+         &= \bigl(T(n-k) + c\bigr) + (k-1)c = T(n-k) + k c\\
+         &\;\;\vdots\\ 
+         &= \bigl(T(n-(n-1)) + c\bigr) + ((n-1)-1)c = T(1) + (n-2)c\\
+         &= 1 + (n-2)c = c n - 2c + 1 =O(n).
+    \end{aligned}
+    \]
+    Thus the recursive factorial algorithm runs in linear time.
+  </p>
+</section>
+    </div>
+
+    <div class="example-box">
+      <strong class="example-title">Example 2: Insertion Sort (Decrease by a Constant)</strong>
+      <p>
+        Insertion Sort builds a sorted prefix of the array one element at a time by inserting the next element into the correct position among the already-sorted ones.
+      </p>
+      <pre><code>function insertionSort(A):
+    for i from 1 to length(A)-1:
+      key = A[i]
+      j = i - 1
+      while j >= 0 and A[j] > key:
+        A[j+1] = A[j]
+        j = j - 1
+      A[j+1] = key
+</code></pre>
+      <p>
+        Each insertion reduces the “unsorted” portion by one and shifts elements in \(O(\text{current prefix size})\).
+      </p>
+      <!-- If a demo is available, embed it here; otherwise, remove this container. -->
+      <div class="embeddedDemoContainer">
+        <iframe
+          class="embeddedDemo"
+          src="/Algorithms/Content/Demos/Decrease-and-Conquer/Insertion Sort Demo.html"
+          allow="fullscreen"
+          name="InsertionSort-DecrConst-demo"
+        ></iframe>
+      </div>
+    </div>
+  </section>
+
+  <!-- Decrease by a Constant Factor -->
+  <section id="decrease-by-factor">
+    <h2>Decrease-by-a-Constant-Factor</h2>
+
+    <p>
+      Here, each recursive call handles an input of size \(\lfloor n/b\rfloor\) or \(\lceil n/b\rceil\) for some constant \(b>1\), with only \(O(1)\) extra work.
+    </p>
+
+    <div class="example-box">
+      <strong class="example-title">Example 1: Binary Exponentiation</strong>
+      <p>
+        To compute \(x^n\), repeatedly square and multiply:
+      </p>
+      <pre><code>function expDC(x, n):
+    if n == 0:
+      return 1
+    half = expDC(x, floor(n/2))
+    if n mod 2 == 0:
+      return half * half
+    else:
+      return x * half * half
+</code></pre>
+      <p>
+        Each call halves \(n\) and does a constant number of multiplications.
+      </p>
+      <!-- If a demo is available, embed it here; otherwise, remove this container. -->
+      <div class="embeddedDemoContainer">
+        <iframe
+          class="embeddedDemo"
+          src="/Algorithms/Content/Demos/Decrease-and-Conquer/Binary Exponentiation Demo.html"
+          allow="fullscreen"
+          name="BinaryExp-DecrFactor-demo"
+        ></iframe>
+      </div>
+    </div>
+
+    <div class="example-box">
+      <strong class="example-title">Example 2: Binary Search</strong>
+      <p>
+        To search a sorted array \(A[0..n-1]\) for value \(v\):
+      </p>
+      <pre><code>function binarySearch(A, v, low, high):
+    if low > high:
+      return -1
+    mid = floor((low + high) / 2)
+    if A[mid] == v:
+      return mid
+    else if A[mid] < v:
+      return binarySearch(A, v, mid+1, high)
+    else:
+      return binarySearch(A, v, low, mid-1)
+</code></pre>
+      <p>
+        Each step cuts the search range in half with \(O(1)\) work.
+      </p>
+      <!-- If a demo is available, embed it here; otherwise, remove this container. -->
+      <div class="embeddedDemoContainer">
+        <iframe
+          class="embeddedDemo"
+          src="/Algorithms/Content/Demos/Decrease-and-Conquer/Binary Search Demo.html"
+          allow="fullscreen"
+          name="BinarySearch-DecrFactor-demo"
+        ></iframe>
+      </div>
+    </div>
+  </section>
+
+  <!-- Variable-Size Decrease -->
+  <section id="variable-size-decrease">
+    <h2>Variable-Size-Decrease</h2>
+
+    <p>
+      In this form, the next subproblem size depends on a selection or partition step that costs \(O(n)\), and the chosen subproblem has size \(k\) which may vary.
+    </p>
+
+    <div class="example-box">
+      <strong class="example-title">Example: Quickselect</strong>
+      <p>
+        To find the \(i\)th smallest element in \(A[0..n-1]\):
+      </p>
+      <pre><code>function quickselect(A, i, low, high):
+    if low == high:
+      return A[low]
+    pivotIndex = partition(A, low, high)
+    if i == pivotIndex:
+      return A[i]
+    else if i < pivotIndex:
+      return quickselect(A, i, low, pivotIndex-1)
+    else:
+      return quickselect(A, i, pivotIndex+1, high)
+</code></pre>
+      <p>
+        Partitioning takes \(O(n)\), and one recursive call handles the chosen side.
+      </p>
+      <!-- If a demo is available, embed it here; otherwise, remove this container. -->
+      <div class="embeddedDemoContainer">
+        <iframe
+          class="embeddedDemo"
+          src="/Algorithms/Content/Demos/Decrease-and-Conquer/Quickselect Demo.html"
+          allow="fullscreen"
+          name="Quickselect-VarDecr-demo"
+        ></iframe>
+      </div>
+    </div>
+  </section>
+
+  <!-- Analyzing Decrease-and-Conquer Algorithms -->
+  <section id="analysis">
+    <h2>Analyzing Decrease-and-Conquer Algorithms</h2>
+    <p>
+      We capture the shrinking of the input and per-step cost via recurrences.  The three variants give:
+    </p>
+    <ul>
+      <li>
+        <strong>Decrease by a Constant:</strong>
+        \[
+          T(n) = T(n - 1) + O(1),
+        \]
+        which solves to \(T(n)=O(n)\).
+      </li>
+      <li>
+        <strong>Decrease-by-a-Constant-Factor:</strong>
+        \[
+          T(n) = T\bigl(\tfrac{n}{b}\bigr) + O(1),
+        \]
+        which by the Master Theorem yields \(T(n)=O(\log_b n)=O(\log n)\).
+      </li>
+      <li>
+        <strong>Variable-Size Decrease:</strong>
+        \[
+          T(n) = T(k) + O(n),
+        \]
+        where \(k\) is the chosen subproblem size.  If \(k\approx n/2\) on average, \(T(n)=O(n)\); in the worst case \(k=n-1\), giving \(T(n)=O(n^2)\).
+      </li>
+    </ul>
+  </section>
+
+  <!-- Summary & Key Takeaways -->
+  <section id="summary">
+    <h2>Summary &amp; Key Takeaways</h2>
+    <p>
+      Decrease-and-Conquer reduces a problem of size \(n\) to one smaller instance, solves it recursively, and does a small amount of extra work.  The main flavors are:
+    </p>
+    <ul>
+      <li><strong>By a Constant:</strong> \(T(n)=T(n-1)+O(1)=O(n)\).</li>
+      <li><strong>By a Constant Factor:</strong> \(T(n)=T(n/b)+O(1)=O(\log n)\).</li>
+      <li><strong>Variable-Size:</strong> \(T(n)=T(k)+O(n)=O(n)\) on average, worst-case \(O(n^2)\).</li>
+    </ul>
+  </section>
+</body>
+</html>
