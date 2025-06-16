@@ -5,6 +5,11 @@
   <title>Technique: Decrease-and-Conquer</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github.min.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js"></script>
+  <script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    TeX: { extensions: ["color.js"] }
+  });
+</script>
   <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>  
   <script src="/Algorithms/scripts/chapterScripts.js"></script>
   <link rel="stylesheet" href="/Algorithms/css/style.css">
@@ -20,25 +25,24 @@
     reducing it to a single smaller instance, solving that recursively, and then doing a bit of 
     additional work to produce the final result.  There are three common flavors:
     <ul>
-      <li><strong>Decrease-by-a-Constant:</strong> each step reduces \(n\) by a fixed amount 
+      <li><strong>Decrease-by-a-Constant:</strong> Each step reduces \(n\) by a fixed amount 
       (e.g. \(n-c\) for some constant \(c\)); examples include Insertion Sort, 
-      computing \(n!\) based on the recursive definition, and a topological sort algorithm.</li>
-      <li><strong>Decrease-by-a-Constant-Factor:</strong> each step reduces \(n\) by dividing by a 
+      computing \(n!\) based on the recursive definition, and an algorithm to solve the topological sort problem.</li>
+      <li><strong>Decrease-by-a-Constant-Factor:</strong> Each step reduces \(n\) by dividing by a 
       constant \(b>1\); examples include binary exponentiation and binary search.</li>
-      <li><strong>Variable-Size-Decrease:</strong> the amount by which \(n\) shrinks depends on the 
+      <li><strong>Variable-Size-Decrease:</strong> The amount by which \(n\) shrinks depends on the 
       input (often via a pivot or selection); Binary Search and Quickselect are classic examples.</li>
     </ul>
 <p>We will provide examples of each flavor.</p>
   </section>
 
+
   <!-- Decrease by a Constant -->
   <section id="decrease-by-constant">
     <h2>Decrease-by-a-Constant</h2>
-
     <p>
-      In this variant, each recursive call handles an input of size \(n-1\) (or \(n-c\) for constant \(c\)), and the extra work per step is usually \(O(1)\).
+      In this variant, each recursive call handles an input of size \(n-1\) (or \(n-c\) for constant \(c\)), and the extra work per step is usually \(O(1)\). This simple shrinkage usually yields very direct, easy-to-understand code, though it incurs about \(n/c\) recursive calls (which is still \(\Theta(n)\)) and hence \(O(n)\) stack space. We will see how these traits manifest in the Factorial and Insertion Sort examples.
     </p>
-
     <div class="example-box">
       <strong class="example-title">Example 1: Factorial (Decrease-by-a-Constant)</strong>
       <p>
@@ -68,8 +72,7 @@
     if n <= 1:
       return 1
     else:
-      return n * factorial(n - 1)
-</code></pre>
+      return n * factorial(n - 1)</code></pre>
       <p>
        Here is a simple demo demostrating how the algorithm works.
       </p>
@@ -82,43 +85,61 @@
           name="Factorial-DecrConst-demo"
         ></iframe>
       </div>
-      <section id="factorial-analysis">
-  <p>
-  Since this algorithm computes \(n!\) by first computing \((n-1)!\) before multiplying by \(n\), 
-  it is a clear example of a decrease-by-a-constant variation (where \(c=1\)). 
-  </p>
-  <p>
-  It is not difficult to determine that this is a linear-time algorithm. 
-    Let \(T(n)\) be the time to compute <code>factorial(n)</code>.
-    For \(n > 1\), each call does one recursive call on size \(n-1\) plus a constant amount of work: so</p>
-     \[
-    T(n) = T(n-1) + c,\quad n > 1
-    \]
-    for some constant \(c\). The base case is \(T(1) = 1\) since the algorithm executes just one conditional statement
-    and then returns 1. This is easy to solve using iteration:
-  \[
-    \begin{aligned}
-    T(n) &= T(n-1) + c\\
-         &= \bigl(T(n-2) + c\bigr) + c = T(n-2) + 2c\\
-         &= \bigl(T(n-3) + c\bigr) + 2c = T(n-3) + 3c\\
-         &\;\;\vdots\\
-         &= \bigl(T(n-k) + c\bigr) + (k-1)c = T(n-k) + k c\\
-         &\;\;\vdots\\ 
-         &= \bigl(T(n-(n-1)) + c\bigr) + ((n-1)-1)c = T(1) + (n-2)c\\
-         &= 1 + (n-2)c = c n - 2c + 1 =O(n).
-    \end{aligned}
-    \]
-    Thus the recursive factorial algorithm runs in linear time.
-  </p>
-</section>
+        <p>
+        Since this algorithm computes \(n!\) by first computing \((n-1)!\) before multiplying by \(n\), 
+        it is a clear example of a decrease-by-a-constant variation (where \(c=1\)). 
+        </p>
+        <p>
+        It is not difficult to determine that this is a linear-time algorithm. 
+          Let \(T(n)\) be the time to compute <code>factorial(n)</code>.
+          For \(n > 1\), each call does one recursive call on size \(n-1\) plus a constant amount of work: 
+          so when \(n \gt 1\), </p>
+           \[
+          T(n) = T(n-1) + c
+          \]
+          for some constant \(c\). The base case is \(T(1) = 1\) since 
+          the algorithm executes just one conditional statement
+          and then returns 1. This recurrence relation is easy to solve using iteration:
+          \[
+          \begin{aligned}
+          T(n)
+            &= \textcolor{blue}{T(n-1)} + c\\
+            &= \textcolor{blue}{(T(n-2) + c)} + c\\
+            &= \textcolor{green}{T(n-2)} + 2c\\
+            &= \textcolor{green}{(T(n-3) + c)} + 2c\\
+            &= \textcolor{red}{T(n-3)} + 3c\\
+            &= \textcolor{red}{(T(n-4) + c)} + 3c\\
+            &= \textcolor{orange}{T(n-4)} + 4c\\
+            &\;\;\vdots\\
+            &= \textcolor{purple}{T(n-k)} + k\,c\\
+             &\; \; \; \; \; \mbox{Plug in } k=n-1 \mbox{ to get to the base case of } n-(n-1)=1\\
+            &= \textcolor{magenta}{T(n-(n-1))} \;+\; (n-1)c\\
+            &= \textcolor{magenta}{T(1)} + (n-1)\,c\\
+            &= \textcolor{magenta}{1} + (n-1)\,c\\
+            &= c\,n - c + 1 = O(n).
+          \end{aligned}
+          \]
+          Thus the recursive factorial algorithm runs in linear time.
+        </p>
     </div>
-
+    
     <div class="example-box">
-      <strong class="example-title">Example 2: Insertion Sort (Decrease by a Constant)</strong>
-      <p>
-        Insertion Sort builds a sorted prefix of the array one element at a time by inserting the next element into the correct position among the already-sorted ones.
-      </p>
-      <pre><code>function insertionSort(A):
+  <strong class="example-title">Example 2: Insertion Sort (Decrease-by-a-Constant)</strong>
+  <p>
+    Insertion Sort solves the the <a href="?path=Problems/Foundational/Sorting">Sorting</a> Problem.
+    If you are unfamiliar with this problem, see that page.
+    Insertion Sort divides the array into a sorted prefix and an unsorted suffix. Starting with the first element as the only sorted item, it repeatedly takes the next element (the "key") and inserts it into its correct place in the sorted prefix&mdash;shrinking the unsorted portion by one each time. This makes it a classic decrease-by-a-constant algorithm. For full details of the algorithm, see <a href="?path=Algorithms/Decrease-and-Conquer/Insertion Sort">Insertion Sort</a>. Here is a demostration of the algorithm in action.
+  </p>
+  <div class="embeddedDemoContainer">
+    <iframe
+      class="embeddedDemo"
+      src="/Algorithms/Content/Demos/Decrease-and-Conquer/Insertion Sort Demo.html"
+      allow="fullscreen"
+      name="InsertionSort-DecrConst-demo"
+    ></iframe>
+  </div>
+  <p>It is fairly straightforward to implement Insertion Sort&mdash;the pseudocode is given below.</p>
+  <pre><code>insertionSort(A):
     for i from 1 to length(A)-1:
       key = A[i]
       j = i - 1
@@ -127,63 +148,121 @@
         j = j - 1
       A[j+1] = key
 </code></pre>
-      <p>
-        Each insertion reduces the “unsorted” portion by one and shifts elements in \(O(\text{current prefix size})\).
-      </p>
-      <!-- If a demo is available, embed it here; otherwise, remove this container. -->
-      <div class="embeddedDemoContainer">
-        <iframe
-          class="embeddedDemo"
-          src="/Algorithms/Content/Demos/Decrease-and-Conquer/Insertion Sort Demo.html"
-          allow="fullscreen"
-          name="InsertionSort-DecrConst-demo"
-        ></iframe>
-      </div>
-    </div>
-  </section>
+  <p>In the worse case, the algorithm has to shift every value up every time (e.g. the array is in 
+  reverse order). In this case, the complexity is \(O(n^2)\).
+  However, in the best case, when the array is mostly sorted, it a complexity of \(O(n)\).
+  On average, it is \(O(n)\). See <a href="?path=Algorithms/Decrease-and-Conquer/Insertion Sort">Insertion Sort</a>
+  for the complete details of this analysis.
+  </p>
+</div>
+<p>
+<strong>Summary of Decrease-by-a-Constant</strong>
+</p>
+<ul>
+  <li>Decrease-by-a-Constant is a type of Decrease-and-Conquer in which
+   each call reduces the problem size by 1 (or by a fixed constant \(c\)), 
+   ideally doing only \(O(1)\) extra work per call.</li>
+  <li>About \(n/c\) recursive calls (or iterations of a loop) are executed, 
+  often yielding \(O(n)\) time (unless the extra work is not constant, as is the case with Insertion Sort).
+  <li> The spaced use usually depends on whether it is implemented iteratively recursively.
+  The implementation of Factorial above used an extra \(O(n)\) space due to the recursion stack. 
+  On the other hand, since it is implemented iteratively, 
+  Insertion Sort only uses a constant amount of extra space.</li>
+</ul>
 
-  <!-- Decrease by a Constant Factor -->
-  <section id="decrease-by-factor">
-    <h2>Decrease-by-a-Constant-Factor</h2>
+</section>
 
+<hr>
+
+<!-- Decrease by a Constant Factor -->
+<section id="decrease-by-factor">
+  <h2>Decrease-by-a-Constant-Factor</h2>
+
+  <p>
+    Decrease-by-a-Constant-Factor algorithms first do some work to identify and discard a fixed fraction of the 
+    input&mdash;throwing away, for example, half or a third of the input&mdash;then recursively solve the 
+    same type of problem on what is left. 
+    In general, these algorithms reduce the input size from \(n\) to roughly \(\lfloor n/b\rfloor\) 
+    or \(\lceil n/b\rceil\) for some constant \(b\), where \(b=2\) is by far the most common.</p>
     <p>
-      Here, each recursive call handles an input of size \(\lfloor n/b\rfloor\) or \(\lceil n/b\rceil\) for some constant \(b>1\), with only \(O(1)\) extra work.
-    </p>
+    You see this pattern in binary search (compare to the middle and discard half the array), 
+    quickselect (repeatedly partition an array around a pivot and recurse on one side), 
+    and geometric searches that halve the search region. 
+    Because each step eliminates a constant fraction, there are only \(O(\log_b n)\) levels of recursion, 
+    and the total runtime is the per-level work multiplied by this logarithmic depth.
+  </p>
+  <p>The two most basic applications of this approach are Binary Search and Binary Exponentiation.</p>
 
     <div class="example-box">
-      <strong class="example-title">Example 1: Binary Exponentiation</strong>
-      <p>
-        To compute \(x^n\), repeatedly square and multiply:
+      <strong class="example-title">Example 1: Exponentiation By Squaring</strong>
+      
+       <p>
+        Suppose you want to compute \(x^n\) for a given real number \(x\) and nonnegative integer \(n\). 
+        This is an example of the <a href="?path=Problems/Foundational/Exponentiation">Exponentiation</a> Problem.
+        See that page if you are unfamiliar with the concept. 
+        An obvious algorithm to solve this problem is to simply multiply \(x\) by itself \(n\) times,
+        which requires \(n-1\) multiplications. But we can do better than that.               
+    Notice that if \(n\) is even,
+    \[
+      x^n \;=\;\bigl(x^{n/2}\bigr)^2\;=\;\bigl(x^{\lfloor n/2\rfloor}\bigr)^2,
+    \]
+    and if \(n\) is odd,
+    \[
+      x^n \;=\; x \times \bigl(x^{\lfloor n/2\rfloor}\bigr)^2.
+    \]
+    By recursively computing \(y = x^{\lfloor n/2\rfloor}\)  and then squaring 
+    (plus one extra multiply when \(n\) is odd), we halve the exponent at each step. 
+        This yields the following algorithm:
       </p>
-      <pre><code>function expDC(x, n):
+      <pre><code>power(x, n):
     if n == 0:
       return 1
-    half = expDC(x, floor(n/2))
+    half = power(x, floor(n/2))
     if n mod 2 == 0:
       return half * half
     else:
       return x * half * half
 </code></pre>
-      <p>
-        Each call halves \(n\) and does a constant number of multiplications.
-      </p>
-      <!-- If a demo is available, embed it here; otherwise, remove this container. -->
+<p>Since this halves the input size at each call, this is a clear example of decrease-by-a-constant-factor
+with \(b=2\). Here is a demonstration of the algorithm in action.
+</p>
+        <!-- If a demo is available, embed it here; otherwise, remove this container. -->
       <div class="embeddedDemoContainer">
         <iframe
           class="embeddedDemo"
-          src="/Algorithms/Content/Demos/Decrease-and-Conquer/Binary Exponentiation Demo.html"
+          src="/Algorithms/Content/Demos/Decrease-and-Conquer/Exponentiation By Squaring Demo.html"
           allow="fullscreen"
           name="BinaryExp-DecrFactor-demo"
         ></iframe>
       </div>
+      <p>
+    This yields only \(O(\log n)\) levels of recursion and thus \(O(\log n)\) 
+    total multiplications&mdash;dramatically faster than the naive \(O(n)\) approach.
+    Since the algorithm is recrusive  and uses a constant amount of space at each recursive call,
+    it also uses \(O(\log n)\) space.
+      </p>
+      <p>
+      For more details on Exponentiation by Squaring (also known as Binary Exponentiation),
+      including a more comeplete analsysis and two iterative versions of the 
+      algorithms&mdash;Left-to-Right and Right-to-Left&mdash;see the 
+      <a href="?path=Algorithms/Decrease-and-Conquer/Binary Exponentiation">Binary Exponentiation</a> page.
+      </p>
+
     </div>
 
     <div class="example-box">
       <strong class="example-title">Example 2: Binary Search</strong>
       <p>
+      The <a href="?path=Problems/Foundational/Searching">Searching</a>
+      problem asks to find an element with a given value form an array.
+      If you are unfamilair with this concept, see that page.
+      If you are fortunate and the array of values you are searching is sorted (we assume in ascending order),
+      we can do much better than linear search.
+      
+<h1><font color="red">I am here</font></h1>
         To search a sorted array \(A[0..n-1]\) for value \(v\):
       </p>
-      <pre><code>function binarySearch(A, v, low, high):
+      <pre><code>binarySearch(A, v, low, high):
     if low > high:
       return -1
     mid = floor((low + high) / 2)

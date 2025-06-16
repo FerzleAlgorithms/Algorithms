@@ -66,11 +66,11 @@
   <div id="demoWrapper">
     <div id="callStack"></div>
     <div id="pseudocode">
-      <div id="line1">function fact(n):</div>
+      <div id="line1">factorial(n):</div>
       <div id="line2">&nbsp;&nbsp;if n ≤ 1:</div>
       <div id="line3">&nbsp;&nbsp;&nbsp;&nbsp;return 1</div>
       <div id="line4">&nbsp;&nbsp;else:</div>
-      <div id="line5">&nbsp;&nbsp;&nbsp;&nbsp;return n * <span id="recursiveCall">fact(n - 1)</span></div>
+      <div id="line5">&nbsp;&nbsp;&nbsp;&nbsp;return n * <span id="recursiveCall">factorial(n - 1)</span></div>
     </div>
   </div>
   <script>
@@ -89,7 +89,7 @@
 
     function factorialSteps(n, depth) {
       const indent = '  '.repeat(depth);
-      const callLine = `${indent}fact(${n})`;
+      const callLine = `${indent}factorial(${n})`;
       const currentStack = steps.length ? [...steps[steps.length - 1].stack] : [];
 
       steps.push({
@@ -97,7 +97,7 @@
         line: callLine,
         type: 'calling',
         highlight: 1,
-        desc: `In fact(${n}): Calling fact(${n})`
+        desc: `In factorial(${n}): Calling factorial(${n})`
       });
       steps[steps.length - 1].stack.push({ text: callLine, type: 'calling' });
 
@@ -106,7 +106,7 @@
         line: `${indent}${n} <= 1 ?`,
         type: 'calling',
         highlight: 2,
-        desc: `In fact(${n}): Checking condition: is ${n} <= 1? ${n <= 1 ? 'Yes' : 'No'}`
+        desc: `In factorial(${n}): Checking condition: is ${n} <= 1? ${n <= 1 ? 'Yes' : 'No'}`
       });
 
       if (n <= 1) {
@@ -115,7 +115,7 @@
           line: `${indent}return 1`,
           type: 'returning',
           highlight: 3,
-          desc: `In fact(${n}): Base case: Returning 1`
+          desc: `In factorial(${n}): Base case: Returning 1`
         });
         steps[steps.length - 1].stack.push({ text: `${indent}return 1`, type: 'returning' });
         return 1;
@@ -123,20 +123,20 @@
 
       steps.push({
         stack: [...steps[steps.length - 1].stack],
-        line: `${indent}fact(${n - 1})`,
+        line: `${indent}factorial(${n - 1})`,
         type: 'calling',
         highlight: 'recursiveCall',
-        desc: `In fact(${n}): Preparing recursive call: fact(${n - 1})`
+        desc: `In factorial(${n}): Preparing recursive call: factorial(${n - 1})`
       });
 
       const val = factorialSteps(n - 1, depth + 1);
 
       steps.push({
         stack: [...steps[steps.length - 1].stack],
-        line: `${indent}fact(${n - 1})`,
+        line: `${indent}factorial(${n - 1})`,
         type: 'calling',
         highlight: 'recursiveCall',
-        desc: `In fact(${n}): Returned from recursive call: fact(${n - 1})`
+        desc: `In factorial(${n}): Returned from recursive call: factorial(${n - 1})`
       });
       const ret = n * val;
       steps.push({
@@ -144,7 +144,7 @@
         line: `${indent}return ${n} * ${val} = ${ret}`,
         type: 'returning',
         highlight: 5,
-        desc: `In fact(${n}): Computing and returning result: ${n} * ${val} = ${ret}`
+        desc: `In factorial(${n}): Computing and returning result: ${n} * ${val} = ${ret}`
       });
       steps[steps.length - 1].stack.push({ text: `${indent}return ${n} * ${val} = ${ret}`, type: 'returning' });
       

@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Recursive Exponentiation Demo</title>
+  <script src="../../../scripts/demoScripts.js"></script>
+  <link rel="stylesheet" href="../../../css/style.css">
+  <link rel="stylesheet" href="../../../css/demo.css">
+  <style>
+    #demoWrapper {
+      display: flex;
+      gap: 20px;
+    }
+    #callStack {
+      font-family: monospace;
+      font-size: 16px;
+      line-height: 1.6;
+      background: #f9f9f9;
+      padding: 10px;
+      border: 1px solid #ccc;
+      min-width: 320px;
+      overflow-y: auto;
+    }
+    #pseudocode {
+      font-family: monospace;
+      font-size: 16px;
+      line-height: 1.6;
+      padding: 10px;
+      background: #f8f8f8;
+      border: 1px solid #ccc;
+      min-width: 300px;
+    }
+    /* preserve internal spacing only on each line, remove extra margins */
+    #callStack > div,
+    #pseudocode > div {
+      white-space: pre;
+      margin: 0;
+    }
+    .highlight {
+      background-color: #ffff99;
+    }
+    #commentary {
+      font-style: italic;
+      margin-top: 10px;
+      height: 24px;
+    }
+  </style>
+</head>
+<body>
+  <h2>Exponentiation by Squaring (Recursive) Demo</h2>
+  <div id="controls1">
+    <label>x: <input type="number" id="inputX" value="2" style="width:4em;"></label>
+    <label>n: <input type="number" id="inputN" min="0" value="13" style="width:4em;"></label>
+    <button id="generate">Generate</button>
+    <button id="useCustom" style="display:none;"></button>
+  </div>
+  <div id="buttons">
+    <button id="prev">Previous</button>
+    <button id="next">Next</button>
+    <button id="play">Play</button>
+    <label for="speed">Speed:</label>
+    <select id="speed">
+      <option value="1">1×</option>
+      <option value="2">2×</option>
+      <option value="4">4×</option>
+    </select>
+  </div>
+  <div id="commentary"></div>
+  <div id="demoWrapper">
+    <div id="callStack"></div>
+    <div id="pseudocode">
+      <div id="line1">function power(x, n):</div>
+      <div id="line2">  if n == 0:</div>
+      <div id="line3">    return 1</div>
+      <div id="line4">  half = <span id="recursiveCall">power(x, floor(n/2))</span></div>
+      <div id="line5">  if n mod 2 == 0:</div>
+      <div id="line6">    return half * half</div>
+      <div id="line7">  else:</div>
+      <div id="line8">    return x * half * half</div>
+    </div>
+  </div>
+  <script>
+    let steps = [], idx = 0;
+
+    function onGenerate() {
+      const x = parseFloat(document.getElementById('inputX').value);
+      const n = parseInt(document.getElementById('inputN').value);
+      window.demoX = x;
+      steps = [];
+      const result = exponentiationSteps(x, n, 0);
+      // Final result step
+      steps.push({
+        desc: `Done. Final result: ${x}^${n} = ${result}`,
+        stack: [...steps[steps.length - 1].stack],
+        highlight: null,
+        currentN: n,
+        line: ''
+      });
+      return steps;
+    }
+
+    function exponentiationSteps(x, n, depth) {
+      const indent = '  '.repeat(depth);
+      const callLine = `${indent}power(${x}, ${n})`;
+      const prevStack = steps.length ? [...steps[steps.length - 1].stack] : [];
+
+      // Call
+      steps.push({ stack: [...prevStack], line: callLine, type: 'calling', highlight: 1,
+        desc: `Calling power(${x}, ${n})`, currentN: n });
+      steps[steps.length - 1].stack.push({ text: callLine, type: 'calling' });
+
+      // Base check
+      steps.push({ stack: [...steps[steps.length - 1].stack], line: `${indent}n == 0?`, type: 'calling', highlight: 2,
+        desc: `Checking if n == 0: ${n === 0}`, currentN: n });
+      if (n === 0) {
+        steps.push({ stack: [...steps[steps.length - 1].stack], line: `${indent}return 1`, type: 'returning', highlight: 3,
+          desc: `Base case: return 1`, currentN: n });
+        steps[steps.length - 1].stack.push({ text: `${indent}return 1`, type: 'returning' });
+        return 1;
+      }
+
+      // Recurse
+      steps.push({ stack: [...steps[steps.length - 1].stack], line: `${indent}power(${x}, ${Math.floor(n/2)})`,
+        type: 'calling', highlight: 'recursiveCall', desc: `Recursing: power(${x}, ${Math.floor(n/2)})`, currentN: n });
+      const half = exponentiationSteps(x, Math.floor(n/2), depth + 1);
+      steps.push({ stack: [...steps[steps.length - 1].stack], line: `${indent}power(${x}, ${Math.floor(n/2)})`,
+        type: 'calling', highlight: 'recursiveCall', desc: `Returned: power(${x}, ${Math.floor(n/2)}) = ${half}`, currentN: n });
+
+      // Conditional check on unwinding
+      steps.push({ stack: [...steps[steps.length - 1].stack], line: `${indent}if n mod 2 == 0?`, type: 'calling', highlight: 5,
+        desc: `Checking if n mod 2 == 0: ${n % 2 === 0}`, currentN: n });
+
+      // Combine
+      if (n % 2 === 0) {
+        const val = half * half;
+        steps.push({ stack: [...steps[steps.length - 1].stack], line: `${indent}return ${half} * ${half} = ${val}`,
+          type: 'returning', highlight: 6, desc: `Even case: return ${half}^2 = ${val}`, currentN: n });
+        steps[steps.length - 1].stack.push({ text: `${indent}return ${half} * ${half} = ${val}`, type: 'returning' });
+        return val;
+      } else {
+        const val = x * half * half;
+        steps.push({ stack: [...steps[steps.length - 1].stack], line: `${indent}return ${x} * ${half} * ${half} = ${val}`,
+          type: 'returning', highlight: 8, desc: `Odd case: return ${x} * ${half}^2 = ${val}`, currentN: n });
+        steps[steps.length - 1].stack.push({ text: `${indent}return ${x} * ${half} * ${half} = ${val}`, type: 'returning' });
+        return val;
+      }
+    }
+
+    function renderStep(steps, i) {
+      const { desc, highlight, stack, currentN } = steps[i];
+      // Commentary
+      document.getElementById('commentary').textContent =
+        `In power(${window.demoX}, ${currentN}): ${desc}`;
+
+      // Render call stack
+      const callStackDiv = document.getElementById('callStack');
+      callStackDiv.innerHTML = '';
+      stack.forEach(entry => {
+        const div = document.createElement('div');
+        div.textContent = entry.text;
+        div.className = 'line ' + entry.type;
+        callStackDiv.appendChild(div);
+      });
+      // Clear previous highlights
+      callStackDiv.querySelectorAll('div').forEach(div => div.classList.remove('highlight'));
+      // Always highlight the active frame based on currentN
+      const frameStr = `power(${window.demoX}, ${currentN})`;
+      callStackDiv.querySelectorAll('div').forEach(div => {
+        if (div.textContent.trim() === frameStr) {
+          div.classList.add('highlight');
+        }
+      });
+
+      // Clear pseudocode highlights
+      for (let j = 1; j <= 8; j++) {
+        const el = document.getElementById('line' + j);
+        if (el) el.classList.remove('highlight');
+      }
+      const rc = document.getElementById('recursiveCall'); if (rc) rc.classList.remove('highlight');
+
+      // Apply pseudocode highlight
+      if (highlight === 'recursiveCall') {
+        document.getElementById('recursiveCall').classList.add('highlight');
+      } else if (highlight) {
+        const el = document.getElementById('line' + highlight);
+        if (el) el.classList.add('highlight');
+      }
+    }
+
+    window.renderStep = renderStep;
+    window.genSteps   = () => steps;
+    window.onGenerate = onGenerate;
+    window.setupAux   = () => {};
+  </script>
+</body>
+</html>

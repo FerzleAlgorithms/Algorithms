@@ -1106,6 +1106,21 @@
     ],
     "definition": "A programming technique where a function calls itself with smaller inputs until reaching a base case. It is used to solve divide-and-conquer and combinatorial problems."
   },
+  {
+  "variants": [
+    "Recursion Stack",
+    "Call Stack",
+    "Function Call Stack",
+    "Activation Record Stack"
+  ],
+  "definition": "The portion of the call stack used to store activation records for each active recursive invocation, including parameters, local variables, and return addresses. It grows with each recursive call and unwinds as calls return, enabling proper nesting and backtracking of recursive operations."
+},
+  {
+    "variants": [
+      "Recursion Tree"
+    ],
+    "definition": "A tree diagram representing the recursive calls of an algorithm, often used to solve and visualize recurrence relations."
+  },
    {
     "variants": [
     "Recursive Algorithm",
@@ -1113,12 +1128,6 @@
     
     ],
     "definition": "A recursive algorithm solves a problem by calling itself on one or more smaller instances of the same problem. It must include at least one base case that can be solved directly, ensuring that the recursion terminates."
-  },
-  {
-    "variants": [
-      "Recursion Tree"
-    ],
-    "definition": "A tree diagram representing the recursive calls of an algorithm, often used to solve and visualize recurrence relations."
   },
   {
     "variants": [

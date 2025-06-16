@@ -90,7 +90,10 @@
     <div class="example-box">
       <strong class="example-title">Example 1: Exponentiation (Divide-and-Conquer)</strong>
       <p>
-        Suppose you want to compute \(x^n\) for a given real number \(x\) and nonnegative integer \(n\). A straightforward recursive approach might subtract 1 from the exponent at each call, resulting in \(O(n)\) time. Instead, the Divide-and-Conquer version makes two recursive calls on roughly half the exponent, then multiplies the results. Here is one way to implement it, where \(\lfloor n/2\rfloor + \lceil n/2\rceil = n\)
+        Suppose you want to compute \(x^n\) for a given real number \(x\) and nonnegative integer \(n\). 
+        This is an example of the <a href="?path=Problems/Foundational/Exponentiation">Exponentiation</a> Problem.
+        See that page if you are unfamiliar with the concept.
+        A straightforward recursive approach might subtract 1 from the exponent at each call, resulting in \(O(n)\) time. Instead, the Divide-and-Conquer version makes two recursive calls on roughly half the exponent, then multiplies the results. Here is one way to implement it, where \(\lfloor n/2\rfloor + \lceil n/2\rceil = n\)
         (Check for yourself that this works for both even and odd values of \(n\)):
       </p>
       <pre><code>function expDC(x, n):
@@ -170,6 +173,8 @@
       <strong class="example-title">Example 2: Merge Sort</strong>
       <p>
         Merge Sort is a classic Divide-and-Conquer sorting algorithm. 
+        It, of course, solves the the <a href="?path=Problems/Foundational/Sorting">Sorting</a> Problem.
+        If you are unfamiliar with this problem, see that page.
         Here is a brief introduction to the idea behind it: Given an array \(A[0..n-1]\), 
         <ol>
           <li>Divide: Split \(A\) into two halves, \(A_{\text{left}}\) and \(A_{\text{right}}\), each of size roughly \(n/2\).</li>

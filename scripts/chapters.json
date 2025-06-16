@@ -58,6 +58,8 @@
       "Decrease-and-Conquer": [
         "Binary Exponentiation RTL Demo.html",
         "Binary Search Demo.html",
+        "Exponentiation By Squaring Demo.html",
+        "Factorial Demo.html",
         "Hoare Partition Demo.html",
         "Insertion Sort Demo.html"
       ]
