@@ -87,21 +87,14 @@
     }
 
     /* ─── CONTAINER FOR THE WHOLE DEMO ─── */
-    .demo-container {
+    /*.demo-container {
       max-width: 650px;
       margin: 20px auto;
       font-family: sans-serif;
-      position: relative; /* for absolute‐positioned clones */
-    }
-    h2 {
-      text-align: center;
-      margin-bottom: 1em;
-    }
+      position: relative; 
+      }*/
 
     /* ─── CONTROLS ─── */
-    .controls {
-      margin-bottom: 1em;
-    }
     .input-row {
       display: flex;
       align-items: center;
@@ -110,20 +103,6 @@
     }
     .input-row label {
       font-weight: bold;
-    }
-    .button-row {
-      display: flex;
-      align-items: center;
-      gap: 0.5em;
-    }
-    button {
-      padding: 0.3em 0.6em;
-      font-size: 1em;
-      cursor: pointer;
-    }
-    button:disabled {
-      opacity: 0.5;
-      cursor: default;
     }
     #speed-select {
       margin-left: 0.25em;
@@ -178,7 +157,12 @@
     }
     .power-mat {
       background: rgba(208, 255, 208, 0.3);  /* faint light-green background */
+    }/
+    * light background for the index labels matrix */
+    .label-mat {
+      background: rgba(255, 255, 255, 0.3);
     }
+
     /* ─── MATRICES ROW ─── */
     #matrix-row {
       display: flex;
@@ -343,6 +327,15 @@
     <div class="matrix-container power-mat" id="power-matrix"></div>
     <div class="matrix-label">M<sup id="power-exponent">0</sup></div>
   </div>
+  
+  <!-- equals sign -->
+  <div class="matrix-operator">=</div>
+  
+    <!-- Fibonacci indices box -->
+  <div id="fib-label-box" class="matrix-with-label">
+    <div class="matrix-container label-mat" id="label-matrix"></div>
+    <div class="matrix-label">Fib Indices</div>
+  </div>
 </div>
 
 
@@ -438,11 +431,11 @@
     function buildEvents(n) {
       const evs = [];
       // (A) Initialization: show the base M as M¹ on step 0
-      evs.push({ type: 'init', matrix: copyMatrix2x2(baseM) });
+      evs.push({ type: 'init', matrix: copyMatrix2x2(baseM), i:n });
 
       // (B) For i = 2..n, multiply by baseM each time
       let cumulative = copyMatrix2x2(baseM);
-      for (let i = 1; i <= n; i++) {
+      for (let i = 1; i < n; i++) {
         const prev = copyMatrix2x2(cumulative);
         const comps = buildCompStrings(prev);
         const nextMat = multiply2x2(prev, baseM);
@@ -705,15 +698,20 @@ prevClone.style.transition = `transform ${durationMs}ms ease, opacity ${duration
 
   // Update comment & stats
   if (ev.type === 'init') {
-    commentDiv.textContent = 'Start state (no processing has been made yet)';
+    commentDiv.innerHTML = `Start state. Need to compute M<sup>${ev.i}</sup>. <br> (Ignore M<sup>0</sup>. It doesn\'t really exist)`;
   } else if (ev.type === 'compute') {
-    commentDiv.textContent = `Step ${ev.i}: Multiply by M → F(${ev.i})`;
+    const plusone = ev.i+1;
+    commentDiv.innerHTML = `Step ${ev.i}: M<sup>${plusone}</sup> = M*M<sup>${ev.i}</sup>`;
   }
 
   const totalMults = computeCount * 8;
   const totalAdds  = computeCount * 4;
   statsDiv.textContent = `Total multiplications: ${totalMults}, Total additions: ${totalAdds}`;
-
+  
+  // ─── NEW: render the Fib‐index labels ───
+  const currentExp = (ev.type === 'init' ? 1 : ev.i + 1);
+  renderLabelMatrix(currentExp);
+  
   prevBtn.disabled = (pointer <= 0);
   nextBtn.disabled = (pointer >= events.length - 1);
 }
@@ -785,7 +783,8 @@ prevClone.style.transition = `transform ${durationMs}ms ease, opacity ${duration
      * 7) CONTROLS: “Compute”, “Next”, “Previous”, “Play”
      ****************************************************************************************/
      computeBtn.addEventListener('click', () => {
-    const n = parseInt(nInput.value, 10);
+    let n = parseInt(nInput.value, 10);
+    n = n - 1;
     if (isNaN(n) || n < 0) {
       alert('Please enter a nonnegative integer for n.');
       return;
@@ -855,7 +854,8 @@ prevClone.style.transition = `transform ${durationMs}ms ease, opacity ${duration
   playBtn.textContent = 'Play';
 
   // 3) auto‐compute using the default value in the “Enter n” input
-  const initialN = parseInt(nInput.value, 10);
+  let initialN = parseInt(nInput.value, 10);
+  initialN = initialN - 1;
   if (!isNaN(initialN) && initialN >= 0) {
     // build the event sequence for n = initialN
     events = buildEvents(initialN);
@@ -867,6 +867,28 @@ prevClone.style.transition = `transform ${durationMs}ms ease, opacity ${duration
     nextBtn.disabled = false;
   }
 });
+/**
+ * Render a 2×2 grid of Fibonacci‐index labels next to the result.
+ * For M^n = [[F_{n−1},F_n],[F_n,F_{n+1}]]
+ */
+function renderLabelMatrix(exp) {
+  const labelContainer = document.getElementById('label-matrix');
+  labelContainer.innerHTML = '';
+  // build the 2×2 array of indices
+  const idx = [
+    [exp - 1, exp],
+    [exp,     exp + 1]
+  ];
+  for (let r = 0; r < 2; r++) {
+    for (let c = 0; c < 2; c++) {
+      const cell = document.createElement('div');
+      cell.className = 'matrix-element';
+      // use <sub> for a proper subscript
+      cell.innerHTML = `F<sub>${idx[r][c]}</sub>`;
+      labelContainer.appendChild(cell);
+    }
+  }
+}
 
   </script>
 </body>

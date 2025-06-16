@@ -76,7 +76,7 @@
 </head>
 <body>
   <div class="demo-container">
-    <h2>Accumulative Polynomial Evaluation</h2>
+    <h2>Polynomial Evaluation (Brute-Force Linear)</h2>
 
     <div class="controls">
       <!-- (1) “Create Coefficients” input, then “Enter x” on same line -->
@@ -246,7 +246,7 @@
               termIdx: rowIdxCounter,
               i,
               initialTerm,
-              desc: `Start i=0, term=${initialTerm}`
+              desc: `Start i = 0, term = a[0] = ${initialTerm}`
             });
             const prevTotal = cumulative;
             cumulative += initialTerm;
@@ -277,7 +277,7 @@
               termIdx: rowIdxCounter,
               i,
               initialTerm,
-              desc: `Start i=${i}, coefficient=${initialTerm}, power=${power}`
+              desc: `Start i = ${i}, coefficient = a[${i}] = ${initialTerm}, power = ${power}`
             });
             // Compute term = a[i] * power (one multiplication)
             const term = initialTerm * power;

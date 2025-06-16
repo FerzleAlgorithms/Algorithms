@@ -44,13 +44,12 @@
     },
     {
       "Brute Force": [
-        "Accumulative Polynomial Demo.html",
         "Bubble Sort Demo.html",
         "Fibonacci 5 Naive Demo.html",
         "Fibonacci Naive Demo edit.html",
         "Fibonacci Naive Demo.html",
-        "Polynomial Evaluation Demo.html",
-        "Polynomial Evaluation Old Demo.html",
+        "Polynomial Evaluation (Linear) Demo.html",
+        "Polynomial Evaluation (Quadratic) Demo.html",
         "Selection Sort Demo.html",
         "Sequential Search Demo.html"
       ]
@@ -102,9 +101,9 @@
     },
     {
       "Transform-and-Conquer": [
+        "Fibonacci Number (Matrix) Demo.html",
         "Heapsort Demo.html",
-        "Horner Rule Demo.html",
-        "Matrix Fib Demo.html"
+        "Horner Rule Demo.html"
       ]
     }
   ],

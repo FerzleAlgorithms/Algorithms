@@ -50,16 +50,6 @@
     .highlight-cell {
       background-color: #fffb91;
     }
-    button {
-      padding: 0.3em 0.6em;
-      margin-left: 0.5em;
-      font-size: 1em;
-      cursor: pointer;
-    }
-    button:disabled {
-      opacity: 0.5;
-      cursor: default;
-    }
 
     /* Styles for Play/Pause and Speed controls */
     #play {
@@ -74,7 +64,7 @@
 </head>
 <body>
   <div class="demo-container">
-    <h2>Brute-Force Polynomial Evaluation</h2>
+    <h2>Polynomial Evaluation (Brute-Force Quadratic)</h2>
 
 
     <style>
@@ -96,12 +86,12 @@
             placeholder="e.g. 1,-2,3,-4,5,-6,7"
           >
         </label>
-        <button id="create-coeffs-btn">Create Coefficients</button>
+        <button id="create-coeffs-btn">Use Coefficients</button>
   
         <!-- keep Enter x on the same row, spaced a bit from Create Coefficients -->
         <label style="margin-left: 1.5em;">
           <strong>Enter x:</strong>
-          <input id="x-input" type="number" value="2">
+          <input id="x-input" type="number" value="2" style="width: 4em">
         </label>
       </div>
   
@@ -258,7 +248,7 @@
           termIdx: nzIdx,
           i,
           initialTerm: coeff,
-          desc: `Start i=${i}, term=${coeff}`
+          desc: `Start i=${i}, term = a[${i}] = ${coeff}`
         });
 
         // Multiplication steps
@@ -277,7 +267,7 @@
             multCount,
             total: cumulative,
             totalMultSteps: i,
-            desc: `Multiply x: ${prevTerm} * ${x} = ${term} (multiplication ${multCount} of ${i})`
+            desc: `Multiply x: term = term * x = ${prevTerm} * ${x} = ${term} (multiplication ${multCount} of ${i})`
           });
           prevTerm = term;
         }

@@ -95,18 +95,30 @@
 </head>
 <body>
   <div class="demo-container">
-    <h2>Right-to-Left (LSB‐first) Binary Exponentiation</h2>
+    <h2>Binary Exponentiation (Right-to-Left)</h2>
 
     <div class="controls">
       <div class="input-row">
         <label>
           <strong>Base (a):</strong>
-          <input id="a-input" type="number" value="2" style="width: 4em;">
+          <input id="a-input" type="number" value="2" min="0" max="99" style="width: 4em;"
+          oninput="
+                // if out-of-bounds or non-numeric, reset to closest valid
+                if (this.validity.badInput) this.value = '';
+                if (this.value < 0) this.value = 0;
+                if (this.value > 99) this.value = 99;
+              ">
         </label>
         <label>
           <strong>Exponent (n):</strong>
-          <input id="n-input" type="number" value="19" style="width: 4em;">
-        </label>
+          <input id="n-input" type="number" value="19" min="0" max="1023" style="width: 6em;"
+           oninput="
+                // if out-of-bounds or non-numeric, reset to closest valid
+                if (this.validity.badInput) this.value = '';
+                if (this.value < 0) this.value = 0;
+                if (this.value > 1023) this.value = 1023;
+              ">
+      </label>
       </div>
       <div class="button-row">
         <button id="prev-btn" disabled>Previous</button>
@@ -128,7 +140,7 @@
 
     <div class="comment" id="comment"><br></div>
     <div class="stats" id="stats"></div>
-    <div class="stats" id="bits-display"></div>
+    <div class="stats" id="bits-display" style="font-size:1.25em;"></div>
     <div class="comment" id="final-display"></div>
 
     <!-- CORRECTED TABLE WITH EIGHT COLUMNS -->
@@ -140,7 +152,7 @@
           <th style="font-weight: bold !important;">pow</th>
           <th>result computation</th>
           <th style="font-weight: bold !important;">result</th>
-          <th>multiplication count</th>
+          <th>number of *</th>
         </tr>
       </thead>
 
@@ -308,7 +320,7 @@
       aPowerVal: aPower,
       exponent: exponent,
       expExpr: expExpr,
-     prevExpExpr: prevExpExpr,      // ← new field
+      prevExpExpr: prevExpExpr,      // ← new field
       resultComp: resultCompStr,
       aPowComp: aPowCompStr,
       multCount: multThisIter,
@@ -438,19 +450,14 @@
        if (pointer === 0) {
          // FIRST step: show only one branch (bit=1 OR bit=0), no “then square” line here
          if (ev.bit === 1) {
-           commentDiv.innerHTML =
-             `n % 2 = 1, result = pow`;
-         } else {
-           commentDiv.innerHTML =
-             `n % 2 = 0, result = 1`;
+               commentDiv.innerHTML = `n mod 2 = 1, so result = pow.`;
+         } else {    
+               commentDiv.innerHTML = `n mod 2 = 0, so result = 1.`;
          }
        } else {
                commentDiv.innerHTML =
-        `n % 2 = ${ev.bit}, ` +
-        `${ev.bit === 1
-            ? `result *= pow`
-            : 'skip multiplying result'}; ` +
-        `pow *= pow.`;
+        `n=&lfloor;n/2&rfloor; and  pow = pow<sup>2</sup>.  n mod 2 = ${ev.bit}, ` +
+        `${ev.bit === 1  ? `so result *= pow` : 'so skip multiplying result'};`;
        }
        // ─── Show “Total multiplications so far” on every iteration, including pointer===0 ───
        statsDiv.textContent = `Total multiplications so far: ${ev.totalMultsSoFar}`;
