@@ -1,0 +1,908 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>0-1 Knapsack DP Demo</title>
+  <script src="../../scripts/demoScripts.js"></script>
+  <link rel="stylesheet" href="../../css/style.css">
+  <link rel="stylesheet" href="../../css/demo.css">
+<style>
+  body {
+    font-family: sans-serif;
+    margin: 20px;
+  }
+
+  #buttons {
+    margin: 10px 0;
+  }
+  #buttons button,
+  #buttons select {
+    margin-right: 8px;
+  }
+
+  .legend {
+    margin-top: 10px;
+  }
+  .legend-box {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    margin-right: 4px;
+    vertical-align: middle;
+    border: 1px solid #333;
+  }
+  .legend-label {
+    margin-right: 16px;
+    vertical-align: middle;
+    font-size: 14px;
+  }
+
+  #commentary {
+  margin-top: 10px;
+  margin-bottom: 4px;      /* add a little breathing room below */
+  font-style: italic;
+  white-space: pre-line;  
+  line-height: 1.7em;      /* tighten the gap between lines */
+  height: calc(1.7em * 2); /* reserve exactly two lines */
+  
+}
+
+  .array-container {
+    display: flex;
+    align-items: flex-end;
+    margin-top: 4px;
+    margin-bottom: 20px;
+  }
+
+  .cell-wrapper {
+    display: flex;
+    align-items: flex-end;
+    margin-top: 2px;
+    margin-right: 2px;
+  }
+  .element-wrapper {
+    position: relative;
+    margin-right: 4px;
+    text-align: center;
+  }
+
+  /* global element sizing */
+  .element {
+    width: 40px;
+    height: 40px;
+    line-height: 40px;
+    font-size: 0.8em;
+  }
+
+  /* dp‐table layout */
+  .dp-table {
+    border-collapse: collapse;
+    margin-top: 4px;
+  }
+  .dp-table th,
+  .dp-table td {
+    border: none;
+    padding: 0;
+    width: 40px;
+    height: 40px;
+    background: transparent;
+  }
+  .dp-table td {
+    /* big faint‐blue box behind cells */
+    background: rgba(79, 172, 248, 0.423);
+  }
+
+  /* each inner DIV still gets its own black border */
+  .dp-table .element {
+    border: 1px solid #333;
+    background: transparent;
+  }
+
+  /* current cell highlight */
+  .dp-table .element.sel-element {
+    background-color: #edf641;
+  }
+
+  .dp-table .element.outsideKnapsack-element {
+  background-color: #bd2e2e;
+}
+
+
+  /*solution items*/
+.dp-table .element.insideKnapsack-element {
+  background-color: #1adfb1;
+}
+
+.legend-box.outsideKnapsack-element {
+  background-color: #bd2e2e;
+}
+
+  /* “take” choice highlight (orange) */
+  .dp-table .element.choice-element {
+    background-color: #ffcf3e;
+  }
+
+  /* “skip” choice highlight (red) */
+  .dp-table .element.skip-element {
+    background-color: rgba(255, 67, 67, 0.795);
+  }
+
+  /* pointer arrow styling */
+  .pointer {
+    position: absolute;
+    top: -20px;
+    left: 50%;
+    transform: translateX(-50%);
+    text-align: center;
+    font-weight: bold;
+  }
+  .pointer-arrow {
+    font-size: 1.4em;
+    line-height: 1;
+  }
+  .pointer-label {
+    font-size: 0.7em;
+    line-height: 1;
+  }
+
+  /* array‐element color keys */
+  .v-element {
+    background-color: #72ebae;
+  }
+  .w-element {
+    background-color: #f4cccc;
+  }
+
+   /* ─── thick border around the current array item ─── */
+  .element.current-item {
+    border: 3px solid #333;
+  }
+
+   /* ← ADD THIS RIGHT HERE */
+  .element.choice-element {
+    background-color: #ffcf3e;
+  }
+  
+  /* matrix key in legend */
+  .legend-box.k-element {
+    background-color: rgba(79, 172, 248, 0.423);
+  }
+  /* inclusion choice key */
+  .legend-box.choice-element {
+    background-color: #ffcf3e;
+  }
+  /* skip choice key */
+  .legend-box.skip-element {
+    background-color: rgba(255, 67, 67, 0.795);
+  }
+  /* make the “current cell” legend swatch yellow */
+.legend-box.sel-element {
+  background-color: #edf641;
+}
+
+/* Solution‐items key in legend */
+.legend-box.insideKnapsack-element {
+  background-color: #12f7d1;
+}
+
+/* Solution‐items key in legend */
+.legend-box.element.outsideKnapsack-element {
+  background-color: #bd2e2e;
+}
+
+/* ── CLONE FOR DP-CELL SMASH ANIMATION ── */
+ .cell-clone {
+   position: absolute;
+   transition: transform 1s ease, opacity 1s ease;
+   z-index: 100;
+ }
+  .cell-clone .element {
+   border: 1px solid #333;   /* no background override here */
+ }
+
+ /* if the original cell was marked .choice-element, paint it orange */
+ .cell-clone .element.choice-element {
+   background-color: #ffcf3e !important;
+ }
+</style>
+
+</head>
+<body>
+  <h2>0-1 Knapsack (Dynamic Programming) Demo</h2>
+
+  <div id="arrayInputs" style="white-space: nowrap; margin-bottom:10px;">
+    <label>v (Values):</label>
+    <input id="vArrayInput" placeholder="e.g. 6,8,4,7,5" style="width:200px; margin: 0 8px;">
+    <label>w (Weights):</label>
+    <input id="wArrayInput" placeholder="e.g. 4,5,3,7,2" style="width:200px; margin: 0 8px;">
+    <button id="createItemsBtn">Create items</button>
+  </div>
+
+  <div id="buttons">
+    <label>Item size:</label>
+    <input type="number" id="itemSizeInput" min="1" max="20" placeholder="n" style="width:50px;">
+    <button id="randomItemBtn">Random items</button>
+
+    <label style="margin-left:16px;">W (Capacity):</label>
+    <input type="number" id="capacityInput" min="0" max="30" placeholder="W" style="width:50px;">
+    <button id="setWeightBtn">Set weight</button>
+
+    <button id="prevBtn" disabled>Previous</button>
+    <button id="nextBtn" disabled>Next</button>
+    <button id="playBtn">Play</button>
+
+    <label>Speed:</label>
+    <select id="speed">
+      <option value="1">1×</option>
+      <option value="2">2×</option>
+      <option value="4">4×</option>
+      <option value="8">8×</option>
+      <option value="16">16×</option>
+      <option value="32">32×</option> 
+    </select>
+  </div>
+
+  <div class="legend">
+    <!-- <span class="legend-box v-element"></span><span class="legend-label">v (Values)</span>
+    <span class="legend-box w-element"></span><span class="legend-label">w (Weights)</span>
+    <span class="legend-box k-element"></span><span class="legend-label">K (DP table)</span> -->
+    <span class="legend-box sel-element"></span><span class="legend-label">Current cell</span>
+    <span class="legend-box choice-element"></span><span class="legend-label">Include Item</span>
+     <span class="legend-box skip-element"></span><span class="legend-label">Exclude Item</span>
+    <span class="legend-box insideKnapsack-element"></span><span class="legend-label">Inside Knapsack</span>
+<span class="legend-box outsideKnapsack-element"></span><span class="legend-label">Outside Knapsack</span>
+
+     
+  </div>
+
+  <div id="commentary"></div>
+
+  <!-- Arrays -->
+  <div><strong>v (Values):</strong></div>
+  <div id="v-array" class="array-container"></div>
+
+  <div><strong>w (Weights):</strong></div>
+  <div id="w-array" class="array-container"></div>
+
+  <!-- DP Table -->
+  <div><strong>K (DP table):</strong></div>
+  <table id="k-table" class="dp-table">
+  <thead id="k-head">…</thead>
+  <tbody id="k-body">…</tbody>
+</table>
+
+  <!-- Backtracking Results -->
+   <div id="selectedItemsContainer" style="display:none; margin-top:10px;">
+  </div>
+  <script>
+    // ---- Global State ----
+    let v = [6, 8, 4, 7, 5];
+    let w = [4, 5, 3, 7, 2];
+    let W = 12;
+
+    let steps = [];
+    let current = 0;
+    let playing = false;
+    let intervalId = null;
+
+    // ---- Utility Functions ----
+    function deepCopy(obj) { return JSON.parse(JSON.stringify(obj)); }
+    function recordStep(state) { steps.push(deepCopy(state)); }
+    function showAlert(msg) { alert(msg); }
+
+    // ---- Demo Reset & Setup ----
+    function resetDemo() {
+      steps = [];
+    buildSteps();
+    // start “one step before” the first record…
+    current = -1;
+    // clear the text and hide the DP table
+    document.getElementById('commentary').textContent = '';
+    document.getElementById('k-table').style.display = 'none';
+    // disable “Prev,” enable “Next”
+    document.getElementById('prevBtn').disabled = true;
+    document.getElementById('nextBtn').disabled = false;
+    // render just the two input arrays (no table yet)
+    renderArray('v-array', v, [], null, null);
+    renderArray('w-array', w, [], null, null);
+    }
+
+    // ---- Input Handlers ----
+    document.getElementById('randomItemBtn').addEventListener('click', () => {
+      const n = +document.getElementById('itemSizeInput').value;
+      if (!n || n < 1 || n > 20) return showAlert('Enter valid n (1–20)');
+      v = Array(n).fill(0).map(() => Math.floor(Math.random()*10)+1);
+      w = Array(n).fill(0).map(() => Math.floor(Math.random()*6)+1);
+      document.getElementById('capacityInput').value = W;
+      resetDemo();
+    });
+
+    document.getElementById('createItemsBtn').addEventListener('click', () => {
+      const vArr = document.getElementById('vArrayInput').value.split(',').map(Number);
+      const wArr = document.getElementById('wArrayInput').value.split(',').map(Number);
+      if (vArr.length !== wArr.length || vArr.some(isNaN) || wArr.some(isNaN))
+        return showAlert('Enter equal-length valid numbers');
+      v = vArr; w = wArr;
+      resetDemo();
+    });
+
+    document.getElementById('setWeightBtn').addEventListener('click', () => {
+      const newW = +document.getElementById('capacityInput').value;
+      if (isNaN(newW) || newW < 0 || newW > 30) return showAlert('Enter valid W (0–30)');
+      W = newW;
+      resetDemo();
+    });
+
+    // ---- Step Construction ----
+    function buildSteps() {
+      const n = v.length;
+      const K = Array.from({ length: n }, () => Array(W+1).fill(0));
+
+      recordStep({ v, w, K, selected: [], i: null, j: null, description: 'Initialize K' });
+
+      // Fill first row
+            // ─── Special‐case row 0 ─────────────────────────────────
+      for (let j = 0; j <= W; j++) {
+        const cmp0 = j < w[0]
+        ? `w[0] > j: ${w[0]} > ${j} (weight of first item is greater than current capacity)`
+        : `i < n: ${j} < ${W+1} (weight of current item is less than current capacity, populating first row with item value until row is full)`;
+
+
+        if (j < w[0]) {
+          // non‐take: no highlights, no animation
+          recordStep({
+            v, w, K, selected: [], i: 0, j,
+            takePrev: null,
+            skipPrev: null,
+            animate: false,
+            description: cmp0
+          });
+          // assign = 0
+          K[0][j] = 0;
+          const assign0 = `K[0][${j}] = 0 (not included)`;
+          recordStep({
+            v, w, K, selected: [], i: 0, j,
+            takePrev: null,
+            skipPrev: null,
+            animate: false,
+            description: assign0
+          });
+        } else {
+          // take: only v[0] highlights+animates, no DP‐cell
+          recordStep({
+            v, w, K, selected: [], i: 0, j,
+            takePrev: [-1, -1],  // truthy so v-array highlights
+            skipPrev: null,
+            animate: false,      // no DP smash on compare
+            description: cmp0
+          });
+          // assign = v[0]
+          K[0][j] = v[0];
+          const assign0 = `K[0][${j}] = v[0] = ${v[0]} (included)`;
+          recordStep({
+            v, w, K, selected: [], i: 0, j,
+            takePrev: [-1, -1],
+            skipPrev: null,
+            animate: true,       // only v-array smash in stepForward()
+            description: assign0
+          });
+        }
+      }
+
+      // Fill remaining rows
+      for (let i = 1; i < n; i++) {
+        for (let j = 0; j <= W; j++) {
+        // step 1: comparison
+       const without = K[i-1][j];
+       const withItem = j < w[i]
+        ? 0
+        : v[i] + K[i-1][j - w[i]];
+     let cmp;
+    if (j < w[i]) {
+      cmp = `j < w[${i}]: ${j} < ${w[i]}  (weight of current item is greater than current capacity)`;
+    } else {
+      const vi = v[i];
+     const lhs = `K[${i-1}][${j - w[i]}] + v[${i}]`;
+      const rhs = `K[${i-1}][${j}]`;
+      const cmpSymbol = withItem > without ? '>' : withItem < without ? '<' : '==';
+
+      cmp = `${lhs} ${cmpSymbol} ${rhs}: ${withItem} ${cmpSymbol} ${without} `;
+
+      if (withItem > without) {
+        cmp += `(value of ${j}th weight knapsack is greater including item than excluding it)`;
+      } else if (withItem < without) {
+        cmp += `(value of ${j}th weight knapsack is lesser including item than excluding it)`;
+      } else {
+        cmp += `(including and excluding the item for the ${j}th weight knsapsack are the same)`;
+      }
+
+    }
+      // ── ADD both possible predecessors here ───────────────
+      const prevTake = j < w[i] ? null : [i-1, j - w[i]];
+      const prevSkip = [i-1, j];
+            recordStep({
+        v, w, K, selected: [], i, j,
+        takePrev: prevTake,
+        skipPrev: prevSkip,
+        animate: false,          // ← no smash on compare
+        description: cmp
+      });
+ 
+      K[i][j] = Math.max(withItem, without);
+           const assignDesc = withItem > without
+       ? `K[${i}][${j}] = K[${i-1}][${j - w[i]}] + v[${i}] = ${withItem} (item included)`
+       : `K[${i}][${j}] = K[${i-1}][${j}] = ${without} (item excluded)`;
+            recordStep({
+        v, w, K, selected: [], i, j,
+        takePrev: prevTake,
+        skipPrev: prevSkip,
+        animate: true,           // ← smash on assignment
+       description: assignDesc
+      });
+        }
+      }
+
+      recordStep({ v, w, K, selected: [], i: null, j: null, description: 'Completed DP table' });
+
+      // Backtracking
+      let solCells = [];
+      let skipCells = [];        // ← NEW
+      let selected = [];
+      let i = n - 1, j = W;
+          // mark start of backtracking
+     recordStep({ v, w, K, selected, solCells: solCells.slice(), skipCells: skipCells.slice(),i, j, description: 'Backtracking to find selected items' });
+
+     // step backwards through rows  i = n−1 … 1
+     for (; i > 0; i--) {
+       // 1) comparison step
+       const prevVal = K[i-1][j];
+       const currVal = K[i][j];
+       const cmpDesc = (currVal !== prevVal)
+         ? `k[${i}][${j}] != k[${i-1}][${j}]: ${currVal} != ${prevVal} (item ${i} is in solution)`
+         : `k[${i}][${j}] == k[${i-1}][${j}]: ${currVal} == ${prevVal} (item ${i} is not in solution)`;
+       const prevSkip = [i-1, j];
+       recordStep({
+        v, w, K,
+        selected,
+        solCells: solCells.slice(),
+        skipCells: skipCells.slice(),  // ← ADD THIS
+        i, j,
+        skipPrev: prevSkip,
+        description: cmpDesc
+      });
+
+
+       // 2) assignment step
+ if (currVal !== prevVal) {
+  selected.unshift(i);
+  solCells.push([i, j]);
+
+  const oldJ = j;
+  const newJ = oldJ - w[i];
+
+  const assignDesc =
+    `selected[${i}] = True (item included in final solution)\n` +
+    `j = ${oldJ} - ${w[i]} = ${newJ} (weight left); i-- (move to next item)`;
+
+  // step showing the inclusion (preserve skipCells so far)
+  recordStep({
+    v, w, K,
+    selected,
+    solCells: solCells.slice(),
+    skipCells: skipCells.slice(),  // ✅ take a snapshot here only
+    i,
+    j: oldJ,
+    takePrev: null,
+    skipPrev: null,
+    description: assignDesc
+  });
+
+  j = newJ;
+
+  // carry forward state to next (i-1)
+  recordStep({
+    v, w, K,
+    selected,
+    solCells: solCells.slice(),
+    skipCells: skipCells.slice(),  // ✅ again, preserve growing list
+    i: i - 1,
+    j,
+    takePrev: null,
+    skipPrev: null,
+    description: `Advance to next i=${i - 1}, j=${j}`
+  });
+
+  // ✅ DO NOT overwrite skipCells
+}
+else {
+      // 1) record that this cell was permanently skipped
+      skipCells.push([i, j]);
+      const skipDesc = `selected[${i}] = False (item excluded)`;
+      recordStep({
+          v, w, K,
+          selected,
+          solCells: solCells.slice(),
+          skipCells: skipCells.slice(),   // ← propagate permanent red
+          i, j,
+          takePrev: null,
+          skipPrev: null,  // ← don't highlight [i-1][j] anymore, that's temporary
+          description: skipDesc});
+    }
+     }
+
+     // ── special case for row 0 ────────────────────────────────
+    // 1) comparison for item 0
+const cmp0 = (j >= w[0] && K[0][j] > 0)
+  ? `j >= w[0] && k[0][${j}] > 0 (${j} ≥ ${w[0]})`
+  : `j < w[0] or k[0][${j}] == 0 (${j} < ${w[0]} or K[0][${j}]=${K[0][j]})`;
+
+recordStep({
+  v, w, K,
+  selected,
+  solCells: solCells.slice(),
+  skipCells: skipCells.slice(),  // ✅ preserve red
+  i: 0, j,
+  description: cmp0
+});
+
+if (j >= w[0] && K[0][j] > 0) {
+  selected.unshift(0);
+  solCells.push([0, j]);
+  recordStep({
+    v, w, K,
+    selected,
+    solCells: solCells.slice(),
+    skipCells: skipCells.slice(),  // ✅ preserve red again
+    i: 0, j,
+    description: 'selected[0] = True'
+  });
+} else {
+  skipCells.push([0, j]);  // ✅ final red highlight for item 0
+  recordStep({
+    v, w, K,
+    selected,
+    solCells: solCells.slice(),
+    skipCells: skipCells.slice(),
+    i: 0, j,
+    description: 'selected[0] = False'
+  });
+}
+     recordStep({
+  v, w, K, selected,
+  solCells: solCells.slice(),
+  skipCells: skipCells.slice(),   // ← PRESERVE red cells
+  i: null, j: null,
+  description: 'Backtracking complete'
+});
+
+recordStep({
+  v, w, K, selected,
+  solCells: solCells.slice(),
+  skipCells: skipCells.slice(),   // ← PRESERVE red cells here too
+  i: null, j: null,
+  description: `Demo finished. Selected items: [${selected}]. Final value: ${K[n-1][W]}`
+});
+
+    }
+
+    // ---- Render Functions ----
+    function renderArray(containerId, data, highlightIdxs, choiceIdx, currentIdx) {
+      const container = document.getElementById(containerId);
+      container.innerHTML = '';
+      data.forEach((val, idx) => {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'element-wrapper';
+        // ← allow us to find v-array items later
+         wrapper.dataset.idx = idx;
+      // ← tag each cell so we can find it later
+
+        const elem = document.createElement('div');
+        elem.className = 'element';
+        elem.textContent = val;
+       if (containerId === 'v-array') elem.classList.add('v-element');
+      if (containerId === 'w-array') elem.classList.add('w-element');
+      // highlight the current item in this array
+      if (idx === currentIdx) elem.classList.add('current-item');
+        if (highlightIdxs.includes(idx)) elem.classList.add('sel-element');
+
+       // highlight v[i] orange on the “take” choice only
+      if (containerId === 'v-array' && choiceIdx === idx) {
+        elem.classList.add('choice-element');
+      }
+        const idxLabel = document.createElement('div');
+        idxLabel.className = 'index-label';
+        idxLabel.textContent = idx;
+
+        wrapper.append(elem, idxLabel);
+        container.append(wrapper);
+      });
+    }
+
+    function renderDPTable(step) {
+  const { K, i: ptrI, j: ptrJ } = step;
+  const head = document.getElementById('k-head');
+  const body = document.getElementById('k-body');
+  head.innerHTML = '';
+  body.innerHTML = '';
+
+  // — Build column headers with a corner cell —
+  const headerRow = document.createElement('tr');
+  const corner = document.createElement('th');
+  corner.textContent = 'i\\j';
+  headerRow.appendChild(corner);
+  for (let col = 0; col <= W; col++) {
+    const th = document.createElement('th');
+    th.textContent = col;
+    headerRow.appendChild(th);
+  }
+  head.appendChild(headerRow);
+
+  // — Build each row (with its row-index TH + data cells) —
+  K.forEach((rowArr, rowIdx) => {
+    const tr = document.createElement('tr');
+
+    // row index cell
+    const rowHeader = document.createElement('th');
+    rowHeader.textContent = rowIdx;
+    rowHeader.scope = 'row';
+    tr.appendChild(rowHeader);
+
+    // data cells
+    rowArr.forEach((cellVal, colIdx) => {
+      const td = document.createElement('td');
+      const wrapper = document.createElement('div');
+      wrapper.className = 'cell-wrapper';
+      wrapper.dataset.row = rowIdx;
+       wrapper.dataset.col = colIdx;
+      // the actual DP value box
+       const cell = document.createElement('div');
+            // base DP styling
+      cell.className = 'element k-element';
+
+      // highlight the "take" predecessor
+      if (step.takePrev &&
+          rowIdx === step.takePrev[0] &&
+          colIdx === step.takePrev[1]) {
+        cell.classList.add('choice-element');
+      }
+
+    // ── permanent highlight of exactly-picked DP cells ──
+      // ── permanent include highlights as turquoise ──
+      if (step.solCells &&
+          step.solCells.some(([r,c]) => r === rowIdx && c === colIdx)) {
+        cell.classList.add('insideKnapsack-element');
+      }
+      // ── permanent exclude highlights as dark red ──
+      if (step.skipCells &&
+          step.skipCells.some(([r,c]) => r === rowIdx && c === colIdx)) {
+        cell.classList.add('outsideKnapsack-element');
+      }
+
+      
+      // highlight the choice cell orange (will stick now)
+      if (step.choicePrev &&
+          rowIdx === step.choicePrev[0] &&
+          colIdx === step.choicePrev[1]) {
+        cell.classList.add('choice-element');
+      }
+      // ← INSERT the skip‐highlight **right after** that, before you set textContent:
+      if (step.skipPrev &&
+          rowIdx === step.skipPrev[0] &&
+          colIdx === step.skipPrev[1] &&
+          !(step.skipCells && step.skipCells.some(([r, c]) => r === rowIdx && c === colIdx))) {
+        cell.classList.add('skip-element');
+      }
+      cell.textContent = cellVal;
+      if (ptrI === rowIdx && ptrJ === colIdx) {
+        cell.classList.add('sel-element');
+      }
+      wrapper.appendChild(cell);
+
+      td.appendChild(wrapper);
+      tr.appendChild(td);
+    });
+
+    body.appendChild(tr);
+  });
+}
+
+  /**
+   * Clone the DP-cell at [fromRow,fromCol] and animate it into [toRow,toCol].
+   */
+  function smashCell(fromRow, fromCol, toRow, toCol, onComplete) {
+    const table = document.getElementById('k-table');
+    const srcWrapper = table.querySelector(
+      `.cell-wrapper[data-row="${fromRow}"][data-col="${fromCol}"]`
+    );
+    const dstWrapper = table.querySelector(
+      `.cell-wrapper[data-row="${toRow}"][data-col="${toCol}"]`
+    );
+    if (!srcWrapper || !dstWrapper) {
+      onComplete();
+      return;
+    }
+    const srcRect = srcWrapper.getBoundingClientRect();
+    const dstRect = dstWrapper.getBoundingClientRect();
+
+    const clone = srcWrapper.cloneNode(true);
+    clone.classList.add('cell-clone');
+    document.body.appendChild(clone);
+
+    // ── OVERRIDE TRANSITION DURATION BASED ON SPEED SELECT ──
+   const baseDurationMs = 1000;   // matches your CSS .cell-clone default of 1s
+   const speedValue    = parseInt(document.getElementById('speed').value, 10) || 1;
+   let durationMs    = baseDurationMs / speedValue;
+
+       // if this is a manual Next (i.e. not autoplay), shrink to your click-interval
+   if (!playing) {
+     const now = performance.now();
+     const last = smashCell._lastClickTime || now;
+     const dt  = now - last;
+     smashCell._lastClickTime = now;
+     // finish no slower than the time since your last click
+     durationMs = Math.min(durationMs, dt);
+   }
+
+   
+   clone.style.transition = `transform ${durationMs}ms ease, opacity ${durationMs}ms ease`;
+
+    // position clone atop the source
+    clone.style.left = srcRect.left + 'px';
+    clone.style.top  = srcRect.top  + 'px';
+
+    // force reflow so transition will run
+    clone.getBoundingClientRect();
+
+    // compute translation
+    const dx = dstRect.left - srcRect.left;
+    const dy = dstRect.top  - srcRect.top;
+
+    clone.style.transform = `translate(${dx}px, ${dy}px)`;
+    clone.style.opacity   = '0';
+
+    clone.addEventListener('transitionend', () => {
+      clone.remove();
+      onComplete();
+    }, { once: true });
+  }
+
+  /**
+ * Clone the v-array element at index idx and fly it into DP-cell [toRow,toCol].
+ */
+function smashArrayElement(arrayId, idx, toRow, toCol) {
+  const src = document
+    .getElementById(arrayId)
+    .querySelector(`.element-wrapper[data-idx="${idx}"]`);
+  const dst = document.querySelector(
+    `.cell-wrapper[data-row="${toRow}"][data-col="${toCol}"]`
+  );
+  if (!src || !dst) return;
+
+  const srcRect = src.getBoundingClientRect();
+  const dstRect = dst.getBoundingClientRect();
+  // clone only the element‐wrapper, then drop its index label
+  const clone = src.cloneNode(true);
+  const lbl   = clone.querySelector('.index-label');
+  if (lbl) clone.removeChild(lbl);
+  clone.classList.add('cell-clone');
+  document.body.appendChild(clone);
+
+
+  // reuse your speed-override logic
+  const base = 1000;
+  const sp   = parseInt(document.getElementById('speed').value, 10) || 1;
+  const dur  = base / sp;
+  clone.style.transition = `transform ${dur}ms ease, opacity ${dur}ms ease`;
+
+  // position & animate
+  clone.style.left      = srcRect.left + 'px';
+  clone.style.top       = srcRect.top  + 'px';
+  clone.getBoundingClientRect();
+  const dx = dstRect.left - srcRect.left;
+  const dy = dstRect.top  - srcRect.top;
+  clone.style.transform = `translate(${dx}px, ${dy}px)`;
+  clone.style.opacity   = '0';
+
+  clone.addEventListener('transitionend', () => clone.remove(), { once: true });
+}
+
+    // ---- Playback Controls ----
+    function renderStep() {
+      const step = steps[current];
+      // pass the item-index (step.i) as the “choiceVal” whenever we have a takePrev
+      renderArray('v-array', step.v, step.selected, step.takePrev ? step.i : null, step.i);
+       renderArray('w-array', step.w, step.selected, null, step.i);
+      renderDPTable(step);
+
+      document.getElementById('commentary').textContent = step.description;
+      document.getElementById('prevBtn').disabled = (current < 0);
+      document.getElementById('nextBtn').disabled = (current === steps.length - 1);
+
+      const resultEl = document.getElementById('selectedItemsContainer');
+      if (step.description.startsWith('Demo finished')) {
+        resultEl.style.display = '';
+        document.getElementById('selectedItems').textContent = step.selected.join(', ');
+        document.getElementById('totalValue').textContent = K[v.length-1][W];
+      } else {
+        resultEl.style.display = 'none';
+      }
+    }
+
+  function stepForward() {
+          if (current < steps.length - 1) {
+      current++;
+      // as soon as we hit step 0, show the table and commentary
+      if (current === 0) {
+        document.getElementById('k-table').style.display = '';
+      }
+      renderStep();
+
+    // kick off the smash animation, but don't wait for it
+    const nextStep = steps[current];
+    // only do smash when we flagged animate:true
+    if (nextStep.animate) {
+      if (nextStep.i === 0 && nextStep.takePrev) {
+        // row 0 “take” case → ONLY animate v-array
+        smashArrayElement('v-array', nextStep.i, nextStep.i, nextStep.j);
+      } else {
+        // all other rows → original smash behavior
+        const prevCoord = nextStep.takePrev || nextStep.skipPrev;
+        if (prevCoord) {
+          smashCell(prevCoord[0], prevCoord[1],
+                    nextStep.i,    nextStep.j,
+                    () => {});
+          if (nextStep.takePrev) {
+            smashArrayElement('v-array', nextStep.i, nextStep.i, nextStep.j);
+          }
+        }
+      }
+    }
+    }
+
+    if (current === steps.length - 1) togglePlay(false);
+  }
+
+
+    function stepBackward() {
+    // allow stepping back *before* step 0
+    if (current > -1) current--;
+    if (current < 0) {
+      // hide table & commentary, disable Prev
+      document.getElementById('k-table').style.display = 'none';
+      document.getElementById('commentary').textContent = '';
+      document.getElementById('prevBtn').disabled = true;
+      document.getElementById('nextBtn').disabled = false;
+      // re-render only v & w arrays
+      renderArray('v-array', v, [], null, null);
+      renderArray('w-array', w, [], null, null);
+    } else {
+            // if backing up *into* step 0, make sure the table is visible again
+      if (current === 0) {
+        document.getElementById('k-table').style.display = '';
+      }
+      renderStep();
+    }
+
+
+    }
+    function togglePlay(start) {
+      playing = start;
+      document.getElementById('playBtn').textContent = playing ? 'Pause' : 'Play';
+      if (!playing) { clearInterval(intervalId); return; }
+      const speed = +document.getElementById('speed').value || 1;
+      intervalId = setInterval(stepForward, 1000 / speed);
+    }
+
+    document.getElementById('prevBtn' ).addEventListener('click', stepBackward);
+     document.getElementById('nextBtn').addEventListener('click', stepForward);
+    document.getElementById('playBtn').addEventListener('click', () => togglePlay(!playing));
+    document.getElementById('speed').addEventListener('change', () => {
+      if (playing) togglePlay(false), togglePlay(true);
+    });
+
+    // ---- Initialize ----
+    document.getElementById('capacityInput').value = W;
+    resetDemo();
+  </script>
+</body>
+</html>
