@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Greatest Common Divisor (GCD)</title>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <link rel="stylesheet" href="../../../css/style.css">
+  <link rel="stylesheet" href="../../../css/problem.css">
+</head>
+<body>
+  <h1>Greatest Common Divisor (GCD)</h1>
+
+  <section>
+    <h2>Problem Description</h2>
+    <p>
+      Given two non-negative integers \(a\) and \(b\), 
+      compute their greatest common divisor&mdash;i.e., the largest integer \(d\) such that 
+      \(d\) divides both \(a\) and \(b\). In notation, this is written as \(d \mid a\) and \(d \mid b\),
+      which means that there exist integers \(k\) and \(\ell\) such that \(a = dk\) and \(b = d\ell\).
+    </p>
+
+    <p>
+      Given two non-negative integers \(a\) and \(b\), 
+      compute their greatest common divisor&mdash;i.e., the largest integer \(d\) such that 
+      \(d \mid a\) and \(d \mid b\).
+    </p>
+
+    <h3>Input</h3>
+    <p>
+      Two non-negative integers \(a\) and \(b\), (optionally, with \(a \geq b\)).
+    </p>
+
+    <h3>Output</h3>
+    <p>
+      An integer \(d\), the greatest common divisor of \(a\) and \(b\).
+    </p>
+  </section>
+
+  <section>
+    <h2>Motivation/Applications</h2>
+    <p>
+      The GCD is fundamental in number theory and appears in many areas such as simplifying fractions, modular arithmetic, cryptography (e.g., RSA), and algorithmic problems like computing least common multiples (LCMs) and Diophantine equations.
+    </p>
+  </section>
+
+  <section>
+    <h2>Examples</h2>
+    <div class="example-box">
+      <strong class="example-title">Example 1</strong><br>
+      <p>Input: \(a = 48, \; b = 18\)</p>
+      <p>Output: \(6\)</p>
+      <p>Explanation: \(6\) divides both 48 and 18, and no larger number does.</p>
+    </div>
+    <br>
+    <div class="example-box">
+      <strong class="example-title">Example 2</strong><br>
+      <p>Input: \(a = 101, \; b = 103\)</p>
+      <p>Output: \(1\)</p>
+      <p>Explanation: 101 and 103 are relatively prime.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>Common Algorithms/Techniques</h2>
+    <ul>
+      <li>Brute-force divisor check (inefficient)</li>
+      <li><a href="?path=Algorithms/Decrease-and-Conquer/Euclidean GCD">Euclidean Algorithm</a> 
+      (efficient and classic)</li>
+      <li>Extended Euclidean Algorithm: An extension of the Euclidean Algorithm that not only computes 
+      \(\gcd(a, b)\), but also finds integers \(x\) and \(y\) such that
+      \[
+        ax + by = \gcd(a, b).
+      \]
+      This is useful for solving linear Diophantine equations and is essential for computing modular inverses, 
+      which are important in cryptography and modular arithmetic.
+    </li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Variants/Related Problems</h2>
+    <ul>
+      <li>Least Common Multiple (LCM)</li>
+      <li>Modular Inverse Computation</li>
+      <li>Solving Linear Diophantine Equations</li>
+    </ul>
+  </section>
+</body>
+</html>

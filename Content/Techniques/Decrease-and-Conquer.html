@@ -155,21 +155,26 @@
   for the complete details of this analysis.
   </p>
 </div>
-<p>
-<strong>Summary of Decrease-by-a-Constant</strong>
-</p>
+<p><strong>Summary of Decrease-by-a-Constant</strong></p>
 <ul>
-  <li>Decrease-by-a-Constant is a type of Decrease-and-Conquer in which
-   each call reduces the problem size by 1 (or by a fixed constant \(c\)), 
-   ideally doing only \(O(1)\) extra work per call.</li>
-  <li>About \(n/c\) recursive calls (or iterations of a loop) are executed, 
-  often yielding \(O(n)\) time (unless the extra work is not constant, as is the case with Insertion Sort).
-  <li> The spaced use usually depends on whether it is implemented iteratively recursively.
-  The implementation of Factorial above used an extra \(O(n)\) space due to the recursion stack. 
-  On the other hand, since it is implemented iteratively, 
-  Insertion Sort only uses a constant amount of extra space.</li>
+  <li><strong>Approach:</strong> Each step reduces the input size from \(n\) to \(n - c\) (commonly \(c = 1\)), 
+  discarding a fixed constant.</li>
+  <li><strong>Recursion depth:</strong> \(O\bigl(n / c\bigr) = O(n)\) levels of recursion (or loop iterations).</li>
+  <li><strong>Time complexity:</strong><br>
+    With \(O(1)\) work per level,
+    \[
+      T(n) = T(n - c) + O(1) = O(n).
+    \]
+    More generally, if each level incurs \(O(f(n))\) work, then
+    \[
+      T(n) = T(n - c) + O(f(n)) = O\bigl(f(n)\,n\bigr).
+    \]
+  </li>
+  <li><strong>Space complexity:</strong> \(O\bigl(n / c\bigr) = O(n)\) stack space for a naïve recursive version (or \(O(1)\) if implemented iteratively or via tail‐call optimization), plus any extra workspace per level.  
+    For example, the recursive Factorial demo uses \(O(n)\) stack space, 
+    whereas Insertion Sort uses \(O(1)\) extra space since it is implemented iteratively.
+  </li>
 </ul>
-
 </section>
 
 <hr>
@@ -185,8 +190,7 @@
     In general, these algorithms reduce the input size from \(n\) to roughly \(\lfloor n/b\rfloor\) 
     or \(\lceil n/b\rceil\) for some constant \(b\), where \(b=2\) is by far the most common.</p>
     <p>
-    You see this pattern in binary search (compare to the middle and discard half the array), 
-    quickselect (repeatedly partition an array around a pivot and recurse on one side), 
+    You see this pattern in binary search (compare to the middle and discard half the array) 
     and geometric searches that halve the search region. 
     Because each step eliminates a constant fraction, there are only \(O(\log_b n)\) levels of recursion, 
     and the total runtime is the per-level work multiplied by this logarithmic depth.
@@ -194,7 +198,7 @@
   <p>The two most basic applications of this approach are Binary Search and Exponentiation by Squaring.</p>
 
     <div class="example-box">
-      <strong class="example-title">Example 3: Exponentiation By Squaring</strong>
+      <strong class="example-title">Example 3: Exponentiation By Squaring (Decrease-by-a-Constant-Factor)</strong>
       
        <p>
         Suppose you want to compute \(x^n\) for a given real number \(x\) and nonnegative integer \(n\). 
@@ -250,7 +254,7 @@ with \(b=2\). Here is a demonstration of the algorithm in action.
 
     </div>
 <div class="example-box">
-  <strong class="example-title">Example 4: Binary Search</strong>
+  <strong class="example-title">Example 4: Binary Search (Decrease-by-a-Constant-Factor)</strong>
   <p>
     The <a href="?path=Problems/Foundational/Searching">Searching</a>
     problem asks to find the index an element with a given value \(v\) in an array \(A\) of size \(n\).
@@ -331,88 +335,536 @@ with \(b=2\). Here is a demonstration of the algorithm in action.
 </ul>
 
 <hr>
+<section id="variable-size-decrease">
+  <h2>Variable-Size-Decrease</h2>
 
-  <!-- Variable-Size Decrease -->
-  <section id="variable-size-decrease">
-    <h2>Variable-Size-Decrease</h2>
+  <p>
+    In the variable-size-decrease strategy, each step reduces the problem size by a non-fixed amount—often determined by a selection, partitioning, or transformation process that depends on the input itself. Unlike constant or constant-factor reductions, the size of the next subproblem is not predictable in advance. This variability makes analysis more nuanced, but many powerful algorithms&mdash;such as QuickSelect and Quicksort&mdash;rely on this approach to achieve optimal or near-optimal performance in practice.
+  </p>
+  <p>
+    Typically, these algorithms spend \(O(n)\) time on a partitioning or scanning step, followed by a recursive call on a subproblem of size \(k\), where \(k\) may range from 0 to \(n - 1\). In the best case, the reduction is large, leading to fast convergence; in the worst case, the progress is slow—sometimes resulting in poor time complexity unless additional strategies (like randomization or median-of-medians) are applied.
+  </p>
 
-    <p>
-      In this form, the next subproblem size depends on a selection or partition step that costs \(O(n)\), and the chosen subproblem has size \(k\) which may vary.
-    </p>
+<div class="example-box">
+  <strong class="example-title">Example 5: Euclidean Algorithm (Variable-Size-Decrease)</strong>
+  <p>
+    The <a href="?path=Problems/Foundational/GCD">Greatest Common Divisor</a> (GCD) 
+    problem asks for the largest integer that divides two positive integers \(a\) and \(b\) without leaving a remainder.
+    If you are unfamiliar with GCD, make sure you read the GCD page.
+    While a brute-force approach would check all numbers from \(\min(a,b)\) down to 1, there is a much faster method based on a variable-size-decrease strategy.
+  </p>
+  <p>
+    The Euclidean Algorithm for computing \(\gcd(a, b)\) works as follows:
+  </p>
+  <ol>
+    <li>If \(b = 0\), return \(a\). (We are done.)</li>
+    <li>Otherwise, recursively compute \(\gcd(b, a \bmod b)\).</li>
+  </ol>
+  <p>
+  To understand why this works, recall that any number that divides both \(a\) and \(b\) (where \(a\ge b\)) 
+  must also divide the remainder when \(a\) is divided by \(b\)&mdash;that is, \(a \bmod b\). 
+  This is because we can write \(a = bq + r\), where \(r = a \bmod b\), and any common divisor of \(a\) and \(b\) must also divide \(r\).
+  So the set of common divisors of \((a, b)\) is the same as that of \((b, a \bmod b)\), and thus their greatest common divisor is the same.
+</p>
+<p>
+  Intuitively, the Euclidean Algorithm works by replacing the original problem with a "smaller but equivalent" one:
+  instead of asking "what divides both \(a\) and \(b\)?", we ask "what divides both \(b\) and the leftover part of \(a\) after removing as many full \(b\)'s as possible?"
+</p>
 
-    <div class="example-box">
-      <strong class="example-title">Example 5: Quickselect</strong>
-      <p>
-        To find the \(i\)th smallest element in \(A[0..n-1]\):
-      </p>
-      <pre><code>function quickselect(A, i, low, high):
-    if low == high:
-      return A[low]
-    pivotIndex = partition(A, low, high)
-    if i == pivotIndex:
-      return A[i]
-    else if i < pivotIndex:
-      return quickselect(A, i, low, pivotIndex-1)
+
+  <p>
+    At each step, the size of the problem decreases from \((a,b)\) to \((b, a \bmod b)\), but the amount it decreases depends on the values of \(a\) and \(b\).
+    In the worst case, it may only shrink slightly; in the best case, it decreases rapidly.
+    This makes it a clear example of a <em>variable-size-decrease</em> algorithm.
+  </p>
+  <p>
+    Here's more formal pseudocode for the recursive version of the algorithm:
+  </p>
+  <pre><code>gcd(a, b):
+    if b == 0:
+      return a
     else:
-      return quickselect(A, i, pivotIndex+1, high)
-</code></pre>
-      <p>
-        Partitioning takes \(O(n)\), and one recursive call handles the chosen side.
-      </p>
-      <!-- If a demo is available, embed it here; otherwise, remove this container. -->
-      <div class="embeddedDemoContainer">
-        <iframe
-          class="embeddedDemo"
-          src="/Algorithms/Content/Demos/Decrease-and-Conquer/Quickselect Demo.html"
-          allow="fullscreen"
-          name="Quickselect-VarDecr-demo"
-        ></iframe>
-      </div>
-    </div>
-  </section>
+      return gcd(b, a % b)</code></pre>
 
-  <!-- Analyzing Decrease-and-Conquer Algorithms -->
-  <section id="analysis">
-    <h2>Analyzing Decrease-and-Conquer Algorithms</h2>
-    <p>
-      We capture the shrinking of the input and per-step cost via recurrences.  The three variants give:
-    </p>
-    <ul>
-      <li>
-        <strong>Decrease by a Constant:</strong>
-        \[
-          T(n) = T(n - 1) + O(1),
-        \]
-        which solves to \(T(n)=O(n)\).
-      </li>
-      <li>
-        <strong>Decrease-by-a-Constant-Factor:</strong>
-        \[
-          T(n) = T\bigl(\tfrac{n}{b}\bigr) + O(1),
-        \]
-        which by the Master Theorem yields \(T(n)=O(\log_b n)=O(\log n)\).
-      </li>
-      <li>
-        <strong>Variable-Size Decrease:</strong>
-        \[
-          T(n) = T(k) + O(n),
-        \]
-        where \(k\) is the chosen subproblem size.  If \(k\approx n/2\) on average, \(T(n)=O(n)\); in the worst case \(k=n-1\), giving \(T(n)=O(n^2)\).
-      </li>
-    </ul>
-  </section>
+  <p>
+    The following demonstration shows the algorithm in action.
+  </p>
+  <div class="embeddedDemoContainer">
+    <iframe
+      class="embeddedDemo"
+      src="/Algorithms/Content/Demos/Decrease-and-Conquer/Euclidean GCD Demo.html"
+      allow="fullscreen"
+      name="EuclideanGCD-Variable-demo"
+    ></iframe>
+  </div>
+  <p>
+  Let \(T(a,b)\) be the time to compute \(\gcd(a,b)\).  
+  Each recursive call performs a constant-time modulus operation and then recurses on \(\bigl(b,\;a \bmod b\bigr)\).  
+  In the worst case&mdash;when \((a,b)\) are consecutive Fibonacci numbers&mdash;this recursion makes only \(O(\log b)\) steps, so
+  \[
+    T(a,b) \;=\; O(\log b)
+    \;=\; O\bigl(\log \min(a,b)\bigr).
+  \]
+  Thus the Euclidean Algorithm runs in time logarithmic in the smaller of its two inputs, 
+  making it extremely efficient even for very large integers.
+  (We realize we skimped on the details of this analysis. If you are really interested in understanding 
+  the details, you can find them in various other places including <a href="https://en.wikipedia.org/wiki/Euclidean_algorithm">Euclidean Algorithm (Wikipedia)</a>.)
+</p>
+</div>
 
-  <!-- Summary & Key Takeaways -->
-  <section id="summary">
-    <h2>Summary &amp; Key Takeaways</h2>
-    <p>
-      Decrease-and-Conquer reduces a problem of size \(n\) to one smaller instance, solves it recursively, and does a small amount of extra work.  The main flavors are:
+<div class="example-box">
+  <strong class="example-title">Example 6: Quickselect (Variable-Size-Decrease)</strong>
+  <p>
+    Quickselect solves the <a href="?path=Problems/Foundational/K-th Order Statistic">kth order statistic</a> problem by:
+    <ol>
+      <li>Choosing a pivot and partitioning the array into \([\lt pivot \; | \; pivot \; | \gt pivot]\).</li>
+      <li>Recursing only on the group that contains the \(k\)th element.</li>
+    </ol>
     </p>
+    <p>
+    On average this runs in \(O(n)\) time (with careful pivot selection), though in the worst case it can be \(O(n^2)\). 
+    </p>
+    <p>
+    This algorithm is a lot like Quicksort, except it only recurses on one part instead of both.
+    Because there are subtleties that make this algorithm a little more complicated than the other 
+    examples in this section, we defer full details, incuding pseudocode, to the
+    <a href="?path=Algorithms/Decrease-and-Conquer/Quickselect">Quickselect</a> page. 
+    
+    <h2>TODO: Insert Simple Demo?</h2>
+  </p>
+</div>
+
+<p><strong>Summary of Variable-Size-Decrease</strong></p>
+<ul>
+  <li><strong>Approach:</strong> Each step performs a selection or partition to choose a pivot (or key) 
+  that typically takes \(O(n)\) time, and then recurses on a subproblem of size \(k\), where \(0 \le k < n\); the exact shrinkage depends on the input.</li>
+  <li><strong>Recursion depth:</strong> Determined by the sequence of chosen \(k\) values: 
     <ul>
-      <li><strong>By a Constant:</strong> \(T(n)=T(n-1)+O(1)=O(n)\).</li>
-      <li><strong>By a Constant Factor:</strong> \(T(n)=T(n/b)+O(1)=O(\log n)\).</li>
-      <li><strong>Variable-Size:</strong> \(T(n)=T(k)+O(n)=O(n)\) on average, worst-case \(O(n^2)\).</li>
+      <li>Best case: Technically, the best case can be \(O(1)\) levels, 
+      although for most problems that does not really occur. 
+      In most cases, the best case of \(O(\log n)\) levels occurs when 
+      \(k\) is generally somewhere around \(n/2\) (or some other fraction) at each step.
+      However, given the nature of this technique, this is difficult to guarantee.</li>
+      <li>Average case: With proper pivot/partition selection, often \(O(\log n)\) levels. 
+      For instance, using random pivot selection in Quickselect.</li>
+      <li>Worst case (poor pivots): \(O(n)\) levels if \(k\approx n-1\) each time.</li>
     </ul>
+  </li>
+  <li><strong>Time complexity:</strong> Can vary greatly based on how well the splitting/pivoting/partitioning happens.
+  For instance:
+    <ul>
+      <li><em>Euclidean Algorithm</em> always has complexity of \(O(\log \min(a,b))\).</li>
+      <li><em>Quickselect</em> has an average-case complexity of \(O(n)\), but its worst-case is \(O(n^2)\)
+      (This can be improved to \(O(n)\) worst-case by using median-of-medians).</li>
+      <li><em>Quicksort</em> (technically a divide-and-conquer algorithm, but it has the variable-size-reduction
+      vibe to it) 
+      has an average-case complexity of \(O(n\log n)\), but a worst-case complexity of 
+      \(O(n^2)\) (avoided by randomization or pivot-selection heuristics).</li>
+    </ul>
+  </li>
+  <li><strong>Space complexity:</strong> 
+  As with the other variations of this technique, it is based on the 
+  recursion stack depth, as well as any additional storage needed by the algorithm. 
+  The difference is that here it can vary. Often an average case of \(O(\log n)\) extra space
+  can be achieived, but the worst-case is generally \(O(n)\).
+  </li>
+</ul>
+
   </section>
+  
+<hr>
+
+<section id="algorithms">
+  <h2>Algorithms Using This Technique</h2>
+  <ul>
+    <li><strong>Decrease-by-a-Constant:</strong>
+      <ul>
+        <li><a href="?path=Algorithms/Decrease-and-Conquer/Factorial">Recursive Factorial</a>: computes \(n!\) by the recurrence \(n! = n \times (n-1)!\), running in \(O(n)\) time.</li>
+        <li><a href="?path=Algorithms/Decrease-and-Conquer/Insertion%20Sort">Insertion Sort</a>: builds a sorted prefix one element at a time, with worst-case \(O(n^2)\) and best-case \(O(n)\) time.</li>
+        <li>Palindrome Check: compares first and last characters and recurses on the substring of length \(n-2\)
+        in \(O(n)\) time.</li>
+        <li>Algorithms that iterate over an array (e.g. linear search, finding a mininum or maximum value, etc.)
+        can be thought of as decrease-by-a-constant, but they are probably better categorized as brute force.</li>
+      </ul>
+    </li>
+    <li><strong>Decrease-by-a-Constant-Factor:</strong>
+      <ul>
+        <li><a href="?path=Algorithms/Decrease-and-Conquer/Binary%20Search">Binary Search</a>: halves a sorted array each step, achieving \(O(\log n)\) time.</li>
+        <li><a href="?path=Algorithms/Decrease-and-Conquer/Exponentiation%20By%20Squaring">Exponentiation by Squaring</a>: reduces the exponent by half per call, requiring \(O(\log n)\) multiplications.</li>
+          <li>Binary Search Tree Operations (balanced tree): descends one level per comparison, 
+          for \(O(\log n)\) time.</li>     
+      </ul>
+    </li>
+    <li><strong>Variable-Size-Decrease:</strong>
+      <ul>
+        <li><a href="?path=Algorithms/Decrease-and-Conquer/Quickselect">Quickselect</a>: partitions around a pivot to select the \(k\)th element, average-case \(O(n)\) and worst-case \(O(n^2)\) time.</li>
+        <li><a href="?path=Algorithms/Decrease-and-Conquer/Euclidean%20Algorithm">Euclidean Algorithm</a>: computes \(\gcd(a,b)\) via \(\gcd(b,\,a \bmod b)\), running in \(O(\log \min(a,b))\) time.</li>
+          <li>Binary Search Tree Operations (unbalanced tree): With an unbalanced tree, the worst-case running time
+          of search, insert, delete, etc. is \(O(h)\), where \(h\) is the height of the tree. Since 
+          \(\log n\leq h \leq n\), the performance can vary widely between trees, and even between calls on the
+          same tree since some paths to a leaf might be as high as \(n\) whereas others as low as \(1\) or \(2\).</li>
+        <li>Interpolation Search: estimates next position to examine based on the key’s value, 
+        giving average-case \(O(\log \log n)\) on uniform data.</li> 
+        <li>Deterministic Median-of-Medians Selection: picks a pivot guaranteeing worst-case \(O(n)\) time for order statistics.</li>
+        <li>Binary GCD (Stein’s Algorithm): uses bit shifts and subtraction to reduce values, 
+        running in \(O(\log a)\) time (where \(a\) is the larger value).</li>   
+      </ul>
+    </li>
+  </ul>
+</section>
+
+<section id="applicability">
+  <h2>When to Use</h2>
+  <p>Apply decrease-and-conquer in problems where a single, slightly smaller instance suffices to build the full solution efficiently:</p>
+  <ul>
+    <li><strong>Natural “one-step” reduction:</strong> When removing or solving for one element (or a fixed small chunk) at a time yields a simpler subproblem—for example, computing <em>n!</em> or inserting one item into an already-sorted prefix.</li>
+    <li><strong>Single subproblem per call:</strong> When you do not need to branch into multiple subinstances (as in divide-and-conquer) but can solve the entire task by a sequence of dependent steps—e.g., gcd via the Euclidean algorithm or Quickselect.</li>
+    <li><strong>Constant-factor shrink:</strong> When you can reduce the size by a constant factor (for instance, halving) each step and pay only small extra work—classic cases are binary search and exponentiation by squaring.</li>
+    <li><strong>Data-dependent reduction:</strong> When the amount you remove or partition varies with the input, leading to good average-case performance (e.g., Quickselect’s pivoting yields average \(O(n)\) time).</li>
+    <li><strong>Low per-step overhead:</strong> When the extra work beyond the recursive call is \(O(1)\) or otherwise negligible, so a long chain of reductions still runs in \(O(n)\) or \(O(\log n)\).</li>
+    <li><strong>Simplicity over branching:</strong> When the problem’s structure does not naturally split into independent subproblems, and a linear or logarithmic “peel-away” approach is clearer and easier to maintain.</li>
+  </ul>
+</section>
+
+<section id="limitations">
+  <h2>Limitations</h2>
+  <p>Decrease-and-conquer may be less suitable in these scenarios:</p>
+  <ul>
+    <li><strong>Worst-case degradation:</strong> Some variable-size algorithms (e.g., naive Quickselect) can fall to \(O(n^2)\) time if the reductions are poorly balanced.</li>
+    <li><strong>Stack depth:</strong> A chain of \(O(n)\) reductions (as in decrease-by-a-constant) can lead to recursion depth \(O(n)\), risking stack overflow for large \(n\).</li>
+    <li><strong>High constant overhead:</strong> When each reduction step entails significant work—such as choosing a precise median pivot—the extra constant factors can outweigh the depth advantage on moderate inputs.</li>
+    <li><strong>Independent subproblems:</strong> If the problem naturally splits into multiple independent pieces, a divide-and-conquer strategy often enables better parallelism and overall efficiency.</li>
+  </ul>
+</section>
+
+<section id="implementation-tips">
+  <h2>Implementation Tips</h2>
+  <ul>
+    <li><strong>Clear base case:</strong> Define and test your termination condition (e.g., \(n \le 1\) or a small threshold) to avoid infinite recursion or loops.</li>
+    <li><strong>Prefer iteration for constant reduction:</strong> For decrease-by-a-constant, implement a simple loop rather than recursion to eliminate stack overhead.</li>
+    <li><strong>Consistent integer reduction:</strong> When shrinking by a factor, apply floor or ceiling division uniformly (e.g., \(\lfloor n/2\rfloor\)) to prevent off-by-one errors.</li>
+    <li><strong>In-place partitioning:</strong> In variable-size algorithms like Quickselect, perform partitioning with two-pointer swaps to maintain \(O(1)\) extra space.</li>
+    <li><strong>Robust pivot choice:</strong> Use a randomized pivot or median-of-medians to guard against 
+    worst-case performance (e.g. \(O(n^2)\) in Quickselect).</li>
+    <li><strong>Hybrid small-case handling:</strong> In variable-size decrease algorithms (such as Quickselect), when the remaining subarray length falls below a small cutoff (e.g. \(n \le 16\)), finish with a simple iterative method (such as insertion sort or a direct scan) to avoid extra partitioning/pivoting and recursive-call overhead.</li>
+    <li><strong>Index-based parameters:</strong> Pass start/end indices instead of slicing arrays to avoid \(O(n)\) copy overhead.</li>
+  </ul>
+</section>
+
+<section id="common-pitfalls">
+  <h2>Common Pitfalls</h2>
+  <ul>
+    <li><strong>Missing or incorrect base case:</strong> Failing to stop when \(n \le 1\) (or your chosen threshold) 
+    can lead to infinite recursion or loops.</li>
+    <li><strong>Off-by-one in size reduction:</strong> Mixing \(\lfloor n/b\rfloor\) and \(\lceil n/b\rceil\) 
+    (or \(n-1\) vs. \(n-c\)) inconsistently may leave subproblems unchanged or skip elements.</li>
+    <li><strong>Unintended array copies:</strong> Using slicing or subarray creation inside each call adds 
+    \(O(n)\) work per step, potentially turning an \(O(n)\) or \(O(n\log n)\) scheme into \(O(n^2)\).</li>
+    <li><strong>Excessive recursion depth:</strong> A long chain of recursive calls—especially without 
+    converting tail calls to iteration—can exhaust the call stack on large inputs.</li>
+    <li><strong>Poor pivot choice:</strong> In Quickselect or similar, consistently picking bad pivots 
+    can degrade average \(O(n)\) time to worst-case \(O(n^2)\).</li>
+    <li><strong>Boundary mismanagement:</strong> Off-by-one errors in start/end indices 
+    (inclusive vs. exclusive) can omit or duplicate elements in subproblems.</li>
+  </ul>
+</section>
+
+<section id="real-world-applications">
+  <h2>Real-World Applications</h2>
+  <p>Decrease-and-conquer techniques power many practical systems, from low-level arithmetic to high-level data services:</p>
+  <ul>
+    <li><strong>Cryptographic protocols:</strong> Exponentiation by squaring accelerates modular exponentiation in RSA, Diffie–Hellman key exchange, and digital signature algorithms.</li>
+    <li><strong>Order statistics:</strong> Quickselect finds medians or percentiles in streaming analytics and real-time monitoring systems in average \(O(n)\) time.</li>
+    <li><strong>Arithmetic libraries:</strong> The Euclidean algorithm or binary GCD computes greatest common divisors and modular inverses in numerical and cryptographic software.</li>
+    <li><strong>Hybrid sorting:</strong> Insertion Sort handles small runs within advanced sorts (e.g. Quicksort, Merge Sort implementations) to reduce overhead and improve performance.</li>
+    <li><strong>Text processing:</strong> Palindrome checks and small-pattern matches in compilers, text editors, and search tools use decrease-by-a-constant logic.</li>
+    <li><strong>Database Systems, Search Engines, File Systems. etc.:</strong> Binary search and similar algorithms
+    are used in many place when searching through sorted data.</li>
+  </ul>
+</section>
+
+<section id="summary">
+  <h2>Summary and Key Takeaways</h2>
+    <ul>
+      <li><strong>Core idea:</strong> Solve a problem of size \(n\) by reducing it to a smaller problem
+      and then solve that subproblem.</li>
+      <li><strong>Three flavors</strong>:
+          <ul>
+            <li><strong>Decrease-by-a-constant</strong>: Peel off a fixed amount each step (e.g. \(n\to n-1\)).</li>
+            <li><strong>Decrease-by-a-constant-factor</strong>: 
+            Shrink by a fixed fraction each time (e.g. \(n\to\lfloor n/2\rfloor\)).</li>
+            <li><strong>Variable-size decrease</strong>: 
+            Reduce by an input-dependent amount (e.g. Quickselect’s pivot split or Euclid’s remainder).</li>
+          </ul>
+      </li>
+      <li><strong>Complexities:</strong>
+      <ul>
+        <li><strong>Decrease-by-a-constant:</strong>  
+        Often leads to a recurrence of the form \(T(n)=T(n-c)+f(n)\), and with about \(n/c=O(n)\) levels,
+        the solution is generally \(T(n)=O\bigl(n\cdot f(n)\bigr)\), where \(f(n)\) is the per-level work.</li>
+        <li><strong>Decrease-by-a-constant-factor:</strong>  
+          Often leads to a recurrence of the form \(T(n)=T(\lfloor n/b\rfloor)+f(n)\), with
+          about \(\Theta(\log_b n)\) levels, generally leading to a complexity of 
+          \(T(n)=O\bigl(f(n)\,\log_b n\bigr)\).</li>
+        <li><strong>Variable-size decrease:</strong> Because of their unpredictable nature, these are harder 
+        to generalize. On average, they have simlar performance to decrease-by-a-constant-factor algorithms
+        (assuming they generally have "nice" splits/division), and
+        in the worst-case, they are similar to decrease-by-a-constant algorithms (assuming they have "poor"
+        splits/divisions).
+    </li>
+    </ul>
+    </li>
+    <li><strong>When to Reach For It:</strong>  
+Ideal when you can “peel off” a single subproblem—by a fixed amount, a fixed fraction, or adaptively—and funnel all work through one chain of reductions rather than branching into multiple independent calls (in which case divide-and-conquer might be more appropriate).</li>
+
+  <li><strong>Limitations:</strong> Beware of worst-case degradation (e.g. bad pivots), deep recursion stacks, and hidden \(O(n)\) costs from slicing or division.</li>
+  <li><strong>Real-world impact:</strong> Algorithms based on this technique are applicable to a wide
+  range of applications, from high-speed search (binary search) and selection (Quickselect) to numeric routines (binary GCD) and cryptographic operations (modular exponentiation)—demonstrating broad practical utility.</li>
+  <li><strong>Implementation considerations:</strong>
+      <ul>
+        <li>Define and test a clear base case (e.g. stop when \(n\le1\) or at a small threshold) to prevent infinite recursion or loops.</li>
+        <li>Use a straightforward loop instead of recursion when you’re just decrementing by a fixed amount 
+        to eliminate the overhead of repeated function calls.</li>
+        <li>Enable tail-call elimination to avoid deep call stacks and reduce overhead.</li>
+        <li>In variable-size methods, choose robust pivots (e.g. randomized or median-of-medians) to guard against unbalanced splits that lead to bad worst-case behavior.</li>
+    <li>When a subproblem’s size falls below a tuned cutoff (e.g. \(n \le 16\)), switch to a direct iterative or closed-form method—such as a simple loop, lookup, or formula—instead of another recursive or factor-based step, to eliminate extra call and partitioning overhead on very small inputs.</li>
+        <li>Watch your stack usage: unoptimized recursion can consume \(O(n)\) or \(O(\log n)\) frames; prefer iterative forms when \(O(1)\) extra space is needed.</li>
+      </ul>
+  </li>
+  </ul>
+</section>
+
+<section id="reading-questions">
+  <h2>Reading Comprehension Questions</h2>
+  <ol>
+    <li>
+      <strong>Paradigm Steps</strong><br>
+      What are the three main steps of a decrease-and-conquer algorithm?
+    </li>
+    <li>
+      <strong>Flavors Identification</strong><br>
+      What are the three common flavors of decrease-and-conquer, and how does each reduce the problem size?
+    </li>
+    <li>
+      <strong>Example Algorithms</strong><br>
+      Give one algorithm example for each flavor: decrease-by-a-constant, decrease-by-a-constant-factor, and variable-size-decrease.
+    </li>
+    <li>
+      <strong>Factorial Recurrence</strong><br>
+      What recurrence describes the running time of the recursive factorial algorithm, and what does it solve to?
+    </li>
+    <li>
+      <strong>Insertion Sort Bounds</strong><br>
+      What are the worst-case and best-case time complexities of Insertion Sort, and why?
+    </li>
+    <li>
+      <strong>Logarithmic Reduction</strong><br>
+      How does exponentiation by squaring achieve \(O(\log n)\) time?
+    </li>
+    <li>
+      <strong>Binary Search Recurrence</strong><br>
+      Write the recurrence for binary search’s running time and state its solution.
+    </li>
+    <li>
+      <strong>Euclidean Algorithm Type</strong><br>
+      Why is the Euclidean Algorithm classified as variable-size-decrease, and what is its worst-case time complexity in terms of its inputs?
+    </li>
+    <li>
+      <strong>When to Use</strong><br>
+      Name two situations described on the page where decrease-and-conquer is especially effective.
+    </li>
+    <li>
+      <strong>Implementation Tip</strong><br>
+      Describe one implementation tip from the page that helps reduce recursion overhead.
+    </li>
+    <li>
+      <strong>Common Pitfall</strong><br>
+      Identify one common pitfall and explain how it can affect performance or correctness.
+    </li>
+    <li>
+      <strong>Real-World Application</strong><br>
+      Provide one real-world application of decrease-and-conquer techniques mentioned on the page.
+    </li>
+  </ol>
+  <button id="toggleAnswers" aria-expanded="false">Show Answers</button>
+  <div id="answers" hidden>
+    <ol>
+      <li>
+        <strong>Answer:</strong><br>
+        Reduce the problem to one smaller instance; recurse on it; then determine the final solution
+        (The details of the last step vary greatly with each algorithm).
+      </li>
+      <li>
+        <strong>Answer:</strong><br>
+        <ul>
+          <li><strong>Decrease-by-a-constant:</strong> reduce \(n\) by a fixed amount (e.g. \(n\to n-1\)).</li>
+          <li><strong>Decrease-by-a-constant-factor:</strong> shrink \(n\) by a factor (e.g. \(n\to\lfloor n/2\rfloor\)).</li>
+          <li><strong>Variable-size decrease:</strong> reduce by an input-dependent amount (e.g. pivot split or remainder).</li>
+        </ul>
+      </li>
+      <li>
+        <strong>Answer:</strong><br>
+        <ul>
+          <li>Decrease-by-a-constant: Factorial (or Insertion Sort).</li>
+          <li>Decrease-by-a-constant-factor: Binary Search (or Exponentiation by Squaring).</li>
+          <li>Variable-size-decrease: Quickselect (or Euclidean Algorithm).</li>
+        </ul>
+      </li>
+      <li>
+        <strong>Answer:</strong><br>
+        The recurrence is \(T(n)=T(n-1)+c\), which solves to \(O(n)\).
+      </li>
+      <li>
+        <strong>Answer:</strong><br>
+        Worst-case \(O(n^2)\) when each insertion shifts \(O(n)\) elements (reverse order); best-case \(O(n)\) when the array is already sorted because each insertion is constant time.
+      </li>
+      <li>
+        <strong>Answer:</strong><br>
+        By halving the exponent each call, the recurrence \(T(n)=T(\lfloor n/2\rfloor)+O(1)\) solves to \(O(\log n)\).
+      </li>
+      <li>
+        <strong>Answer:</strong><br>
+        \(T(n)=T(\lfloor n/2\rfloor)+O(1)\), which solves to \(O(\log n)\).
+      </li>
+      <li>
+        <strong>Answer:</strong><br>
+        Its step replaces \((a,b)\) with \((b, a \bmod b)\), so the reduction depends on the values; in the worst case it makes \(O(\log \min(a,b))\) calls.
+      </li>
+      <li>
+        <strong>Answer:</strong><br>
+        Examples include peeling off one element at a time (e.g. factorial) and halving the input each step (e.g. binary search).
+      </li>
+      <li>
+        <strong>Answer:</strong><br>
+        Prefer simple loops to recursive calls when possible.
+      </li>
+      <li>
+        <strong>Answer:</strong><br>
+        An off-by-one in size reduction (e.g. mixing \(\lfloor n/b\rfloor\) and \(\lceil n/b\rceil\)) can leave subproblems unchanged or skip elements, causing incorrect behavior or infinite loops.
+      </li>
+      <li>
+        <strong>Answer:</strong><br>
+        Exponentiation by squaring in cryptographic protocols (e.g. RSA) to compute large modular powers efficiently.
+      </li>
+    </ol>
+  </div>
+</section>
+<section id="in-class-activities">
+  <h2>In-Class Activities</h2>
+  <ol>
+    <li>
+      <strong>Recurrence Derivation:</strong><br>
+      For <em>factorial</em> and <em>insertion sort</em>, write down the recurrence relations, 
+      then solve them exactly by iteration to confirm their \(O(n)\) and \(O(n^2)\) bounds respectively (No peeking!).
+    </li>
+    <li>
+      <strong>Recurrence Derivation (harder):</strong><br>
+      For <em>binary search</em>, write down the recurrence relation, 
+      then solve it exactly by iteration to confirm its \(O(\log n)\) bound.
+    </li>
+    <li>
+      <strong>Loop vs. Recursion Conversion:</strong><br>
+      Rewrite the recursive factorial algorithm as an iterative loop. Compare the two implementations in terms of code clarity, stack usage, and performance (space and time).
+    </li>    
+    <li>
+      <strong>Exponentiation By Squaring:</strong><br>
+      Compute \(3^{13}\) by hand using the obvious algorithm and using Exponentiation by Squaring.
+      How many multiplications did you need in each case. Which was easier to do?
+    </li>
+    <li>
+      <strong>Insertion Sort Trace:</strong><br>
+      Hand-execute insertion sort on the array \([3,1,4,5,2]\). For each insertion, record how many shifts occur, and draw the state of the sorted prefix after each step.
+    </li>
+    <li>
+      <strong>Binary Search Simulation:</strong><br>
+      On the sorted list \([2,3,4,5,6,8,10,12,14,15,17,18,21,23,26,29]\), simulate binary search for target values 6, 28, and 1. At each step, mark the low, high, and mid indices, and indicate whether you recurse on the left or right half.
+      Count the number of comparisons made and confirm that it is around what you expect it to be.
+    </li>
+    <li>
+      <strong>Euclidean Algorithm Walkthrough:</strong><br>
+      Compute \(\gcd(1071,462)\) by hand using the Euclidean algorithm. Write down each remainder step, and count how many recursive calls occur.
+    </li>
+    <li><strong>Recursive Insertion Sort</strong><br>
+    Give a recursive implementation of Insertion Sort. Determine the best-case and worst-case performance of 
+    the recursive version. Was this a good idea? Explain.
+    </li>
+  </ol>
+</section>
+
+
+<section id="problems">
+  <h2>Problems</h2>
+
+  <h3>Basic Problems</h3>
+  <ol>
+    <li>
+      <strong>Iterative Conversion:</strong><br>
+      Rewrite the recursive factorial algorithm as an iterative loop. 
+      Briefly compare the two versions in terms of memory usage, complexity of the code, 
+      and total number of operations. Is one clearly a better choice? Explain.
+    </li>
+    <li>
+      <strong>Insertion Sort Trace:</strong><br>
+      Hand-execute insertion sort on the array \(\bigl[h,d,g,b,j,c,f,a,i,e\bigr]\). After each insertion, record the contents of the sorted prefix and count the number of shifts performed.
+    </li>
+    <li>
+      <strong>Binary Search Recurrence:</strong><br>
+      Write down the recurrence for binary search's running time and solve it <em>exactly</em>.
+      Then solve it by the Master Theorem (provide the details that we left out). 
+      Finally verify that both techniques agree with our stated complexity of \(T(n)=\Theta(\log n)\).
+    </li>
+    <li>
+      <strong>Exponentiation Call Tree:</strong><br>
+      Draw the recursion tree for computing \(x^{75}\) using exponentiation by squaring. 
+      Label each node with the exponent and count the total number of multiplications.
+    </li>
+    <li>
+      <strong>Euclidean Algorithm Walkthrough:</strong><br>
+      Compute \(\gcd(119, 34)\) by hand using the Euclidean algorithm. List each remainder step and 
+      determine how many recursive calls occur.
+    </li>
+    <li>
+      <strong>Flavor Classification:</strong><br>
+      For each of the following, state which decrease-and-conquer flavor it uses (<em>constant</em>, <em>constant-factor</em>, or <em>variable-size</em>):<br>
+      (a) linear search in an array,<br>
+      (b) computing \(2^n\) by repeated doubling,<br>
+      (c) Quickselect for the median.
+    </li>
+  </ol>
+
+  <h3>Advanced Problems</h3>
+  <ol>
+    <li>
+      <strong>Median-of-Medians Analysis:</strong><br>
+      Sketch the median-of-medians pivot selection procedure for Quickselect. Write its recurrence for worst-case time and show that it solves to \(T(n)=O(n)\).
+    </li>
+    <li>
+      <strong>Randomized vs Deterministic:</strong><br>
+      Implement two versions of Quickselect: one with a random pivot and one with median-of-medians. Compare their empirical performance on 1 000 random arrays of size 1 000 and explain the observed differences.
+    </li>
+    <li>
+      <strong>First-Occurrence Binary Search:</strong><br>
+      Modify the standard binary search pseudocode so that, in a sorted array with duplicate values, it returns the index of the first occurrence of the target. Explain why your modification still runs in \(O(\log n)\) time.
+    </li>
+    <li>
+      <strong>Tail-Call Elimination:</strong><br>
+      Show how to convert the recursive binary search into a tail-recursive form. Then rewrite it as a purely iterative function. Discuss the impact on space complexity.
+    </li>
+    <li>
+      <strong>Design a Shrink-By-Three Algorithm:</strong><br>
+      Propose an algorithm that computes \(\lfloor n/3\rfloor\) by decrease-by-a-constant each step. Write its recurrence and determine its time and space complexities.
+    </li>
+    <li>
+      <strong>Hybrid Threshold Tuning:</strong><br>
+      For Quickselect, experiment with different small-case cutoff values \(k\in\{8,16,32,64\}\) where you switch to insertion sort. On arrays of size 10 000, measure the average running time and identify the optimal \(k\). Explain why that cutoff is best.
+    </li>
+    <li>
+      <strong>Real-World Scenario:</strong><br>
+      You need to maintain a live median of a streaming data feed. Compare using Quickselect on each new snapshot of size \(n\) versus maintaining two heaps (max-heap and min-heap). Analyze time per update and overall complexity, and recommend the best approach.
+    </li>
+  </ol>
+</section>
+
+
 </body>
 </html>

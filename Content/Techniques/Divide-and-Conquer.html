@@ -238,6 +238,49 @@ Merge(L, R):  // Merge two already-sorted lists L and R
      
     </div>
   </section>
+  
+  
+<section id="algorithms-using-technique">
+  <h2>Algorithms Using This Technique</h2>
+  <ul>
+    <li>
+      <a href="?path=Algorithms/Divide-and-Conquer/Quicksort">Quicksort</a>: selects a pivot, 
+      puts it in its correct place, 
+      the elements less than the pivot to the left and 
+      the elements greater than pivot to the right, then recursively sorts each part; 
+      average-case runtime \(O(n \log n)\), worst-case \(O(n^2)\).
+    </li>
+    <li>
+      <a href="?path=Algorithms/Divide-and-Conquer/Merge Sort">Merge Sort</a>: divides the array in half, recursively sorts each half, and merges them in \(O(n)\) time, for an overall runtime of \(O(n \log n)\).
+    </li>
+    <li>
+      <a href="?path=Algorithms/Divide-and-Conquer/ClosestPair">Closest Pair of Points</a>: splits points by x-coordinate, recursively finds the closest pair in each half, and checks cross-boundary pairs in linear time, yielding \(O(n \log n)\).
+    </li>
+    <li>
+      <a href="?path=Algorithms/Divide-and-Conquer/Strassens">Strassen's Matrix Multiplication</a>: multiplies two \(n\times n\) matrices by computing seven products of size \(n/2\), achieving runtime \(O(n^{\log_2 7})\approx O(n^{2.81})\).
+    </li>
+    <li>
+      <a href="?path=Algorithms/Divide-and-Conquer/Exponentiation">Exponentiation</a>: 
+      computes \(x^n\) by recursively computing \(x^{\lfloor n/2\rfloor}\) and \(x^{\lceil n/2\rceil}\)
+      and multiplying them. Requires \(n-1=O(n)\) multiplications. 
+      This is a bad example of the use of divide-and-conquer since a simple for loop does the same number
+      of multiplications, uses less space, and is easier to implement.
+    </li>
+    <li>
+      <a href="?path=Algorithms/Divide-and-Conquer/Convex Hull">Convex Hull</a>: splits the point set, computes hulls in each subset, and merges the hulls in linear time, for \(O(n \log n)\) overall.
+    </li>
+    <li>
+      <strong>Karatsuba Integer Multiplication</strong>: splits integers into halves, 
+      uses three half-size multiplications instead of four, and takes linear time to combine subsolutions, 
+      yielding runtime \(O(n^{\log_2 3})\approx O(n^{1.59})\).
+    </li>
+    <li>
+      <strong>Fast Fourier Transform (FFT)</strong>: Computes the Discrete Fourier Transform (DFT)
+      by recursively separating even and odd coefficients, achieving \(O(n \log n)\).
+    </li>
+  </ul>
+</section>
+
 <section id="applicability">
   <h2>When to Use</h2>
   The following are some of the reasons that algorithms like Quicksort, Merge Sort, Strassen's Algorithm, 
@@ -453,46 +496,7 @@ Merge(L, R):  // Merge two already-sorted lists L and R
     </li>
   </ul>
 </section>
-<section id="algorithms-using-technique">
-  <h2>Algorithms Using This Technique</h2>
-  <ul>
-    <li>
-      <a href="?path=Algorithms/Divide-and-Conquer/Quicksort">Quicksort</a>: selects a pivot, 
-      puts it in its correct place, 
-      the elements less than the pivot to the left and 
-      the elements greater than pivot to the right, then recursively sorts each part; 
-      average-case runtime \(O(n \log n)\), worst-case \(O(n^2)\).
-    </li>
-    <li>
-      <a href="?path=Algorithms/Divide-and-Conquer/Merge Sort">Merge Sort</a>: divides the array in half, recursively sorts each half, and merges them in \(O(n)\) time, for an overall runtime of \(O(n \log n)\).
-    </li>
-    <li>
-      <a href="?path=Algorithms/Divide-and-Conquer/ClosestPair">Closest Pair of Points</a>: splits points by x-coordinate, recursively finds the closest pair in each half, and checks cross-boundary pairs in linear time, yielding \(O(n \log n)\).
-    </li>
-    <li>
-      <a href="?path=Algorithms/Divide-and-Conquer/Strassens">Strassen's Matrix Multiplication</a>: multiplies two \(n\times n\) matrices by computing seven products of size \(n/2\), achieving runtime \(O(n^{\log_2 7})\approx O(n^{2.81})\).
-    </li>
-    <li>
-      <a href="?path=Algorithms/Divide-and-Conquer/Exponentiation">Exponentiation</a>: 
-      computes \(x^n\) by recursively computing \(x^{\lfloor n/2\rfloor}\) and \(x^{\lceil n/2\rceil}\)
-      and multiplying them. Requires \(n-1=O(n)\) multiplications. 
-      This is a bad example of the use of divide-and-conquer since a simple for loop does the same number
-      of multiplications, uses less space, and is easier to implement.
-    </li>
-    <li>
-      <a href="?path=Algorithms/Divide-and-Conquer/Convex Hull">Convex Hull</a>: splits the point set, computes hulls in each subset, and merges the hulls in linear time, for \(O(n \log n)\) overall.
-    </li>
-    <li>
-      <strong>Karatsuba Integer Multiplication</strong>: splits integers into halves, 
-      uses three half-size multiplications instead of four, and takes linear time to combine subsolutions, 
-      yielding runtime \(O(n^{\log_2 3})\approx O(n^{1.59})\).
-    </li>
-    <li>
-      <strong>Fast Fourier Transform (FFT)</strong>: Computes the Discrete Fourier Transform (DFT)
-      by recursively separating even and odd coefficients, achieving \(O(n \log n)\).
-    </li>
-  </ul>
-</section>
+
 
 <section id="real-world-applications">
   <h2>Real-World Applications</h2>

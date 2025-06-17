@@ -161,6 +161,50 @@ Because \(N^{N+1}\) grows so quickly, this method is only practical for very sma
 </p>
   </section>
   
+  
+<!-- Canonical Algorithms -->
+<section id="algorithms">
+  <h2>Algorithms Using This Technique</h2>
+  <ul>
+    <li>
+      <a class="problem" href="?path=Algorithms/Exhaustive%20Search/Subset%20Sum">
+        Subset-Sum (Exhaustive)
+      </a>
+      - Enumerate all subsets of a set \(S\) and check each subset's sum against the target \(T\).
+    </li>
+    <li>
+      <a class="problem" href="?path=Algorithms/Exhaustive%20Search/N-Queens">
+        N-Queens (Column-Assignment)
+      </a>
+      - Try every assignment of queen positions (one column per row) and filter out conflicts.
+    </li>
+    <li>
+      <b>3-SAT (Truth-Assignment)</b>
+      - Enumerate all \(2^n\) truth assignments for \(n\) variables and test each against the set of clauses.
+    </li>
+    <li>
+      <b>Graph-Coloring (k-Coloring)</b>
+      - Assign each of \(n\) vertices one of \(k\) colors (total \(k^n\) assignments) and test for adjacent conflicts.
+    </li>
+    <li>
+      <b>Magic Square Generation</b>
+      - Generate all permutations of \(\{1,\dots,9\}\) (\(9!\) candidates) and test sums of rows, columns, and diagonals for 3x3 magic squares.
+    </li>
+    <li>
+      <b>All Strings of Length \(L\)</b>
+      - Enumerate all \(K^L\) strings over an alphabet of size \(K\), then test for a desired property (for example, containing a substring).
+    </li>
+    <li>
+      <b>Integer Roots (Exhaustive Check)</b>
+      - Test each integer \(x\) in a fixed range (for example, \(0 \le x < p\)) to see if \(p(x)\equiv 0 \pmod{p}\).
+    </li>
+    <li>
+      <b>Maze Solving</b>
+      - Enumerate all simple paths from a start to a target cell in a small grid or graph by exploring every possible move and backing up.
+    </li>
+  </ul>
+</section>
+
   <section id="applicability">
   <h2>When to Use</h2>
   <ul>
@@ -349,48 +393,6 @@ Generating all subsets, permutations, etc., can be done similarly.
   </ul>
 </section>
 
-<!-- Canonical Algorithms -->
-<section id="algorithms">
-  <h2>Algorithms Using This Technique</h2>
-  <ul>
-    <li>
-      <a class="problem" href="?path=Algorithms/Exhaustive%20Search/Subset%20Sum">
-        Subset-Sum (Exhaustive)
-      </a>
-      - Enumerate all subsets of a set \(S\) and check each subset's sum against the target \(T\).
-    </li>
-    <li>
-      <a class="problem" href="?path=Algorithms/Exhaustive%20Search/N-Queens">
-        N-Queens (Column-Assignment)
-      </a>
-      - Try every assignment of queen positions (one column per row) and filter out conflicts.
-    </li>
-    <li>
-      <b>3-SAT (Truth-Assignment)</b>
-      - Enumerate all \(2^n\) truth assignments for \(n\) variables and test each against the set of clauses.
-    </li>
-    <li>
-      <b>Graph-Coloring (k-Coloring)</b>
-      - Assign each of \(n\) vertices one of \(k\) colors (total \(k^n\) assignments) and test for adjacent conflicts.
-    </li>
-    <li>
-      <b>Magic Square Generation</b>
-      - Generate all permutations of \(\{1,\dots,9\}\) (\(9!\) candidates) and test sums of rows, columns, and diagonals for 3x3 magic squares.
-    </li>
-    <li>
-      <b>All Strings of Length \(L\)</b>
-      - Enumerate all \(K^L\) strings over an alphabet of size \(K\), then test for a desired property (for example, containing a substring).
-    </li>
-    <li>
-      <b>Integer Roots (Exhaustive Check)</b>
-      - Test each integer \(x\) in a fixed range (for example, \(0 \le x < p\)) to see if \(p(x)\equiv 0 \pmod{p}\).
-    </li>
-    <li>
-      <b>Maze Solving</b>
-      - Enumerate all simple paths from a start to a target cell in a small grid or graph by exploring every possible move and backing up.
-    </li>
-  </ul>
-</section>
 
 <section id="applications">
   <h2>Real-World Applications</h2>

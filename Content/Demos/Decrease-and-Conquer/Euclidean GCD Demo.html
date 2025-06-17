@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Euclidean GCD Demo</title>
+  <script src="../../../scripts/demoScripts.js"></script>
+  <link rel="stylesheet" href="../../../css/style.css">
+  <link rel="stylesheet" href="../../../css/demo.css">
+  <style>
+    #demoWrapper {
+      display: flex;
+      gap: 20px;
+    }
+    #callStack {
+      font-family: monospace;
+      font-size: 16px;
+      line-height: 1.6;
+      background: #f9f9f9;
+      padding: 10px;
+      border: 1px solid #ccc;
+      white-space: pre;
+      min-width: 320px;
+      overflow-y: auto;
+    }
+    .line.calling { background-color: #fff3cd; }
+    .line.returning { background-color: #d4edda; }
+    #pseudocode {
+      font-family: monospace;
+      font-size: 16px;
+      line-height: 1.6;
+      padding: 10px;
+      background: #f8f8f8;
+      border: 1px solid #ccc;
+      min-width: 300px;
+    }
+    .highlight {
+      background-color: #ffff99;
+    }
+    #commentary {
+      font-style: italic;
+      margin-top: 10px;
+      height: 24px;
+    }
+  </style>
+</head>
+<body>
+  <h2>Euclidean Algorithm (Recursive) Demo</h2>
+  <div id="controls1">
+    <label>a: <input type="number" id="inputA" min="0" value="48" style="width: 4em;"></label>
+    <label>b: <input type="number" id="inputB" min="0" value="18" style="width: 4em;"></label>
+    <button id="generate">Generate</button>
+    <button id="useCustom" style="display:none;"></button>
+  </div>
+  <div id="buttons">
+    <button id="prev">Previous</button>
+    <button id="next">Next</button>
+    <button id="play">Play</button>
+    <label for="speed">Speed:</label>
+    <select id="speed">
+      <option value="1">1×</option>
+      <option value="2">2×</option>
+      <option value="4">4×</option>
+    </select>
+  </div>
+  <div id="commentary"></div>
+  <div id="demoWrapper">
+    <div id="callStack"></div>
+    <div id="pseudocode">
+      <div id="line1">gcd(a, b):</div>
+      <div id="line2">&nbsp;&nbsp;if b == 0:</div>
+      <div id="line3">&nbsp;&nbsp;&nbsp;&nbsp;return a</div>
+      <div id="line4">&nbsp;&nbsp;else:</div>
+      <div id="line5">&nbsp;&nbsp;&nbsp;&nbsp;return gcd(b, a % b)</div>
+    </div>
+  </div>
+  <script>
+    let steps = [], idx = 0;
+    function onGenerate() {
+      idx = 0;
+      const a = parseInt(document.getElementById('inputA').value);
+      const b = parseInt(document.getElementById('inputB').value);
+      steps = [];
+      const result = gcdSteps(a, b, 0);
+      const lastStack = steps.length ? [...steps[steps.length - 1].stack] : [];
+      steps.push({ desc: `Done. Final result: gcd(${a}, ${b}) = ${result}`, stack: lastStack, highlight: null });
+      return [];
+    }
+
+    function gcdSteps(a, b, depth) {
+      const indent = '  '.repeat(depth);
+      const callLine = `${indent}gcd(${a}, ${b})`;
+      const currStack = steps.length ? [...steps[steps.length - 1].stack] : [];
+
+      // entering call
+      steps.push({ stack: [...currStack], line: callLine, type: 'calling', highlight: 1,
+                   desc: `In gcd(${a}, ${b}): Calling gcd(${a}, ${b})` });
+      steps[steps.length - 1].stack.push({ text: callLine, type: 'calling' });
+
+      // check base-case
+      steps.push({ stack: [...steps[steps.length - 1].stack], line: `${indent}${b} == 0 ?`, type: 'calling', highlight: 2,
+                   desc: `In gcd(${a}, ${b}): Checking if ${b} == 0? ${b === 0 ? 'Yes' : 'No'}` });
+
+      if (b === 0) {
+        // base-case return
+        steps.push({ stack: [...steps[steps.length - 1].stack], line: `${indent}return ${a}`, type: 'returning', highlight: 3,
+                     desc: `In gcd(${a}, ${b}): Base case: returning ${a}` });
+        steps[steps.length - 1].stack.push({ text: `${indent}return ${a}`, type: 'returning' });
+        return a;
+      }
+
+            // compute remainder and recurse
+      const r = a % b;
+      const nextLine = `${indent}gcd(${b}, ${r})`;
+      // show about to recurse
+      steps.push({
+        stack: [...steps[steps.length - 1].stack],
+        line: nextLine,
+        type: 'calling',
+        highlight: 5,
+        desc: `In gcd(${a}, ${b}): computing ${a} % ${b} = ${r} and about to call gcd(${b}, ${r})`
+      });
+      const val = gcdSteps(b, r, depth + 1);(b, r, depth + 1);
+
+            // return from recursion
+      const returnLine = `${indent}return gcd(${b}, ${r}) = ${val}`;
+      steps.push({ stack: [...steps[steps.length - 1].stack], line: returnLine, type: 'returning', highlight: 5,
+                   desc: `In gcd(${a}, ${b}): recursion complete, returning ${val}` });
+      steps[steps.length - 1].stack.push({ text: returnLine, type: 'returning' });
+      return val;
+    }
+
+    function renderStep(arr, i) {
+      const { desc, highlight, stack } = arr[i];
+      document.getElementById('commentary').textContent = desc;
+      const callDiv = document.getElementById('callStack'); callDiv.innerHTML = '';
+      stack.forEach(e => { const d=document.createElement('div'); d.textContent=e.text; d.className='line '+e.type; callDiv.appendChild(d); });
+      [1,2,3,4,5].forEach(j=>document.getElementById('line'+j).classList.remove('highlight'));
+      if (highlight) document.getElementById('line'+highlight).classList.add('highlight');
+    }
+
+    window.genSteps = () => steps;
+    window.renderStep = renderStep;
+    window.onGenerate = onGenerate;
+    window.setupAux = () => {};
+  </script>
+</body>
+</html>

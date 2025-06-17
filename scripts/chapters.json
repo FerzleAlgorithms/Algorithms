@@ -58,6 +58,7 @@
       "Decrease-and-Conquer": [
         "Binary Exponentiation RTL Demo.html",
         "Binary Search Demo.html",
+        "Euclidean GCD Demo.html",
         "Exponentiation By Squaring Demo.html",
         "Factorial Demo.html",
         "Hoare Partition Demo.html",
@@ -119,6 +120,7 @@
       "Foundational": [
         "Array Partition.html",
         "Exponentiation.html",
+        "GCD.html",
         "K-th Order Statistic.html",
         "Matrix Multiplication.html",
         "Merge.html",

@@ -437,6 +437,13 @@
     "definition": "The act of listing all possible candidates or configurations, often used in exhaustive search algorithms."
   },
   {
+  "variants": [
+    "Euclidean Algorithm",
+    "Euclid's Algorithm"
+  ],
+  "definition": "The Euclidean Algorithm computes <em>gcd(a, b)</em> based on the formula <em>gcd(a, b) = gcd(b, a mod b)</em> by repeatedly replacing <em>(a, b)</em> with <em>(b, a mod b)</em> until <em>b = 0</em>; the remaining nonzero value <em>a</em> is the greatest common divisor."
+},
+  {
     "variants": [
       "Euclidean Distance",
       "Euclidean Distances"
@@ -693,7 +700,7 @@
       "iterative",
       "iterating"
     ],
-    "definition": "The repetition of a process or set of instructions in a loop until a condition is met."
+      "definition": "(1) Repetition of a process or set of instructions in a loop until a termination condition is met. (2) Also used for the technique of solving recurrences by repeatedly expanding the recursive formula until reaching the base case and then simplifying."
   },
   {
     "variants": [
