@@ -49,7 +49,7 @@
 <body>
   <h2>Exponentiation by Squaring (Recursive) Demo</h2>
   <div id="controls1">
-    <label>x: <input type="number" id="inputX" value="2" style="width:4em;"></label>
+    <label>x: <input type="number" id="inputX" value="3" style="width:4em;"></label>
     <label>n: <input type="number" id="inputN" min="0" value="13" style="width:4em;"></label>
     <button id="generate">Generate</button>
     <button id="useCustom" style="display:none;"></button>
@@ -60,9 +60,9 @@
     <button id="play">Play</button>
     <label for="speed">Speed:</label>
     <select id="speed">
-      <option value="1">1×</option>
-      <option value="2">2×</option>
-      <option value="4">4×</option>
+      <option value="1">1x</option>
+      <option value="2">2x</option>
+      <option value="4">4x</option>
     </select>
   </div>
   <div id="commentary"></div>
@@ -90,7 +90,7 @@
       const result = exponentiationSteps(x, n, 0);
       // Final result step
       steps.push({
-        desc: `Done. Final result: ${x}^${n} = ${result}`,
+        desc: `Done. Final result: ${x}<sup>${n}</sup> = ${result}`,
         stack: [...steps[steps.length - 1].stack],
         highlight: null,
         currentN: n,
@@ -134,13 +134,13 @@
       if (n % 2 === 0) {
         const val = half * half;
         steps.push({ stack: [...steps[steps.length - 1].stack], line: `${indent}return ${half} * ${half} = ${val}`,
-          type: 'returning', highlight: 6, desc: `Even case: return ${half}^2 = ${val}`, currentN: n });
+          type: 'returning', highlight: 6, desc: `Even case: return ${half} * ${half} = ${val}`, currentN: n });
         steps[steps.length - 1].stack.push({ text: `${indent}return ${half} * ${half} = ${val}`, type: 'returning' });
         return val;
       } else {
         const val = x * half * half;
         steps.push({ stack: [...steps[steps.length - 1].stack], line: `${indent}return ${x} * ${half} * ${half} = ${val}`,
-          type: 'returning', highlight: 8, desc: `Odd case: return ${x} * ${half}^2 = ${val}`, currentN: n });
+          type: 'returning', highlight: 8, desc: `Odd case: return ${x} * ${half} * ${half} = ${val}`, currentN: n });
         steps[steps.length - 1].stack.push({ text: `${indent}return ${x} * ${half} * ${half} = ${val}`, type: 'returning' });
         return val;
       }
@@ -149,7 +149,7 @@
     function renderStep(steps, i) {
       const { desc, highlight, stack, currentN } = steps[i];
       // Commentary
-      document.getElementById('commentary').textContent =
+      document.getElementById('commentary').innerHTML =
         `In power(${window.demoX}, ${currentN}): ${desc}`;
 
       // Render call stack

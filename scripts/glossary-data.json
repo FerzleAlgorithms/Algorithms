@@ -117,7 +117,8 @@
   },
   {
     "variants": [
-      "Binary Exponentiation"
+      "Binary Exponentiation",
+      "Exponentiation by Squaring"
     ],
     "definition": "Binary exponentiation (or exponentiation by squaring) is an algorithm that computes <em>a<sup>n</sup></em> based on the binary representation of <em>n</em> in <em>O(log n)</em> time. It can be implemented left-to-right or right-to-left."
   },

@@ -191,10 +191,10 @@
     Because each step eliminates a constant fraction, there are only \(O(\log_b n)\) levels of recursion, 
     and the total runtime is the per-level work multiplied by this logarithmic depth.
   </p>
-  <p>The two most basic applications of this approach are Binary Search and Binary Exponentiation.</p>
+  <p>The two most basic applications of this approach are Binary Search and Exponentiation by Squaring.</p>
 
     <div class="example-box">
-      <strong class="example-title">Example 1: Exponentiation By Squaring</strong>
+      <strong class="example-title">Example 3: Exponentiation By Squaring</strong>
       
        <p>
         Suppose you want to compute \(x^n\) for a given real number \(x\) and nonnegative integer \(n\). 
@@ -212,7 +212,7 @@
     \]
     By recursively computing \(y = x^{\lfloor n/2\rfloor}\)  and then squaring 
     (plus one extra multiply when \(n\) is odd), we halve the exponent at each step. 
-        This yields the following algorithm:
+        This yields the following "Exponentiation by Squaring" algorithm:
       </p>
       <pre><code>power(x, n):
     if n == 0:
@@ -243,50 +243,94 @@ with \(b=2\). Here is a demonstration of the algorithm in action.
       </p>
       <p>
       For more details on Exponentiation by Squaring (also known as Binary Exponentiation),
-      including a more comeplete analsysis and two iterative versions of the 
+      including a more complete analsysis and two iterative versions of the 
       algorithms&mdash;Left-to-Right and Right-to-Left&mdash;see the 
       <a href="?path=Algorithms/Decrease-and-Conquer/Binary Exponentiation">Binary Exponentiation</a> page.
       </p>
 
     </div>
-
-    <div class="example-box">
-      <strong class="example-title">Example 2: Binary Search</strong>
-      <p>
-      The <a href="?path=Problems/Foundational/Searching">Searching</a>
-      problem asks to find an element with a given value form an array.
-      If you are unfamilair with this concept, see that page.
-      If you are fortunate and the array of values you are searching is sorted (we assume in ascending order),
-      we can do much better than linear search.
-      
-<h1><font color="red">I am here</font></h1>
-        To search a sorted array \(A[0..n-1]\) for value \(v\):
-      </p>
-      <pre><code>binarySearch(A, v, low, high):
+<div class="example-box">
+  <strong class="example-title">Example 4: Binary Search</strong>
+  <p>
+    The <a href="?path=Problems/Foundational/Searching">Searching</a>
+    problem asks to find the index an element with a given value \(v\) in an array \(A\) of size \(n\).
+    If the array is sorted in ascending order, we can do much better than a linear scan.
+  </p>
+   <p>
+    Binary Search works on a sorted list as follows:
+  </p>
+  <ol>
+    <li>If the list is empty, return -1 to indicate the value was not found.</li>
+    <li>Compare the middle element of the list to the target \(v\).
+      <ol type='a'>
+          <li>If it matches, returning its index.</li>
+          <li>If \(v\) is less than the middle element, go back to Step 1 with the left half 
+          (elements less than the middle).</li>
+          <li>If \(v\) is greater than the middle element, go back to Step 1 with the right half 
+          (elements greater than the middle).</li>
+      </ol>
+    </li>
+  </ol>
+  <p>
+    Since each step essentially halves the list size (from \(n\) to about  \(\lfloor n/2\rfloor\)), 
+    this is clearly a decrease-by-a-constant-factor algorithm with \(b=2\).
+  </p>
+  <p>
+    Here is more formal pseudocode of the algorithm.
+  </p>
+  <pre><code>binarySearch(A, v, low, high):
     if low > high:
-      return -1
+      return -1       // v not in array
     mid = floor((low + high) / 2)
     if A[mid] == v:
-      return mid
+      return mid      // v was found!
     else if A[mid] < v:
       return binarySearch(A, v, mid+1, high)
     else:
-      return binarySearch(A, v, low, mid-1)
-</code></pre>
-      <p>
-        Each step cuts the search range in half with \(O(1)\) work.
-      </p>
-      <!-- If a demo is available, embed it here; otherwise, remove this container. -->
-      <div class="embeddedDemoContainer">
-        <iframe
-          class="embeddedDemo"
-          src="/Algorithms/Content/Demos/Decrease-and-Conquer/Binary Search Demo.html"
-          allow="fullscreen"
-          name="BinarySearch-DecrFactor-demo"
-        ></iframe>
-      </div>
-    </div>
-  </section>
+      return binarySearch(A, v, low, mid-1)</code></pre>
+      
+    <p>
+    The following demonstration shows the algorithm in action.
+    </p>
+  <div class="embeddedDemoContainer">
+    <iframe
+      class="embeddedDemo"
+      src="/Algorithms/Content/Demos/Decrease-and-Conquer/Binary Search Demo.html"
+      allow="fullscreen"
+      name="BinarySearch-DecrFactor-demo"
+    ></iframe>
+  </div>
+  <p>
+  Let \(T(n)\) denote the running time of Binary Search on a list of length \(n\).  
+  Each comparison and boundary update takes \(O(1)\) time, 
+  and we then recurse on half of the current range.  This gives the recurrence
+  \[
+    T(n) \;=\; T\bigl(\lfloor n/2\rfloor\bigr) + O(1),
+  \]
+  which by the Master Theorem solves to
+  \(\;T(n)=\Theta(\log n)\).
+  Clearly, Binary Search is a better algorithmn to use than Linear Search, assuming your data is already sorted.
+</p>
+</div>
+
+<p><strong>Summary of Decrease-by-a-Constant-Factor</strong></p>
+<ul>
+  <li><strong>Approach:</strong> Each step shrinks the input from \(n\) to about \(\lfloor n/b\rfloor\) (commonly \(b=2\)), discarding a constant fraction.</li>
+  <li><strong>Recursion depth:</strong> \(O(\log_b n)\) levels of recursion (or loop iterations).</li>
+  <li><strong>Time complexity:</strong><br>
+    With \(O(1)\) work per level,
+    \[
+      T(n) = T(\lfloor n/b\rfloor) + O(1) = \Theta(\log n).
+    \]
+    More generally, if each level incurs \(O(f(n))\) work, then
+    \[
+      T(n) = T(\lfloor n/b\rfloor) + O(f(n)) = O\bigl(f(n)\,\log n\bigr).
+    \]
+  </li>
+  <li><strong>Space complexity:</strong> \(O(\log n)\) stack space for a naïve recursive version (or \(O(1)\) if implemented iteratively or via tail‐call optimization), plus any extra workspace per level.</li>
+</ul>
+
+<hr>
 
   <!-- Variable-Size Decrease -->
   <section id="variable-size-decrease">
@@ -297,7 +341,7 @@ with \(b=2\). Here is a demonstration of the algorithm in action.
     </p>
 
     <div class="example-box">
-      <strong class="example-title">Example: Quickselect</strong>
+      <strong class="example-title">Example 5: Quickselect</strong>
       <p>
         To find the \(i\)th smallest element in \(A[0..n-1]\):
       </p>
