@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Transform-and-Conquer</title>
+  <script src="/Algorithms/scripts/chapterScripts.js"></script>
+  <link rel="stylesheet" href="/Algorithms/css/style.css">
+  <link rel="stylesheet" href="/Algorithms/css/chapter.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js"></script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body>
+  <h1>Transform-and-Conquer</h1>
+
+  <!-- Motivation & Introduction -->
+  <section id="introduction">
+    <h2>Introduction</h2>
+        <p>
+      Transform-and-Conquer is a versatile algorithmic strategy that solves a problem by transforming it into a different instance or representation in which the solution is easier or more efficient to compute, then mapping the result back to the original problem. There are three kinds of transformations that are commonly used.
+    </p>
+    <ul>
+       <li><strong>Instance simplification:</strong> Reducing problem size or complexity, 
+          often by performing a pre-computation step. A common example is <em>presorting</em>, 
+          where sorting the input in \(O(n\log n)\) enables faster operations like binary search 
+          in \(O(\log n)\) or uniqueness checks by scanning adjacent items in \(O(n)\).</li>  
+          <li><strong>Representation change:</strong> Altering data structures or encodings.
+          Two great examples include
+          <ul>
+          <li>Horner's Rule for polynomial evaluation that rewrites a 
+       degree-\(n\) polynomial into a nested form to avoid repeated exponentiations,
+        reducing naive \(O(n^2)\) evaluation to \(O(n)\). </li>
+        <li>Heapsort transforms an array 
+        into a heap in (\(O(n)\)) time and then repeatedly extracts all of the elements in
+         \(n\times O(\log n)\) time, achieving \(O(n\log n)\) time overall.</li>
+         </ul>
+         </li>
+           <li><strong>Problem reduction:</strong> 
+           Transforming new challenges into well-understood problems to leverage existing solutions. 
+           Examples include:
+        <ul>
+          <li>Mapping bipartite matching to a max-flow problem on a constructed network.</li>
+          <li>Reducing all-pairs shortest paths to repeated single-source shortest-path 
+          computations (e.g. Dijkstra's or Bellman-Ford).</li>
+        </ul>
+        These reduction techniques enable solving diverse problems by reusing known algorithms. 
+        They also underpin much of computational complexity analysis and will be 
+        explored in depth in a dedicated chapter on reductions and complexity theory.
+        </li>
+    </ul>
+  </section>
+
+ <section id="examples">
+    <h2>Examples</h2>
+
+ <div class="example-box">
+      <strong class="example-title">Example 1: Presorting</strong>
+      <p>
+        Presorting transforms an unsorted input into a sorted one so that subsequent queries or 
+        computations become more efficient. For instance, suppose we need to perform membership 
+        queries (that is, searching) on an array of \(n\) values. 
+        The straightforward approach (i.e. linear search) tests each value 
+        against all keys in \(O(n)\) time per query, yielding \(O(n m)\) time
+        for \(m\) queries. Instead, by presorting the keys in \(O(n\log n)\) and then 
+        using binary search for each query in \(O(\log n)\), the total cost becomes 
+        \(O(n\log n + m\log n)\), which is asymptotically better when \(m\) is large.
+      </p>
+      <p>
+        Another application is the <strong>element uniqueness</strong> problem: 
+        determining whether an array of \(n\) numbers contains any duplicates. 
+        The naive algorithm checks all \(O(n^2)\) pairs. By first sorting in \(O(n\log n)\) 
+        and then scanning adjacent elements in \(O(n)\), we can decide uniqueness in \(O(n\log n)\),
+         a substantial improvement for large inputs.
+      </p>
+    </div>
+    
+    
+<div class="example-box">
+  <strong class="example-title">Example 2: Horner's Rule</strong>
+  <p>
+    Horner's Rule rewrites a degree-<em>n</em> polynomial
+    \[
+      P(x) = a_0 + a_1 x + a_2 x^2 + \cdots + a_n x^n
+    \]
+    into the nested form
+    \[
+      P(x) = a_0 + x\bigl(a_1 + x(a_2 + \cdots + x(a_{n-1} + x\,a_n)\cdots)\bigr).
+    \] 
+    For instance, consider the 6th-degree polynomial
+    \[
+      P(x) = 1 + 2x + 3x^2 + 4x^3 + 5x^4 + 6x^5 + 7x^6,
+    \]
+    which Horner's Rule rewrites as
+    \[
+      P(x) = 1 + x\bigl(2 + x\bigl(3 + x\bigl(4 + x\bigl(5 + x\bigl(6 + x\cdot7\bigr)\bigr)\bigr)\bigr)\bigr).
+    \]
+  </p>
+  <p>
+  Although Horner's nested form can look mysterious, it directly yields the most efficient way to evaluate a polynomial. By reframing the usual sum-of-powers view, we expose a simple loop that does exactly one multiplication and one addition per coefficient. 
+  Next we will look at the algorithm in action. 
+  The demonstration below first shows step-by-step how to factor out the \(x\) terms in the non-obvious way
+  you saw above.
+  This is not really part of the algorithm, but it helps to show what the algorithm is doing and why it works.
+  Then it walks through the steps of tha actual algorithm, showing how the steps match up with the factored form
+  of the polynomial.
+</p>
+
+  <div class="embeddedDemoContainer">
+    <iframe
+      class="embeddedDemo"
+      src="/Algorithms/Content/Demos/Transform-and-Conquer/Horners Rule Demo.html"
+      allow="fullscreen"
+      name="Horners-Rule-demo"
+    ></iframe>
+  </div>
+  <p>The algorithm is surprisingly simple: It simply walks through the coefficients from high to low,
+  multiplying the current result by \(x\) and then adding the nexty coefficient. 
+  </p>
+  <pre><code>hornersRule(a[0..n], x):
+    result = a[n]
+    for i from n-1 down to 0:
+        result = a[i] + x * result
+    return result  </code></pre>
+    <p>Horner's Rule eliminates the need for explicit power computations and performs exactly one 
+    multiplication and one addition per coefficient in a single loop, for a total of \(n\) 
+    multiplications and \(n\) additions. Therefore, it runs in \(O(n)\) time and uses \(O(1)\) 
+    extra space (ignoring input storage).</p>
+    <p>The naive approach computes each term \(a_i x^i\) by performing \(i\) multiplications, 
+    yielding \(O(n^2)\) operations overall. The straightforward linear-time method that accumulates powers 
+    explicitly also runs in \(\Theta(n)\) time but requires two multiplications per coefficient 
+    (one to update the power variable and one to multiply by \(a_i\)), for a total of \(2n\) multiplications. 
+    Horner's Rule, by contrast, uses only \(n\) multiplications&mdash;half as many&mdash;and \(n\) additions, 
+    making it the most operation-efficient algorithm for polynomial evaluation. 
+    Surprisingly, the algorithm for Horner's Rule is also simpler than the other two algorithms&mdash;even
+    if coming up with it was more difficult.
+    See the <a href="?path=Algorithms/Transform-and-Conquer/Horners Rule.html">Horner's Rule</a> 
+    page for more details.</p>
+  </div>
+
+    <div class="example-box">
+      <strong class="example-title">Example 3: Heapsort</strong>
+      <p>
+      
+      <h1> <font color='red'>I am here</font></h1>
+      
+        Heapsort applies a representation change to sort an array in-place. 
+        It transforms the array into a binary heap&mdash;a tree-based structure that supports 
+        efficient maximum (or minimum) extraction&mdash;and then repeatedly extracts the root 
+        to produce a sorted sequence. 
+        This reduces sorting to heap construction (\(O(n)\) time) 
+        plus \(n\) extractions (each \(O(\log n)\) time), yielding \(O(n \log n)\) total time.
+      </p>
+      <pre><code>function heapSort(A):
+    buildMaxHeap(A)              // O(n)
+    for i from |A|-1 down to 1:
+        swap A[0] with A[i]      // move max to end
+        heapify(A, 0, heapSize)  // restore heap property in O(log n)
+    return A
+</code></pre>
+      <p>See the Heapsort demo below for a step-by-step animation.</p>
+      <div class="embeddedDemoContainer">
+        <iframe
+          class="embeddedDemo"
+          src="/Algorithms/Content/Demos/Transform-and-Conquer/Heapsort Demo.html"
+          allow="fullscreen"
+          name="Heapsort-demo"
+        ></iframe>
+      </div>
+    </div>
+  </section>
+
+  <section id="summary">
+    <h2>Summary &amp; Key Takeaways</h2>
+    <p>
+      Transform-and-Conquer addresses problems by changing their form—either by simplifying the instance, altering the representation, or reducing to a known problem—so that efficient algorithms can be applied. Presorting enables faster queries and deduplication; Horner's Rule achieves linear-time polynomial evaluation by rewriting the expression; Heapsort sorts in-place by leveraging heap structure. Beyond these examples, problem reduction allows mapping new challenges onto well-studied problems, making transform-and-conquer a critical tool in algorithm design and complexity analysis.
+    </p>
+  </section>
+</body>
+</html>

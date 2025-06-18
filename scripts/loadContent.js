@@ -21,6 +21,7 @@ const PROBLEMS_ORDER = [
   'Other'
 ];
 const ALGORITHMS_ORDER = [
+  'Introduction',
   'Brute Force',
   'Exhaustive Search',
   'Divide-and-Conquer',
@@ -33,6 +34,7 @@ const ALGORITHMS_ORDER = [
 ];
 // For "Demos", we just mirror the same order as the algorithm names:
 const DEMOS_ORDER = [...ALGORITHMS_ORDER];
+const TECHNIQUES_ORDER = [...ALGORITHMS_ORDER];
 
 // ─── Utility Functions ────────────────────────────────────────────────────────
 // Return the current “path” either from history.state or URL param or fallback
@@ -229,7 +231,8 @@ const buildMenu = (chapters) => {
     const orderList = {
       Problems: PROBLEMS_ORDER,
       Algorithms: ALGORITHMS_ORDER,
-      Demos: DEMOS_ORDER
+      Demos: DEMOS_ORDER,
+      Techniques: TECHNIQUES_ORDER
     }[sectionName] || [];
     buildList(contents, ul, `${sectionName}/`, orderList);
     li.appendChild(ul);

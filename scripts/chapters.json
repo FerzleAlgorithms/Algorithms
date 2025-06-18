@@ -108,7 +108,7 @@
       "Transform-and-Conquer": [
         "Fibonacci Number (Matrix) Demo.html",
         "Heapsort Demo.html",
-        "Horner Rule Demo.html"
+        "Horners Rule Demo.html"
       ]
     }
   ],
@@ -172,6 +172,8 @@
     "Brute Force.html",
     "Decrease-and-Conquer.html",
     "Divide-and-Conquer.html",
-    "Exhaustive Search.html"
+    "Exhaustive Search.html",
+    "Introduction.html",
+    "Transform-and-Conquer.html"
   ]
 }

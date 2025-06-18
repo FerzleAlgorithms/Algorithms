@@ -854,20 +854,12 @@ Ideal when you can “peel off” a single subproblem—by a fixed amount, a fix
   <h3>Advanced Problems</h3>
   <ol>
     <li>
-      <strong>Median-of-Medians Analysis:</strong><br>
-      Sketch the median-of-medians pivot selection procedure for Quickselect. Write its recurrence for worst-case time and show that it solves to \(T(n)=O(n)\).
-    </li>
-    <li>
-      <strong>Randomized vs Deterministic:</strong><br>
-      Implement two versions of Quickselect: one with a random pivot and one with median-of-medians. Compare their empirical performance on 1 000 random arrays of size 1 000 and explain the observed differences.
-    </li>
-    <li>
       <strong>First-Occurrence Binary Search:</strong><br>
       Modify the standard binary search pseudocode so that, in a sorted array with duplicate values, it returns the index of the first occurrence of the target. Explain why your modification still runs in \(O(\log n)\) time.
     </li>
     <li>
       <strong>Tail-Call Elimination:</strong><br>
-      Show how to convert the recursive binary search into a tail-recursive form. Then rewrite it as a purely iterative function. Discuss the impact on space complexity.
+      Show how to convert the recursive binary search into a tail-recursive form. Then rewrite it as a purely iterative function. Discuss the impact on time and space complexity.
     </li>
     <li>
       <strong>Design a Shrink-By-Three Algorithm:</strong><br>
@@ -875,11 +867,31 @@ Ideal when you can “peel off” a single subproblem—by a fixed amount, a fix
     </li>
     <li>
       <strong>Hybrid Threshold Tuning:</strong><br>
-      For Quickselect, experiment with different small-case cutoff values \(k\in\{8,16,32,64\}\) where you switch to insertion sort. On arrays of size 10 000, measure the average running time and identify the optimal \(k\). Explain why that cutoff is best.
+      For Quickselect, experiment with different small-case cutoff values \(k\in\{8,16,32,64\}\) where you switch to insertion sort. On arrays of size 10,000, measure the average running time and identify the optimal \(k\). Explain why that cutoff is best.
+    </li>
+     <li>
+      <strong>Counterfeit Coin Puzzle (divide into thirds):</strong><br>
+      You have \(N\) coins, one of which is heavier. Using only a balance scale that can compare two groups of coins and tell which side is heavier (or if they balance), design a decrease-by-a-constant-factor algorithm that finds the counterfeit coin in as few weighings as possible. Provide clear pseudocode and analyze the number of weighings.
     </li>
     <li>
-      <strong>Real-World Scenario:</strong><br>
-      You need to maintain a live median of a streaming data feed. Compare using Quickselect on each new snapshot of size \(n\) versus maintaining two heaps (max-heap and min-heap). Analyze time per update and overall complexity, and recommend the best approach.
+      <strong>Ternary Search on a Unimodal Function:</strong><br>
+      Given a unimodal function \(f\) on a closed interval \([a,b]\) (that is, it strictly increases then strictly decreases), implement a divide-into-thirds (decrease-by-a-constant-factor) procedure to approximate the maximum point to within an error \(\varepsilon\). Write pseudocode and bound the number of function evaluations in terms of \(\log_3\bigl(\tfrac{b-a}{\varepsilon}\bigr)\).
+    </li>
+    <li>
+      <strong>Median of Two Sorted Arrays:</strong><br>
+      You are given two sorted arrays of lengths \(n\) and \(m\). Design a decrease-by-a-constant-factor algorithm that finds the median of the union of these arrays in \(O(\log(n+m))\) time. Provide pseudocode and prove its running time.
+    </li>
+    <li>
+      <strong>Search in a Rotated Sorted Array:</strong><br>
+      A sorted array of length \(n\) has been rotated at an unknown pivot. Devise a modified binary search (decrease-by-a-constant-factor) that finds a target value in \(O(\log n)\) time. Include pseudocode and a correctness argument.
+    </li>
+    <li>
+      <strong>Peak in a Bitonic Array:</strong><br>
+      A bitonic array first strictly increases and then strictly decreases. Write a decrease-by-a-constant-factor (binary search) algorithm to locate the peak element in \(O(\log n)\) time, and explain why it works.
+    </li>
+    <li>
+      <strong>Defective Batch Testing:</strong><br>
+      You have \(n\) items, exactly one of which is defective. You can test any subset and learn whether it contains the defective item. Design an algorithm to pinpoint the defective item using the fewest tests possible. Provide pseudocode and an analysis of the number of tests required.
     </li>
   </ol>
 </section>

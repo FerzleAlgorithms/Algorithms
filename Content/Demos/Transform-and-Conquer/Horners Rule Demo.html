@@ -347,8 +347,8 @@
         prev: prevVal,
         x: xVal,
         // Show both multiplication and addition:
-        computation: `${xVal} x ${prevVal} + ${coeffs[i]}`,
-        formula: `result = x * result + a[${i}]`,     
+        computation: `${coeffs[i]} + ${xVal} x ${prevVal}`,
+        formula: `result =a[${i}] + x * result`,     
         result: addRes,
         rowIdx: rowIdx++
       });
