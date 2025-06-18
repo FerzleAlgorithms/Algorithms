@@ -62,7 +62,8 @@
         "Exponentiation By Squaring Demo.html",
         "Factorial Demo.html",
         "Hoare Partition Demo.html",
-        "Insertion Sort Demo.html"
+        "Insertion Sort Demo.html",
+        "Quickselect Simple Demo.html"
       ]
     },
     {
@@ -75,6 +76,7 @@
     {
       "Dynamic Programming": [
         "Coin Row Demo.html",
+        "Dynamic 0-1 Knapsack Demo.html",
         "Fib Bottom Up Demo.html",
         "Fib Top Down Demo.html",
         "Iterative FIb Demo.html"

@@ -415,23 +415,42 @@ with \(b=2\). Here is a demonstration of the algorithm in action.
 <div class="example-box">
   <strong class="example-title">Example 6: Quickselect (Variable-Size-Decrease)</strong>
   <p>
-    Quickselect solves the <a href="?path=Problems/Foundational/K-th Order Statistic">kth order statistic</a> problem by:
+    Quickselect solves the <a href="?path=Problems/Foundational/K-th Order Statistic">kth order statistic</a> problem,
+    which is simply to determine the \(k\)-th smallest element in a (presumably unsorted) array.
+    It works as follows:
     <ol>
       <li>Choosing a pivot and partitioning the array into \([\lt pivot \; | \; pivot \; | \gt pivot]\).</li>
       <li>Recursing only on the group that contains the \(k\)th element.</li>
     </ol>
+    <p>Here is a very simple demo showing a high-level view of Quickselect. It glosses over
+    the details of the partition step, but it should give you a general idea of how the algorithm works.</p>
     </p>
+    <div class="embeddedDemoContainer">
+    <iframe
+      class="embeddedDemo"
+      src="/Algorithms/Content/Demos/Decrease-and-Conquer/Quickselect Simple Demo.html"
+      allow="fullscreen"
+      name="Quickselect-Simple-demo"
+    ></iframe>
+  </div>
+  <p>
+  Notice that once the algorithm has finished, the element at the desired index (in this case \(k=5\))
+  is in the proper location, elements smaller are to the left, and elements larger are to the right,
+  but the array is not totally ordered. Quickselect orders it just enough to be able to put the \(k\)-th
+  element in place.
+  </p>
     <p>
-    On average this runs in \(O(n)\) time (with careful pivot selection), though in the worst case it can be \(O(n^2)\). 
+    On average Quickselect runs in \(O(n)\) time (with careful pivot selection), 
+    though in the worst case it can be \(O(n^2)\). 
     </p>
     <p>
     This algorithm is a lot like Quicksort, except it only recurses on one part instead of both.
     Because there are subtleties that make this algorithm a little more complicated than the other 
     examples in this section, we defer full details, incuding pseudocode, to the
     <a href="?path=Algorithms/Decrease-and-Conquer/Quickselect">Quickselect</a> page. 
-    
-    <h2>TODO: Insert Simple Demo?</h2>
   </p>
+    
+
 </div>
 
 <p><strong>Summary of Variable-Size-Decrease</strong></p>
