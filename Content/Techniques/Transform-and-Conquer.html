@@ -78,7 +78,9 @@
 <div class="example-box">
   <strong class="example-title">Example 2: Horner's Rule</strong>
   <p>
-    Horner's Rule rewrites a degree-<em>n</em> polynomial
+  Horner's Rule is a clever method of solving the 
+  <a href="?path=Problems/Foundational/Polynomial Evaluation">Polynomial Evaluation</a> problem
+  by rewriting a degree-<em>n</em> polynomial
     \[
       P(x) = a_0 + a_1 x + a_2 x^2 + \cdots + a_n x^n
     \]
@@ -127,7 +129,7 @@
     extra space (ignoring input storage).</p>
     <p>The naive approach computes each term \(a_i x^i\) by performing \(i\) multiplications, 
     yielding \(O(n^2)\) operations overall. The straightforward linear-time method that accumulates powers 
-    explicitly also runs in \(\Theta(n)\) time but requires two multiplications per coefficient 
+    explicitly also runs in \(O(n)\) time but requires two multiplications per coefficient 
     (one to update the power variable and one to multiply by \(a_i\)), for a total of \(2n\) multiplications. 
     Horner's Rule, by contrast, uses only \(n\) multiplications&mdash;half as many&mdash;and \(n\) additions, 
     making it the most operation-efficient algorithm for polynomial evaluation. 
@@ -136,6 +138,67 @@
     See the <a href="?path=Algorithms/Transform-and-Conquer/Horners Rule.html">Horner's Rule</a> 
     page for more details.</p>
   </div>
+
+<div class="example-box">
+  <strong class="example-title">Example 3: Heapsort</strong>
+
+  <p>
+  Heapsort solves the 
+  <a href="?path=Problems/Foundational/Sorting">Sorting</a> problem by transforming an array into a 
+  heap (specifically, a max-heap).
+    Recall that a heap is a complete binary tree stored in an array, 
+    where each node is greater than or equal to its children (for a max-heap).  
+    The primary heap operations needed by Heapsort are:
+    <ul>
+      <li><code>heapify</code>: Restore the heap property at a given node in \(O(\log n)\) time.
+      It does so by "bubbling down" small elements to where they belong.</li>
+      <li><code>buildMaxHeap</code>: Reorganize the elements of an array into a heap in \(O(n)\) time.
+      Briefly, it walks through the tree backwards calling heapify on each node.</li>
+    </ul>
+  </p>
+
+  <p>
+    Heapsort sorts an array in-place by first performing <code>buildMaxHeap</code>, 
+    then repeatedly swapping the root (the maximum value) with the last element of the heap,
+    reduce the heap size by one (so it no longer considers the maximum value as part of the heap),
+    and calling <code>heapify</code> to restore the heap property on the smaller heap. 
+    Ignoring the details of <code>buildMaxHeap</code> and <code>heapify</code>, 
+    the algorithm is very simple:  
+  </p>
+
+  <pre><code>function heapSort(A):
+    buildMaxHeap(A,n)     // Transform the array into a heap
+    for i from n-1 down to 1:
+        swap A[0] with A[i]     // move max to end
+        heapify(A, 0, i-1)      // restore heap property
+    return A  </code></pre>
+
+  <p>
+    For a deeper dive into the details and analysis of heaps and their operations, 
+    see the full <a href="?path=Algorithms/Transform-and-Conquer/Heapsort">Heapsort</a> page.
+    </p>
+  <p>
+    <strong>Example:</strong>  
+    Let A = [4, 10, 3, 5, 1].  After <em>buildMaxHeap</em>, A becomes [10, 5, 3, 4, 1].  
+    Swap A[0] and A[4] ? [1, 5, 3, 4, 10], then <em>heapify</em> on the first 4 elements ? [5, 4, 3, 1, 10], and so on until A is sorted.
+  </p>
+
+  <p>
+    <strong>Time Complexity:</strong> Building the heap takes \(O(n)\), and each of the \(n-1\) extractions costs \(O(\log n)\), for a total of \(O(n + (n-1)\log n) = O(n\log n)\).<br>
+    <strong>Space Complexity:</strong> Heapsort sorts in-place using only \(O(1)\) extra space.
+  </p>
+
+  <p>See the Heapsort demo below for a step-by-step animation.</p>
+  <div class="embeddedDemoContainer">
+    <iframe
+      class="embeddedDemo"
+      src="/Algorithms/Content/Demos/Transform-and-Conquer/Heapsort Demo.html"
+      allow="fullscreen"
+      name="Heapsort-demo"
+    ></iframe>
+  </div>
+</div>
+
 
     <div class="example-box">
       <strong class="example-title">Example 3: Heapsort</strong>

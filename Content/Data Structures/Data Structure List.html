@@ -1,4 +1,14 @@
+<html lang="en">
+<head>
+  <script src="/Algorithms/scripts/chapterScripts.js"></script>
+  <link rel="stylesheet" href="/Algorithms/css/style.css">
+  <link rel="stylesheet" href="/Algorithms/css/chapter.css">
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 <style>
+table.fixed {
+  table-layout: fixed !important;
+  width: 100% !important;
+}
   table {
     width: 100%;
     border-collapse: collapse;
@@ -8,7 +18,7 @@
     border: 1px solid #ccc;
     padding: 8px;
     text-align: left;
-    vertical-align: top;      /* ← added */
+    vertical-align: top;
   }
   th {
     background-color: #4A768B;
@@ -25,13 +35,21 @@
     padding-left: 1.2em;
   }
 </style>
-
+</head>
+<body class="no-tooltips">
 <h1>Common Data Structures</h1>
 <p>
 <font color="red">Coming in the future: More details about Data Structures.
-But don't hold your breathe. It may not happen until 2026.</font></p>
+But don't hold your breath. It may not happen until 2026.</font></p>
 
-<table>
+<table class="fixed"> 
+<colgroup>
+    <col style="width: 12%;">   <!-- Data Structure -->
+    <col style="width: 21%;">   <!-- Description -->
+    <col style="width: 22%;">   <!-- Key Operations -->
+    <col style="width: 25%;">   <!-- Common Implementations -->
+    <col style="width: 20%;">   <!-- Other Notes -->
+  </colgroup>
   <thead>
     <tr>
       <th>Data Structure</th>
@@ -47,16 +65,16 @@ But don't hold your breathe. It may not happen until 2026.</font></p>
       <td>Contiguous block of elements; constant‐time random access.</td>
       <td>
         <ul>
-          <li>Access (O(1))</li>
-          <li>Search (O(n))</li>
-          <li>Insert/Delete at end (O(1) amortized)</li>
-          <li>Insert/Delete elsewhere (O(n))</li>
+          <li>Access (\(O(1)\))</li>
+          <li>Search (\(O(n)\))</li>
+          <li>Insert/Delete at end (\(O(1)\) amortized)</li>
+          <li>Insert/Delete elsewhere (\(O(n)\))</li>
         </ul>
       </td>
       <td>
         <ul>
-          <li>Fixed-size contiguous array</li>
-          <li>Resizable array (dynamic, doubling)</li>
+          <li>Fixed‐size contiguous array</li>
+          <li>Resizable array (dynamic doubling)</li>
         </ul>
       </td>
       <td>Great cache performance; resizing costs amortized.</td>
@@ -66,8 +84,8 @@ But don't hold your breathe. It may not happen until 2026.</font></p>
       <td>Chain of nodes, each holding a value and pointer(s).</td>
       <td>
         <ul>
-          <li>Insert/Delete at head/tail (O(1))</li>
-          <li>Traversal/Search (O(n))</li>
+          <li>Insert/Delete at head/tail (\(O(1)\))</li>
+          <li>Traversal/Search (\(O(n)\))</li>
         </ul>
       </td>
       <td>
@@ -83,7 +101,7 @@ But don't hold your breathe. It may not happen until 2026.</font></p>
       <td>LIFO (last‐in, first‐out) abstract data type.</td>
       <td>
         <ul>
-          <li>push, pop, peek (all O(1))</li>
+          <li>push, pop, peek (all \(O(1)\))</li>
         </ul>
       </td>
       <td>
@@ -99,7 +117,7 @@ But don't hold your breathe. It may not happen until 2026.</font></p>
       <td>FIFO (first‐in, first‐out) abstract data type.</td>
       <td>
         <ul>
-          <li>enqueue, dequeue, front (all O(1))</li>
+          <li>enqueue, dequeue, front (all \(O(1)\))</li>
         </ul>
       </td>
       <td>
@@ -115,7 +133,7 @@ But don't hold your breathe. It may not happen until 2026.</font></p>
       <td>Key–value map with average constant‐time access via hashing.</td>
       <td>
         <ul>
-          <li>insert, delete, lookup (O(1) avg)</li>
+          <li>insert, delete, lookup (\(O(1)\) average)</li>
         </ul>
       </td>
       <td>
@@ -124,72 +142,91 @@ But don't hold your breathe. It may not happen until 2026.</font></p>
           <li>Flat array with probing (open addressing)</li>
         </ul>
       </td>
-      <td>Watch load factor; worst‐case O(n) under heavy collisions.</td>
+      <td>Watch load factor; worst‐case \(O(n)\) under heavy collisions.</td>
     </tr>
     <tr>
       <td>Binary Tree</td>
       <td>Each node has up to two children; no particular ordering.</td>
       <td>
         <ul>
-          <li>traverse (pre/in/post: O(n))</li>
-          <li>insert/delete (depends on policy; often O(n))</li>
+          <li>traverse (pre/in/post: \(O(n)\))</li>
+          <li>insert/delete (depends on policy; often \(O(n)\))</li>
         </ul>
       </td>
       <td>
         <ul>
-          <li>Pointer-based nodes</li>
-          <li>Implicit array (heap-like layout, without heap property)</li>
+          <li>Pointer‐based nodes</li>
+          <li>Implicit array (heap‐like layout, without heap property)</li>
         </ul>
       </td>
       <td>Foundation for many more specialized trees (BST, heaps).</td>
     </tr>
     <tr>
       <td>Binary Search Tree</td>
-      <td>Ordered binary tree: <em>left &lt; root &lt; right</em>.</td>
+      <td>Ordered binary tree: \(\mathrm{left} < \mathrm{root} < \mathrm{right}\).</td>
       <td>
         <ul>
-          <li>search, insert, delete (O(log n) avg)</li>
-          <li>in-order traversal (O(n))</li>
+          <li>search, insert, delete (\(O(\log n)\) average)</li>
+          <li>in‐order traversal (\(O(n)\))</li>
         </ul>
       </td>
       <td>
         <ul>
-          <li>Pointer-based nodes</li>
+          <li>Pointer‐based nodes</li>
         </ul>
       </td>
-      <td>Unbalanced can degrade to O(n) height.</td>
+      <td>Unbalanced can degrade to \(O(n)\) height.</td>
     </tr>
     <tr>
       <td>Balanced BST</td>
-      <td>Self-balancing trees guaranteeing O(log n) height.</td>
+      <td>Self‐balancing trees guaranteeing \(O(\log n)\) height.</td>
       <td>
         <ul>
-          <li>search, insert, delete (O(log n))</li>
+          <li>search, insert, delete (\(O(\log n)\))</li>
           <li>rebalancing via rotations or color flips</li>
         </ul>
       </td>
       <td>
         <ul>
-          <li>AVL Tree (pointer-based)</li>
-          <li>Red-Black Tree (pointer-based)</li>
-          <li>2-3 Tree (pointer-based, not technically BST)</li>
+          <li>AVL Tree (pointer‐based)</li>
+          <li>Red‐Black Tree (pointer‐based)</li>
+          <li>2‐3 Tree (pointer‐based, not technically BST)</li>
         </ul>
       </td>
       <td>Consistent performance at slight restructuring cost.</td>
     </tr>
     <tr>
-      <td>Priority Queue<br/>(Heap)</td>
-      <td>ADT supporting extract-min/max; typically backed by a heap.</td>
+      <td>Binary Max Heap</td>
+      <td>Complete binary tree stored in an array where each parent \(\ge\) its children; supports efficient access to the largest element.</td>
       <td>
         <ul>
-          <li>insert, extract-min/max (O(log n))</li>
-          <li>peek (O(1))</li>
+          <li>buildHeap (\(O(n)\))</li>
+          <li>heapify (\(O(\log n)\))</li>
+          <li>insert (\(O(\log n)\))</li>
+          <li>extract‐max (\(O(\log n)\))</li>
+          <li>peek‐max (\(O(1)\))</li>
+        </ul>
+      </td>
+      <td>
+        <ul>
+          <li>Array‐based binary heap: for zero‐based index \(i\), left child = \(2i + 1\), right child = \(2i + 2\), parent = \(\lfloor (i - 1)/2\rfloor\)</li>
+        </ul>
+      </td>
+      <td>Common in priority queues and Heapsort; a Binary Min Heap (parent \(\le\) children) is analogous for retrieving the smallest element.</td>
+    </tr>
+    <tr>
+      <td>Priority Queue</td>
+      <td>ADT supporting extract‐min/max; typically backed by a heap.</td>
+      <td>
+        <ul>
+          <li>insert, extract‐min/max (\(O(\log n)\))</li>
+          <li>peek (\(O(1)\))</li>
         </ul>
       </td>
       <td>
         <ul>
           <li>Binary heap (array)</li>
-          <li>Binomial/Fibonacci heap (pointer-based)</li>
+          <li>Binomial/Fibonacci heap (pointer‐based)</li>
         </ul>
       </td>
       <td>Essential for Dijkstra, scheduling, heapsort.</td>
@@ -200,21 +237,21 @@ But don't hold your breathe. It may not happen until 2026.</font></p>
       <td>
         <ul>
           <li>Add/Remove vertex/edge</li>
-		  <li>Iterate over neighbors of vertex</li>
-		  <li>Traverse (DFS, BFS (O(V+E))</li>
+          <li>Iterate over neighbors of a vertex</li>
+          <li>Traverse DFS, BFS (\(O(V + E)\))</li>
         </ul>
       </td>
       <td>
         <ul>
           <li>Adjacency list (array of lists)</li>
           <li>Adjacency matrix (2D array)</li>
-		  <li>Incidence Matrix (much less common)</li>
+          <li>Incidence matrix (less common)</li>
         </ul>
       </td>
-      <td>Sparse vs. dense trade-offs in space/time.</td>
+      <td>Sparse vs. dense trade‐offs in space/time.</td>
     </tr>
     <tr>
-      <td>Disjoint Set (Union-Find)</td>
+      <td>Disjoint Set (Union‐Find)</td>
       <td>Maintains a collection of non-overlapping sets.</td>
       <td>
         <ul>
@@ -224,10 +261,12 @@ But don't hold your breathe. It may not happen until 2026.</font></p>
       <td>
         <ul>
           <li>Array of parent indices + path compression</li>
-          <li>Pointer-based forest with union by rank/size</li>
+          <li>Pointer‐based forest with union by rank/size</li>
         </ul>
       </td>
       <td>Key in Kruskal’s MST, connectivity queries.</td>
     </tr>
   </tbody>
 </table>
+</body>
+</html>
