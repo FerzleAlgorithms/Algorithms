@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <script src="../../../scripts/demoScripts.js"></script>
+  <link rel="stylesheet" href="../../../css/style.css">
+  <link rel="stylesheet" href="../../../css/demo.css">
+  <title>Heap Relationship Demo</title>
+  <style>
+    /* Highlight colors */
+    .comparing { background-color: yellow; }
+    .swap { background-color: lightgreen; }
+    .array-heapify { background-color: #FF9999; }
+    .heap { background-color: #D8BFD8; }
+
+    /* Section labels */
+    .section-label { font-weight: bold; margin-top: 20px; margin-bottom: 5px; font-size: 1em; }
+
+    /* Array styling */
+    #arrayContainer { display: flex; margin-top: 10px; margin-bottom: 20px; }
+    #arrayContainer .element-wrapper {
+      /* stack vertically */
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-right: 4px;
+
+      /* NEW: ideal width = 40px, no grow, can shrink */
+      flex: 0 1 40px;
+      box-sizing: border-box;
+    }
+    #arrayContainer .element-wrapper .element {
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      height: auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid #666;
+    }
+    .index-label { font-size: 0.8em; margin-top: 4px; color: #333; }
+
+    /* Tree styling */
+    svg { width: 100%; height: 300px; overflow: visible; margin-bottom: 20px; }
+    .treeNode { cursor: pointer; }
+    .treeNode circle { fill: white; stroke: #666; stroke-width: 1.5px; }
+    .treeNode.comparing circle { fill: yellow; }
+    .treeNode.swap circle { fill: lightgreen; }
+    .treeNode.array-heapify circle { fill: #FF9999; }
+    .treeNode.heap circle { fill: #D8BFD8; }
+    .node-index-label { font-size: 12px; fill: #333; text-anchor: middle; }
+  </style>
+</head>
+<body>
+  <h2>Heap Relationship Demo</h2>
+
+  <div class="controls">
+    <label>Size: <input type="number" id="heapSize" min="3" max="31" value="10"></label>
+    <button id="generate">Random Heap</button>
+    <br><br>
+    <button id="prevBtn" disabled>Previous</button>
+    <button id="nextBtn" disabled>Next</button>
+  </div>
+
+  <div class="legend">
+    <span class="legend-box comparing"></span><span class="legend-label">Current Element</span>
+    <span class="legend-box swap"></span><span class="legend-label">Parent</span>
+    <span class="legend-box array-heapify"></span><span class="legend-label">Left Child</span>
+    <span class="legend-box heap"></span><span class="legend-label">Right Child</span>
+  </div>
+
+  <!-- Node details -->
+  <div class="section-label">Node Details</div>
+  <div id="commentary" style="font-style: italic;"></div>
+
+  <!-- Array representation -->
+  <div class="section-label">Array Representation</div>
+  <div id="arrayContainer"></div>
+
+  <!-- Tree representation -->
+  <div class="section-label">Tree Representation</div>
+  <svg id="svg" preserveAspectRatio="xMinYMin meet">
+    <g id="linkLayer"></g>
+    <g id="nodeLayer"></g>
+  </svg>
+
+  <script>
+    const settings = { hSpread: 400, circleR: 20, levelVGap: 60 };
+    const rootX = settings.hSpread;
+    const rootY = 0;
+
+    let heap = [];
+    let stepIndex = 0;
+
+    function computeNodePosition(i) {
+      const moves = [];
+      let cur = i;
+      while (cur > 0) {
+        const parent = Math.floor((cur - 1) / 2);
+        moves.unshift(cur === 2 * parent + 1 ? 'L' : 'R');
+        cur = parent;
+      }
+      let x = rootX, y = rootY, h = settings.hSpread;
+      for (const dir of moves) {
+        h /= 2; y += 1;
+        x += dir === 'L' ? -h : h;
+      }
+      return { x, y: y * settings.levelVGap + settings.circleR };
+    }
+
+    function buildHeap(arr) {
+      const n = arr.length;
+      for (let i = Math.floor(n/2) - 1; i >= 0; i--) siftDown(arr, i, n);
+    }
+    function siftDown(arr, i, n) {
+      let largest = i;
+      const left = 2*i + 1, right = 2*i + 2;
+      if (left < n && arr[left] > arr[largest]) largest = left;
+      if (right < n && arr[right] > arr[largest]) largest = right;
+      if (largest !== i) { [arr[i], arr[largest]] = [arr[largest], arr[i]]; siftDown(arr, largest, n); }
+    }
+
+    function render() {
+      const n = heap.length;
+      const parentIndex = stepIndex > 0 ? Math.floor((stepIndex - 1) / 2) : -1;
+      const leftIndex = 2 * stepIndex + 1 < n ? 2 * stepIndex + 1 : -1;
+      const rightIndex = 2 * stepIndex + 2 < n ? 2 * stepIndex + 2 : -1;
+
+      // Commentary
+      const comment =
+        'i = ' + stepIndex + '<br>' +
+        'parent = floor((i - 1) / 2) = ' + parentIndex + '<br>' +
+        'left = 2 * i + 1 = ' + leftIndex + '<br>' +
+        'right = 2 * i + 2 = ' + rightIndex;
+      document.getElementById('commentary').innerHTML = comment;
+
+      // Render array
+      const container = document.getElementById('arrayContainer');
+      container.innerHTML = '';
+      heap.forEach((val, idx) => {
+        const wrapper = document.createElement('div'); wrapper.className = 'element-wrapper';
+        wrapper.dataset.index = idx;
+        wrapper.addEventListener('click', () => { stepIndex = idx; render(); });
+        const cell = document.createElement('div'); cell.className = 'element';
+        if (idx === stepIndex) cell.classList.add('comparing');
+        else if (idx === parentIndex) cell.classList.add('swap');
+        else if (idx === leftIndex) cell.classList.add('array-heapify');
+        else if (idx === rightIndex) cell.classList.add('heap');
+        cell.textContent = val;
+        const label = document.createElement('div'); label.className = 'index-label'; label.textContent = idx;
+        wrapper.appendChild(cell); wrapper.appendChild(label);
+        container.appendChild(wrapper);
+      });
+
+      // Render tree
+      const linkLayer = document.getElementById('linkLayer'), nodeLayer = document.getElementById('nodeLayer');
+      linkLayer.innerHTML = ''; nodeLayer.innerHTML = '';
+      for (let i = 1; i < n; i++) {
+        const p = Math.floor((i-1)/2);
+        const a = computeNodePosition(p), b = computeNodePosition(i);
+        const line = document.createElementNS('http://www.w3.org/2000/svg','line');
+        line.setAttribute('x1',a.x); line.setAttribute('y1',a.y);
+        line.setAttribute('x2',b.x); line.setAttribute('y2',b.y);
+        line.setAttribute('stroke','#666'); linkLayer.appendChild(line);
+      }
+      heap.forEach((val, i) => {
+        const pos = computeNodePosition(i);
+        const g = document.createElementNS('http://www.w3.org/2000/svg','g');
+        g.setAttribute('class','treeNode');
+        g.dataset.index = i;
+        g.addEventListener('click', () => { stepIndex = i; render(); });
+        if (i === stepIndex) g.classList.add('comparing');
+        else if (i === parentIndex) g.classList.add('swap');
+        else if (i === leftIndex) g.classList.add('array-heapify');
+        else if (i === rightIndex) g.classList.add('heap');
+        const circle = document.createElementNS('http://www.w3.org/2000/svg','circle');
+        circle.setAttribute('cx',pos.x); circle.setAttribute('cy',pos.y); circle.setAttribute('r',settings.circleR);
+        g.appendChild(circle);
+        const text = document.createElementNS('http://www.w3.org/2000/svg','text');
+        text.setAttribute('x',pos.x); text.setAttribute('y',pos.y);
+        text.setAttribute('text-anchor','middle'); text.setAttribute('dominant-baseline','middle'); text.textContent = val;
+        g.appendChild(text);
+        const idxText = document.createElementNS('http://www.w3.org/2000/svg','text');
+        idxText.setAttribute('x',pos.x); idxText.setAttribute('y',pos.y + settings.circleR + 12);
+        idxText.setAttribute('class','node-index-label'); idxText.textContent = i;
+        g.appendChild(idxText);
+        nodeLayer.appendChild(g);
+      });
+
+      document.getElementById('prevBtn').disabled = stepIndex === 0;
+      document.getElementById('nextBtn').disabled = stepIndex === n-1;
+    }
+
+    function initHeap() {
+      const size = Math.max(3, Math.min(31, parseInt(document.getElementById('heapSize').value) || 10));
+      document.getElementById('heapSize').value = size;
+      heap = Array.from({ length: size }, () => Math.floor(Math.random() * 100));
+      buildHeap(heap); stepIndex = 0; render();
+    }
+
+    document.getElementById('generate').addEventListener('click', initHeap);
+    document.getElementById('nextBtn').addEventListener('click', () => { stepIndex++; render(); });
+    document.getElementById('prevBtn').addEventListener('click', () => { stepIndex--; render(); });
+    window.addEventListener('load', initHeap);
+  </script>
+</body>
+</html>

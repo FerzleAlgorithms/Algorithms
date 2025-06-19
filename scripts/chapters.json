@@ -34,7 +34,8 @@
     }
   ],
   "Data Structures": [
-    "Data Structure List.html"
+    "Data Structure List.html",
+    "Heaps.html"
   ],
   "Demos": [
     {
@@ -52,6 +53,11 @@
         "Polynomial Evaluation (Quadratic) Demo.html",
         "Selection Sort Demo.html",
         "Sequential Search Demo.html"
+      ]
+    },
+    {
+      "Data Structures": [
+        "Heap Representation.html"
       ]
     },
     {

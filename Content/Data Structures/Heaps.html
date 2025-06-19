@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Heaps</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js"></script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <script src="/Algorithms/scripts/chapterScripts.js"></script>
+  <script src="/Algorithms/scripts/demoScripts.js"></script>
+  <link rel="stylesheet" href="/Algorithms/css/style.css">
+  <link rel="stylesheet" href="/Algorithms/css/chapter.css">
+</head>
+<body>
+  <h1>Heaps</h1>
+  
+  <h2>Overview</h2>
+  <p>
+    A <strong>heap</strong> is a tree-based abstract data type that maintains a partial order 
+    between elements&mdash;in a <em>max-heap</em>, each node is at least as large as its children; 
+    in a <em>min-heap</em>, each node is at most as large as its children.  Here we will restrict
+    our attention to max-heaps, leaving it to the reader to figure out what modifications are needed 
+    in the case of a min-heap (It is easier to do this instead of referring to both min and max options
+    throughout!).
+    Heaps support efficient <code>insert</code>, <code>peek</code> (find min/max), 
+    and <code>extractMax</code> operations. 
+    They are used to implement priority queues, selection algorithms, and in-place sorting (Heapsort).
+    Variations include <strong>binary heaps</strong>, <strong>binomial heaps</strong>, 
+    and <strong>Fibonacci heaps</strong> (which offer different trade-offs for decrease-key and merge operations).
+    We will focus on binary heaps for the remainder of this section. For more details about the other
+    variations, see one of the following:
+    <ul>
+    <li><a href="https://en.wikipedia.org/wiki/Fibonacci_heap">Fibonacci Heap (Wikipedia)</a></li>
+    <li><a href="https://www.geeksforgeeks.org/dsa/fibonacci-heap-set-1-introduction/">Fibonacci Heap (GeeksForGeeks)</a></li>
+    <li><a href="https://en.wikipedia.org/wiki/Binomial_heap">Binomial Heap (Wikipedia)</a></li>
+    <li><a href="https://www.geeksforgeeks.org/dsa/binomial-heap-2/">Binomial Heap (GeeksForGeeks)</a></li>
+    
+    </ul>
+  </p>
+  
+  <h2>Basic Definition</h2>
+  <p>
+    A binary max-heap (hereafter simply referred to as heap) is a complete binary tree such that
+    every node is at least as large as its children. The most common implementation uses an array. 
+    Locating parents/children is very simple. For zero-based indexing, the relatives of the node
+    with index \(i\) are:
+        <ul>
+      <li>left child (except for leaved) is at index \(2i + 1\)</li>
+      <li>right child (except for leaves) is at index \(2i + 2\)</li>
+      <li>parent (except for the root) is is at index \(\lfloor(i - 1)/2\rfloor\)</li>
+    </ul>
+  <p>
+    Because a binary heap is always a <em>complete</em> binary tree&mdash;every level except possibly 
+    the last is completely filled, and all nodes in the last level are as far left as possible&mdash;you 
+    can pack all elements into a single array without wasted spaces.  
+    The parent/child relationships follow fixed index formulas, 
+    so you avoid the memory overhead and pointer-chasing of node objects.  
+    This contiguous layout improves cache locality and reduces per-node storage,
+    making array-based heaps both simpler and faster than link-based implementations.
+  </p>
+    <p>
+    In practice we often allocate an array larger than the current heap and keep a separate 
+    <em>heapSize</em> variable to record how many entries are logically in the heap.  
+    Whenever we compute a child index, we first check whether it is less 
+    than <em>heapSize</em>; any index greater than or equal to <em>heapSize</em> is treated as non-existent, 
+    even though it might remain within the array's physical bounds. If you are fortunate enough to 
+    learn about Heapsort, you will see where this can come in handy!
+  </p>
+  
+  
+  <h3>Key Operations</h3>
+  <ul>
+    <li><strong>buildMaxHeap(A)</strong>: arrange array \(A\) into a max-heap in \(O(n)\) time.</li>
+    <li><strong>heapify(A, i, heapSize)</strong>: restore the heap property at index \(i\) in \(O(\log n)\) time.</li>
+    <li><strong>insert(A, key)</strong>: append \(key\), then bubble up in \(O(\log n)\).</li>
+    <li><strong>extractMax(A)</strong>: swap root with last element, decrement size, then heapify root in \(O(\log n)\).</li>
+    <li><strong>peekMax(A)</strong>: return \(A[0]\) in \(O(1)\).</li>
+  </ul>
+    <ul>
+      <li>left child = $2i + 1$</li>
+      <li>right child = $2i + 2$</li>
+      <li>parent = $\lfloor(i - 1)/2\rfloor$</li>
+    </ul>
+    A <em>max-heap</em> lets us always access the largest element at the root; a <em>min-heap</em> is analogous for the smallest.
+  </p>
+  
+  <h3>Key Operations</h3>
+  <ul>
+    <li><strong>buildMaxHeap(A)</strong>: arrange array $A$ into a max-heap in $O(n)$ time.</li>
+    <li><strong>heapify(A, i, heapSize)</strong>: restore the heap property at index $i$ in $O(\log n)$ time.</li>
+    <li><strong>insert(A, key)</strong>: append $key$, then bubble up in $O(\log n)$.</li>
+    <li><strong>extractMax(A)</strong>: swap root with last element, decrement size, then heapify root in $O(\log n)$.</li>
+    <li><strong>peekMax(A)</strong>: return $A[0]$ in $O(1)$.</li>
+  </ul>
+
+  <h2>Visualization Examples</h2>
+  <p>Below is an example array of size 13 and its tree representation.  Click "View in fullscreen" for a closer look.</p>
+  <div class="svg-example">
+    <h3>Initial Array and Tree</h3>
+    <!-- Array view -->
+    <svg width="650" height="40">
+      <!-- rectangles and values -->
+      % for (let i=0; i<13; i++) {
+      <rect x="${i*50}" y="0" width="50" height="30" stroke="black" fill="none" />
+      <text x="${i*50 + 25}" y="20" text-anchor="middle" font-size="14">${[7,3,12,1,9,5,8,2,6,4,11,10,13][i]}</text>
+      % }
+    </svg>
+    <!-- Tree view -->
+    <svg width="800" height="300">
+      <!-- connecting lines -->
+      % const coords = [ [400,40],[266.7,120],[533.3,120],[160,200],[320,200],[480,200],[640,200],[88.9,280],[177.8,280],[266.7,280],[355.6,280],[444.4,280],[533.3,280] ];
+      % for(let i=1;i<13;i++){ let p = Math.floor((i-1)/2); %>
+      <line x1="${coords[p][0]}" y1="${coords[p][1]+15}" x2="${coords[i][0]}" y2="${coords[i][1]-15}" stroke="black" />
+      % }
+      <!-- nodes -->
+      % const vals=[7,3,12,1,9,5,8,2,6,4,11,10,13];
+      % coords.forEach((c, i)=>{ %>
+      <circle cx="${c[0]}" cy="${c[1]}" r="15" fill="#f0f0f0" stroke="black" />
+      <text x="${c[0]}" y="${c[1]+5}" text-anchor="middle" font-size="12">${vals[i]}</text>
+      % })
+    </svg>
+  </div>
+
+  <h2>Pseudocode</h2>
+  <pre><code class="language-python">def buildMaxHeap(A):
+    n = len(A)
+    for i in range(n//2 - 1, -1, -1):
+        heapify(A, i, n)
+
+
+def heapify(A, i, heapSize):
+    left = 2*i + 1
+    right = 2*i + 2
+    largest = i
+    if left < heapSize and A[left] > A[largest]:
+        largest = left
+    if right < heapSize and A[right] > A[largest]:
+        largest = right
+    if largest != i:
+        A[i], A[largest] = A[largest], A[i]
+        heapify(A, largest, heapSize)
+  </code></pre>
+
+  <h2>Time &amp; Space Analysis</h2>
+  <p>
+    <strong>buildMaxHeap</strong>: $O(n)$ by performing heapify from the bottom up.<br>
+    <strong>heapify</strong>: $O(\log n)$ per call.<br>
+    <strong>insert/extractMax</strong>: $O(\log n)$ each.<br>
+    A sequence of $n$ extractMax calls (as in Heapsort) yields $O(n\log n)$ overall.  All operations are in-place, so space overhead is $O(1)$.
+  </p>
+
+</body>
+</html>

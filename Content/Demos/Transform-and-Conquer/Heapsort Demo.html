@@ -82,26 +82,11 @@
       text-align: center;
     }
 
-    /* Button bar styling */
-    #buttons {
-      margin: 10px 0;
-    }
-    #buttons button, #buttons select, #buttons label {
-      margin-right: 8px;
-    }
-
     /* Commentary styling */
     #commentary {
       margin-top: 10px;
       font-family: sans-serif;
       font-style: italic;
-    }
-
-    /* Array container styling */
-    .array-container {
-      display: flex;
-      margin-top: 10px;
-      align-items: flex-end; /* so wrappers align at bottom for index labels */
     }
 
     /* === NEW: wrappers around each array element + index label === */
@@ -124,11 +109,31 @@
       fill: #333;
       text-anchor: middle;
     }
+    #arrayContainer {
+        margin-bottom: 30px !important;
+    }
+     /* after all other CSS, e.g. in your inline <style> */
+    #arrayContainer .element-wrapper {
+      /* stack vertically as you already have */
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-right: 4px;
+    
+      /* NEW: ideal width = 40px, no grow, can shrink */
+      flex: 0 1 40px;
+      box-sizing: border-box;   /* so padding/margin don’t bust the math */
+    }
+    #arrayContainer .element-wrapper .element {
+      width: 100%;
+      aspect-ratio: 1 / 1;     /* keep it square */
+      height: auto;
+    }
   </style>
 </head>
-<body>
+<body class="no-tooltips">
+<div id="demoContainer">
   <h2>Heapsort Demo</h2>
-
   <div id="controls">
     <label>Size:
       <input type="number" id="arraySize" min="7" max="31" value="10" size="3">
@@ -162,14 +167,14 @@
   <div id="commentary" style="height:36px"></div>
 
   <div id="array-label" style="margin-top: 10px;"><strong>Array:</strong></div>
-  <div class="array-container" id="array-container"></div>
+  <div class="array-container" id="arrayContainer"></div>
 
   <div id="phase-label" style="text-align: left">Phase: </div>
 
   <svg
     id="svg"
-    width="800"
-    height="600"
+    width="400"
+    height="300"
     preserveAspectRatio="xMinYMin meet"
     style="display: block; margin: 0; overflow: visible;"
   >
@@ -295,7 +300,7 @@
      *   <div class="index-label">i</div>
      */
     function renderArray(event) {
-      const container = document.getElementById('array-container');
+      const container = document.getElementById('arrayContainer');
       container.innerHTML = '';
       const n = event.array.length;
 
@@ -535,5 +540,6 @@
     document.getElementById('customArray').addEventListener('change', initializeDemo);
     window.addEventListener('load', initRandom);
   </script>
+  </div>
 </body>
 </html>
