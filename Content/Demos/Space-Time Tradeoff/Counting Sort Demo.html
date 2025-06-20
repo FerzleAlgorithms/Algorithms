@@ -9,7 +9,7 @@
   <link rel="stylesheet" href="../../../css/demo.css">
   <style>
     #controls, #buttons { margin: 10px 0; }
-    #description { margin-top: 10px; font-style: italic; }
+    #description { margin-top: 10px; font-style: italic; height: 70px;}
     #phase-label, #minmax-label { margin: 10px 0; font-weight: bold; }
 
     /* Re‐using these for both input‐elements and count‐elements */
@@ -110,6 +110,8 @@
 </div>
 
 
+  <div id="description">Press "Next" to begin.</div>
+
   <div id="input-label"><strong>Input Array:</strong></div>
   <div class="array-container" id="input-container">
     <div id="input-arrow" class="arrow">↑</div>
@@ -120,8 +122,6 @@
 
   <div id="output-label"><strong>Output Array:</strong></div>
   <div class="array-container" id="output-container"></div>
-
-  <div id="description">Press "Next" to begin.</div>
 
   <script>
     let steps = [], cur = 0;
@@ -306,7 +306,7 @@
             break;
 
           case 'range_init':
-            desc.innerHTML = `Start range at index 0 (<strong>${st.input[0]}</strong>)<br>` +
+            desc.innerHTML = `Calculating min and max to determine range. Checking index 0 (<strong>${st.input[0]}</strong>)<br>` +
                              `Min = <strong>${st.input[0]}</strong><br>` +
                              `Max = <strong>${st.input[0]}</strong>`;
             break;

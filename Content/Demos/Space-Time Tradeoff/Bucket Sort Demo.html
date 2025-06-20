@@ -22,10 +22,11 @@
 }
 
     /* allow the arrow to escape the .element box */
+    /*
 .array-container .element {
   position: relative;
-  overflow: visible;    /* so the absolutely-positioned arrow shows up outside */
-}
+  overflow: visible;    
+}*/
 
 /* drop the arrow down, center it, below the box by 4px */
 .array-container .element .arrow {
@@ -101,7 +102,7 @@
 
   </style>
 </head>
-<body>
+<body class="no-tooltips">
   <h2>Bucket Sort Demo</h2>
 
   <div id="controls">
@@ -113,7 +114,7 @@
     <button id="useCustom">Create Array</button>
     <br>
     <!-- single bucket-size + set-buckets control -->
-    <label># of Buckets:
+    <label># of Buckets (k):
       <input
         type="number"
         id="bucketSize"
@@ -140,6 +141,8 @@
     </select>
   </div>
 
+  <div id="step-desc" class="step-comment"></div>
+  
   <!-- Main array label -->
   <div class="section-label">Main Array:</div>
   <div class="array-container" id="boxes"></div>
@@ -156,7 +159,6 @@
   <div class="section-label">Buckets:</div>
   <div id="buckets"></div>
 
-  <div id="step-desc" class="step-comment"></div>
 
 <div class="legend">
   <div class="legend-label">
@@ -193,7 +195,12 @@
 
       // initialize empty buckets
       let buckets = Array.from({ length: bucketCount }, () => []);
-
+      record({
+          A:       [...A],
+          buckets: JSON.parse(JSON.stringify(buckets)),
+          phase:   'init',
+          desc:    `Finding min and max. Click Next to begin.`
+        });
       // find-min/max loop (no range here)
       for (let i = 0; i < A.length; i++) {
         if (A[i] < curMin) curMin = A[i];
@@ -252,7 +259,7 @@
           i:          i,
           bucketIndex: bucketIndex,
           desc:
-            `idx = ⌊(${A[i]} - ${curMin}) / ${range}⌋ = ${bucketIndex}.<br>` +
+            `i = ${i}, so idx = ⌊(${A[i]} - ${curMin}) / ${Math.round(range*100)/100}⌋ = ${bucketIndex}.<br>` +
             `Placed element ${A[i]} (main‐array index ${i}) into bucket ${bucketIndex}.`,
           min:        curMin,
           max:        curMax,
@@ -311,7 +318,6 @@
           buckets:     JSON.parse(JSON.stringify(buckets)),
           phase:       'collect',
           bucketIndex: b,
-          i:           pos,
           desc:        buckets[b].length
                         ? `Copying from bucket ${b}`
                         : `Bucket ${b} is empty`,

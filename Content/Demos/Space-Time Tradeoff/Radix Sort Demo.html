@@ -9,7 +9,7 @@
   <link rel="stylesheet" href="../../../css/demo.css">
   <style>
     #controls, #buttons { margin: 10px 0; }
-    #description { margin-top: 10px; font-style: italic; }
+    #description { margin-top: 10px; font-style: italic; height: 50px; }
     .count-wrapper { display: flex; flex-direction: column; align-items: center; }
     .count-label { font-size: 0.8em; margin-top: 4px; }
     #input-container { position: relative; }
@@ -70,10 +70,12 @@
     </select>
   </div>
 
+  <div id="description">Press "Next" to begin.</div>
+  
   <div id="digit-label" class="digit-box">
     <strong>Digit:</strong> <span id="digit-pos">0</span>
   </div>
-
+  
   <div id="input-label" style="margin-top: 20px"><strong>Input Array:</strong></div>
   <div class="array-container" id="input-container">
     <div id="input-arrow" class="arrow">↑</div>
@@ -84,8 +86,6 @@
 
   <div id="output-label"><strong>Output Array:</strong></div>
   <div class="array-container" id="output-container"></div>
-
-  <div id="description">Press "Next" to begin.</div>
 
   <script>
     let steps = [], cur = 0, playing = false, intervalId = null;
