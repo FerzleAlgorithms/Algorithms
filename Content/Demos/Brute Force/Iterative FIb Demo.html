@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Iterative Fibonacci Demo</title>
+  <link rel="stylesheet" href="../../../css/demo.css" />
+  <style>
+    .eq {
+  display: inline-block;
+  margin-left: 2.5ch; /* Adjust for fractional character width shift */
+}
+
+
+    .fib-row {
+      font-family: monospace;
+      margin: 0.5em 0;
+      font-size: 1.6em;
+    }
+    .fib-label {
+      font-weight: bold;
+      display: inline-block;
+      width: 4em;
+    }
+    .crossed {
+      text-decoration: line-through;
+      opacity: 0.4;
+    }
+ .pointer-row {
+  display: flex; /* ← this is key */
+  justify-content: start;
+  height: 2em;
+  margin-bottom: 1em;
+  font-size: 1.6em;
+}
+
+   .pointer-row span {
+  display: inline-block;
+  width: 3em;
+  text-align: center;
+}
+.fib-values span {
+  display: inline-block;
+  width: 3em;
+  text-align: center;
+}
+
+      .pointer {
+  font-weight: bold;
+  color: red;
+  line-height: 1.2;
+  font-size: 1em;
+}
+
+
+    .comment {
+      font-style: italic;
+      margin-top: 1em;
+      font-size: 1.4em;
+    }
+    .controls {
+      margin-bottom: 1em;
+    }
+    .controls button:disabled {
+      opacity: 0.5;
+      cursor: default;
+    }
+    #n-input {
+      width: 60px;
+    }
+
+  :root {
+  --cell-width: 3em;
+}
+
+.fib-values span,
+.pointer-row span {
+  display: inline-block;
+  width: var(--cell-width);
+  text-align: center;
+}
+
+  </style>
+</head>
+<body>
+  <div class="demo-container">
+    <h2>Iterative Fibonacci Demo</h2>
+    <div class="controls">
+      <label>
+        Enter n:
+        <input type="number" id="n-input" value="7" min="1" max="30" />
+      </label>
+      <button id="prev-btn" disabled>Previous</button>
+      <button id="next-btn" disabled>Next</button>
+    </div>
+
+   <div class="fib-row">
+  <span class="fib-label">F<sub>n</sub><span class="eq">=</span></span>
+  <span class="fib-values" id="fn"></span>
+</div>
+        <!-- F(n−1) -->
+    <div class="fib-row"><span class="fib-label">F<sub>n−1</sub> =</span> <span class="fib-values" id="fn1"></span></div>
+    <!-- F(n−2) -->
+    <div class="fib-row"><span class="fib-label">F<sub>n−2</sub> =</span> <span class="fib-values" id="fn2"></span></div>
+
+
+    <div class="comment" id="comment"></div>
+  </div>
+
+  <script>
+    const nInput = document.getElementById("n-input");
+    const nextBtn = document.getElementById("next-btn");
+    const prevBtn = document.getElementById("prev-btn");
+    const fn = document.getElementById("fn");
+    const fn1 = document.getElementById("fn1");
+    const fn2 = document.getElementById("fn2");
+    const pointerRow = document.getElementById("pointer-row");
+    const commentDiv = document.getElementById("comment");
+
+    let i = 1, steps = [], currentStep = 0;
+
+    function runFib(n) {
+  steps = [];
+  let FminusTwo = 0, FminusOne = 0, F = 1;
+  steps.push({
+    i: 0,
+    F,
+    FminusOne,
+    FminusTwo,
+    comment: "init"
+  });
+
+  steps.push({
+    i: 0,
+    comment: "begin"
+  });
+
+  for (let i = 1; i < n; i++) {
+    FminusTwo = FminusOne;
+    FminusOne = F;
+    F = FminusOne + FminusTwo;
+    steps.push({ i, F, FminusOne, FminusTwo });
+  }
+
+  // ✅ Append final step to announce done
+  steps.push({
+    i: n - 1,
+    F,
+    comment: "done"
+  });
+}
+
+
+    function updateDisplay(stepIndex) {
+      const step = steps[stepIndex];
+
+if (step.comment === "init") {
+  fn.children[0].textContent = step.F;
+  fn1.children[0].textContent = step.FminusOne;
+  fn2.children[0].textContent = step.FminusTwo;
+
+  commentDiv.innerHTML = `Variables initialized: F<sub>n−2</sub> = ${step.FminusTwo}, F<sub>n−1</sub> = ${step.FminusOne}, F<sub>n</sub> = ${step.F}`;
+  prevBtn.disabled = false;
+  return;
+}
+
+if (step.comment === "begin") {
+  // Do NOT draw the pointer here!
+  // Clear all existing pointers
+  commentDiv.textContent = "Beginning iterations...";
+  return;
+}
+
+      if (step.comment === "done") {
+      commentDiv.innerHTML = `Done! F<sub>n</sub> = ${step.F}`;
+      prevBtn.disabled = (stepIndex === 0);
+      nextBtn.disabled = true;
+      return;
+    }
+     fn.children[step.i].textContent = step.F;
+    fn1.children[step.i].textContent = step.FminusOne;
+    fn2.children[step.i].textContent = step.FminusTwo;
+
+      for (let j = 0; j < step.i; j++) {
+        fn.children[j].classList.add("crossed");
+        fn1.children[j].classList.add("crossed");
+        fn2.children[j].classList.add("crossed");
+      }
+      Array.from(fn1.children).forEach((el, idx) => {
+        if (idx < fn1.children.length - 1) el.classList.add("crossed");
+      });
+      Array.from(fn2.children).forEach((el, idx) => {
+        if (idx < fn2.children.length - 1) el.classList.add("crossed");
+      });
+
+      // Clear any existing 'crossed' class
+      Array.from(fn.children).forEach(el => el.classList.remove("crossed"));
+      Array.from(fn1.children).forEach(el => el.classList.remove("crossed"));
+      Array.from(fn2.children).forEach(el => el.classList.remove("crossed"));
+
+      // Re-apply 'crossed' only to indices < step.i
+      for (let j = 0; j < step.i; j++) {
+        fn.children[j].classList.add("crossed");
+        fn1.children[j].classList.add("crossed");
+        fn2.children[j].classList.add("crossed");
+      }
+
+      commentDiv.innerHTML = 
+      `F<sub>n−2</sub> = ${step.FminusTwo}, F<sub>n−1</sub> = ${step.FminusOne}, ` +
+      `F = F<sub>n−1</sub> + F<sub>n−2</sub> = ${step.FminusOne} + ${step.FminusTwo} = ${step.F}`;
+
+      prevBtn.disabled = (stepIndex === 0);
+      nextBtn.disabled = (stepIndex >= steps.length - 1); // keep it ONLY after handling "done"
+    }
+
+function initializeDemo() {
+  const n = parseInt(nInput.value);
+  runFib(n);
+  currentStep = -1;
+
+  fn.innerHTML = "";
+  fn1.innerHTML = "";
+  fn2.innerHTML = "";
+  commentDiv.textContent = "";
+
+  // Pre-fill each row with empty spans to reserve space
+  for (let i = 0; i < steps.length - 1; i++) {
+    fn.innerHTML += "<span></span>";
+    fn1.innerHTML += "<span></span>";
+    fn2.innerHTML += "<span></span>";
+  }
+
+  nextBtn.disabled = false;
+}
+
+
+    nInput.addEventListener("change", initializeDemo);
+
+    nextBtn.onclick = () => {
+      if (currentStep < steps.length - 1) {
+        currentStep++;
+        updateDisplay(currentStep);
+      }
+    };
+
+
+    prevBtn.onclick = () => {
+  if (currentStep > 0) {
+    currentStep--;
+
+    // Clear all cells (values and pointer and classes)
+    fn.querySelectorAll("span").forEach(span => {
+      span.textContent = "";
+      span.classList.remove("crossed");
+    });
+    fn1.querySelectorAll("span").forEach(span => {
+      span.textContent = "";
+      span.classList.remove("crossed");
+    });
+    fn2.querySelectorAll("span").forEach(span => {
+      span.textContent = "";
+      span.classList.remove("crossed");
+    });
+
+    // Re-render up to the current step
+    for (let j = 0; j <= currentStep; j++) {
+      updateDisplay(j);
+    }
+  } else if (currentStep === 0) {
+    // Reset to blank state
+    currentStep = -1;
+    commentDiv.textContent = "";
+
+    fn.querySelectorAll("span").forEach(span => {
+      span.textContent = "";
+      span.classList.remove("crossed");
+    });
+    fn1.querySelectorAll("span").forEach(span => {
+      span.textContent = "";
+      span.classList.remove("crossed");
+    });
+    fn2.querySelectorAll("span").forEach(span => {
+      span.textContent = "";
+      span.classList.remove("crossed");
+    });
+
+    prevBtn.disabled = true;
+    nextBtn.disabled = false;
+  }
+};
+
+    window.onload = initializeDemo;
+  </script>
+</body>
+</html>

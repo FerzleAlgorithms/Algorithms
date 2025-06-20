@@ -1,0 +1,898 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Quickselect  Demo </title>
+  <script src="../../../scripts/demoScripts.js"></script>
+  <link rel="stylesheet" href="../../../css/style.css">
+  <link rel="stylesheet" href="../../../css/demo.css">
+  <style>
+    .element-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;               /* ← space between the number box and index */
+    }
+    .element-index {
+      font-size: 0.9em;
+      color: #555;
+    }
+
+    .subarray-container { display: flex; flex-direction: column; gap: 10px; margin-top: 5px; }
+    .subarray-row {
+      display: flex;
+      gap: 10px;
+      position: relative;
+      min-height: 80px;      /* extra space for arrows underneath */
+    }
+    .element-wrapper {
+      display: flex; flex-direction: column; align-items: center;
+    }
+    .element {
+      width: 40px; height: 40px;
+      display: flex; justify-content: center; align-items: center;
+      border: 1px solid #000;
+      background: white;
+    }
+    .arrow {
+      top: 40px;
+      margin-top: 4px;
+      text-align: center;
+      line-height: 1.2;
+    }
+    .step-comment { margin-top: 30px; font-style: italic; }
+    .dynamic-group, .static-group { padding-top: 5px; }
+    /* Adjust margins for headers and containers */
+    .array-container { display: flex; gap: 10px; margin-top: 10px; margin-bottom: 10px; }
+    h3 { margin: 5px 0; }
+
+    .legend-box {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border: 1px solid black;
+  margin: 0 4px;
+  vertical-align: middle;
+}
+
+.element {
+  border: 1px solid #000;
+}
+
+
+  </style>
+</head>
+<body>
+  <h2>Quick Select Demo</h2>
+
+  <div id="controls">
+    <label>Size:
+  <input type="number" id="arraySize" min="8" max="20" value="16" size="2">
+</label>
+<button id="generate">Random Array</button>
+
+<label>K-th index:
+  <input type="number" id="kIndex" min="0" value="8" style="width: 40px;">
+</label>
+
+    <input type="text" id="customArray" placeholder="12,34,56,78" size="40">
+
+    <button id="useCustom">Create Array</button>
+  </div>
+
+  <div id="buttons" style="margin:10px 0;">
+    <button id="prev" disabled>Previous</button>
+    <button id="next" disabled>Next</button>
+    <button id="play">Play</button>
+    <label for="speed">Speed:</label>
+    <select id="speed">
+      <option value="1">1x</option>
+      <option value="2">2x</option>
+      <option value="4">4x</option>
+      <option value="8">8x</option>
+    </select>
+  </div>
+
+  <div id="legend" class="legend">
+  <b>Legend:</b>
+  <span class="legend-box" style="background-color: lightgreen;"></span> Pivot
+  <span class="legend-box" style="background-color: orange;"></span> ≤ pivot
+  <span class="legend-box" style="background-color: #1e90ff;"></span> &gt; pivot
+  <span class="legend-box" style="background-color: #ff7f7f;"></span> Comparing
+  <span class="legend-box" style="background-color: yellow;"></span> Swapping
+  <span class="legend-box" style="background-color: white;"></span> Unpartitioned
+  <span class="legend-box" style="background-color: #b579ee;"></span> k-th element
+  <span class="legend-box" style="background-color: white; outline: 2px solid gold; outline-offset: -1px;"></span> k-th position
+</div>
+
+
+  <!-- Header for main array -->
+  <h3>Main Array</h3>
+  <div class="array-container" id="boxes"></div>
+
+  <!-- Header for recursive visualization -->
+  <h3>Recursive Steps (not real arrays--conceptual)</h3>
+  <div class="subarray-container" id="subarrays"></div>
+
+  <div id="step-desc" class="step-comment"></div>
+
+<script>
+(function(){
+  let A = [], cur = 0, steps = [];
+  let kthIndex = null;
+  const renderedSnapshots = new Set();
+  const depthContainers = {};
+  const pivotIndices   = {};
+  const fadedSnapshots = new Set();
+
+  function record(state) {
+    steps.push(JSON.parse(JSON.stringify(state)));
+  }
+
+  function render() {
+    
+    // 0) reset only the dynamic groups (keep static snapshots)
+    // Full reset of the subarrays container and state
+    const container = document.getElementById('subarrays');
+    container.innerHTML = '';
+    Object.keys(depthContainers).forEach(k => delete depthContainers[k]);
+    renderedSnapshots.clear();
+    // fadedSnapshots.clear();
+
+    const st = steps[cur];
+    // Once we hit a step with highlightK, keep highlighting forever
+    const highlightActive = steps
+      .slice(0, cur + 1)
+      .some(s => s.highlightK);
+
+    const sortedColor = '#b579ee';
+    const fullKey     = `${st.depth}-${st.low}-${st.high}`;
+    const depthKey    = st.depth;
+
+    // — 1a) Build globalColors for main array
+    const globalColors = Array(st.A.length).fill(null);
+    for (let k = 0; k <= cur; k++) {
+      const s = steps[k];
+      if (s.phase === 'start' && globalColors[s.pivot] !== sortedColor) {
+        globalColors[s.pivot] = 'lightgreen';
+      }
+      if (s.phase === 'compare-i' && globalColors[s.i] !== sortedColor) {
+        globalColors[s.i] = (s.A[s.i] <= s.p) ? 'orange' : '#1e90ff';
+      }
+      if (s.phase === 'compare-j' && globalColors[s.j] !== sortedColor) {
+        globalColors[s.j] = (s.A[s.j] <= s.p) ? 'orange' : '#1e90ff';
+      }
+      if (s.phase === 'do-swap') {
+        const c1 = globalColors[s.oldi], c2 = globalColors[s.oldj];
+        if (globalColors[s.oldi] !== sortedColor) {
+          globalColors[s.oldi] = (c2 === sortedColor) ? c1 : c2;
+        }
+        if (globalColors[s.oldj] !== sortedColor) {
+          globalColors[s.oldj] = (c1 === sortedColor) ? c2 : c1;
+        }
+      }
+    }
+
+    // — 1b) Build localColors for this subarray’s depth
+    const localColors = Array(st.A.length).fill(null);
+    for (let k = 0; k <= cur; k++) {
+      const s = steps[k];
+      if (s.depth !== st.depth) continue;
+      if (s.phase === 'start' && localColors[s.pivot] !== sortedColor) {
+        localColors[s.pivot] = 'lightgreen';
+      }
+      if (s.phase === 'compare-i' && localColors[s.i] !== sortedColor) {
+        localColors[s.i] = (s.A[s.i] <= s.p) ? 'orange' : '#1e90ff';
+      }
+      if (s.phase === 'compare-j' && localColors[s.j] !== sortedColor) {
+        localColors[s.j] = (s.A[s.j] <= s.p) ? 'orange' : '#1e90ff';
+      }
+      if (s.phase === 'do-swap') {
+        const c1 = localColors[s.oldi], c2 = localColors[s.oldj];
+        if (localColors[s.oldi] !== sortedColor) {
+          localColors[s.oldi] = (c2 === sortedColor) ? c1 : c2;
+        }
+        if (localColors[s.oldj] !== sortedColor) {
+          localColors[s.oldj] = (c1 === sortedColor) ? c2 : c1;
+        }
+      }
+      if (s.phase === 'do-p') {
+        localColors[s.j] = sortedColor;
+      }
+    }
+
+    // — 2) Draw main array
+    const mainC = document.getElementById('boxes');
+    mainC.innerHTML = '';
+    const mainRow = document.createElement('div');
+    mainRow.className = 'subarray-row';
+
+    // Preserve last do-p swap coloring
+    let lastPivotSwap = null;
+    if (cur > 0 && steps[cur - 1].phase === 'do-p') {
+      const prev = steps[cur - 1];
+      lastPivotSwap = {
+        pivotIdx: prev.pivot,
+        newPivotIdx: prev.j,
+        p: prev.p,
+        A: prev.A
+      };
+    }
+
+    for (let i = 0; i < st.A.length; i++) {
+      const wrap = document.createElement('div');
+      wrap.className = 'element-wrapper';
+      const box = document.createElement('div');
+      box.className = 'element';
+      if (i === kthIndex) {
+      box.style.border = 'none';  // 🚫 remove black border
+      box.style.outline = '3px solid gold';
+      box.style.outlineOffset = '-2px';
+    }
+
+      box.textContent = st.A[i];
+ 
+
+       // 2) ONE single highlight check, using your persistent flag
+    if (highlightActive && i === kthIndex) {
+      box.style.border        = 'none';  
+      box.style.outline       = '3px solid gold';
+      box.style.outlineOffset = '-2px';
+    }
+
+      let fill;
+      // Color everything outside current subarray
+      if (i < st.low) {
+        fill = 'orange';
+         wrap.style.opacity = '0.5'; // 💡 FADE LEFT
+      } else if (i > st.high) {
+        fill = '#1e90ff';
+        wrap.style.opacity = '0.5'; // 💡 FADE RIGHT
+      }
+      else if ((st.phase === 'done' || st.phase === 'base') && st.low === st.high) {
+      const k = st.low;
+      if (i < k)       fill = 'orange';
+      else if (i > k)  fill = '#1e90ff';
+      else             fill = '#b579ee'; // kth element
+    } else if (st.phase === 'do-p') {
+      if (i === st.j) {
+        fill = 'lightgreen'; // new pivot location
+      } else if (i === st.pivot) {
+        fill = (st.A[i] <= st.p) ? 'orange' : '#1e90ff'; // pivot's old location after swap
+      } else {
+        fill = globalColors[i] || '#fff';
+      }
+    }  else if (lastPivotSwap) {
+    if (i === lastPivotSwap.newPivotIdx) {
+      fill = 'lightgreen'; // pivot's new position
+    } else if (i === lastPivotSwap.pivotIdx) {
+      const val = lastPivotSwap.A[i];
+      fill = (val <= lastPivotSwap.p) ? 'orange' : '#1e90ff';
+    } else {
+      fill = globalColors[i] || '#fff';
+    }
+  } else {
+    fill = globalColors[i] || '#fff';
+  }
+      if (st.phase === 'highlight-swap' && (i === st.i || i === st.j)) {
+        fill = 'yellow';
+      } else if (st.phase === 'highlight-swap-pivot' && (i === 0 || i === st.j)) {
+        fill = 'yellow';
+      }
+      if (st.phase === 'do-swap' && (i === st.oldi || i === st.oldj)) {
+        fill = 'yellow';
+      }
+      box.style.background = fill;
+      wrap.appendChild(box);
+
+      const idxLabel = document.createElement('div');
+      idxLabel.className = 'element-index';
+      idxLabel.textContent = i;
+      wrap.appendChild(idxLabel);
+
+      mainRow.appendChild(wrap);
+    }
+    mainC.appendChild(mainRow);
+
+    // Clear out old pivotIndices
+    for (let d in pivotIndices) delete pivotIndices[d];
+
+    // — 3) Re‐draw static snapshots (child arrays + pivot placements)
+    for (let k = 0; k <= cur; k++) {
+      const s = steps[k];
+      let row = depthContainers[s.depth];
+      if (!row) {
+        row = document.createElement('div');
+        row.className = 'subarray-row';
+        container.appendChild(row);
+        depthContainers[s.depth] = row;
+      }
+
+      // remove static-groups rendered in future steps
+      const currentRow = depthContainers[st.depth];
+      if (currentRow) {
+        currentRow.querySelectorAll('.static-group').forEach(el => {
+          const stepNum = parseInt(el.dataset.step, 10);
+          if (stepNum > cur && steps[stepNum].type !== 'draw-subarray') el.remove();
+
+        });
+      }
+
+
+      // 3b) pivot placement snapshot
+      if (s.phase === 'do-p') {
+        const key = `${s.depth}-${s.low}-${s.high}`;
+        if (renderedSnapshots.has(key)) continue;
+        renderedSnapshots.add(key);
+
+        pivotIndices[s.depth] = s.j;
+
+        const staticGroup = document.createElement('div');
+        staticGroup.className = 'static-group';
+        staticGroup.dataset.step = k;
+        staticGroup.style.position = 'absolute';
+        staticGroup.style.left = '0';
+
+        const staticRow = document.createElement('div');
+        staticRow.className = 'subarray-row';
+
+        for (let p = 0; p < s.low; p++) {
+          const blank = document.createElement('div');
+          blank.className = 'element';
+          blank.style.visibility = 'hidden';
+          staticRow.appendChild(blank);
+        }
+
+        for (let i = s.low; i <= s.high; i++) {
+          const wrap = document.createElement('div');
+          wrap.className = 'element-wrapper';
+          const box = document.createElement('div');
+          box.className = 'element';
+          box.textContent = s.A[i];
+          if (i === kthIndex) {
+            box.style.border = 'none';
+            box.style.outline = '3px solid gold';
+            box.style.outlineOffset = '-2px';
+}
+          const fill = (i === s.j)
+            ? 'lightgreen'
+            : (s.A[i] <= s.p ? 'orange' : '#1e90ff');
+          box.style.background = fill;
+          if (i < st.low || i > st.high) {
+            wrap.style.opacity = '0.5'; // 💡 fade elements outside current subarray
+          }
+          wrap.appendChild(box);
+          if (i < st.low || i > st.high) {
+              wrap.style.opacity = '0.5'; // 🔥 FADE left/right elements
+            }
+          staticRow.appendChild(wrap);
+        }
+
+        if (fadedSnapshots.has(key)) {
+          for (let i = s.low; i <= s.high; i++) {
+            const wrap = staticRow.children[i];
+            if (wrap) wrap.style.opacity = '0.5';
+          }
+        }
+
+        staticGroup.appendChild(staticRow);
+        row.appendChild(staticGroup);
+
+        const pivotWrap = staticRow.children[s.j];
+        if (pivotWrap) pivotWrap.style.opacity = '0.5';
+        fadedSnapshots.add(key);
+      }
+    }
+
+    // — 4) Dynamic animation (all phases except do-p & base)
+if (st.phase !== 'do-p' && st.phase !== 'base' && st.phase !== 'done') {
+  if (st.depth > 0) {
+    const parentDepth = st.depth - 1;
+    const parentRow = depthContainers[parentDepth];
+    if (parentRow) {
+      const staticGroups = Array.from(parentRow.querySelectorAll('.static-group'));
+
+      for (const group of staticGroups) {
+        const stepNum = parseInt(group.dataset.step, 10);
+        const parentStep = steps[stepNum];
+
+        if (
+          parentStep.depth === parentDepth &&
+          parentStep.low <= st.low &&
+          parentStep.high >= st.high
+        ) {
+          const staticRow = group.querySelector('.subarray-row');
+          const offset = parentStep.low;
+
+          for (let i = st.low; i <= st.high; i++) {
+            const cell = staticRow.children[i - offset];
+            if (cell) cell.style.opacity = '0.5';
+          }
+
+          const pivotIdx = pivotIndices[parentDepth];
+          const pivotCell = staticRow.children[pivotIdx - offset];
+          if (pivotCell) pivotCell.style.opacity = '0.5';
+
+          const key = `${parentDepth}-${parentStep.low}-${parentStep.high}`;
+          fadedSnapshots.add(key);
+          break;
+        }
+      }
+    }
+  }
+
+      let row = depthContainers[depthKey];
+      if (!row) {
+        row = document.createElement('div');
+        row.className = 'subarray-row';
+        container.appendChild(row);
+        depthContainers[depthKey] = row;
+      }
+      const prev = row.querySelector('.dynamic-group');
+      if (prev) row.removeChild(prev);
+
+      const dynGroup = document.createElement('div');
+      dynGroup.className = 'dynamic-group';
+      dynGroup.style.position = 'absolute';
+      dynGroup.style.left = '0';
+
+      const dRow = document.createElement('div');
+      dRow.className = 'subarray-row';
+
+      for (let p = 0; p < st.low; p++) {
+        const ph = document.createElement('div');
+        ph.className = 'element';
+        ph.style.visibility = 'hidden';
+        dRow.appendChild(ph);
+      }
+
+      for (let i = st.low; i <= st.high; i++) {
+        const wrap = document.createElement('div');
+        wrap.className = 'element-wrapper';
+
+        let base = localColors[i] || '#fff';
+        let fill = base;
+        if (i === st.pivot)                         fill = 'lightgreen';
+        if ((st.phase === 'compare-i' && i === st.i) ||
+            (st.phase === 'compare-j' && i === st.j)) fill = '#ff7f7f';
+        if (st.phase === 'highlight-swap' && (i === st.i || i === st.j)) {
+          fill = 'yellow';
+        }
+        if (st.phase === 'do-swap' && (i === st.oldi || i === st.oldj)) {
+          fill = 'yellow';
+        }
+
+        const box = document.createElement('div');
+        box.className = 'element';
+        box.style.background = fill;
+        box.textContent = st.A[i];
+   if (highlightActive && i === kthIndex) {
+  box.style.outline       = '3px solid gold';
+  box.style.outlineOffset = '-2px';
+}
+
+
+        wrap.appendChild(box);
+
+        const labels = [];
+        if (i === st.i)     labels.push('i');
+        if (i === st.j)     labels.push('j');
+        if (i === st.pivot) labels.push('pivot');
+        if (labels.length) {
+          const a = document.createElement('div');
+          a.className = 'arrow';
+          a.innerHTML = '↑<br>' + labels.join(', ');
+          wrap.appendChild(a);
+        }
+
+        dRow.appendChild(wrap);
+      }
+
+      dynGroup.appendChild(dRow);
+      row.appendChild(dynGroup);
+    }
+
+    // — 5) Base-case fade-out for this subarray
+    if (st.phase === 'base') {
+      const row = depthContainers[depthKey];
+      if (!row) return;
+          if ((st.phase === 'base' || st.phase === 'done')) {
+            row.querySelectorAll('.static-group .subarray-row').forEach(staticRow => {
+              for (let i = st.low; i <= st.high; i++) {
+                const wrap = staticRow.children[i];
+                if (wrap) {
+                  const isKth = st.low === st.high && i === st.low;
+
+                  wrap.style.opacity = isKth ? '1' : '0.5';
+
+                  const cell = wrap.querySelector('.element, .subarray-cell');
+                  if (cell) {
+                    if (isKth && st.depth === 0) {
+                          cell.style.background = '#b579ee';
+                        }
+                        else {
+                      cell.style.opacity = '0.5';
+                    }
+                  }
+                }
+              }
+              staticRow.querySelectorAll('.arrow').forEach(a => a.style.opacity = '0.5');
+              fadedSnapshots.add(`${depthKey}-${st.low}-${st.high}`);
+            });
+          }
+      const dynGroup = row.querySelector('.dynamic-group');
+      if (dynGroup) {
+        const dynRow = dynGroup.querySelector('.subarray-row');
+        if (dynRow) {
+          Array.from(dynRow.children).forEach(wrap => wrap.style.opacity = '0.5');
+          dynRow.querySelectorAll('.arrow').forEach(a => a.style.opacity = '0.5');
+        }
+      }
+
+      row.querySelectorAll('.element-wrapper').forEach(w => w.style.opacity = '0.5');
+    }
+
+    // — 6) Step description
+    const descEl = document.getElementById('step-desc');
+    descEl.textContent = st.desc;
+  }
+
+ function quickSelect(A, low, high, k, depth = 0) {
+  if (low > high) return;
+
+  // 1) only say “Quickselect [lo…hi] looking for k” on the very first (root) call
+  if (depth === 0) {
+    record({
+      A: [...A],
+      low, high, depth,
+      phase: 'call',
+      highlightK: true,
+      desc: `Quickselect [${low}…${high}] looking for k = ${k}`
+    });
+  }
+
+  const pi = runPartition(A, low, high, depth);
+
+  // 3) when we hit the pivot==k case, emit the “P == k” comment
+  if (pi === k) {
+    record({
+      A:   [...A],
+      low: pi, high: pi, depth,
+      phase: 'base',
+      desc: `P == k: ${pi} == ${k} → return nums[k]; Found k-th element A[${pi}] = ${A[pi]}`
+    });
+
+  // 2a) left branch: pi > k
+  } else if (k < pi) {
+    record({
+      A:   [...A],
+      low: low, high: pi - 1,         // ← spawn exactly that child
+      depth: depth + 1,
+      phase: 'call',
+      highlightK: true,
+      desc: `P > k: ${pi} > ${k} → return Quickselect(lo,p-1): Quickselect(${low},${pi - 1}) looking for k = ${k}`
+    });
+    quickSelect(A, low, pi - 1, k, depth + 1);
+
+  // 2b) right branch: pi < k
+  } else {
+    record({
+      A:   [...A],
+      low: pi + 1, high: high,        // ← spawn exactly that child
+      depth: depth + 1,
+      phase: 'call',
+      highlightK: true,
+      desc: `P < k: ${pi} < ${k} → return Quickselect(p+1,hi): Quickselect(${pi + 1},${high}) looking for k = ${k}`
+    });
+    quickSelect(A, pi + 1, high, k, depth + 1);
+  }
+}
+
+
+  function runPartition(arr, low, high, depth) {
+    let pivot = low, p = arr[pivot], i = low+1, j = high;
+    record({
+  A: [...arr],
+  i, j,
+  pivot, p,
+  low, high,
+  depth,
+  phase: 'start',
+  highlightK: true,     // ← new flag
+  desc: `pivot = A[${pivot}] = ${p}`
+});
+
+    while (true) {
+      while (i <= high && arr[i] <= p) {
+        record({
+          A:[...arr],
+          i, j,
+          pivot, p,
+          low, high,
+          depth,
+          phase: 'compare-i',
+          desc: `Comparing A[${i}] with pivot: ${arr[i]} <= ${p}? Yes → i++`
+        });
+        i++;
+      }
+      record({
+        A:[...arr],
+        i, j,
+        pivot, p,
+        low, high,
+        depth,
+        phase: 'compare-i',
+        desc: `Comparing A[${i}] with pivot: ${arr[i]} < ${p}? No → check j`
+      });
+
+      while (j >= low && arr[j] > p) {
+        record({
+          A:[...arr],
+          i, j,
+          pivot, p,
+          low, high,
+          depth,
+          phase: 'compare-j',
+          desc: `Comparing A[${j}] with pivot: ${arr[j]} > ${p}? Yes → j--`
+        });
+        j--;
+      }
+
+      if (i >= j) {
+        record({
+          A:[...arr],
+          i, j,
+          pivot, p,
+          low, high,
+          depth,
+          phase: 'compare-j',
+          desc: `Comparing A[${j}] with pivot: ${arr[j]} > ${p}? No. i > j → need to swap j and pivot`
+        });
+        record({
+          A:[...arr],
+          i, j,
+          pivot, p,
+          low, high,
+          depth,
+          phase: 'highlight-swap-pivot',
+          desc: `Swapping1 A[${j}] & A[${0}] (pivot)`
+        });
+        [arr[pivot], arr[j]] = [arr[j], arr[pivot]];
+        record({
+          A:[...arr],
+          i, j,
+          pivot, p,
+          low, high,
+          depth,
+          phase: 'do-p',
+          desc: `Swapped p with A[${j}], p now at index ${j}`
+        });
+        return j;
+      } else {
+        record({
+          A:[...arr],
+          i, j,
+          pivot, p,
+          low, high,
+          depth,
+          phase: 'compare-j',
+          desc: `Comparing A[${j}] with pivot: ${arr[j]} > ${p}? No → need to swap i and j`
+        });
+      }
+      record({
+        A:[...arr],
+        i, j,
+        pivot, p,
+        low, high,
+        depth,
+        phase: 'highlight-swap',
+        desc: `Swapping2 A[${i}] & A[${j}]`
+      });
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+      const oldi = i, oldj = j;
+      i++; j--;
+      record({
+        A:[...arr],
+        i, j,
+        oldi, oldj,
+        pivot, p,
+        low, high,
+        depth,
+        phase: 'do-swap',
+        desc: `Swapped A[${oldi}] & A[${oldj}], i++, j--`
+      });
+    }
+  }
+
+  function initDemo() {
+    const n = Math.min(Math.max(parseInt(document.getElementById('arraySize').value)||10,8),20);
+    document.getElementById('arraySize').value = n;
+    A = Array.from({length:n}, ()=>Math.floor(Math.random()*100));
+    document.getElementById('customArray').value = A.join(',');
+    steps = [];
+    renderedSnapshots.clear();
+    Object.keys(depthContainers).forEach(k => delete depthContainers[k]);
+    document.getElementById('subarrays').innerHTML = '';
+    const k = parseInt(document.getElementById("kIndex").value, 10);
+    kthIndex = k;
+
+    quickSelect(A, 0, A.length - 1, k);
+    record({
+      A:    [...A],
+      low:  k,
+      high: k,
+      depth: 0,
+      phase: 'done',
+      desc:  `Finished Quickselect — A[${k}] = ${A[k]}`
+    });
+
+    cur = 0; render();
+
+   document.getElementById("next").disabled = false;
+  document.getElementById("next").onclick = () => {
+    if (cur < steps.length - 1) {
+      cur++;
+      render();
+    }
+  };
+
+  document.getElementById("prev").disabled = false;
+  document.getElementById("prev").onclick = () => {
+    if (cur > 0) {
+      cur--;
+      render();
+    }
+  };
+
+
+  }
+
+
+  function restartDemoWith(arr) {
+  steps = [];
+  cur = 0;
+  renderedSnapshots.clear();
+  fadedSnapshots.clear();
+  Object.keys(depthContainers).forEach(k => delete depthContainers[k]);
+  document.getElementById("subarrays").innerHTML = '';
+  document.getElementById("boxes").innerHTML = '';
+  document.getElementById("step-desc").textContent = '';
+
+  const copy = [...arr];
+  const k = Math.max(0, Math.min(copy.length - 1, parseInt(document.getElementById("kIndex").value, 10)));
+  quickSelect(copy, 0, copy.length - 1, k);
+
+  record({
+    A: [...copy],
+    low: k,
+    high: k,
+    depth: 0,
+    phase: 'done',
+    desc: `Finished Quickselect — A[${k}] = ${copy[k]}`
+  });
+
+  render();
+
+  document.getElementById("next").disabled = false;
+  document.getElementById("prev").disabled = false;
+}
+
+
+
+  // We no longer wire up prev-step/next-step directly,
+  // because demoScripts.js will take over playback.
+  // IDs must be exactly “prev”, “next”, “play”, “speed”, “generate”, “useCustom”:
+
+  // ─ expose onGenerate to demoScripts.js ─
+  window.onGenerate = function(isCustom) {
+    if (isCustom) {
+      const txt = document.getElementById('customArray').value.trim();
+      return txt.split(',').map(s => parseInt(s.trim(), 10));
+    }
+    const n = parseInt(document.getElementById('arraySize').value, 10);
+    return Array.from({ length: n }, () => Math.floor(Math.random() * 100));
+  };
+
+  // ─ expose genSteps to demoScripts.js ─
+window.genSteps = function(arr) {
+  steps = [];
+  renderedSnapshots.clear();
+  Object.keys(depthContainers).forEach(k => delete depthContainers[k]);
+  document.getElementById('subarrays').innerHTML = '';
+
+  const k = Math.floor(arr.length / 2); // or let the user specify it
+  quickSelect(arr, 0, arr.length - 1, k);
+
+  record({
+    A:     [...arr],
+    low:   k,
+    high:  k,
+    depth: 0,
+    phase: 'done',
+    desc:  `Finished Quickselect — A[${k}] = ${arr[k]}`
+  });
+
+  return steps;
+};
+
+
+  // ─ expose renderStep to demoScripts.js ─
+  window.renderStep = function(stepsArr, idx, original) {
+    steps = stepsArr;
+    cur = idx;
+    render();
+  };
+
+  // Finally, initialize so that “Generate” works on first load.
+window.addEventListener("DOMContentLoaded", () => {
+  initDemo();
+});
+
+document.getElementById("generate").addEventListener("click", () => {
+  A = onGenerate(false); // false means random
+  restartDemoWith(A);
+});
+
+document.getElementById("useCustom").addEventListener("click", () => {
+  A = onGenerate(true); // true means use custom input
+  restartDemoWith(A);
+});
+
+
+
+let playInterval = null;
+let isPlaying = false;
+
+document.getElementById("play").addEventListener("click", () => {
+  if (isPlaying) {
+    clearInterval(playInterval);
+    playInterval = null;
+    isPlaying = false;
+    document.getElementById("play").textContent = "Play";
+  } else {
+    const speed = parseInt(document.getElementById("speed").value, 10);
+    const delay = 1000 / speed;
+
+    playInterval = setInterval(() => {
+      if (cur < steps.length - 1) {
+        cur++;
+        render();
+      } else {
+        clearInterval(playInterval);
+        playInterval = null;
+        isPlaying = false;
+        document.getElementById("play").textContent = "Play";
+      }
+    }, delay);
+
+    isPlaying = true;
+    document.getElementById("play").textContent = "Pause";
+  }
+});
+
+})();
+
+
+
+</script>
+
+<script>
+  // send our height to the parent whenever we load or change
+  function reportHeight() {
+    const h = document.documentElement.scrollHeight;
+    window.parent.postMessage({
+      type: 'demo-height',
+      id: window.name || document.location.pathname,
+      height: h
+    }, '*');
+  }
+  window.addEventListener('load', reportHeight);
+  new MutationObserver(reportHeight).observe(document.documentElement, {
+    subtree: true,
+    childList: true,
+    attributes: true
+  });
+  window.addEventListener('resize', reportHeight);
+</script>
+</body>
+</html>
