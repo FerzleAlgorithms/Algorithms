@@ -49,6 +49,7 @@
         "Fibonacci 5 Naive Demo.html",
         "Fibonacci Naive Demo edit.html",
         "Fibonacci Naive Demo.html",
+        "Iterative FIb Demo.html",
         "Polynomial Evaluation (Linear) Demo.html",
         "Polynomial Evaluation (Quadratic) Demo.html",
         "Selection Sort Demo.html",
@@ -74,6 +75,7 @@
         "Factorial Demo.html",
         "Hoare Partition Demo.html",
         "Insertion Sort Demo.html",
+        "QuickSelect Demo.html",
         "Quickselect Simple Demo.html"
       ]
     },

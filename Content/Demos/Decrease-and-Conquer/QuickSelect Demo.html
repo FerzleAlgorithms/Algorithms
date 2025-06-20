@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <title>Quickselect  Demo </title>
-  <script src="../../../scripts/demoScripts.js"></script>
-  <link rel="stylesheet" href="../../../css/style.css">
-  <link rel="stylesheet" href="../../../css/demo.css">
+  <script src="/Algorithms/scripts/demoScripts.js"></script>
+  <link rel="stylesheet" href="/Algorithms/css/style.css">
+  <link rel="stylesheet" href="/Algorithms/css/demo.css">
   <style>
     .element-wrapper {
       display: flex;
@@ -46,15 +46,6 @@
     .array-container { display: flex; gap: 10px; margin-top: 10px; margin-bottom: 10px; }
     h3 { margin: 5px 0; }
 
-    .legend-box {
-  display: inline-block;
-  width: 12px;
-  height: 12px;
-  border: 1px solid black;
-  margin: 0 4px;
-  vertical-align: middle;
-}
-
 .element {
   border: 1px solid #000;
 }
@@ -62,7 +53,7 @@
 
   </style>
 </head>
-<body>
+<body class="no-tooltips">
   <h2>Quick Select Demo</h2>
 
   <div id="controls">
@@ -95,14 +86,16 @@
 
   <div id="legend" class="legend">
   <b>Legend:</b>
+  <div class="legend-items">
   <span class="legend-box" style="background-color: lightgreen;"></span> Pivot
-  <span class="legend-box" style="background-color: orange;"></span> ≤ pivot
+  <span class="legend-box" style="background-color: orange;"></span> &le; pivot
   <span class="legend-box" style="background-color: #1e90ff;"></span> &gt; pivot
   <span class="legend-box" style="background-color: #ff7f7f;"></span> Comparing
-  <span class="legend-box" style="background-color: yellow;"></span> Swapping
+  <span class="legend-box" style="background-color: yellow;"></span> Swapping<br>
   <span class="legend-box" style="background-color: white;"></span> Unpartitioned
   <span class="legend-box" style="background-color: #b579ee;"></span> k-th element
   <span class="legend-box" style="background-color: white; outline: 2px solid gold; outline-offset: -1px;"></span> k-th position
+  </div>
 </div>
 
 
@@ -111,7 +104,7 @@
   <div class="array-container" id="boxes"></div>
 
   <!-- Header for recursive visualization -->
-  <h3>Recursive Steps (not real arrays--conceptual)</h3>
+  <h3>Recursive Steps (not real arrays&mdash;conceptual)</h3>
   <div class="subarray-container" id="subarrays"></div>
 
   <div id="step-desc" class="step-comment"></div>
@@ -559,7 +552,7 @@ if (st.phase !== 'do-p' && st.phase !== 'base' && st.phase !== 'done') {
       A:   [...A],
       low: pi, high: pi, depth,
       phase: 'base',
-      desc: `P == k: ${pi} == ${k} → return nums[k]; Found k-th element A[${pi}] = ${A[pi]}`
+      desc: `p == k: ${pi} == ${k} → return nums[k]; Found k-th element A[${pi}] = ${A[pi]}`
     });
 
   // 2a) left branch: pi > k
@@ -570,7 +563,7 @@ if (st.phase !== 'do-p' && st.phase !== 'base' && st.phase !== 'done') {
       depth: depth + 1,
       phase: 'call',
       highlightK: true,
-      desc: `P > k: ${pi} > ${k} → return Quickselect(lo,p-1): Quickselect(${low},${pi - 1}) looking for k = ${k}`
+      desc: `k < p: (${k} < ${pi}), so recurse left: call Quickselect(${low},${pi - 1}) looking for k = ${k}`
     });
     quickSelect(A, low, pi - 1, k, depth + 1);
 
@@ -582,7 +575,7 @@ if (st.phase !== 'do-p' && st.phase !== 'base' && st.phase !== 'done') {
       depth: depth + 1,
       phase: 'call',
       highlightK: true,
-      desc: `P < k: ${pi} < ${k} → return Quickselect(p+1,hi): Quickselect(${pi + 1},${high}) looking for k = ${k}`
+      desc: `k > p: (${k} > ${pi}), so recurse right: call Quickselect(${pi + 1},${high}) looking for k = ${k}`
     });
     quickSelect(A, pi + 1, high, k, depth + 1);
   }

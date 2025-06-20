@@ -15,23 +15,35 @@
     .in-range      { background-color: lightyellow !important; }
     /* Highlight the target index */
     .target        { box-shadow: 0 0 0 4px gold !important; }
-    /* Controls layout */
-    #controls      { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
-    /* Array styling */
-    .array-container { text-align: center; margin-bottom: 20px !important;}
-    .cell-wrapper    { display: inline-block; margin: 0 2px; text-align: center; }
-    .element         { width: 30px; height: 30px; line-height: 30px; border: 1px solid #666; display: block; }
     .index-label     { font-size: 0.8em; margin-top: 2px; }
     .legend-box.target { border-color: gold; box-shadow: 0 0 0 4px gold; }    
     .step-comment   { font-size: 1.2em; margin: 10px; }
-
+    
+    .array-container { text-align: center; margin-bottom: 20px !important;}
+    .cell-wrapper    { display: inline-block; margin: 0 2px; text-align: center; }
+    
+     /* after all other CSS, e.g. in your inline <style> */
+    .array-container .cell-wrapper {
+      /* stack vertically as you already have */
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-right: 4px;
+      flex: 0 1 40px;
+      box-sizing: border-box;   /* so padding/margin don’t bust the math */
+    }
+    .array-container .cell-wrapper .element {
+      width: 100%;
+      aspect-ratio: 1 / 1;     /* keep it square */
+      height: auto;
+    }
   </style>
 </head>
 <body>
   <h2>Quickselect Demo (5th smallest)</h2>
   <div id="controls">
     <button id="prev">Previous</button>
-    <button id="next">Next</button>
+    <button id="next">Next</button> &nbsp; &nbsp;  &nbsp; &nbsp; 
     <span class="legend">
       <strong>Legend:</strong>
       <span class="legend-box left-partition"></span>&lt; pivot
@@ -118,7 +130,16 @@
           });
           simulate(pIndex + 1, high);
         } else {
-          record('Found target at index ' + pIndex + ', value is ' + pivotVal + '.', () => { return [[pIndex, 'pivot']]; });
+          record('Found target at index ' + pIndex + ', value is ' + pivotVal + '.', () => { 
+            const out = [];
+            out.low = pIndex + 1; out.high = high;
+            for (let i = 0; i < state.length; i++) {
+              if (i === pIndex) out.push([i, 'pivot']);
+              else out.push([i, 'inactive']);
+            }
+            return out;
+          /*return [[pIndex, 'pivot']]; */
+          });
         }
       }
       simulate(0, state.length - 1);
