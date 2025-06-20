@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <script src="/Algorithms/scripts/demoScripts.js"></script>
+  <link rel="stylesheet" href="/Algorithms/css/style.css">
+  <link rel="stylesheet" href="/Algorithms/css/demo.css">
+  <title>Heap Relationship Demo</title>
+  <style>
+    /* Highlight colors with descriptive class names */
+    .current    { background-color: #74B474; }
+    .parent     { background-color: #FFE16A; }
+    .left-child { background-color: #FFA088; }
+    .right-child{ background-color: #E06060; }
+    .not-in-heap{ background-color: #e0e0e0; }
+
+    /* Greyed-out “unused” cells beyond heap size */
+    .unused {
+      background-color: #e0e0e0 !important;
+      color: #999;
+      pointer-events: none;
+    }
+
+    /* Section labels */
+    .section-label { font-weight: bold; margin-top: 20px; margin-bottom: 5px; font-size: 1em; }
+
+    /* Array styling */
+    #arrayContainer { display: flex; margin-top: 10px; margin-bottom: 20px; }
+    #arrayContainer .element-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-right: 4px;
+      flex: 0 1 40px;
+      box-sizing: border-box;
+    }
+    #arrayContainer .element-wrapper .element {
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      height: auto;             /* ← restored this */
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid #666;
+    }
+    .index-label { font-size: 0.8em; margin-top: 4px; color: #333; }
+
+    /* Tree styling */
+    svg { width: 100%; height: 240px; overflow: visible; margin-bottom: 20px; }
+    .treeNode { cursor: pointer; }
+    .treeNode circle { fill: white; stroke: #666; stroke-width: 1.5px; }
+    .treeNode.current circle     { fill: #74B474; }
+    .treeNode.parent circle      { fill: #FFE16A; }
+    .treeNode.left-child circle  { fill: #FFA088; }
+    .treeNode.right-child circle { fill: #E06060; }
+    .node-index-label { font-size: 12px; fill: #333; text-anchor: middle; }
+  </style>
+</head>
+<body class="no-tooltips">
+  <h2>Heap Relationship Demo</h2>
+
+  <div class="controls">
+    <label>Array size: <input type="number" id="arraySize" min="3" max="31" value="31"></label>
+    <label>Heap size:  <input type="number" id="heapSize"  min="1" max="31" value="23"></label>
+    <button id="generate">Random Heap</button>
+    <button id="prevBtn" disabled>Previous</button>
+    <button id="nextBtn" disabled>Next</button><br><br>
+    <label>Use Previous/Next or click on an array element or tree node
+    to see its relationship to parent and children.</label><br><br>
+  </div>
+
+  <div class="legend">
+    <strong>Legend:</strong>
+    <span class="legend-box current"></span>Current Element
+    <span class="legend-box parent"></span>Parent
+    <span class="legend-box left-child"></span>Left Child
+    <span class="legend-box right-child"></span>Right Child
+    <span class="legend-box not-in-heap"></span>Not in Heap
+    
+  </div>
+
+  <div class="section-label">Node Details</div>
+  <div id="commentary" style="font-style: italic;"></div>
+
+  <div class="section-label">Array Representation</div>
+  <div id="arrayContainer"></div>
+
+  <div class="section-label">Tree Representation</div>
+  <svg id="svg" preserveAspectRatio="xMinYMin meet">
+    <g id="linkLayer"></g>
+    <g id="nodeLayer"></g>
+  </svg>
+
+  <script>
+    const settings = { hSpread: 400, circleR: 20, levelVGap: 60 };
+    const rootX = settings.hSpread, rootY = 0;
+    let arr = [], heap = [], stepIndex = 0;
+
+    function computeNodePosition(i) {
+      const moves = [];
+      let cur = i;
+      while (cur > 0) {
+        const parent = Math.floor((cur - 1) / 2);
+        moves.unshift(cur === 2 * parent + 1 ? 'L' : 'R');
+        cur = parent;
+      }
+      let x = rootX, y = rootY, h = settings.hSpread;
+      for (const dir of moves) {
+        h /= 2; y += 1;
+        x += dir === 'L' ? -h : h;
+      }
+      return { x, y: y * settings.levelVGap + settings.circleR };
+    }
+
+    function buildHeap(a) {
+      const n = a.length;
+      for (let i = Math.floor(n/2) - 1; i >= 0; i--) siftDown(a, i, n);
+    }
+    function siftDown(a, i, n) {
+      let largest = i, left = 2*i+1, right = 2*i+2;
+      if (left < n && a[left] > a[largest])   largest = left;
+      if (right < n && a[right] > a[largest]) largest = right;
+      if (largest !== i) {
+        [a[i], a[largest]] = [a[largest], a[i]];
+        siftDown(a, largest, n);
+      }
+    }
+
+    function render(arraySize, heapSize) {
+      const n = heapSize;
+      const parentIndex = stepIndex > 0 ? Math.floor((stepIndex - 1) / 2) : -1;
+      const leftIndex   = 2 * stepIndex + 1 < n ? 2 * stepIndex + 1 : -1;
+      const rightIndex  = 2 * stepIndex + 2 < n ? 2 * stepIndex + 2 : -1;
+
+      // Node details
+      document.getElementById('commentary').innerHTML =
+        `i = ${stepIndex}<br>` +
+        `parent = ⌊(i − 1)/2⌋ = ${parentIndex}<br>` +
+        `left = 2·i + 1 = ${leftIndex}<br>` +
+        `right = 2·i + 2 = ${rightIndex}`;
+
+      // Array
+      const container = document.getElementById('arrayContainer');
+      container.innerHTML = '';
+      for (let idx = 0; idx < arraySize; idx++) {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'element-wrapper';
+        const cell = document.createElement('div');
+        cell.className = 'element';
+
+        // always show a random value
+        cell.textContent = arr[idx];
+
+        if (idx < heapSize) {
+          // live heap slot: color & clickable
+          if (idx === stepIndex)        cell.classList.add('current');
+          else if (idx === parentIndex) cell.classList.add('parent');
+          else if (idx === leftIndex)   cell.classList.add('left-child');
+          else if (idx === rightIndex)  cell.classList.add('right-child');
+          wrapper.addEventListener('click', () => {
+            stepIndex = idx;
+            render(arraySize, heapSize);
+          });
+        } else {
+          // beyond heapSize → grey out
+          cell.classList.add('unused');
+        }
+
+        const label = document.createElement('div');
+        label.className = 'index-label';
+        label.textContent = idx;
+
+        wrapper.appendChild(cell);
+        wrapper.appendChild(label);
+        container.appendChild(wrapper);
+      }
+
+      // Tree
+      const linkLayer = document.getElementById('linkLayer'),
+            nodeLayer = document.getElementById('nodeLayer');
+      linkLayer.innerHTML = '';
+      nodeLayer.innerHTML = '';
+
+      for (let i = 1; i < heapSize; i++) {
+        const p = Math.floor((i-1)/2),
+              a = computeNodePosition(p),
+              b = computeNodePosition(i);
+        const line = document.createElementNS('http://www.w3.org/2000/svg','line');
+        line.setAttribute('x1', a.x);
+        line.setAttribute('y1', a.y);
+        line.setAttribute('x2', b.x);
+        line.setAttribute('y2', b.y);
+        line.setAttribute('stroke', '#666');
+        linkLayer.appendChild(line);
+      }
+      for (let i = 0; i < heapSize; i++) {
+        const pos = computeNodePosition(i);
+        const g = document.createElementNS('http://www.w3.org/2000/svg','g');
+        g.classList.add('treeNode');
+        if (i === stepIndex)        g.classList.add('current');
+        else if (i === parentIndex) g.classList.add('parent');
+        else if (i === leftIndex)   g.classList.add('left-child');
+        else if (i === rightIndex)  g.classList.add('right-child');
+        g.dataset.index = i;
+        g.addEventListener('click', () => {
+          stepIndex = i;
+          render(arraySize, heapSize);
+        });
+
+        const circle = document.createElementNS('http://www.w3.org/2000/svg','circle');
+        circle.setAttribute('cx', pos.x);
+        circle.setAttribute('cy', pos.y);
+        circle.setAttribute('r', settings.circleR);
+        g.appendChild(circle);
+
+        const text = document.createElementNS('http://www.w3.org/2000/svg','text');
+        text.setAttribute('x', pos.x);
+        text.setAttribute('y', pos.y);
+        text.setAttribute('text-anchor','middle');
+        text.setAttribute('dominant-baseline','middle');
+        text.textContent = heap[i];
+        g.appendChild(text);
+
+        const idxText = document.createElementNS('http://www.w3.org/2000/svg','text');
+        idxText.setAttribute('x', pos.x);
+        idxText.setAttribute('y', pos.y + settings.circleR + 12);
+        idxText.classList.add('node-index-label');
+        idxText.textContent = i;
+        g.appendChild(idxText);
+
+        nodeLayer.appendChild(g);
+      }
+
+      document.getElementById('prevBtn').disabled = stepIndex === 0;
+      document.getElementById('nextBtn').disabled = stepIndex === heapSize - 1;
+    }
+
+    const arrayInput = document.getElementById('arraySize');
+    const heapInput  = document.getElementById('heapSize');
+    
+    // Whenever Array Size changes, adjust Heap Size’s max and clamp its value
+    arrayInput.addEventListener('input', () => {
+      const arrVal = Math.max( parseInt(arrayInput.min,10),
+                       Math.min( parseInt(arrayInput.max,10),
+                                 parseInt(arrayInput.value,10) || 0 ) );
+      arrayInput.value = arrVal;
+      heapInput.max    = arrVal;
+      if ((parseInt(heapInput.value,10)||0) > arrVal) {
+        heapInput.value = arrVal;
+      }
+    });
+    
+    // Whenever Heap Size changes, clamp it to Array Size
+    heapInput.addEventListener('input', () => {
+      const heapVal = Math.max( parseInt(heapInput.min,10),
+                        Math.min( parseInt(heapInput.max,10),
+                                  parseInt(heapInput.value,10) || 0 ) );
+      heapInput.value = heapVal;
+    });
+
+    function initHeap() {
+      // clamp sizes
+      let arraySize = Math.max(3, Math.min(31, parseInt(document.getElementById('arraySize').value) || 31));
+      document.getElementById('arraySize').value = arraySize;
+      let heapSize  = Math.max(1, Math.min(arraySize, parseInt(document.getElementById('heapSize').value) || arraySize));
+      document.getElementById('heapSize').value = heapSize;
+
+      // fill full array with randoms
+      arr = Array.from({ length: arraySize }, () => Math.floor(Math.random() * 100));
+      // heapify only the first heapSize slots
+      heap = arr.slice(0, heapSize);
+      buildHeap(heap);
+      for (let i = 0; i < heapSize; i++) {
+        arr[i] = heap[i];
+      }
+
+      stepIndex = 0;
+      render(arraySize, heapSize);
+    }
+
+    document.getElementById('generate').addEventListener('click', initHeap);
+    document.getElementById('prevBtn').addEventListener('click', () => {
+      if (stepIndex > 0) stepIndex--;
+      render(arr.length, heap.length);
+    });
+    
+    document.getElementById('nextBtn').addEventListener('click', () => {
+      if (stepIndex < heap.length - 1) stepIndex++;
+      render(arr.length, heap.length);
+});
+
+    window.addEventListener('load', initHeap);
+  </script>
+</body>
+</html>

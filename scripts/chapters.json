@@ -57,7 +57,12 @@
     },
     {
       "Data Structures": [
-        "Heap Representation.html"
+        {
+          "Heap": [
+            "Heap Representation Demo.html",
+            "Heapify Demo.html"
+          ]
+        }
       ]
     },
     {

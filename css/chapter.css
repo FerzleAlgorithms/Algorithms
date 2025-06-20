@@ -1,4 +1,8 @@
 /* 13) Code tabs & containers */
+.tab-group {
+  margin-top: 10px;
+}
+
 .tabs {
   overflow: hidden;
   background-color: #eaeaea;

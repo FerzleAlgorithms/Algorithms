@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <script src="/Algorithms/scripts/demoScripts.js"></script>
+  <link rel="stylesheet" href="/Algorithms/css/style.css">
+  <link rel="stylesheet" href="/Algorithms/css/demo.css">
+  <title>Heapify Demo</title>
+  <style>
+    /* Reuse original colors */
+    .current     { background-color: #74B474; }
+    .compare     { background-color: #FFEB3B; }
+    .largest     { background-color: #4287f5; }
+
+    .legend { font-family: sans-serif; margin: 10px 0; }
+    .legend-box { display: inline-block; width: 16px; height: 16px; margin-right: 4px; vertical-align: middle; border: 1px solid #666; }
+  </style>
+</head>
+<body class="no-tooltips">
+  <h2>Heapify Demo</h2>
+
+  <div class="controls">
+    <label>Array size: <input type="number" id="arraySize" min="3" max="31" value="15"></label>
+    <label>Heap size:  <input type="number" id="heapSize"  min="1" max="15" value="15"></label>
+    <button id="generate">Random Heap</button>
+    <button id="prevBtn" disabled>Previous</button>
+    <button id="nextBtn" disabled>Next</button>
+    <button id="resetBtn" disabled>Reset</button><br><br>
+    <label>Click a node or array element to change its value, then step through <code>heapify</code>.</label>
+  </div>
+
+  <div class="legend">
+    <span class="legend-box current"></span> Selected Node<br>
+    <span class="legend-box compare"></span> Comparing Child<br>
+    <span class="legend-box largest"></span> Largest So Far<br>
+  </div>
+
+  <div id="arrayContainer"></div>
+  <svg id="linkLayer"></svg><svg id="nodeLayer"></svg>
+
+  <script>
+    // State
+    let arr = [], steps = [], stepIndex = 0, demoMode = false;
+    let originalArr = [];
+
+    const arrayInput = document.getElementById('arraySize');
+    const heapInput  = document.getElementById('heapSize');
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const resetBtn= document.getElementById('resetBtn');
+
+    // Build-only heapify
+    function heapifyNode(a, i, n) {
+      let largest = i;
+      while (true) {
+        const left = 2*i+1, right = 2*i+2;
+        largest = i;
+        if (left < n && a[left] > a[largest]) largest = left;
+        if (right< n && a[right]> a[largest]) largest = right;
+        if (largest===i) break;
+        [a[i], a[largest]] = [a[largest], a[i]];
+        i = largest;
+      }
+    }
+    function buildHeap(a) {
+      for (let i = Math.floor(a.length/2)-1; i>=0; i--) {
+        heapifyNode(a, i, a.length);
+      }
+    }
+
+    // Record detailed heapify steps
+    function recordSteps(a, idx, hsize) {
+      const work = a.slice();
+      steps = [];
+      steps.push({ heap: work.slice(), hl: { current: idx } });
+      let i = idx;
+      while (true) {
+        const left = 2*i+1, right = 2*i+2;
+        let largest = i;
+        if (left < hsize) {
+          steps.push({ heap: work.slice(), hl: { current:i, compare:left } });
+          if (work[left] > work[largest]) largest = left;
+          steps.push({ heap: work.slice(), hl: { largest:largest } });
+        }
+        if (right < hsize) {
+          steps.push({ heap: work.slice(), hl: { current:i, compare:right } });
+          if (work[right] > work[largest]) largest = right;
+          steps.push({ heap: work.slice(), hl: { largest:largest } });
+        }
+        if (largest === i) break;
+        [work[i], work[largest]] = [work[largest], work[i]];
+        steps.push({ heap: work.slice(), hl: { swapped:[i,largest] } });
+        i = largest;
+      }
+    }
+
+    // Render using original demoScripts methods
+    function doRender(n, h) {
+      const data = demoMode ? steps[stepIndex].heap : arr;
+      const hl   = demoMode ? steps[stepIndex].hl   : {};
+      renderGrid(n, h, data, hl);
+      renderTree(h, data, hl);
+    }
+
+    function initDemo() {
+      const n = Math.max(3, Math.min(31, +arrayInput.value));
+      const h = Math.max(1, Math.min(n, +heapInput.value));
+      arrayInput.value = n; heapInput.value = h;
+      arr = Array.from({ length: n }, () => Math.floor(Math.random() * 100));
+      originalArr = arr.slice();
+      const heapArr = arr.slice(0,h);
+      buildHeap(heapArr);
+      for (let i=0;i<h;i++) arr[i] = heapArr[i];
+      demoMode = false; stepIndex=0;
+      prevBtn.disabled = true; nextBtn.disabled = true; resetBtn.disabled = true;
+      doRender(n, h);
+    }
+
+    function attachClicks() {
+      document.querySelectorAll('.element-wrapper').forEach(el => {
+        el.onclick = () => {
+          if (demoMode) return;
+          const idx = +el.dataset.index;
+          const newVal = parseInt(prompt(`New value at idx ${idx}?`, arr[idx]),10);
+          if (isNaN(newVal)) return;
+          arr = originalArr.slice();
+          arr[idx] = newVal;
+          recordSteps(arr, idx, +heapInput.value);
+          demoMode = true; stepIndex = 0;
+          prevBtn.disabled = true;
+          nextBtn.disabled = steps.length <= 1;
+          resetBtn.disabled = false;
+          doRender(arr.length, +heapInput.value);
+        };
+      });
+    }
+
+    prevBtn.onclick = () => {
+      if (!demoMode || stepIndex === 0) return;
+      stepIndex--; nextBtn.disabled = false;
+      if (stepIndex === 0) prevBtn.disabled = true;
+      doRender(arr.length, +heapInput.value);
+    };
+    nextBtn.onclick = () => {
+      if (!demoMode || stepIndex >= steps.length-1) return;
+      stepIndex++; prevBtn.disabled = false;
+      if (stepIndex === steps.length-1) nextBtn.disabled = true;
+      doRender(arr.length, +heapInput.value);
+    };
+    resetBtn.onclick = () => {
+      demoMode = false; stepIndex = 0;
+      resetBtn.disabled = true; prevBtn.disabled = true; nextBtn.disabled = true;
+      initDemo();
+    };
+
+    window.addEventListener('load', () => {
+      initDemo(); attachClicks();
+      document.getElementById('generate').onclick = initDemo;
+    });
+  </script>
+</body>
+</html>
