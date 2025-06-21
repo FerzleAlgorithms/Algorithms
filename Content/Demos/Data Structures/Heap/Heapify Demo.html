@@ -6,25 +6,9 @@
   <!-- absolute paths as requested -->
   <script src="/Algorithms/scripts/demoScripts.js"></script>
   <link rel="stylesheet" href="/Algorithms/css/style.css">
-  <link rel="stylesheet" href="/Algorithms/css/demo.css">
+  <link rel="stylesheet" href="/Algorithms/css/demo.css?f=f">
 
   <style>
-  /*=== Legend box styling ===*/
-    .legend-box {
-      display: inline-block;
-      width: 16px;
-      height: 16px;
-      margin-right: 4px;
-      vertical-align: middle;
-      border: 1px solid #666;
-    }
-    .legend-label {
-      margin-right: 16px;
-      vertical-align: middle;
-      font-family: sans-serif;
-      font-size: 14px;
-    }
-
     /*=== Color rules for tree nodes ===*/
     .treeNode.comparing circle {
       fill: yellow;
@@ -85,9 +69,7 @@
 
     /* Commentary styling */
     #commentary {
-      margin-top: 10px;
-      font-family: sans-serif;
-      height: 50px;
+      height: 55px;
     }
 
     /* === NEW: wrappers around each array element + index label === */
@@ -157,11 +139,11 @@
   <div id="buttons" style="margin-top:10px;">
     <button id="prevBtn" disabled>Previous</button>
     <button id="nextBtn" disabled>Next</button>
-    <button id="resetBtn" disabled>Reset</button>
   </div>
 
   <div class="legend" style="margin-top:10px;">
-    <span class="legend-box"></span><span class="legend-label">Start</span>
+  <strong>Legend:</strong>
+    <span class="legend-box array-heapify"></span><span class="legend-label">Value changed</span>
     <span class="legend-box comparing"></span><span class="legend-label">Comparing</span>
     <span class="legend-box largest"></span><span class="legend-label">Largest so far</span>
     <span class="legend-box swap"></span><span class="legend-label">Swap</span>
@@ -184,7 +166,6 @@
     const heapInput  = document.getElementById('heapSize');
     const prevBtn    = document.getElementById('prevBtn');
     const nextBtn    = document.getElementById('nextBtn');
-    const resetBtn   = document.getElementById('resetBtn');
     const genBtn     = document.getElementById('generate');
     const commentary = document.getElementById('commentary');
 
@@ -426,7 +407,6 @@ function showInputAt(x, y, idx) {
       commentary.innerHTML = evt.description;
       prevBtn.disabled = stepIndex===0;
       nextBtn.disabled = stepIndex>=steps.length-1;
-      resetBtn.disabled = false;
        if (evt.type === 'done') {
          demoMode = false;
        }
@@ -462,15 +442,14 @@ function showInputAt(x, y, idx) {
       demoMode = false; stepIndex = 0;
       prevBtn.disabled = true;
       nextBtn.disabled = true;
-      resetBtn.disabled = true;
       // draw initial state
-      render({ array: arr, heapSize: h, type:null, i:null, j:null, description:'Click an array element or tree node to begin.' });
+      render({ array: arr, heapSize: h, type:null, i:null, j:null, 
+      description:'Click an array element or tree node to change its value and then run heapify.' });
     }
 
     // Wire up buttons
     prevBtn.onclick  = () => { if(stepIndex>0) { stepIndex--; renderStep(); } };
     nextBtn.onclick  = () => { if(stepIndex<steps.length-1) { stepIndex++; renderStep(); } };
-    resetBtn.onclick = initDemo;
     genBtn.onclick   = initDemo;
     arrayInput.onchange = initDemo;
     heapInput.onchange  = initDemo;

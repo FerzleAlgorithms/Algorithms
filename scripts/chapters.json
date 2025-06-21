@@ -60,8 +60,10 @@
       "Data Structures": [
         {
           "Heap": [
+            "Build Heap Demo.html",
             "Heap Representation Demo.html",
-            "Heapify Demo.html"
+            "Heapify Demo.html",
+            "Insert Demo.html"
           ]
         }
       ]

@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Build Heap Demo</title>
+  <script src="/Algorithms/scripts/demoScripts.js"></script>
+  <link rel="stylesheet" href="/Algorithms/css/style.css">
+  <link rel="stylesheet" href="/Algorithms/css/demo.css?f=f">
+  <style>
+    /*=== Color rules for tree nodes ===*/
+    .treeNode.comparing circle {
+      fill: yellow;
+      stroke: #666;
+      stroke-width: 1.5px;
+    }
+    .treeNode.swap circle {
+      fill: lightgreen;
+      stroke: #666;
+      stroke-width: 1.5px;
+    }
+    .treeNode.array-heapify circle {
+      fill: #FF9999;
+      stroke: #666;
+      stroke-width: 1.5px;
+    }
+    .treeNode.heap circle {
+      fill: #D8BFD8; /* Light purple */
+      stroke: #666;
+      stroke-width: 1.5px;
+    }
+
+    /*=== Color rules for array elements ===*/
+    .array-heapify {
+      background-color: #FF9999;
+    }
+    .heap {
+      background-color: #D8BFD8;
+    }
+    .element.comparing {
+      background-color: yellow;
+    }
+    .element.swap {
+      background-color: lightgreen;
+    }
+    .element.sorted {
+      background-color: orange;
+    }
+
+    /* When a node is "current" */
+    .treeNode.current circle {
+      stroke: #000;
+      stroke-width: 3px;
+    }
+
+    /* Phase label styling */
+    #phase-label {
+      margin-top: 10px;
+      font-family: sans-serif;
+      font-size: 16px;
+      font-weight: bold;
+      text-align: center;
+    }
+
+    /* === NEW: wrappers around each array element + index label === */
+    .element-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-right: 8px;
+    }
+    
+    .element-wrapper .index-label {
+      margin-top: 4px;
+      font-size: 0.8em;
+      color: #333;
+    }
+
+    /* === NEW: styling for SVG node index labels === */
+    .node-index-label {
+      font-size: 12px;
+      fill: #333;
+      text-anchor: middle;
+    }
+    .array-container {
+        margin-bottom: 30px !important;
+    }
+     /* after all other CSS, e.g. in your inline <style> */
+    .array-container .element-wrapper {
+      /* stack vertically as you already have */
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-right: 4px;
+    
+      /* NEW: ideal width = 40px, no grow, can shrink */
+      flex: 0 1 40px;
+      box-sizing: border-box;   /* so padding/margin don’t bust the math */
+    }
+    .array-container .element-wrapper .element {
+      width: 100%;
+      aspect-ratio: 1 / 1;     /* keep it square */
+      height: auto;
+    }
+  </style>
+</head>
+<body class="no-tooltips">
+<div id="demoContainer">
+  <h2>Build Heap Demo</h2>
+  <div id="controls">
+    <label>Size:
+      <input type="number" id="arraySize" min="7" max="31" value="23" size="3">
+    </label>
+    <button id="generate">Random Array</button>
+    <input type="text" id="customArray" placeholder="e.g., 50,23,9,18,61" size="40">
+    <button id="useCustom">Use Custom Array</button>
+  </div>
+
+  <div id="buttons">
+    <button id="prevBtn" onclick="prevStep()" disabled>Previous</button>
+    <button id="nextBtn" onclick="nextStep()" disabled>Next</button>
+    <button id="play">Play</button>
+    <label for="speed">Speed:</label>
+    <select id="speed">
+      <option value="1">1×</option>
+      <option value="2">2×</option>
+      <option value="4">4×</option>
+      <option value="8">8×</option>
+    </select>
+  </div>
+  <div class="legend" style="margin-top: 10px;">
+  <strong>Legend:</strong>
+    <span class="legend-box comparing"></span><span class="legend-label">Comparing</span>
+    <span class="legend-box swap"></span><span class="legend-label">Swap</span>
+    <span class="legend-box array-heapify"></span><span class="legend-label">Heapify</span>
+    <span class="legend-box heap"></span><span class="legend-label">Heap</span>
+    <span class="legend-box default"></span><span class="legend-label">May violate heap property</span>
+  </div>
+  <div id="commentary" style="height:36px"></div>
+  <div id="array-label" style="margin-top: 10px;"><strong>Array:</strong></div>
+  <div class="array-container" id="arrayContainer"></div>
+  <div id="phase-label" style="text-align: left">Tree:</div>
+
+  <svg
+    id="svg"
+    width="600"
+    height="360"
+    preserveAspectRatio="xMinYMin meet"
+    style="display: block; margin: 0; overflow: visible;"
+  >
+    <g id="linkLayer"></g>
+    <g id="nodeLayer"></g>
+  </svg>
+
+  <script>
+    const settings = { hSpread: 400, nodeFont: 16, edgeFont: 16, circleR: 20 };
+    const levelVGap = 80;
+    const rootX = settings.hSpread;
+    const rootY = 0;
+
+    let array = [];
+    let steps = [];
+    let stepIndex = 0;
+    let playing = false;
+    let intervalId = null;
+
+    function buildHeapStepss(inputArr) {
+      let arr = inputArr.slice();
+      const n = arr.length;
+      let heapSize = n;
+      const events = [];
+      const builtRoots = [];
+      const firstLeaf = Math.floor(n / 2);
+      for (let j = firstLeaf; j < n; j++) builtRoots.push(j);
+
+      function recordEvent(type, i, j, desc) {
+        events.push({ type, i, j, array: arr.slice(), heapSize, description: desc, builtRoots: builtRoots.slice() });
+      }
+
+      recordEvent('initHeap', null, null, `Marked leaf nodes are already heaps (indices ${firstLeaf}-${n-1})<br>`);
+
+      function siftDown(i) {
+        while (true) {
+          let largest = i;
+          const left = 2 * i + 1;
+          const right = 2 * i + 2;
+          if (left < heapSize) {
+            if (arr[left] > arr[largest]) largest = left;
+            recordEvent('compare', i, left, 
+              `Compare parent at index ${i} (value ${arr[i]}) with left child at index ${left} (value ${arr[left]})<br>largest = ${arr[largest]}`);
+          }
+          if (right < heapSize) {
+            const tempLargest = largest;
+            if (arr[right] > arr[largest]) {
+              largest = right;
+            }
+            recordEvent('compare', tempLargest, right, 
+              `Compare largest node at index ${tempLargest} (value ${arr[tempLargest]}) with right child at index ${right} (value ${arr[right]})<br>largest = ${arr[largest]}`);
+          }
+          if (largest !== i) {
+            recordEvent('swap', i, largest, 
+              `${arr[largest]} > ${arr[i]} → Swap values ${arr[i]} and ${arr[largest]} at indices ${i} and ${largest}<br>`);
+            [arr[i], arr[largest]] = [arr[largest], arr[i]];
+            recordEvent('swap', i, largest, `Swapped<br>`);
+            recordEvent('heapify', largest, null, `Continue heapify at index ${largest} (value now ${arr[largest]})<br>`);
+            i = largest;
+          } else {
+            if (2 * i + 1 >= heapSize) {
+              recordEvent('heapifyDone', i, null, `Index ${i} is a leaf; heapify complete<br>`);
+            } else {
+              recordEvent('heapifyDone', i, null, `Index ${i} is larger than its children; heapify complete<br>`);
+            }
+            break;
+          }
+        }
+      }
+
+      for (let i = Math.floor(n / 2) - 1; i >= 0; i--) {
+        recordEvent('heapifyStart', i, null, `Heapify subtree rooted at index ${i} (value ${arr[i]})<br>Determining largest element between root and its children`);
+        siftDown(i);
+        builtRoots.push(i);
+        recordEvent('heapBuilt', i, null, `Subtree rooted at index ${i} is now a valid max-heap<br>`);
+      }
+      // New step: indicate heap construction complete
+      recordEvent('constructionComplete', null, null, 'Heap construction complete.<br>');
+      return events;
+    }
+
+    function computeNodePosition(i) {
+      const moves = [];
+      let cur = i;
+      while (cur > 0) {
+        const parent = Math.floor((cur - 1) / 2);
+        moves.unshift(cur === 2 * parent + 1 ? 'L' : 'R');
+        cur = parent;
+      }
+      let x = rootX;
+      let y = rootY;
+      let h = settings.hSpread;
+      for (const dir of moves) {
+        h /= 2;
+        y += 1;
+        x += dir === 'L' ? -h : h;
+      }
+      return { x, y: y * levelVGap + 40 };
+    }
+
+    /**
+     * Renders the array as a row of wrappers.
+     * Each wrapper has:
+     *   <div class="element">value</div>
+     *   <div class="index-label">i</div>
+     */
+    function renderArray(event) {
+      const container = document.getElementById('arrayContainer');
+      container.innerHTML = '';
+      const n = event.array.length;
+
+      for (let idx = 0; idx < n; idx++) {
+        // Create wrapper
+        const wrapper = document.createElement('div');
+        wrapper.classList.add('element-wrapper');
+
+        // Create actual element box
+        const cell = document.createElement('div');
+        cell.classList.add('element');
+        cell.textContent = event.array[idx];
+
+        // Apply color‐coding exactly as before
+        if ((event.type === 'heapifyStart' || event.type === 'heapify') && idx === event.i) {
+          cell.classList.remove('heap');
+          cell.classList.add('array-heapify');
+        } else if (event.type === 'compare' && (idx === event.i || idx === event.j)) {
+          cell.classList.add('comparing');
+        } else if (event.type === 'swap' && (idx === event.i || idx === event.j)) {
+          cell.classList.add('swap');
+        }  else if (event.builtRoots.includes(idx)) {
+          cell.classList.add('heap');
+        }
+
+        // Create index label underneath
+        const idxLabel = document.createElement('div');
+        idxLabel.classList.add('index-label');
+        idxLabel.textContent = idx;
+
+        // Append both to wrapper
+        wrapper.appendChild(cell);
+        wrapper.appendChild(idxLabel);
+        container.appendChild(wrapper);
+      }
+    }
+
+    /**
+     * Renders the heap as SVG nodes+edges.
+     * Each <g class="treeNode"> will now have:
+     *   <circle ... />
+     *   <text class="value-label">value</text>
+     *   <text class="node-index-label">i</text>   ← new, below the circle
+     */
+    function renderHeap(event) {
+      const svg = document.getElementById('svg');
+      const linkLayer = document.getElementById('linkLayer');
+      const nodeLayer = document.getElementById('nodeLayer');
+      linkLayer.innerHTML = '';
+      nodeLayer.innerHTML = '';
+      const arr = event.array;
+      const size = event.heapSize;
+      if (size < 0) return; // no heap to render
+
+      // Compute positions of all valid heap nodes
+      const positions = [];
+      for (let i = 0; i < size; i++) {
+        positions[i] = computeNodePosition(i);
+      }
+
+      // First draw edges
+      for (let i = 1; i < size; i++) {
+        const parentIdx = Math.floor((i - 1) / 2);
+        if (parentIdx < size) {
+          const a = positions[parentIdx];
+          const b = positions[i];
+          const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+          line.setAttribute('x1', a.x);
+          line.setAttribute('y1', a.y);
+          line.setAttribute('x2', b.x);
+          line.setAttribute('y2', b.y);
+          linkLayer.appendChild(line);
+        }
+      }
+
+      // Then draw each node
+      for (let i = 0; i < size; i++) {
+        const pos = positions[i];
+        const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+        g.setAttribute('class', 'treeNode');
+
+        // Apply color‐coding classes as before
+        if (event.type === 'compare' && (i === event.i || i === event.j)) {
+          g.classList.add('comparing');
+        } else if (event.type === 'swap' && (i === event.i || i === event.j)) {
+          g.classList.add('swap');
+        } else if ((event.type === 'heapifyStart' || event.type === 'heapify') && i === event.i) {
+          g.classList.add('array-heapify');
+        } else if (event.builtRoots.includes(i)) {
+          g.classList.add('heap');
+        }
+
+        // Circle
+        const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        circle.setAttribute('cx', pos.x);
+        circle.setAttribute('cy', pos.y);
+        circle.setAttribute('r', settings.circleR);
+        g.appendChild(circle);
+
+        // Value label (centered)
+        const valueText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        valueText.setAttribute('x', pos.x);
+        valueText.setAttribute('y', pos.y);
+        valueText.setAttribute('font-size', settings.nodeFont);
+        valueText.setAttribute('text-anchor', 'middle');
+        valueText.setAttribute('dominant-baseline', 'middle');
+        valueText.textContent = arr[i];
+        g.appendChild(valueText);
+
+        // Index label (just below the circle)
+        const indexText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        indexText.setAttribute('x', pos.x);
+        indexText.setAttribute('y', pos.y + settings.circleR + 12); 
+        //  +12 px down so the index sits nicely below the circle
+        indexText.setAttribute('class', 'node-index-label');
+        indexText.textContent = i;
+        g.appendChild(indexText);
+
+        nodeLayer.appendChild(g);
+      }
+    }
+
+    function renderStep() {
+      const event = steps[stepIndex];
+      renderArray(event);
+      renderHeap(event);
+      document.getElementById('commentary').innerHTML = event.description;
+      updateButtons();
+    }
+
+    function updateButtons() {
+      document.getElementById('prevBtn').disabled = (stepIndex === 0);
+      document.getElementById('nextBtn').disabled = (stepIndex === steps.length - 1);
+    }
+
+    function nextStep() {
+      if (stepIndex < steps.length - 1) {
+        stepIndex++;
+        renderStep();
+      }
+      if (stepIndex === steps.length - 1) {
+        playing = false;
+        document.getElementById('play').textContent = 'Play';
+        clearInterval(intervalId);
+        intervalId = null;
+      }
+    }
+
+    function prevStep() {
+      if (stepIndex > 0) {
+        stepIndex--;
+        renderStep();
+      }
+    }
+
+    function initRandom() {
+      let n = parseInt(document.getElementById('arraySize').value, 10) || 10;
+      n = Math.max(7, Math.min(n, 31));
+      document.getElementById('arraySize').value = n;
+      array = Array.from({ length: n }, () => Math.floor(Math.random() * 100));
+      document.getElementById('customArray').value = array.join(',');
+      steps = buildHeapStepss(array);
+      stepIndex = 0;
+      playing = false;
+      if (intervalId) clearInterval(intervalId);
+      document.getElementById('play').textContent = 'Play';
+      renderStep();
+    }
+
+    function initializeDemo() {
+      const txt = document.getElementById('customArray').value.trim();
+      if (!txt) return alert('Please enter a comma-separated list of numbers.');
+      const parsed = txt.split(',').map(s => parseInt(s.trim(), 10));
+      if (parsed.some(isNaN) || parsed.length < 1) return alert('All entries must be valid integers.');
+      array = parsed.slice();
+      steps = buildHeapStepss(array);
+      stepIndex = 0;
+      playing = false;
+      if (intervalId) clearInterval(intervalId);
+      document.getElementById('play').textContent = 'Play';
+      renderStep();
+    }
+
+    document.getElementById('generate').addEventListener('click', initRandom);
+    document.getElementById('useCustom').addEventListener('click', initializeDemo);
+    document.getElementById('play').addEventListener('click', () => {
+      if (playing) {
+        playing = false;
+        document.getElementById('play').textContent = 'Play';
+        clearInterval(intervalId);
+        intervalId = null;
+      } else {
+        playing = true;
+        document.getElementById('play').textContent = 'Pause';
+        const speed = parseInt(document.getElementById('speed').value, 10);
+        const delay = 1000 / speed;
+        intervalId = setInterval(() => {
+          if (stepIndex < steps.length - 1) {
+            nextStep();
+          } else {
+            playing = false;
+            document.getElementById('play').textContent = 'Play';
+            clearInterval(intervalId);
+            intervalId = null;
+          }
+        }, delay);
+      }
+    });
+
+    document.getElementById('speed').addEventListener('change', () => {
+      if (playing) {
+        clearInterval(intervalId);
+        playing = false;
+        document.getElementById('play').textContent = 'Play';
+        document.getElementById('play').click();
+      }
+    });
+
+    document.getElementById('customArray').addEventListener('change', initializeDemo);
+    window.addEventListener('load', initRandom);
+  </script>
+  </div>
+</body>
+</html>

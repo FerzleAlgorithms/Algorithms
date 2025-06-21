@@ -48,7 +48,7 @@ html, body {
      give .legend-label a fixed width. Otherwise you can omit width. */
   /* width: 80px; */
   text-align: right;   /* if using a fixed width, this right‐aligns “Legend:” */
-  font-weight: bold;   /* same as <strong> */
+  /*font-weight: bold;*/   /* same as <strong> */
   line-height: 1.2;    /* ensure the label’s height accommodates wrapped lines */
 }
 
@@ -100,6 +100,7 @@ html, body {
 .comparing       { background-color: yellow; }
 .swap            { background-color: #b2f2bb; }
 .sorted          { background-color: orange; }
+.insert          { background-color:orangered; }
 .empty           { background-color: transparent; border: 1px dashed #ccc; }
 
 .arrow {

@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Heap Insert Demo</title>
+  <!-- absolute paths as requested -->
+  <script src="/Algorithms/scripts/demoScripts.js"></script>
+  <link rel="stylesheet" href="/Algorithms/css/style.css">
+  <link rel="stylesheet" href="/Algorithms/css/demo.css?f=f">
+
+  <style>
+    /*=== Color rules for tree nodes (heapify) ===*/
+    .treeNode.comparing circle { fill: yellow; stroke: #666; stroke-width: 1.5px; }
+    .treeNode.swap     circle { fill: lightgreen; stroke: #666; stroke-width: 1.5px; }
+    .treeNode.array-heapify circle { fill: #FF9999; stroke: #666; stroke-width: 1.5px; }
+    .treeNode.sorted   circle { fill: orange;    stroke: #666; stroke-width: 1.5px; }
+    .treeNode.heap     circle { fill: #D8BFD8;   stroke: #666; stroke-width: 1.5px; }
+    .treeNode.current  circle { stroke: #000; stroke-width: 3px; }
+    .treeNode.largest  circle { fill: #4287f5; stroke: #666; stroke-width: 1.5px; }
+    .treeNode.insert  circle { fill: orangered; stroke: #666; stroke-width: 1.5px; }
+
+    /*=== Color rules for array elements ===*/
+    .largest  { background-color: #4287f5; color: white; }
+    .array-heapify { background-color: #FF9999; }
+    .heap          { background-color: #D8BFD8; }
+    .element.comparing { background-color: yellow; }
+    .element.swap      { background-color: lightgreen; }
+    .element.sorted    { background-color: orange; }
+    .element.insert { background-color: orangered; }
+
+    /* Commentary styling */
+    #commentary { height: 55px; }
+
+    /* Element wrappers */
+    .element-wrapper { display: flex; flex-direction: column; align-items: center; margin-right: 2px; }
+    .element-wrapper .index-label { margin-top: 4px; font-size: 0.8em; color: #333; }
+    .node-index-label { font-size: 12px; fill: #333; text-anchor: middle; }
+    .array-container { margin-bottom: 30px !important; }
+    .array-container .element-wrapper { display: flex; flex-direction: column; align-items: center; margin-right: 0px; flex: 0 1 40px; box-sizing: border-box; }
+    .array-container .element-wrapper .element { width: 100%; aspect-ratio: 1 / 1; height: auto; }
+    #valueInput { position: absolute; z-index: 1000; width: 60px; padding: 4px; font-size: 1em; }
+
+    /*=== New insertion styling ===*/
+  </style>
+</head>
+<body class="no-tooltips">
+  <h2>Heap Insert Demo</h2>
+
+  <div id="controls">
+    <label>Array size:
+      <input type="number" id="arraySize" min="3" max="31" value="26" size="2">
+    </label>
+    <button id="generate">Random Heap</button>
+  </div>
+
+  <div id="buttons" style="margin-top:10px;">
+    <input type="number" id="insertValue" min="0" max="99" value="77" size="2">
+    <button id="insertBtn">Insert</button> &nbsp; &nbsp; 
+    <button id="prevBtn" disabled>Previous</button>
+    <button id="nextBtn" disabled>Next</button>
+  </div>
+
+  <div class="legend" style="margin-top:10px;">
+    <strong>Legend:</strong>
+    <span class="legend-box insert"></span><span class="legend-label">Inserted</span>
+    <span class="legend-box comparing"></span><span class="legend-label">Comparing</span>
+    <span class="legend-box swap"></span><span class="legend-label">Swap</span>
+    <span class="legend-box"></span><span class="legend-label">Not in heap</span>
+  </div>
+
+  <div id="commentary">Click Insert to begin.</div>
+
+  <div id="array-label" style="margin-top: 10px;"><strong>Array:</strong></div>
+  <div class="array-container" id="arrayContainer"></div>
+
+  <div style="margin-top: 10px;"><strong>Tree:</strong></div>
+  <svg id="svg" width="800" height="420" preserveAspectRatio="xMinYMin meet">
+    <g id="linkLayer"></g>
+    <g id="nodeLayer"></g>
+  </svg>
+
+  <script>
+    const arrayInput  = document.getElementById('arraySize');
+    //const heapInput   = document.getElementById('heapSize');
+    const prevBtn     = document.getElementById('prevBtn');
+    const nextBtn     = document.getElementById('nextBtn');
+    const genBtn      = document.getElementById('generate');
+    const insertInput = document.getElementById('insertValue');
+    const insertBtn   = document.getElementById('insertBtn');
+    const commentary   = document.getElementById('commentary');
+
+    let arr = [], originalArr = [], steps = [], stepIndex = 0, demoMode = false;
+    let heapSize = 19;
+
+    // Record a single step
+    function recordEvent(type, i, j, desc) {
+      steps.push({ type, i, j, array: arr.slice(), heapSize: heapSize, description: desc });
+    }
+
+    // Build steps for insertion
+    function buildInsertSteps(newVal) {
+      steps = [];
+      arr[heapSize]=newVal;
+      heapSize = heapSize + 1;
+      //arr.push(newVal);
+      recordEvent('insert', heapSize - 1, null, `Insert ${newVal} at index ${heapSize  - 1}`);
+      let i = heapSize - 1;
+      while (i > 0) {
+        const parent = Math.floor((i - 1) / 2);
+        recordEvent('compare', i, parent, `Comparing ${arr[i]} (index ${i}) with parent ${arr[parent]} (index ${parent})`);
+        if (arr[i] > arr[parent]) {
+          recordEvent('swap', i, parent, `Parent ${arr[parent]} smaller than node ${arr[i]}.<br>Swapping ${arr[i]} (index ${i}) with parent ${arr[parent]} (index ${parent})`);
+          [arr[i], arr[parent]] = [arr[parent], arr[i]];
+          
+          recordEvent('swap', i, parent, `Swapped ${arr[i]} (index ${i}) with parent ${arr[parent]} (index ${parent})`);
+          i = parent;
+        } else {
+          recordEvent('done', i, parent, `Parent ${arr[parent]} not smaller than node ${arr[i]}, so we are done.<br>You can insert another value.`);
+          return;
+        }
+      }
+      // reached root
+      recordEvent('done', 0, null, `We are at the root, so we are done.<br>You can insert another value.`);
+    }
+
+    // Compute node position
+    function computeNodePosition(i) {
+      const lvl = Math.floor(Math.log2(i + 1));
+      const idxInLvl = i - ((1 << lvl) - 1);
+      const span = 800 / (1 << lvl);
+      return { x: span * (idxInLvl + 0.5), y: 60 + lvl * 80 };
+    }
+
+    // Render a given event
+    function render(evt) {
+      const cont = document.getElementById('arrayContainer');
+      cont.innerHTML = '';
+      evt.array.forEach((v, k) => {
+        const w = document.createElement('div');
+        w.className = 'element-wrapper';
+        w.dataset.index = k;
+        const cell = document.createElement('div');
+        cell.className = 'element';
+        if (k >= evt.heapSize) cell.classList.add('blank');
+
+        // apply classes
+        if (evt.type === 'start' && k === evt.i)          cell.classList.add('array-heapify');
+        if (evt.type === 'insert' && k === evt.i)         cell.classList.add('insert');
+        if (evt.type === 'compare' && (k === evt.i || k === evt.j)) cell.classList.add('comparing');
+        if (evt.type === 'largest' && k === evt.i)        cell.classList.add('largest');
+        if (evt.type === 'swap' && (k === evt.i || k === evt.j))    cell.classList.add('swap');
+
+        cell.textContent = v;
+        const lbl = document.createElement('div'); lbl.className = 'index-label'; lbl.textContent = k;
+        w.appendChild(cell); w.appendChild(lbl);
+        cont.appendChild(w);
+      });
+
+      const linkLayer = document.getElementById('linkLayer'), nodeLayer = document.getElementById('nodeLayer');
+      linkLayer.innerHTML = ''; nodeLayer.innerHTML = '';
+      for (let k = 0; k < evt.heapSize; k++) {
+        const pos = computeNodePosition(k);
+        if (k > 0) {
+          const p = Math.floor((k - 1) / 2), pp = computeNodePosition(p);
+          const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+          line.setAttribute('x1', pp.x); line.setAttribute('y1', pp.y);
+          line.setAttribute('x2', pos.x); line.setAttribute('y2', pos.y);
+          linkLayer.appendChild(line);
+        }
+        const g = document.createElementNS('http://www.w3.org/2000/svg','g'); g.classList.add('treeNode');
+        // apply tree classes
+        if (evt.type === 'start' && k === evt.i)      g.classList.add('array-heapify');
+        if (evt.type === 'insert' && k === evt.i)     g.classList.add('insert');
+        if (evt.type === 'compare' && (k === evt.i || k === evt.j)) g.classList.add('comparing');
+        if (evt.type === 'largest' && k === evt.i)    g.classList.add('largest');
+        if (evt.type === 'swap' && (k === evt.i || k === evt.j))   g.classList.add('swap');
+
+        const c = document.createElementNS('http://www.w3.org/2000/svg','circle');
+        c.setAttribute('cx', pos.x); c.setAttribute('cy', pos.y); c.setAttribute('r', 20);
+        g.appendChild(c);
+        const vt = document.createElementNS('http://www.w3.org/2000/svg','text');
+        vt.setAttribute('x', pos.x); vt.setAttribute('y', pos.y + 4); vt.setAttribute('text-anchor', 'middle');
+        vt.textContent = evt.array[k]; g.appendChild(vt);
+        const it = document.createElementNS('http://www.w3.org/2000/svg','text');
+        it.classList.add('node-index-label'); it.setAttribute('x', pos.x); it.setAttribute('y', pos.y + 36);
+        it.textContent = k;
+        g.addEventListener('click', () => {}); // click disabled for insert demo
+        nodeLayer.appendChild(g); nodeLayer.appendChild(it);
+      }
+
+      commentary.innerHTML = evt.description;
+      prevBtn.disabled   = stepIndex === 0;
+      nextBtn.disabled   = stepIndex >= steps.length - 1;
+      if (evt.type === 'done') demoMode = false;
+      insertBtn.disabled = demoMode;      
+      if(heapSize>30) {
+          insertBtn.disabled = true;
+      }
+    }
+
+    function renderStep() { render(steps[stepIndex]); }
+
+    // Initialize / reset
+    function initDemo() {
+      let n = Math.max(3, Math.min(31, +arrayInput.value));
+      heapSize = 19;
+      arrayInput.value = n;
+      arr = Array.from({ length: n }, () => Math.floor(Math.random() * 100));
+      originalArr = arr.slice();
+      // pre-build heap
+      for (let i = Math.floor(heapSize/2) - 1; i >= 0; i--) {
+        let j = i, lg;
+        while (true) {
+          lg = j;
+          const L = 2*j + 1, R = 2*j + 2;
+          if (L < heapSize && arr[L] > arr[lg]) lg = L;
+          if (R < heapSize && arr[R] > arr[lg]) lg = R;
+          if (lg === j) break;
+          [arr[j], arr[lg]] = [arr[lg], arr[j]];
+          j = lg;
+        }
+      }
+      demoMode = false; stepIndex = 0;
+      prevBtn.disabled = nextBtn.disabled = true;
+      insertBtn.disabled = false;
+      commentary.textContent = 'Click Insert to begin.';
+      render({ array: arr, heapSize: heapSize, type: null, i: null, j: null, description: 'Click Insert to begin.' });
+    }
+
+    // Wire up buttons
+    prevBtn.onclick  = () => { if (stepIndex > 0) { stepIndex--; renderStep(); }};
+    nextBtn.onclick  = () => { if (stepIndex < steps.length - 1) { stepIndex++; renderStep(); }};
+    genBtn.onclick   = initDemo;
+    arrayInput.onchange = initDemo;
+    insertBtn.onclick = () => {
+      insertBtn.disabled = true;
+      if (demoMode) return;
+      const val = parseInt(insertInput.value, 10);
+      if (isNaN(val)) return;
+      originalArr = arr.slice();
+      arr = originalArr.slice();
+      buildInsertSteps(val);
+      stepIndex = 0; demoMode = true; renderStep();
+    };
+
+    window.onload = initDemo;
+  </script>
+</body>
+</html>
