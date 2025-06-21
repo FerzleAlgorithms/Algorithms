@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <title>Heapsort Demo (with index wrappers)</title>
-  <script src="../../../scripts/demoScripts.js"></script>
-  <link rel="stylesheet" href="../../../css/style.css">
-  <link rel="stylesheet" href="../../../css/demo.css">
+  <script src="/Algorithms/scripts/demoScripts.js"></script>
+  <link rel="stylesheet" href="/Algorithms/css/style.css">
+  <link rel="stylesheet" href="/Algorithms/css/demo.css">
   <style>
     /*=== Legend box styling ===*/
     .legend-box {
@@ -109,11 +109,11 @@
       fill: #333;
       text-anchor: middle;
     }
-    #arrayContainer {
+    .array-container {
         margin-bottom: 30px !important;
     }
      /* after all other CSS, e.g. in your inline <style> */
-    #arrayContainer .element-wrapper {
+    .array-container .element-wrapper {
       /* stack vertically as you already have */
       display: flex;
       flex-direction: column;
@@ -124,7 +124,7 @@
       flex: 0 1 40px;
       box-sizing: border-box;   /* so padding/margin don’t bust the math */
     }
-    #arrayContainer .element-wrapper .element {
+    .array-container .element-wrapper .element {
       width: 100%;
       aspect-ratio: 1 / 1;     /* keep it square */
       height: auto;

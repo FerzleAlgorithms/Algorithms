@@ -2,161 +2,480 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <title>Heapify Demo</title>
+  <!-- absolute paths as requested -->
   <script src="/Algorithms/scripts/demoScripts.js"></script>
   <link rel="stylesheet" href="/Algorithms/css/style.css">
   <link rel="stylesheet" href="/Algorithms/css/demo.css">
-  <title>Heapify Demo</title>
-  <style>
-    /* Reuse original colors */
-    .current     { background-color: #74B474; }
-    .compare     { background-color: #FFEB3B; }
-    .largest     { background-color: #4287f5; }
 
-    .legend { font-family: sans-serif; margin: 10px 0; }
-    .legend-box { display: inline-block; width: 16px; height: 16px; margin-right: 4px; vertical-align: middle; border: 1px solid #666; }
+  <style>
+  /*=== Legend box styling ===*/
+    .legend-box {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      margin-right: 4px;
+      vertical-align: middle;
+      border: 1px solid #666;
+    }
+    .legend-label {
+      margin-right: 16px;
+      vertical-align: middle;
+      font-family: sans-serif;
+      font-size: 14px;
+    }
+
+    /*=== Color rules for tree nodes ===*/
+    .treeNode.comparing circle {
+      fill: yellow;
+      stroke: #666;
+      stroke-width: 1.5px;
+    }
+    .treeNode.swap circle {
+      fill: lightgreen;
+      stroke: #666;
+      stroke-width: 1.5px;
+    }
+    .treeNode.array-heapify circle {
+      fill: #FF9999;
+      stroke: #666;
+      stroke-width: 1.5px;
+    }
+    .treeNode.sorted circle {
+      fill: orange;
+      stroke: #666;
+      stroke-width: 1.5px;
+    }
+    .treeNode.heap circle {
+      fill: #D8BFD8; /* Light purple */
+      stroke: #666;
+      stroke-width: 1.5px;
+    }
+    
+    /* When a node is "current" */
+    .treeNode.current circle {
+      stroke: #000;
+      stroke-width: 3px;
+    }
+    .treeNode.largest circle { 
+    fill: #4287f5; 
+      stroke: #666;
+      stroke-width: 1.5px;
+    }
+
+    /*=== Color rules for array elements ===*/
+    
+    .largest  { background-color: #4287f5; color: white; }
+    
+    .array-heapify {
+      background-color: #FF9999;
+    }
+    .heap {
+      background-color: #D8BFD8;
+    }
+    .element.comparing {
+      background-color: yellow;
+    }
+    .element.swap {
+      background-color: lightgreen;
+    }
+    .element.sorted {
+      background-color: orange;
+    }
+
+    /* Commentary styling */
+    #commentary {
+      margin-top: 10px;
+      font-family: sans-serif;
+      height: 50px;
+    }
+
+    /* === NEW: wrappers around each array element + index label === */
+    .element-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-right: 2px;
+    }
+    
+    .element-wrapper .index-label {
+      margin-top: 4px;
+      font-size: 0.8em;
+      color: #333;
+    }
+
+    /* === NEW: styling for SVG node index labels === */
+    .node-index-label {
+      font-size: 12px;
+      fill: #333;
+      text-anchor: middle;
+    }
+    .array-container {
+        margin-bottom: 30px !important;
+    }
+     /* after all other CSS, e.g. in your inline <style> */
+    .array-container .element-wrapper {
+      /* stack vertically as you already have */
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-right: 0px;
+    
+      /* NEW: ideal width = 40px, no grow, can shrink */
+      flex: 0 1 40px;
+      box-sizing: border-box;   /* so padding/margin don’t bust the math */
+    }
+    .array-container .element-wrapper .element {
+      width: 100%;
+      aspect-ratio: 1 / 1;     /* keep it square */
+      height: auto;
+    }
+    #valueInput {
+  position: absolute;
+  z-index: 1000;
+  width: 60px;
+  padding: 4px;
+  font-size: 1em;
+}
+
   </style>
 </head>
+
 <body class="no-tooltips">
   <h2>Heapify Demo</h2>
 
-  <div class="controls">
-    <label>Array size: <input type="number" id="arraySize" min="3" max="31" value="15"></label>
-    <label>Heap size:  <input type="number" id="heapSize"  min="1" max="15" value="15"></label>
+  <div id="controls">
+    <label>Array size:
+      <input type="number" id="arraySize" min="3" max="31" value="26" size="3">
+    </label>
+    <label>Heap size:
+      <input type="number" id="heapSize" min="1" max="27" value="26" size="3">
+    </label>
     <button id="generate">Random Heap</button>
+  </div>
+
+  <div id="buttons" style="margin-top:10px;">
     <button id="prevBtn" disabled>Previous</button>
     <button id="nextBtn" disabled>Next</button>
-    <button id="resetBtn" disabled>Reset</button><br><br>
-    <label>Click a node or array element to change its value, then step through <code>heapify</code>.</label>
+    <button id="resetBtn" disabled>Reset</button>
   </div>
 
-  <div class="legend">
-    <span class="legend-box current"></span> Selected Node<br>
-    <span class="legend-box compare"></span> Comparing Child<br>
-    <span class="legend-box largest"></span> Largest So Far<br>
+  <div class="legend" style="margin-top:10px;">
+    <span class="legend-box"></span><span class="legend-label">Start</span>
+    <span class="legend-box comparing"></span><span class="legend-label">Comparing</span>
+    <span class="legend-box largest"></span><span class="legend-label">Largest so far</span>
+    <span class="legend-box swap"></span><span class="legend-label">Swap</span>
   </div>
 
-  <div id="arrayContainer"></div>
-  <svg id="linkLayer"></svg><svg id="nodeLayer"></svg>
+  <div id="commentary">Click a tree node to begin.</div>
+
+
+  <div id="array-label" style="margin-top: 10px;"><strong>Array:</strong></div>
+  <div class="array-container" id="arrayContainer"></div>
+
+  <div style="margin-top: 10px;"><strong>Tree:</strong></div>
+  <svg id="svg" width="800" height="420" preserveAspectRatio="xMinYMin meet">
+    <g id="linkLayer"></g>
+    <g id="nodeLayer"></g>
+  </svg>
 
   <script>
-    // State
-    let arr = [], steps = [], stepIndex = 0, demoMode = false;
-    let originalArr = [];
-
     const arrayInput = document.getElementById('arraySize');
     const heapInput  = document.getElementById('heapSize');
-    const prevBtn = document.getElementById('prevBtn');
-    const nextBtn = document.getElementById('nextBtn');
-    const resetBtn= document.getElementById('resetBtn');
+    const prevBtn    = document.getElementById('prevBtn');
+    const nextBtn    = document.getElementById('nextBtn');
+    const resetBtn   = document.getElementById('resetBtn');
+    const genBtn     = document.getElementById('generate');
+    const commentary = document.getElementById('commentary');
 
-    // Build-only heapify
-    function heapifyNode(a, i, n) {
-      let largest = i;
-      while (true) {
-        const left = 2*i+1, right = 2*i+2;
-        largest = i;
-        if (left < n && a[left] > a[largest]) largest = left;
-        if (right< n && a[right]> a[largest]) largest = right;
-        if (largest===i) break;
-        [a[i], a[largest]] = [a[largest], a[i]];
-        i = largest;
-      }
-    }
-    function buildHeap(a) {
-      for (let i = Math.floor(a.length/2)-1; i>=0; i--) {
-        heapifyNode(a, i, a.length);
-      }
-    }
+    let arr = [], originalArr = [], steps = [], stepIndex = 0, demoMode = false;
 
-    // Record detailed heapify steps
-    function recordSteps(a, idx, hsize) {
-      const work = a.slice();
-      steps = [];
-      steps.push({ heap: work.slice(), hl: { current: idx } });
-      let i = idx;
-      while (true) {
-        const left = 2*i+1, right = 2*i+2;
-        let largest = i;
-        if (left < hsize) {
-          steps.push({ heap: work.slice(), hl: { current:i, compare:left } });
-          if (work[left] > work[largest]) largest = left;
-          steps.push({ heap: work.slice(), hl: { largest:largest } });
-        }
-        if (right < hsize) {
-          steps.push({ heap: work.slice(), hl: { current:i, compare:right } });
-          if (work[right] > work[largest]) largest = right;
-          steps.push({ heap: work.slice(), hl: { largest:largest } });
-        }
-        if (largest === i) break;
-        [work[i], work[largest]] = [work[largest], work[i]];
-        steps.push({ heap: work.slice(), hl: { swapped:[i,largest] } });
-        i = largest;
-      }
-    }
+function showInputAt(x, y, idx) {
+  // yank any old input
+  const old = document.getElementById('valueInput');
+  if (old) old.remove();
 
-    // Render using original demoScripts methods
-    function doRender(n, h) {
-      const data = demoMode ? steps[stepIndex].heap : arr;
-      const hl   = demoMode ? steps[stepIndex].hl   : {};
-      renderGrid(n, h, data, hl);
-      renderTree(h, data, hl);
-    }
+  const input = document.createElement('input');
+  input.type = 'number';
+  input.id   = 'valueInput';
+  input.value = originalArr[idx];
+  input.style.position = 'absolute';
+  input.style.left     = x + 'px';
+  input.style.top      = y + 'px';
+  document.body.appendChild(input);
+  input.focus();
 
-    function initDemo() {
-      const n = Math.max(3, Math.min(31, +arrayInput.value));
-      const h = Math.max(1, Math.min(n, +heapInput.value));
-      arrayInput.value = n; heapInput.value = h;
-      arr = Array.from({ length: n }, () => Math.floor(Math.random() * 100));
-      originalArr = arr.slice();
-      const heapArr = arr.slice(0,h);
-      buildHeap(heapArr);
-      for (let i=0;i<h;i++) arr[i] = heapArr[i];
-      demoMode = false; stepIndex=0;
-      prevBtn.disabled = true; nextBtn.disabled = true; resetBtn.disabled = true;
-      doRender(n, h);
-    }
+  let done = false;  // ensure commit only runs once
 
-    function attachClicks() {
-      document.querySelectorAll('.element-wrapper').forEach(el => {
-        el.onclick = () => {
-          if (demoMode) return;
-          const idx = +el.dataset.index;
-          const newVal = parseInt(prompt(`New value at idx ${idx}?`, arr[idx]),10);
-          if (isNaN(newVal)) return;
-          arr = originalArr.slice();
-          arr[idx] = newVal;
-          recordSteps(arr, idx, +heapInput.value);
-          demoMode = true; stepIndex = 0;
-          prevBtn.disabled = true;
-          nextBtn.disabled = steps.length <= 1;
-          resetBtn.disabled = false;
-          doRender(arr.length, +heapInput.value);
-        };
+  function commit() {
+    if (done) return;   // guard against double-fires
+    done = true;
+
+    // grab and parse the value
+    const newVal = parseInt(input.value, 10);
+    input.remove();     // safe now—only called once
+    if (isNaN(newVal)) return;
+
+    // your existing heapify kick-off:
+    originalArr = arr.slice();
+    arr = originalArr.slice();
+    arr[idx] = newVal;
+    buildHeapifySteps(arr, idx, +heapInput.value);
+    stepIndex = 0;
+    demoMode = true;
+    renderStep();
+  }
+
+  input.addEventListener('keydown', e => {
+    if (e.key === 'Enter') commit();
+    if (e.key === 'Escape') {
+      done = true;
+      input.remove();
+    }
+  });
+  input.addEventListener('blur', commit);
+}
+
+
+    // Record a single step
+    function recordEvent(type, i, j, desc) {
+      steps.push({
+        type, i, j,
+        array: arr.slice(),
+        heapSize: +heapInput.value,
+        description: desc
       });
     }
 
-    prevBtn.onclick = () => {
-      if (!demoMode || stepIndex === 0) return;
-      stepIndex--; nextBtn.disabled = false;
-      if (stepIndex === 0) prevBtn.disabled = true;
-      doRender(arr.length, +heapInput.value);
-    };
-    nextBtn.onclick = () => {
-      if (!demoMode || stepIndex >= steps.length-1) return;
-      stepIndex++; prevBtn.disabled = false;
-      if (stepIndex === steps.length-1) nextBtn.disabled = true;
-      doRender(arr.length, +heapInput.value);
-    };
-    resetBtn.onclick = () => {
-      demoMode = false; stepIndex = 0;
-      resetBtn.disabled = true; prevBtn.disabled = true; nextBtn.disabled = true;
-      initDemo();
-    };
+    // Build the heapify steps for one index
+    function buildHeapifySteps(inputArr, idx, hsize) {
+      arr = inputArr.slice();
+      steps = [];
+      recordEvent('start', idx, null,
+        `Start heapify at index ${idx} (value ${arr[idx]})`);
 
-    window.addEventListener('load', () => {
-      initDemo(); attachClicks();
-      document.getElementById('generate').onclick = initDemo;
-    });
+      let i = idx;
+      while (true) {
+        const left  = 2*i + 1, right = 2*i + 2;
+        let largest = i;
+
+        if(left < hsize) {
+             // compare left
+            recordEvent('compare', i, left,`Comparing ${arr[i]} (index ${i}) with left child ${arr[left]} (index ${left})`);
+            if (arr[left] > arr[largest]) {
+              largest = left;
+              recordEvent('largest', largest, null,`Left child ${arr[largest]} (index ${largest}) is largest`);
+            } else {
+              recordEvent('largest', largest, null,`Parent ${arr[largest]} (index ${largest}) is largest`);
+            }
+            // Is there a right?
+            if(right < hsize) {
+                recordEvent('compare', largest, right,
+                   `Comparing current largest ${arr[largest]} (index ${largest}) with right child ${arr[right]} (index ${right})`);
+                if (arr[right] > arr[largest]) { // Right is largest
+                  largest = right;
+                  recordEvent('largest', largest, null, `Right child ${arr[largest]} (index ${largest}) is now largest`);
+                  // swap
+                  recordEvent('swap', i, largest,`Swapping ${arr[i]} (index ${i}) with right child ${arr[largest]} (index ${largest})`);
+                  [arr[i], arr[largest]] = [arr[largest], arr[i]];
+                  recordEvent('swap', i, largest, `Swap done. Continuing heapify on right child.`);
+                  i = largest;
+                } else {
+                    if(largest=== i) { // parent largest
+                        recordEvent('done', largest, null, `Right child ${arr[right]} (index ${right}) is no larger.<br> Parent is largest, so heapify complete.<br>Click another array element or tree node to do it again.`);
+                           break;
+                    } else { // left is largest
+                        recordEvent('largest', largest, null, `Right child ${arr[right]} (index ${right}) is not larger, so left child is largest.`);
+                         // swap
+                        recordEvent('swap', i, largest,`Swapping ${arr[i]} (index ${i}) with left child ${arr[largest]} (index ${largest})`);
+                        [arr[i], arr[largest]] = [arr[largest], arr[i]];
+                        recordEvent('swap', i, largest, `Swap done. Continuing heapify on left child.`);
+                        i = largest;
+                   }
+                }
+            } else {
+                if(largest=== i) {
+                      recordEvent('done', largest, null,`No right child, parent was larger than left, so heapify complete.<br>Click another array element or tree node to do it again.`);
+                         break;
+                  } else { // left is largest
+                      recordEvent('swap', i, largest, 
+                         `No right child, left child is larger than parent.<br>Swap ${arr[i]} (index ${i}) with left child ${arr[largest]} (index ${largest})`);
+                      [arr[i], arr[largest]] = [arr[largest], arr[i]];
+                      recordEvent('swap', i, largest, `Swap done. Continuing heapify on left child.`);
+                      i = largest;
+                 }
+            }
+        } else {
+           // NO left, so must be a leaf.
+           recordEvent('done', i, null,`Node ${arr[i]} (index ${i}) is a leaf, so heapfiy complete.<br>Click another array element or tree node to do it again.`);
+           break;
+        }
+      }
+    }
+
+    // Compute node position
+    function computeNodePosition(i, h) {
+      const lvl = Math.floor(Math.log2(i+1));
+      const idxInLvl = i - ((1<<lvl)-1);
+      const span = 800 / (1<<lvl);
+      return {
+        x: span*(idxInLvl+0.5),
+        y: 60 + lvl*80
+      };
+    }
+
+    // Render any given event
+    function render(evt) {
+      // Array
+      const cont = document.getElementById('arrayContainer');
+      cont.innerHTML = '';
+      evt.array.forEach((v,k) => {
+        const w = document.createElement('div');
+        w.className = 'element-wrapper';
+        w.dataset.index = k;
+        const cell = document.createElement('div');
+        cell.className = 'element';
+        if (k >= evt.heapSize) cell.classList.add('blank');
+
+        // apply classes
+        if (evt.type==='start'   && k===evt.i)      cell.classList.add('array-heapify');
+        if (evt.type==='compare' && (k===evt.i||k===evt.j)) cell.classList.add('comparing');
+        if (evt.type==='largest' && k===evt.i)      cell.classList.add('largest');
+        if (evt.type==='swap'    && (k===evt.i||k===evt.j)) cell.classList.add('swap');
+
+        cell.textContent = v;
+        const lbl = document.createElement('div');
+        lbl.className = 'index-label';
+        lbl.textContent = k;
+        w.appendChild(cell);
+        w.appendChild(lbl);
+        // click handler to start heapify from here
+        w.onclick = e => {
+          if (demoMode) return;
+          showInputAt(e.pageX, e.pageY, k);
+          /*
+          const newVal = parseInt(prompt(`New value at index ${k}?`, originalArr[k]),10);
+          if (isNaN(newVal)) return;
+          originalArr = arr.slice();
+          arr = originalArr.slice();
+          arr[k] = newVal;
+          buildHeapifySteps(arr, k, +heapInput.value);
+          stepIndex = 0; demoMode = true;
+          renderStep();
+          */
+        };
+        cont.appendChild(w);
+      });
+
+      // Tree
+      const linkLayer = document.getElementById('linkLayer'),
+            nodeLayer = document.getElementById('nodeLayer');
+      linkLayer.innerHTML = ''; nodeLayer.innerHTML = '';
+
+      for (let k=0; k<evt.heapSize; k++) {
+        const pos = computeNodePosition(k, evt.heapSize);
+        if (k>0) {
+          const p = Math.floor((k-1)/2),
+                pp= computeNodePosition(p, evt.heapSize),
+                line = document.createElementNS('http://www.w3.org/2000/svg','line');
+          line.setAttribute('x1', pp.x);
+          line.setAttribute('y1', pp.y);
+          line.setAttribute('x2', pos.x);
+          line.setAttribute('y2', pos.y);
+          linkLayer.appendChild(line);
+        }
+        const g = document.createElementNS('http://www.w3.org/2000/svg','g');
+        g.classList.add('treeNode');
+        // apply tree classes
+        if (evt.type==='start'   && k===evt.i)      g.classList.add('array-heapify');
+        if (evt.type==='compare' && (k===evt.i||k===evt.j)) g.classList.add('comparing');
+        if (evt.type==='largest' && k===evt.i)      g.classList.add('largest');
+        if (evt.type==='swap'    && (k===evt.i||k===evt.j)) g.classList.add('swap');
+
+        const c = document.createElementNS('http://www.w3.org/2000/svg','circle');
+        c.setAttribute('cx', pos.x); c.setAttribute('cy', pos.y); c.setAttribute('r',20);
+        g.appendChild(c);
+        const vt = document.createElementNS('http://www.w3.org/2000/svg','text');
+        vt.setAttribute('x',pos.x); vt.setAttribute('y',pos.y+4);
+        vt.setAttribute('text-anchor','middle'); vt.textContent = evt.array[k];
+        g.appendChild(vt);
+        const it = document.createElementNS('http://www.w3.org/2000/svg','text');
+        it.classList.add('node-index-label');
+        it.setAttribute('x',pos.x); it.setAttribute('y',pos.y+36);
+        it.textContent = k;
+        // click handler
+        g.addEventListener('click', e => {
+          if (demoMode) return;
+          showInputAt(e.pageX, e.pageY, k);
+          /*
+          const newVal = parseInt(prompt(`New value at index ${k}?`, originalArr[k]),10);
+          if (isNaN(newVal)) return;
+          originalArr = arr.slice();
+          arr = originalArr.slice();
+          arr[k] = newVal;
+          buildHeapifySteps(arr, k, +heapInput.value);
+          stepIndex = 0; demoMode = true;
+          renderStep();
+          */
+        });
+        nodeLayer.appendChild(g);
+        nodeLayer.appendChild(it);
+      }
+
+      // commentary & buttons
+      commentary.innerHTML = evt.description;
+      prevBtn.disabled = stepIndex===0;
+      nextBtn.disabled = stepIndex>=steps.length-1;
+      resetBtn.disabled = false;
+       if (evt.type === 'done') {
+         demoMode = false;
+       }
+    }
+
+    // Render the current step
+    function renderStep() {
+      render(steps[stepIndex]);
+    }
+
+    // Initialize / reset
+    function initDemo() {
+      let n = Math.max(3, Math.min(31, +arrayInput.value));
+      let h = Math.max(1, Math.min(n, +heapInput.value));
+      arrayInput.value = n; heapInput.value = h;
+
+      // random data + pre-build heap
+      arr = Array.from({length:n}, ()=>Math.floor(Math.random()*100));
+      originalArr = arr.slice();
+      for (let i=Math.floor(h/2)-1; i>=0; i--) {
+        let j=i, lg;
+        while (true) {
+          lg = j;
+          const L=2*j+1, R=2*j+2;
+          if (L<h && arr[L]>arr[lg]) lg=L;
+          if (R<h && arr[R]>arr[lg]) lg=R;
+          if (lg===j) break;
+          [arr[j],arr[lg]]=[arr[lg],arr[j]];
+          j=lg;
+        }
+      }
+
+      demoMode = false; stepIndex = 0;
+      prevBtn.disabled = true;
+      nextBtn.disabled = true;
+      resetBtn.disabled = true;
+      // draw initial state
+      render({ array: arr, heapSize: h, type:null, i:null, j:null, description:'Click an array element or tree node to begin.' });
+    }
+
+    // Wire up buttons
+    prevBtn.onclick  = () => { if(stepIndex>0) { stepIndex--; renderStep(); } };
+    nextBtn.onclick  = () => { if(stepIndex<steps.length-1) { stepIndex++; renderStep(); } };
+    resetBtn.onclick = initDemo;
+    genBtn.onclick   = initDemo;
+    arrayInput.onchange = initDemo;
+    heapInput.onchange  = initDemo;
+
+    window.onload = initDemo;
   </script>
 </body>
 </html>
