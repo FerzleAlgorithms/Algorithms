@@ -31,6 +31,11 @@
         "Counting Sort.html",
         "Radix Sort.html"
       ]
+    },
+    {
+      "Transform-and-Conquer": [
+        "Heapsort.html"
+      ]
     }
   ],
   "Data Structures": [
