@@ -155,6 +155,8 @@
       <li><code>buildMaxHeap</code>: Reorganize the elements of an array into a heap in \(O(n)\) time.
       Briefly, it walks through the tree backwards calling heapify on each node.</li>
     </ul>
+    If you are unfamiliar with heaps, you should read the <a href="?path=Data Structures/Heaps">Heaps</a> page
+    before continuing.
   </p>
 
   <p>
@@ -173,20 +175,6 @@
         heapify(A, 0, i-1)      // restore heap property
     return A  </code></pre>
 
-  <p>
-    For a deeper dive into the details and analysis of heaps and their operations, 
-    see the full <a href="?path=Algorithms/Transform-and-Conquer/Heapsort">Heapsort</a> page.
-    </p>
-  <p>
-    <strong>Example:</strong>  
-    Let A = [4, 10, 3, 5, 1].  After <em>buildMaxHeap</em>, A becomes [10, 5, 3, 4, 1].  
-    Swap A[0] and A[4] ? [1, 5, 3, 4, 10], then <em>heapify</em> on the first 4 elements ? [5, 4, 3, 1, 10], and so on until A is sorted.
-  </p>
-
-  <p>
-    <strong>Time Complexity:</strong> Building the heap takes \(O(n)\), and each of the \(n-1\) extractions costs \(O(\log n)\), for a total of \(O(n + (n-1)\log n) = O(n\log n)\).<br>
-    <strong>Space Complexity:</strong> Heapsort sorts in-place using only \(O(1)\) extra space.
-  </p>
 
   <p>See the Heapsort demo below for a step-by-step animation.</p>
   <div class="embeddedDemoContainer">
@@ -197,39 +185,22 @@
       name="Heapsort-demo"
     ></iframe>
   </div>
+  
+  <p>
+    <strong>Time Complexity:</strong> 
+    Building the heap takes \(O(n)\), and each of the \(n-1\) extractions costs \(O(\log n)\)
+    (constant time to swap, and \(O(\log n)\) time for <code>heapify</code>), 
+    for a total of \(O(n + (n-1)\log n) = O(n\log n)\). 
+    See the <a href="?path=Data Structures/Heaps">Heaps</a> page for a more detailed analysis of 
+    <code>buildMaxHeap</code> and <code>heapify</code>.<br>
+    <strong>Space Complexity:</strong> 
+    Heapsort sorts in-place using only \(O(1)\) extra space.
+  </p>
+  <p>
+  Although Heapsort is a clever use of the transform-and-conquer technique, 
+  in practice Quicksort and Heap Sort outperform it.
+  </p>
 </div>
-
-
-    <div class="example-box">
-      <strong class="example-title">Example 3: Heapsort</strong>
-      <p>
-      
-      <h1> <font color='red'>I am here</font></h1>
-      
-        Heapsort applies a representation change to sort an array in-place. 
-        It transforms the array into a binary heap&mdash;a tree-based structure that supports 
-        efficient maximum (or minimum) extraction&mdash;and then repeatedly extracts the root 
-        to produce a sorted sequence. 
-        This reduces sorting to heap construction (\(O(n)\) time) 
-        plus \(n\) extractions (each \(O(\log n)\) time), yielding \(O(n \log n)\) total time.
-      </p>
-      <pre><code>function heapSort(A):
-    buildMaxHeap(A)              // O(n)
-    for i from |A|-1 down to 1:
-        swap A[0] with A[i]      // move max to end
-        heapify(A, 0, heapSize)  // restore heap property in O(log n)
-    return A
-</code></pre>
-      <p>See the Heapsort demo below for a step-by-step animation.</p>
-      <div class="embeddedDemoContainer">
-        <iframe
-          class="embeddedDemo"
-          src="/Algorithms/Content/Demos/Transform-and-Conquer/Heapsort Demo.html"
-          allow="fullscreen"
-          name="Heapsort-demo"
-        ></iframe>
-      </div>
-    </div>
   </section>
 
   <section id="summary">

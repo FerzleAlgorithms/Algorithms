@@ -95,6 +95,7 @@
     .array-container {
         margin-bottom: 30px !important;
     }
+
      /* after all other CSS, e.g. in your inline <style> */
     .array-container .element-wrapper {
       /* stack vertically as you already have */
@@ -113,11 +114,15 @@
       height: auto;
     }
     #valueInput {
-  position: absolute;
-  z-index: 1000;
-  width: 60px;
-  padding: 4px;
-  font-size: 1em;
+      position: absolute;
+      z-index: 1000;
+      width: 60px;
+      padding: 4px;
+      font-size: 1em;
+    }/
+    #svg {
+  display: block;
+  line-height: 0;
 }
 
   </style>
@@ -156,7 +161,8 @@
   <div class="array-container" id="arrayContainer"></div>
 
   <div style="margin-top: 10px;"><strong>Tree:</strong></div>
-  <svg id="svg" width="800" height="420" preserveAspectRatio="xMinYMin meet">
+  <svg id="svg" width="800" height="350" preserveAspectRatio="xMinYMin meet" 
+    style="display: block; margin: 0; overflow: visible;">
     <g id="linkLayer"></g>
     <g id="nodeLayer"></g>
   </svg>
@@ -216,7 +222,6 @@ function showInputAt(x, y, idx) {
   });
   input.addEventListener('blur', commit);
 }
-
 
     // Record a single step
     function recordEvent(type, i, j, desc) {
@@ -301,7 +306,7 @@ function showInputAt(x, y, idx) {
       const span = 800 / (1<<lvl);
       return {
         x: span*(idxInLvl+0.5),
-        y: 60 + lvl*80
+        y: 30+lvl*80
       };
     }
 
@@ -334,16 +339,6 @@ function showInputAt(x, y, idx) {
         w.onclick = e => {
           if (demoMode) return;
           showInputAt(e.pageX, e.pageY, k);
-          /*
-          const newVal = parseInt(prompt(`New value at index ${k}?`, originalArr[k]),10);
-          if (isNaN(newVal)) return;
-          originalArr = arr.slice();
-          arr = originalArr.slice();
-          arr[k] = newVal;
-          buildHeapifySteps(arr, k, +heapInput.value);
-          stepIndex = 0; demoMode = true;
-          renderStep();
-          */
         };
         cont.appendChild(w);
       });
@@ -386,23 +381,12 @@ function showInputAt(x, y, idx) {
         it.textContent = k;
         // click handler
         g.addEventListener('click', e => {
-          if (demoMode) return;
+        if (demoMode) return;
           showInputAt(e.pageX, e.pageY, k);
-          /*
-          const newVal = parseInt(prompt(`New value at index ${k}?`, originalArr[k]),10);
-          if (isNaN(newVal)) return;
-          originalArr = arr.slice();
-          arr = originalArr.slice();
-          arr[k] = newVal;
-          buildHeapifySteps(arr, k, +heapInput.value);
-          stepIndex = 0; demoMode = true;
-          renderStep();
-          */
         });
         nodeLayer.appendChild(g);
         nodeLayer.appendChild(it);
       }
-
       // commentary & buttons
       commentary.innerHTML = evt.description;
       prevBtn.disabled = stepIndex===0;
@@ -421,7 +405,8 @@ function showInputAt(x, y, idx) {
     function initDemo() {
       let n = Math.max(3, Math.min(31, +arrayInput.value));
       let h = Math.max(1, Math.min(n, +heapInput.value));
-      arrayInput.value = n; heapInput.value = h;
+      arrayInput.value = n; 
+      heapInput.value = h;
 
       // random data + pre-build heap
       arr = Array.from({length:n}, ()=>Math.floor(Math.random()*100));
@@ -443,8 +428,7 @@ function showInputAt(x, y, idx) {
       prevBtn.disabled = true;
       nextBtn.disabled = true;
       // draw initial state
-      render({ array: arr, heapSize: h, type:null, i:null, j:null, 
-      description:'Click an array element or tree node to change its value and then run heapify.' });
+      render({ array: arr, heapSize: h, type:null, i:null, j:null, description:'Click an array element or tree node to change its value and then run heapify.' });
     }
 
     // Wire up buttons

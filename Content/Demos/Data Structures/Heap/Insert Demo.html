@@ -74,7 +74,8 @@
   <div class="array-container" id="arrayContainer"></div>
 
   <div style="margin-top: 10px;"><strong>Tree:</strong></div>
-  <svg id="svg" width="800" height="420" preserveAspectRatio="xMinYMin meet">
+  <svg id="svg" width="800" height="340" preserveAspectRatio="xMinYMin meet"
+    style="display: block; margin: 0; overflow: visible;">
     <g id="linkLayer"></g>
     <g id="nodeLayer"></g>
   </svg>
@@ -128,7 +129,7 @@
       const lvl = Math.floor(Math.log2(i + 1));
       const idxInLvl = i - ((1 << lvl) - 1);
       const span = 800 / (1 << lvl);
-      return { x: span * (idxInLvl + 0.5), y: 60 + lvl * 80 };
+      return { x: span * (idxInLvl + 0.5), y: 20 + lvl * 80 };
     }
 
     // Render a given event

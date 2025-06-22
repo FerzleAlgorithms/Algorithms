@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>ExtractMax Demo</title>
+  <!-- absolute paths as requested -->
+  <script src="/Algorithms/scripts/demoScripts.js"></script>
+  <link rel="stylesheet" href="/Algorithms/css/style.css">
+  <link rel="stylesheet" href="/Algorithms/css/demo.css?f=f">
+
+  <style>
+    /*=== Color rules for tree nodes ===*/
+    .treeNode.comparing circle {
+      fill: yellow;
+      stroke: #666;
+      stroke-width: 1.5px;
+    }
+    .treeNode.swap circle {
+      fill: lightgreen;
+      stroke: #666;
+      stroke-width: 1.5px;
+    }
+    .treeNode.array-heapify circle {
+      fill: #FF9999;
+      stroke: #666;
+      stroke-width: 1.5px;
+    }
+    .treeNode.sorted circle {
+      fill: orange;
+      stroke: #666;
+      stroke-width: 1.5px;
+    }
+    .treeNode.heap circle {
+      fill: #D8BFD8;
+      stroke: #666;
+      stroke-width: 1.5px;
+    }
+    .treeNode.current circle {
+      stroke: #000;
+      stroke-width: 3px;
+    }
+    .treeNode.largest circle {
+      fill: #4287f5;
+      stroke: #666;
+      stroke-width: 1.5px;
+    }
+
+    /*=== Color rules for array elements ===*/
+    .largest  { background-color: #4287f5; color: white; }
+    .array-heapify { background-color: #FF9999; }
+    .heap { background-color: #D8BFD8; }
+    .element.comparing { background-color: yellow; }
+    .element.swap { background-color: lightgreen; }
+    .element.sorted { background-color: orange; }
+
+    /* Commentary styling */
+    #commentary { height: 40px; }
+
+    /* Element wrappers */
+    .element-wrapper { display: flex; flex-direction: column; align-items: center; margin-right: 2px; }
+    .element-wrapper .index-label { margin-top: 4px; font-size: 0.8em; color: #333; }
+
+    /* SVG node index labels */
+    .node-index-label { font-size: 12px; fill: #333; text-anchor: middle; }
+    .array-container { margin-bottom: 30px !important; }
+    .array-container .element-wrapper { display: flex; flex-direction: column; align-items: center; margin-right: 0px; flex: 0 1 40px; box-sizing: border-box; }
+    .array-container .element-wrapper .element { width: 100%; aspect-ratio: 1 / 1; height: auto; }
+    #valueInput { position: absolute; z-index: 1000; width: 60px; padding: 4px; font-size: 1em; }
+
+    /* Animate tree movements */
+    .treeNode { transition: transform 0.5s ease-in-out; }
+    #linkLayer line { transition: x1 0.5s ease-in-out, y1 0.5s ease-in-out, x2 0.5s ease-in-out, y2 0.5s ease-in-out; }
+  </style>
+</head>
+<body class="no-tooltips">
+  <h2>ExtractMax Demo</h2>
+
+  <div id="controls">
+    <label>Heap size:
+      <input type="number" id="arraySize" min="3" max="31" value="26" size="3">
+    </label>
+    <button id="generate">Random Heap</button>
+  </div>
+
+  <div id="buttons" style="margin-top:10px;">
+    <button id="extractMaxBtn">Extract Max</button>
+    <button id="prevBtn" disabled>Previous</button>
+    <button id="nextBtn" disabled>Next</button>
+  </div>
+
+  <div class="legend" style="margin-top:10px;">
+    <strong>Legend:</strong>
+    <span class="legend-box array-heapify"></span><span class="legend-label">Value changed</span>
+    <span class="legend-box comparing"></span><span class="legend-label">Comparing</span>
+    <span class="legend-box largest"></span><span class="legend-label">Largest so far</span>
+    <span class="legend-box swap"></span><span class="legend-label">Swap</span>
+  </div>
+
+  <div id="commentary">Click "Extract Max" to begin.</div>
+
+  <div id="array-label" style="margin-top: 10px;"><strong>Array:</strong></div>
+  <div class="array-container" id="arrayContainer"></div>
+
+  <div style="margin-top: 10px;"><strong>Tree:</strong></div>
+  <svg id="svg" width="800" height="350" preserveAspectRatio="xMinYMin meet"
+    style="display: block; margin: 0; overflow: visible;">
+    <g id="linkLayer"></g>
+    <g id="nodeLayer"></g>
+  </svg>
+
+  <script>
+    const heapInput = document.getElementById('arraySize');
+    const extractBtn = document.getElementById('extractMaxBtn');
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const genBtn = document.getElementById('generate');
+    const commentary = document.getElementById('commentary');
+    let hsize;
+
+    let arr = [], originalArr = [], steps = [], stepIndex = 0, demoMode = false;
+    function recordEvent(type, i, j, desc) {
+      steps.push({ type, i, j, array: arr.slice(), heapSize: hsize, description: desc });
+    }
+
+    function buildExtractMaxSteps() {
+      if (hsize < 1) return;
+      steps = [];
+      const extractedValue = arr[0];
+      recordEvent('start', 0, null, `Save max value ${arr[0]}`);
+      const lastIdx = hsize - 1;
+      // Move the last element to root first, so the move event carries the updated array
+      arr[0] = arr[lastIdx];
+      recordEvent('move', 0, lastIdx, `Moving last element ${arr[0]} (index ${lastIdx}) to root`);
+      hsize = hsize - 1;
+      let i = 0;
+      while (true) {
+        const left = 2*i + 1, right = 2*i + 2;
+        let largest = i;
+        if (left < hsize) {
+          recordEvent('compare', i, left, `Comparing ${arr[i]} (index ${i}) with left child ${arr[left]} (index ${left})`);
+          if (arr[left] > arr[largest]) {
+            largest = left;
+            recordEvent('largest', largest, null, `Left child ${arr[largest]} (index ${largest}) is largest`);
+          } else {
+            recordEvent('largest', largest, null, `Parent ${arr[largest]} (index ${largest}) is largest`);
+          }
+          if (right < hsize) {
+            recordEvent('compare', largest, right, `Comparing current largest ${arr[largest]} (index ${largest}) with right child ${arr[right]} (index ${right})`);
+            if (arr[right] > arr[largest]) {
+              largest = right;
+              recordEvent('largest', largest, null, `Right child ${arr[largest]} (index ${largest}) is now largest`);
+              recordEvent('swap', i, largest, `Swapping ${arr[i]} (index ${i}) with ${arr[largest]} (index ${largest})`);
+              [arr[i], arr[largest]] = [arr[largest], arr[i]];
+              recordEvent('swap', i, largest, `Swap done. Continuing heapify.`);
+              i = largest;
+            } else {
+              if (largest === i) {
+                recordEvent('done', i, null, `Heapify complete. Extracted value <strong>${extractedValue}</strong> returned.<br>Click Extract Max to do it again.`);
+                break;
+              } else {
+                recordEvent('largest', largest, null, `Right child ${arr[right]} (index ${right}) is not larger, so left child is largest.`);
+                recordEvent('swap', i, largest, `Swapping ${arr[i]} (index ${i}) with ${arr[largest]} (index ${largest})`);
+                [arr[i], arr[largest]] = [arr[largest], arr[i]];
+                recordEvent('swap', i, largest, `Swap done. Continuing heapify.`);
+                i = largest;
+              }
+            }
+          } else {
+            if (largest === i) {
+              recordEvent('done', i, null, `Heapify complete. Extracted value <strong>${extractedValue}</strong> returned.<br>Click Extract Max to do it again.`);
+              break;
+            } else {
+              recordEvent('swap', i, largest, `Swapping ${arr[i]} (index ${i}) with ${arr[largest]} (index ${largest})`);
+              [arr[i], arr[largest]] = [arr[largest], arr[i]];
+              recordEvent('swap', i, largest, `Swap done. Continuing heapify.`);
+              i = largest;
+            }
+          }
+        } else {
+          recordEvent('done', i, null, `Heapify complete. Extracted value <strong>${extractedValue}</strong> returned.<br>Click Extract Max to do it again.`);
+          break;
+        }
+      }
+    }
+
+    function computeNodePosition(i) {
+      const lvl = Math.floor(Math.log2(i+1));
+      const idxInLvl = i - ((1<<lvl)-1);
+      const span = 800 / (1<<lvl);
+      return { x: span*(idxInLvl+0.5), y: 20 + lvl*80 };
+    }
+
+    function render(evt) {
+      const cont = document.getElementById('arrayContainer'); cont.innerHTML = '';
+      evt.array.forEach((v, k) => {
+        const w = document.createElement('div'); w.className = 'element-wrapper';
+        const cell = document.createElement('div'); cell.className = 'element';
+        if (k >= evt.heapSize) cell.classList.add('blank');
+        if (evt.type==='start'   && k===evt.i)      cell.classList.add('array-heapify');
+        if (evt.type==='afterMove' && k===0)    cell.classList.add('array-heapify');
+        if (evt.type==='compare' && (k===evt.i||k===evt.j)) cell.classList.add('comparing');
+        if (evt.type==='largest' && k===evt.i)      cell.classList.add('largest');
+        if (evt.type==='swap'    && (k===evt.i||k===evt.j)) cell.classList.add('swap');
+        cell.textContent = v;
+        const lbl = document.createElement('div'); lbl.className = 'index-label'; lbl.textContent = k;
+        w.appendChild(cell); w.appendChild(lbl); cont.appendChild(w);
+      });
+
+      const linkLayer = document.getElementById('linkLayer'), nodeLayer = document.getElementById('nodeLayer');
+      
+      if (evt.type === 'move') {
+        const fromIdx = evt.j, toIdx = evt.i;
+        const linkLayer = document.getElementById('linkLayer');
+        const nodeLayer = document.getElementById('nodeLayer');
+        const nodes = nodeLayer.querySelectorAll('g.treeNode');
+        const movingNode = nodes[fromIdx];
+        if (movingNode) {
+          // mark node as violating heap property (reddish)
+          movingNode.classList.add('array-heapify');
+          // Animate existing node to new root position
+          const toPos = computeNodePosition(toIdx);
+          // Ensure CSS transition is set
+          movingNode.style.transition = 'transform 0.5s ease-in-out';
+          movingNode.setAttribute('transform', `translate(${toPos.x},${toPos.y})`);
+          // After animation, redraw tree without last node
+          setTimeout(() => {
+            // Re-render next step immediately to remove the old node
+            render({ array: evt.array, heapSize: evt.heapSize - 1, type: 'afterMove', i: null, j: null, description: evt.description });
+          }, 500);        
+        }
+        commentary.textContent = evt.description;
+        prevBtn.disabled = stepIndex === 0;
+        nextBtn.disabled = false;
+        return;
+      }
+      linkLayer.innerHTML = ''; nodeLayer.innerHTML = '';
+      for (let k=0; k<evt.heapSize; k++) {
+        const pos = computeNodePosition(k);
+        if (k>0) {
+          const p = Math.floor((k-1)/2), pp = computeNodePosition(p);
+          const line = document.createElementNS('http://www.w3.org/2000/svg','line');
+          line.setAttribute('x1', pp.x); line.setAttribute('y1', pp.y);
+          line.setAttribute('x2', pos.x); line.setAttribute('y2', pos.y);
+          linkLayer.appendChild(line);
+        }
+        const g = document.createElementNS('http://www.w3.org/2000/svg','g');
+        g.classList.add('treeNode'); g.setAttribute('transform', `translate(${pos.x},${pos.y})`);
+        if (evt.type==='start'   && k===evt.i)      g.classList.add('array-heapify');
+        if (evt.type==='afterMove' && k===0)    g.classList.add('array-heapify');
+        if (evt.type==='compare' && (k===evt.i||k===evt.j)) g.classList.add('comparing');
+        if (evt.type==='largest' && k===evt.i)      g.classList.add('largest');
+        if (evt.type==='swap'    && (k===evt.i||k===evt.j)) g.classList.add('swap');
+        const c = document.createElementNS('http://www.w3.org/2000/svg','circle');
+        c.setAttribute('cx', 0); c.setAttribute('cy', 0); c.setAttribute('r', 20);
+        g.appendChild(c);
+        const vt = document.createElementNS('http://www.w3.org/2000/svg','text');
+        vt.setAttribute('x', 0); vt.setAttribute('y', 4); vt.setAttribute('text-anchor','middle'); vt.textContent = evt.array[k];
+        g.appendChild(vt);
+        const it = document.createElementNS('http://www.w3.org/2000/svg','text'); it.classList.add('node-index-label');
+        it.setAttribute('x', 0); it.setAttribute('y', 36); it.textContent = k;
+        g.appendChild(it);
+        nodeLayer.appendChild(g);
+      }
+
+      commentary.innerHTML = evt.description;
+      prevBtn.disabled = stepIndex === 0;
+      nextBtn.disabled = stepIndex >= steps.length - 1;
+      if (evt.type === 'done') { demoMode = false; }
+      extractBtn.disabled = demoMode;
+    }
+
+    function renderStep() { render(steps[stepIndex]); }
+
+    function initDemo() {
+      hsize = +heapInput.value;
+      arr = Array.from({ length: hsize }, () => Math.floor(Math.random() * 100));
+      originalArr = arr.slice();
+      for (let i = Math.floor(hsize/2)-1; i >= 0; i--) {
+        let j = i;
+        while (true) {
+          let lg = j;
+          const L = 2*j+1, R = 2*j+2;
+          if (L < hsize && arr[L] > arr[lg]) lg = L;
+          if (R < hsize && arr[R] > arr[lg]) lg = R;
+          if (lg === j) break;
+          [arr[j], arr[lg]] = [arr[lg], arr[j]];
+          j = lg;
+        }
+      }
+      demoMode = false; stepIndex = 0;
+      prevBtn.disabled = true; nextBtn.disabled = true; extractBtn.disabled = false;
+      render({ array: arr, heapSize: hsize, type: null, i: null, j: null,
+        description: 'Click "Extract Max" to begin.' });
+    }
+
+    prevBtn.onclick = () => { if (stepIndex > 0) { stepIndex--; renderStep(); }};
+    nextBtn.onclick = () => { if (stepIndex < steps.length - 1) { stepIndex++; renderStep(); }};
+    extractBtn.onclick = () => { if (demoMode) return; demoMode = true; stepIndex = 0; buildExtractMaxSteps(); renderStep(); };
+    genBtn.onclick = initDemo;
+    window.onload = initDemo;
+  </script>
+</body>
+</html>
