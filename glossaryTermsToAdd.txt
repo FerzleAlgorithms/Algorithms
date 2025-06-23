@@ -1,0 +1,6 @@
+Transform-and-Conquer
+presorting
+pre-computation
+complete binary tree
+full binary tree
+
