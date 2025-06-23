@@ -112,7 +112,7 @@
     .array-container {
         margin-bottom: 30px !important;
     }
-     /* after all other CSS, e.g. in your inline <style> */
+    
     .array-container .element-wrapper {
       /* stack vertically as you already have */
       display: flex;
@@ -132,7 +132,6 @@
   </style>
 </head>
 <body class="no-tooltips">
-<div id="demoContainer">
   <h2>Heapsort Demo</h2>
   <div id="controls">
     <label>Size:
@@ -167,7 +166,7 @@
   <div id="commentary" style="height:36px"></div>
 
   <div id="array-label" style="margin-top: 10px;"><strong>Array:</strong></div>
-  <div class="array-container" id="arrayContainer"></div>
+  <div class="array-container" id="array-container"></div>
 
   <div id="phase-label" style="text-align: left">Phase: </div>
 
@@ -300,7 +299,7 @@
      *   <div class="index-label">i</div>
      */
     function renderArray(event) {
-      const container = document.getElementById('arrayContainer');
+      const container = document.getElementById('array-container');
       container.innerHTML = '';
       const n = event.array.length;
 
@@ -540,6 +539,5 @@
     document.getElementById('customArray').addEventListener('change', initializeDemo);
     window.addEventListener('load', initRandom);
   </script>
-  </div>
 </body>
 </html>

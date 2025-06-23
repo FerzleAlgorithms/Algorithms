@@ -10,6 +10,42 @@
   <script>
     document.write('<link rel="stylesheet" href="css/style.css?v=' + new Date().getTime() + '">');
   </script>
+  <style>
+  /* container pinned in lower-left */
+#scroll-controls {
+  position: fixed;
+  bottom: 1rem;
+  left: 1rem;
+  display: flex;
+  gap: 0.5rem;         /* space between buttons */
+  z-index: 1000;
+}
+
+/* buttons inherit whatever styles you already had */
+#to-top,
+#to-bottom {
+  background: rgba(0,0,0,0.7);
+  color: #fff;
+  border: none;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  opacity: 0.6;
+  transition: opacity 0.2s;
+}
+
+#to-top:hover,
+#to-bottom:hover {
+  opacity: 1;
+}
+
+/* hide “To Bottom” when you don’t want it showing */
+.hidden {
+  display: none;
+}
+
+</style>
 </head>
 <body class="mainSite">
   <div id="pageWrapper">
@@ -35,6 +71,13 @@
              style="display:none;">Error loading content: Page not found.</div>
         </div>
   </div>
+
+<div id="scroll-controls">
+  <button id="to-top" type="button" aria-label="Back to top">⬆ Top</button>
+  <button id="to-bottom" type="button" aria-label="Scroll to bottom">⬇ Bottom</button>
+</div>
+
+
 
  <!-- THIS lives directly under <body>, not inside #container: -->
   <nav id="alpha-nav-overlay">
@@ -92,5 +135,34 @@
   </script>
 
   <script src="scripts/loadContent.js"></script>
+  <script>
+  const toTop    = document.getElementById('to-top');
+  const toBottom = document.getElementById('to-bottom');
+
+  // scroll actions
+  toTop.addEventListener('click', () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+  toBottom.addEventListener('click', () => {
+    window.scrollTo({ top: document.documentElement.scrollHeight,
+                      behavior: 'smooth' });
+  });
+const HIDE_THRESHOLD = 100;  // px from top/bottom
+
+window.addEventListener('scroll', () => {
+  const scrollY   = window.scrollY;
+  const innerH    = window.innerHeight;
+  const docHeight = document.documentElement.scrollHeight;
+
+  // hide Top when you're within HIDE_THRESHOLD px of the very top
+  const nearTop = scrollY <= HIDE_THRESHOLD;
+  toTop.classList.toggle('hidden', nearTop);
+
+  // hide Bottom when you're within HIDE_THRESHOLD px of the very bottom
+  const nearBottom = innerH + scrollY >= docHeight - HIDE_THRESHOLD;
+  toBottom.classList.toggle('hidden', nearBottom);
+});
+</script>
+
 </body>
 </html>

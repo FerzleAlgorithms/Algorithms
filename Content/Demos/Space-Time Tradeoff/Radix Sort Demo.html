@@ -1,499 +1,552 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Radix Sort Demo</title>
-  <script src="../../../scripts/demoScripts.js"></script>
-  <link rel="stylesheet" href="../../../css/style.css">
-  <link rel="stylesheet" href="../../../css/demo.css">
-  <style>
-    #controls, #buttons { margin: 10px 0; }
-    #description { margin-top: 10px; font-style: italic; height: 50px; }
-    .count-wrapper { display: flex; flex-direction: column; align-items: center; }
-    .count-label { font-size: 0.8em; margin-top: 4px; }
-    #input-container { position: relative; }
-    .array-container { margin-bottom: 30px; }
-    .arrow { position: absolute; font-size: 1.2em; display: none; text-align: center; transform: translateX(-50%); }
-    .digit { display: inline; margin:0;padding:0; }
-    .digit-highlight {
-      color: #000;
-      border: 2px solid #4A90E2; /* blue outline */
-      border-radius: 0.25em;
-      padding: 0.05em 0.05em;
-    }
-    .hidden { display: none !important; }
-    .element.finished {
-      background-color: lightgreen;    /* or whatever color you like */
-      border-radius: 2px;
-    }
-    .count-incremented {
-      background-color: orange;    /* or whatever color you like */
-      border-radius: 2px;
-    }
-
-    /* Styles for Play/Pause and Speed controls */
-    #play { margin-left: 10px; }
-    #speed { margin-left: 5px; }
-
-    .digit-box {
-      border: 1px solid #ccc;   /* light gray border */
-      background: #f9f9f9;      /* subtle off-white background */
-      padding: 6px 10px;        /* some breathing room inside */
-      border-radius: 4px;       /* slight rounding on corners */
-      display: inline-block;
-    }
-  </style>
-</head>
-<body>
-  <h2>Radix Sort Demo</h2>
-
-  <div id="controls">
-    <label>Size:
-      <input type="number" id="arraySize" min="1" max="20" value="10" size="2">
-    </label>
-    <button id="generate">Random Array</button>
-    <input type="text" id="customArray" placeholder="e.g. 170,45,75,90,802,24,2,66" size="40">
-    <button id="useCustom">Create Array</button>
-  </div>
-
-  <div id="buttons">
-    <button id="prev-step" disabled>Previous</button>
-    <button id="next-step" disabled>Next</button>
-    <!-- Play/Pause button and Speed dropdown added: -->
-    <button id="play">Play</button>
-    <label for="speed">Speed:</label>
-    <select id="speed">
-      <option value="1">1×</option>
-      <option value="2">2×</option>
-      <option value="4">4×</option>
-    </select>
-  </div>
-
-  <div id="description">Press "Next" to begin.</div>
-  
-  <div id="digit-label" class="digit-box">
-    <strong>Digit:</strong> <span id="digit-pos">0</span>
-  </div>
-  
-  <div id="input-label" style="margin-top: 20px"><strong>Input Array:</strong></div>
-  <div class="array-container" id="input-container">
-    <div id="input-arrow" class="arrow">↑</div>
-  </div>
-
-  <div id="count-label"><strong>Count Array:</strong></div>
-  <div class="array-container" id="count-container"></div>
-
-  <div id="output-label"><strong>Output Array:</strong></div>
-  <div class="array-container" id="output-container"></div>
-
-  <script>
-    let steps = [], cur = 0, playing = false, intervalId = null;
-    const phaseNames = {
-      digit_init: 'Digit Initialization',
-      count: 'Counting Occurrences',
-      count_increment: 'Increment Count Array',
-      count_end: 'Counting Complete',
-      prefix_select: 'Select Prefix Inputs',
-      prefix_calc: 'Perform Summation',
-      prefix_end: 'Prefix Complete',
-      output_input: 'Select Element',
-      output_count: 'Determine Position',
-      output_place: 'Place Element',
-      copy: 'copy',
-      digit_end: 'Digit Complete',
-      done: 'Sorting Complete'
-    };
-
-    function record(state) {
-      steps.push({
-        input: state.input.slice(),
-        count: state.count.slice(),
-        output: state.output.slice(),
-        phase: state.phase,
-        index: state.index,
-        value: state.value,
-        outPos: state.outPos,
-        digit: state.digit
-      });
-    }
-
-    function generateSteps(arr) {
-      let input = arr.slice();
-      const base = 10;
-      const maxVal = Math.max(...input);
-      const maxDigits = Math.floor(Math.log10(maxVal)) + 1;
-      let count, output;
-      steps = [];
-      for (let d = 0; d < maxDigits; d++) {
-        count = Array(base).fill(0);
-        output = Array(input.length).fill(null);
-        record({ input, count, output, phase: 'digit_init', digit: d });
-        input.forEach((v, i) => {
-          const dig = Math.floor(v / Math.pow(base, d)) % base;
-          record({ input, count, output, phase: 'count', index: i, value: v, digit: d });
-          count[dig]++;
-          record({ input, count, output, phase: 'count_increment', index: i, value: v, digit: d });
-        });
-        record({ input, count, output, phase: 'count_end', digit: d });
-        for (let i = 1; i < base; i++) {
-          record({ input, count, output, phase: 'prefix_select', index: i, digit: d });
-          count[i] += count[i - 1];
-          record({ input, count, output, phase: 'prefix_calc', index: i, digit: d });
-        }
-        record({ input, count, output, phase: 'prefix_end', digit: d });
-        for (let i = input.length - 1; i >= 0; i--) {
-          const v = input[i];
-          const dig = Math.floor(v / Math.pow(base, d)) % base;
-          record({ input, count, output, phase: 'output_input', index: i, value: v, digit: d });
-          record({ input, count, output, phase: 'output_count', index: i, value: v, digit: d });
-          // Decrement happens here:
-          const pos = --count[dig];
-          output[pos] = v;
-          record({ input, count, output, phase: 'output_place', index: i, value: v, outPos: pos, digit: d });
-        }
-        record({ input, count, output, phase: 'digit_end', digit: d });
-        input = output.slice();
-		if(d<2){
-		       record({ input, count, output, phase: 'copy', digit: d });
-		       }
-		}
-      record({ input, count: [], output: input.slice(), phase: 'done', digit: null });
-      return steps;
-    }
-
-     function positionInputArrow(i) {
-   const arrow = document.getElementById('input-arrow');
-   const container = document.getElementById('input-container');
-  // grab the wrappers, not the raw element
-  const wrappers = container.querySelectorAll('.count-wrapper');
-  if (i >= 0 && i < wrappers.length) {
-    // position relative to the wrapper so we include the label
-    const target = wrappers[i].getBoundingClientRect();
-     const parent = container.getBoundingClientRect();
-    const centerX = (target.left   - parent.left) + (target.width  / 2);
-    // now target.bottom is below both cell+label
-    const topY    = (target.bottom - parent.top)  + 2;
-     arrow.style.left    = `${centerX}px`;
-     arrow.style.top     = `${topY}px`;
-     arrow.style.display = 'block';
-   } else {
-     arrow.style.display = 'none';
-   }
- }
-
-
-    window.addEventListener('resize', () => {
-      const st = steps[cur];
-      if (st && typeof st.index === 'number') positionInputArrow(st.index);
-    });
-
-    function render() {
-      const inpC = document.getElementById('input-container');
-      const cntC = document.getElementById('count-container');
-      const outC = document.getElementById('output-container');
-      const desc = document.getElementById('description');
-      const digitLabel = document.getElementById('digit-pos');
-
-      if (!steps.length) return;
-      ['digit-label', 'input-label', 'count-label', 'output-label']
-        .forEach(id => document.getElementById(id).classList.remove('hidden'));
-      [inpC, cntC, outC].forEach(c => c.classList.remove('hidden'));
-
-      inpC.innerHTML = '<div id="input-arrow" class="arrow">↑</div>';
-      cntC.innerHTML = '';
-      outC.innerHTML = '';
-
-      const st = steps[cur];
-      digitLabel.textContent = st.digit != null ? st.digit + 1 : '';
-
-      // — Build the INPUT array with index labels —
-st.input.forEach((v, i) => {
-  const wrapper = document.createElement('div');
-  wrapper.className = 'count-wrapper';      // same vertical‐stack style
-
-  const cell = document.createElement('div');
-  cell.className = 'element';
-  const str = String(v).padStart(3, '0');
-  cell.innerHTML = str.split('').map(c => `<span class="digit">${c}</span>`).join('');
-
-  const lbl = document.createElement('div');
-  lbl.className = 'count-label';
-  lbl.textContent = i;                       // ← input‐index
-
-  wrapper.appendChild(cell);
-  wrapper.appendChild(lbl);
-  inpC.appendChild(wrapper);
-});
-
-
-      // Render count array
-      st.count.forEach((c, i) => {
-        const wrapper = document.createElement('div');
-        wrapper.className = 'count-wrapper';
-        const d = document.createElement('div');
-        d.className = 'element';
-        d.textContent = c;
-        const lbl = document.createElement('div');
-        lbl.className = 'count-label';
-        lbl.textContent = i;
-        wrapper.appendChild(d);
-        wrapper.appendChild(lbl);
-        cntC.appendChild(wrapper);
-      });
-
-     // — Build the OUTPUT array with index labels —
-st.output.forEach((v, i) => {
-  const wrapper = document.createElement('div');
-  wrapper.className = 'count-wrapper';
-
-  const cell = document.createElement('div');
-  cell.className = 'element';
-  if (v !== null) {
-    const str = String(v).padStart(3, '0');
-    cell.innerHTML = str.split('').map(c => `<span class="digit">${c}</span>`).join('');
-  }
-
-  const lbl = document.createElement('div');
-  lbl.className = 'count-label';
-  lbl.textContent = i;                     // ← output‐index
-
-  wrapper.appendChild(cell);
-  wrapper.appendChild(lbl);
-  outC.appendChild(wrapper);
-});
-
-
-
-      // clear previous highlights
-      document.querySelectorAll('.comparing').forEach(el => el.classList.remove('comparing'));
-      document.querySelectorAll('.digit-highlight').forEach(el => el.classList.remove('digit-highlight'));
-
-      // Helper to highlight a digit span inside element
-      function highlightDigit(cellIndex) {
-        const cells = inpC.querySelectorAll('.element');
-        const spans = cells[cellIndex].querySelectorAll('.digit');
-        const idx = spans.length - 1 - st.digit;
-        if (spans[idx]) spans[idx].classList.add('digit-highlight');
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Radix Sort Demo</title>
+  <script src="/Algorithms/scripts/demoScripts.js"></script>
+  <link rel="stylesheet" href="/Algorithms/css/style.css">
+  <link rel="stylesheet" href="/Algorithms/css/demo.css">
+    <style>
+      /* Layout */
+      #description {
+        margin-top: 10px;
+        font-style: italic;
+        height: 50px;
+      }
+      .array-container {
+        margin-bottom: 30px;
+      }
+      #input-container {
+        position: relative;
       }
 
-      const arrowEl = document.getElementById('input-arrow');
+      /* Wrappers & Labels */
+      .count-wrapper {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+      .count-label {
+        font-size: 0.8em;
+        margin-top: 4px;
+      }
+      .digit-box {
+        border: 1px solid #ccc;
+        background: #f9f9f9;
+        padding: 6px 10px;
+        border-radius: 4px;
+        display: inline-block;
+      }
 
-      switch (st.phase) {
-        case 'digit_init':
-          desc.textContent = `Start digit pass ${st.digit + 1}`;
-          positionInputArrow(-1);
-          
-          break;
+      /* Elements */
+      .element.finished {
+        background-color: lightgreen;
+        border-radius: 2px;
+      }
+      .count-incremented {
+        background-color: orange;
+        border-radius: 2px;
+      }
+      .hidden {
+        display: none !important;
+      }
 
-        case 'count':
-          {
+      /* Digits & Highlights */
+      .digit {
+        display: inline;
+        margin: 0;
+        padding: 0;
+      }
+      .digit-highlight {
+        color: #000;
+        border: 2px solid #4A90E2;
+        border-radius: 0.25em;
+        padding: 0.05em;
+      }
+
+      /* Arrow */
+      .arrow {
+        position: absolute;
+        font-size: 1.2em;
+        display: none;
+        text-align: center;
+        transform: translateX(-50%);
+      }
+
+      /* Controls */
+      #play {
+        margin-left: 10px;
+      }
+      #speed {
+        margin-left: 5px;
+      }
+         /* after all other CSS, e.g. in your inline <style> */
+    .array-container .count-wrapper {
+      /* stack vertically as you already have */
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-right: 4px;
+    
+      /* NEW: ideal width = 40px, no grow, can shrink */
+      flex: 0 1 40px;
+      box-sizing: border-box;   /* so padding/margin don’t bust the math */
+    }
+    .array-container .count-wrapper .element {
+      width: 100%;
+      aspect-ratio: 1 / 1;     /* keep it square */
+      height: auto;
+    }
+    </style>
+  </head>
+
+<body class="no-tooltips">
+<div id="demoContainer">
+    <h2>Radix Sort Demo</h2>
+
+    <div id="controls">
+      <label>
+        Size:
+        <input
+          type="number"
+          id="arraySize"
+          min="1"
+          max="20"
+          value="10"
+          size="2"
+        />
+      </label>
+      <button id="generate">Random Array</button>
+      <input
+        type="text"
+        id="customArray"
+        placeholder="e.g. 170,45,75,90,802,24,2,66"
+        size="40"
+      />
+      <button id="useCustom">Create Array</button>
+    </div>
+
+    <div id="buttons">
+      <button id="prev-step" disabled>Previous</button>
+      <button id="next-step" disabled>Next</button>
+      <button id="play">Play</button>
+      <label for="speed">Speed:</label>
+      <select id="speed">
+        <option value="1">1×</option>
+        <option value="2">2×</option>
+        <option value="4">4×</option>
+      </select>
+    </div>
+
+    <div id="description">Press "Next" to begin.</div>
+
+    <div id="digit-label" class="digit-box">
+      <strong>Digit:</strong> <span id="digit-pos">0</span>
+    </div>
+
+    <div id="input-label" class="digit-box" style="margin-top: 20px">
+      <strong>Input Array:</strong>
+    </div>
+    <div class="array-container" id="input-container">
+      <div id="input-arrow" class="arrow">↑</div>
+    </div>
+
+    <div id="count-label" class="digit-box">
+      <strong>Count Array:</strong>
+    </div>
+    <div class="array-container" id="count-container"></div>
+
+    <div id="output-label" class="digit-box">
+      <strong>Output Array:</strong>
+    </div>
+    <div class="array-container" id="output-container"></div>
+
+    <script>
+      // ─────────────────────────────────────────────────────────────
+      // State & Phase Definitions
+      // ─────────────────────────────────────────────────────────────
+      let steps = [],
+        cur = 0,
+        playing = false,
+        intervalId = null;
+
+      const phaseNames = {
+        digit_init: "Digit Initialization",
+        count: "Counting Occurrences",
+        count_increment: "Increment Count Array",
+        count_end: "Counting Complete",
+        prefix_select: "Select Prefix Inputs",
+        prefix_calc: "Perform Summation",
+        prefix_end: "Prefix Complete",
+        output_input: "Select Element",
+        output_count: "Determine Position",
+        output_place: "Place Element",
+        copy: "Copy",
+        digit_end: "Digit Complete",
+        done: "Sorting Complete",
+      };
+
+      // ─────────────────────────────────────────────────────────────
+      // Recording Steps
+      // ─────────────────────────────────────────────────────────────
+      function record(state) {
+        steps.push({
+          input: state.input.slice(),
+          count: state.count.slice(),
+          output: state.output.slice(),
+          phase: state.phase,
+          index: state.index,
+          value: state.value,
+          outPos: state.outPos,
+          digit: state.digit,
+        });
+      }
+
+      // ─────────────────────────────────────────────────────────────
+      // Generating the Radix Sort Steps
+      // ─────────────────────────────────────────────────────────────
+      function generateSteps(arr) {
+        let input = arr.slice();
+        const base = 10;
+        const maxVal = Math.max(...input);
+        const maxDigits = Math.floor(Math.log10(maxVal)) + 1;
+
+        steps = [];
+
+        for (let d = 0; d < maxDigits; d++) {
+          let count = Array(base).fill(0);
+          let output = Array(input.length).fill(null);
+
+          record({ input, count, output, phase: "digit_init", digit: d });
+
+          // Counting occurrences
+          input.forEach((v, i) => {
+            const dig = Math.floor(v / Math.pow(base, d)) % base;
+            record({ input, count, output, phase: "count", index: i, value: v, digit: d });
+            count[dig]++;
+            record({ input, count, output, phase: "count_increment", index: i, value: v, digit: d });
+          });
+          record({ input, count, output, phase: "count_end", digit: d });
+
+          // Prefix sums
+          for (let i = 1; i < base; i++) {
+            record({ input, count, output, phase: "prefix_select", index: i, digit: d });
+            count[i] += count[i - 1];
+            record({ input, count, output, phase: "prefix_calc", index: i, digit: d });
+          }
+          record({ input, count, output, phase: "prefix_end", digit: d });
+
+          // Placing elements
+          for (let i = input.length - 1; i >= 0; i--) {
+            const v = input[i];
+            const dig = Math.floor(v / Math.pow(base, d)) % base;
+            record({ input, count, output, phase: "output_input", index: i, value: v, digit: d });
+            record({ input, count, output, phase: "output_count", index: i, value: v, digit: d });
+            const pos = --count[dig];
+            output[pos] = v;
+            record({ input, count, output, phase: "output_place", index: i, value: v, outPos: pos, digit: d });
+          }
+          record({ input, count, output, phase: "digit_end", digit: d });
+
+          input = output.slice();
+        }
+
+        record({ input, count: [], output: input.slice(), phase: "done", digit: null });
+        return steps;
+      }
+
+      // ─────────────────────────────────────────────────────────────
+      // Rendering & Controls
+      // ─────────────────────────────────────────────────────────────
+      function positionInputArrow(i) {
+        const arrow = document.getElementById('input-arrow');
+        const container = document.getElementById('input-container');
+        const wrappers = container.querySelectorAll('.count-wrapper');
+        if (i >= 0 && i < wrappers.length) {
+          const target = wrappers[i].getBoundingClientRect();
+          const parent = container.getBoundingClientRect();
+          const centerX = target.left - parent.left + target.width / 2;
+          const topY = target.bottom - parent.top + 2;
+          arrow.style.left = `${centerX}px`;
+          arrow.style.top = `${topY}px`;
+          arrow.style.display = 'block';
+        } else {
+          arrow.style.display = 'none';
+        }
+      }
+
+      window.addEventListener('resize', () => {
+        const st = steps[cur];
+        switch(st.phase) {
+          case 'prefix_select':
+          case 'prefix_calc':
+          case 'prefix_end':
+              break;
+          default:
+             if (st && typeof st.index === 'number') positionInputArrow(st.index);
+        }
+      });
+
+      function render() {
+        const inpC = document.getElementById('input-container');
+        const cntC = document.getElementById('count-container');
+        const outC = document.getElementById('output-container');
+        const desc = document.getElementById('description');
+        const digitLabel = document.getElementById('digit-pos');
+
+        if (!steps.length) return;
+
+        ['digit-label', 'input-label', 'count-label', 'output-label'].forEach(id => {
+          document.getElementById(id).classList.remove('hidden');
+        });
+        [inpC, cntC, outC].forEach(c => c.classList.remove('hidden'));
+
+        inpC.innerHTML = '<div id="input-arrow" class="arrow">↑</div>';
+        cntC.innerHTML = '';
+        outC.innerHTML = '';
+
+        const st = steps[cur];
+        digitLabel.textContent = st.digit != null ? st.digit + 1 : '';
+
+        // Input array
+        st.input.forEach((v, i) => {
+          const wrapper = document.createElement('div');
+          wrapper.className = 'count-wrapper';
+
+          const cell = document.createElement('div');
+          cell.className = 'element';
+          const str = String(v).padStart(3, '0');
+          cell.innerHTML = str
+            .split('')
+            .map(c => `<span class="digit">${c}</span>`)
+            .join('');
+
+          const lbl = document.createElement('div');
+          lbl.className = 'count-label';
+          lbl.textContent = i;
+
+          wrapper.appendChild(cell);
+          wrapper.appendChild(lbl);
+          inpC.appendChild(wrapper);
+        });
+
+        // Count array
+        st.count.forEach((c, i) => {
+          const wrapper = document.createElement('div');
+          wrapper.className = 'count-wrapper';
+          const dEl = document.createElement('div');
+          dEl.className = 'element';
+          dEl.textContent = c;
+          const lbl = document.createElement('div');
+          lbl.className = 'count-label';
+          lbl.textContent = i;
+          wrapper.appendChild(dEl);
+          wrapper.appendChild(lbl);
+          cntC.appendChild(wrapper);
+        });
+
+        // Output array
+        st.output.forEach((v, i) => {
+          const wrapper = document.createElement('div');
+          wrapper.className = 'count-wrapper';
+
+          const cell = document.createElement('div');
+          cell.className = 'element';
+          if (v !== null) {
+            const str = String(v).padStart(3, '0');
+            cell.innerHTML = str
+              .split('')
+              .map(c => `<span class="digit">${c}</span>`)
+              .join('');
+          }
+
+          const lbl = document.createElement('div');
+          lbl.className = 'count-label';
+          lbl.textContent = i;
+
+          wrapper.appendChild(cell);
+          wrapper.appendChild(lbl);
+          outC.appendChild(wrapper);
+        });
+
+        // Clear highlights
+        document.querySelectorAll('.comparing').forEach(el => el.classList.remove('comparing'));
+        document.querySelectorAll('.digit-highlight').forEach(el => el.classList.remove('digit-highlight'));
+
+        function highlightDigit(cellIndex) {
+          const cells = inpC.querySelectorAll('.element');
+          const spans = cells[cellIndex].querySelectorAll('.digit');
+          const idx = spans.length - 1 - st.digit;
+          if (spans[idx]) spans[idx].classList.add('digit-highlight');
+        }
+
+        const arrowEl = document.getElementById('input-arrow');
+
+        switch (st.phase) {
+          case 'digit_init':
+            desc.textContent = `Start digit pass ${st.digit + 1}`;
+            positionInputArrow(-1);
+            break;
+
+          case 'count': {
             const dig = Math.floor(st.value / Math.pow(10, st.digit)) % 10;
             desc.innerHTML = `Value <strong>${st.value}</strong> at index ${st.index} → value = ${dig}`;
-            const inpCells = inpC.querySelectorAll('.element');
-            inpCells[st.index].classList.add('comparing');
+            inpC.querySelectorAll('.element')[st.index].classList.add('comparing');
             highlightDigit(st.index);
             cntC.children[dig].querySelector('.element').classList.add('comparing');
             positionInputArrow(st.index);
+            break;
           }
-          break;
 
-        case 'count_increment':
-          {
+          case 'count_increment': {
             const bucket = Math.floor(st.value / Math.pow(10, st.digit)) % 10;
             desc.textContent = `Increment count[${bucket}]`;
-            const inpCells2 = inpC.querySelectorAll('.element');
-            inpCells2[st.index].classList.add('comparing');
+            inpC.querySelectorAll('.element')[st.index].classList.add('comparing');
             highlightDigit(st.index);
             cntC.children[bucket].querySelector('.element').classList.add('count-incremented');
             positionInputArrow(st.index);
+            break;
           }
-          break;
 
-        case 'count_end':
-          desc.textContent = 'Counting complete. Beginning prefix summation';
-          positionInputArrow(-1);
-          break;
+          case 'count_end':
+            desc.textContent = 'Counting complete. Beginning prefix summation';
+            positionInputArrow(-1);
+            break;
 
-        case 'prefix_select':
-          {
+          case 'prefix_select': {
             const i = st.index;
             const prev = i - 1;
             desc.textContent = `count[${i}] = count[${prev}] + count[${i}]`;
             cntC.children[prev].querySelector('.element').classList.add('comparing');
             cntC.children[i].querySelector('.element').classList.add('comparing');
+            break;
           }
-          break;
 
-        case 'prefix_calc':
-          {
-            const newVal = st.count[st.index];
-            desc.textContent = `Updated count[${st.index}] = ${newVal}`;
+          case 'prefix_calc':
+            desc.textContent = `Updated count[${st.index}] = ${st.count[st.index]}`;
             cntC.children[st.index].querySelector('.element').classList.add('comparing');
-          }
-          break;
+            break;
 
-        case 'prefix_end':
-          desc.textContent = 'Prefix summation complete. Starting placement phase.';
-          break;
+          case 'prefix_end':
+            desc.textContent = 'Prefix summation complete. Starting placement phase.';
+            break;
 
-        case 'output_input':
-          desc.textContent = `Select value ${st.value} at index ${st.index}`;
-          const inpI = inpC.querySelectorAll('.element');
-          inpI[st.index].classList.add('comparing');
-          positionInputArrow(st.index);
-          break;
+          case 'output_input':
+            desc.textContent = `Select value ${st.value} at index ${st.index}`;
+            inpC.querySelectorAll('.element')[st.index].classList.add('comparing');
+            positionInputArrow(st.index);
+            break;
 
-        case 'output_count':
-          {
+          case 'output_count': {
             const bucket = Math.floor(st.value / Math.pow(10, st.digit)) % 10;
-            // st.count[bucket] has not yet been decremented in UI; we highlight the count cell here
-            const countVal = st.count[bucket];
-            const position = countVal - 1;
+            const position = st.count[bucket] - 1;
             desc.innerHTML =
-              `pos = count[${bucket}] − 1 = ${countVal} − 1 = ${position}`;
-            const inpCells = inpC.querySelectorAll('.element');
-            inpCells[st.index].classList.add('comparing');
+              `pos = count[${bucket}] − 1 = ${st.count[bucket]} − 1 = ${position}`;
+            inpC.querySelectorAll('.element')[st.index].classList.add('comparing');
             highlightDigit(st.index);
             cntC.children[bucket].querySelector('.element').classList.add('comparing');
             positionInputArrow(st.index);
+            break;
           }
-          break;
 
-       case 'output_place':
-  {
-    // 1) Place the output
-    outC.children[st.outPos]
-        .querySelector('.element')
-        .classList.add('finished');
-
-    // 2) Re-highlight the input element (so it stays blue)
-    const inpElems = inpC.querySelectorAll('.element');
-    inpElems[st.index].classList.add('comparing');
-
-    // 3) Re-highlight the count bucket that we just decremented
-    const bucket = Math.floor(st.value / Math.pow(10, st.digit)) % 10;
-    cntC.children[bucket].querySelector('.element').classList.add('comparing');
-
-    // 4) Keep the arrow pointing at the input
-    positionInputArrow(st.index);
-	 desc.textContent = `Placed value ${st.value} at index ${st.index}`;
-  }
- 
-          
-  break;
-
-
-		 case 'copy':
-		 inpC.querySelectorAll('.element').forEach(el => el.classList.add('finished'));
-          
-          desc.textContent = `Copied output to input`;
-          break;
-
-        case 'digit_end':
-          desc.textContent = `Digit pass ${st.digit + 1} complete`;
-          break;
-
-        case 'done':
-          desc.textContent = 'Sorting complete';
-          document.getElementById('digit-label').classList.add('hidden');
-          document.getElementById('input-label').classList.add('hidden');
-          document.getElementById('count-label').classList.add('hidden');
-          inpC.classList.add('hidden');
-          cntC.classList.add('hidden');
-          arrowEl.classList.add('hidden');
-          outC.classList.remove('hidden');
-          outC.querySelectorAll('.element').forEach(el => el.classList.add('finished'));
-          break;
-      }
-    }
-
-    function updateButtons() {
-      document.getElementById('prev-step').disabled = cur === 0;
-      document.getElementById('next-step').disabled = cur === steps.length - 1;
-    }
-
-    function goToStep(i) {
-      cur = i;
-      render();
-      updateButtons();
-    }
-
-    document.getElementById('prev-step').addEventListener('click', () => {
-      if (cur > 0) goToStep(cur - 1);
-    });
-    document.getElementById('next-step').addEventListener('click', () => {
-      if (cur < steps.length - 1) goToStep(cur + 1);
-    });
-
-    document.getElementById('generate').addEventListener('click', () => {
-      const n = parseInt(document.getElementById('arraySize').value, 10);
-      if (isNaN(n) || n < 1 || n > 20) {
-        return alert('Size must be between 1 and 20');
-      }
-      const arr = Array.from({ length: n }, () => Math.floor(Math.random() * 1000));
-      document.getElementById('customArray').value = arr.join(',');
-      steps = generateSteps(arr);
-      goToStep(0);
-    });
-
-    document.getElementById('useCustom').addEventListener('click', () => {
-      const txt = document.getElementById('customArray').value.trim();
-      if (!txt) return;
-      const arr = txt.split(',').map(s => parseInt(s.trim(), 10));
-      if (arr.some(isNaN) || arr.length < 1 || arr.length > 20) {
-        return alert('Please enter 1–20 comma-separated numbers.');
-      }
-      steps = generateSteps(arr);
-      goToStep(0);
-    });
-
-    document.addEventListener('DOMContentLoaded', () => {
-      document.getElementById('generate').click();
-    });
-
-    // ─────────────────────────────────────────────────────────────
-    // Play/Pause & Speed functionality
-    // ─────────────────────────────────────────────────────────────
-
-    document.getElementById('play').addEventListener('click', () => {
-      if (playing) {
-        // Pause
-        playing = false;
-        document.getElementById('play').textContent = 'Play';
-        clearInterval(intervalId);
-        intervalId = null;
-      } else {
-        // Start playing
-        playing = true;
-        document.getElementById('play').textContent = 'Pause';
-        const speed = parseInt(document.getElementById('speed').value, 10);
-        const delay = 1000 / speed;
-        intervalId = setInterval(() => {
-          if (cur < steps.length - 1) {
-            cur++;
-            render();
-            updateButtons();
-          } else {
-            // Stop at the end
-            playing = false;
-            document.getElementById('play').textContent = 'Play';
-            clearInterval(intervalId);
-            intervalId = null;
+          case 'output_place': {
+            outC.children[st.outPos].querySelector('.element').classList.add('finished');
+            inpC.querySelectorAll('.element')[st.index].classList.add('comparing');
+            const bucket = Math.floor(st.value / Math.pow(10, st.digit)) % 10;
+            cntC.children[bucket].querySelector('.element').classList.add('comparing');
+            positionInputArrow(st.index);
+            desc.textContent = `Placed value ${st.value} at index ${st.outPos}`;
+            break;
           }
-        }, delay);
-      }
-    });
 
-    document.getElementById('speed').addEventListener('change', () => {
-      if (playing) {
-        clearInterval(intervalId);
-        playing = false;
-        document.getElementById('play').textContent = 'Play';
-        // Restart playback at new speed
-        document.getElementById('play').click();
+          case 'copy':
+            inpC.querySelectorAll('.element').forEach(el => el.classList.add('finished'));
+            desc.textContent = 'Copied output to input';
+            break;
+
+          case 'digit_end':
+            desc.textContent = `Digit pass ${st.digit + 1} complete`;
+            break;
+
+          case 'done':
+            desc.textContent = 'Sorting complete';
+            ['digit-label', 'input-label', 'count-label'].forEach(id => document.getElementById(id).classList.add('hidden'));
+            inpC.classList.add('hidden');
+            cntC.classList.add('hidden');
+            arrowEl.classList.add('hidden');
+            outC.querySelectorAll('.element').forEach(el => el.classList.add('finished'));
+            break;
+        }
       }
-    });
-  </script>
-</body>
+
+      function updateButtons() {
+        document.getElementById('prev-step').disabled = cur === 0;
+        document.getElementById('next-step').disabled = cur === steps.length - 1;
+      }
+
+      function goToStep(i) {
+        cur = i;
+        render();
+        updateButtons();
+      }
+
+      // Controls
+      document.getElementById('prev-step').addEventListener('click', () => cur > 0 && goToStep(cur - 1));
+      document.getElementById('next-step').addEventListener('click', () => cur < steps.length - 1 && goToStep(cur + 1));
+
+      document.getElementById('generate').addEventListener('click', () => {
+        const n = parseInt(document.getElementById('arraySize').value, 10);
+        if (isNaN(n) || n < 1 || n > 20) return alert('Size must be between 1 and 20');
+        const arr = Array.from({ length: n }, () => Math.floor(Math.random() * 1000));
+        document.getElementById('customArray').value = arr.join(',');
+        steps = generateSteps(arr);
+        goToStep(0);
+      });
+
+      document.getElementById('useCustom').addEventListener('click', () => {
+        const txt = document.getElementById('customArray').value.trim();
+        if (!txt) return;
+        const arr = txt.split(',').map(s => parseInt(s.trim(), 10));
+        if (arr.some(isNaN) || arr.length < 1 || arr.length > 20)
+          return alert('Please enter 1–20 comma-separated numbers.');
+        steps = generateSteps(arr);
+        goToStep(0);
+      });
+
+      document.addEventListener('DOMContentLoaded', () => document.getElementById('generate').click());
+
+      // Play/Pause & Speed
+      document.getElementById('play').addEventListener('click', () => {
+        if (playing) {
+          playing = false;
+          document.getElementById('play').textContent = 'Play';
+          clearInterval(intervalId);
+        } else {
+          playing = true;
+          document.getElementById('play').textContent = 'Pause';
+          const speed = parseInt(document.getElementById('speed').value, 10);
+          const delay = 1000 / speed;
+          intervalId = setInterval(() => {
+            if (cur < steps.length - 1) {
+              goToStep(cur + 1);
+            } else {
+              playing = false;
+              document.getElementById('play').textContent = 'Play';
+              clearInterval(intervalId);
+            }
+          }, delay);
+        }
+      });
+
+      document.getElementById('speed').addEventListener('change', () => {
+        if (playing) {
+          clearInterval(intervalId);
+          playing = false;
+          document.getElementById('play').textContent = 'Play';
+        }
+      });
+    </script>
+    </div>
+  </body>
 </html>

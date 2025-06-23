@@ -202,12 +202,312 @@
   </p>
 </div>
   </section>
+  
+<section id="algorithms">
+  <h2>Algorithms Using This Technique</h2>
+  <ul>
+    <li>
+      <a href="heapsort.html">Heapsort</a> - builds a max-heap in \(O(n)\) time, then repeatedly extracts the maximum in \(O(\log n)\) per extract, yielding an in-place \(O(n \log n)\) sort.
+    </li>
+    <li>
+      <a href="horners-rule.html">Horner's Rule</a> - rewrites a degree-\(n\) polynomial to avoid explicit powers, performing exactly one multiply and one add per coefficient for an \(O(n)\) evaluation.
+    </li>
+    <li>
+      <a href="fibonacci-matrix.html">Fibonacci via Matrix Exponentiation</a> - raises the \(2 \times 2\) Fibonacci matrix \(\begin{pmatrix}1 & 1 \\ 1 & 0\end{pmatrix}\) to the \(n\)th power in 
+      \(O(n)\) time, or in \(O(\log n)\) time using fast exponentiation.
+    </li>
+        <li>
+      Binary Exponentiation - computes \(x^n\) by recursively squaring and multiplying, reducing the cost from \(O(n)\) multiplications to \(O(\log n)\). Can be considered transform-and-conquer since it is based on thinking about the expontent's binary representation.
+    </li>
+    <li>
+      Gaussian Elimination - transforms an \(n \times n\) system of linear equations into upper-triangular form using forward elimination, then solves by back-substitution in \(O(n^3)\) time.
+    </li>
+    <li>
+      Binary Search Trees (BSTs) - transform array-based search into a tree structure by inserting elements into a binary tree where each node's left subtree contains smaller values and the right subtree larger; an in-order traversal reproduces the sorted array, and most operations run in \(O(h)\) time, where \(h\) is tree height.
+    </li>
+    <li>
+      Balanced Search Trees - some are BST variants (e.g., AVL and red-black trees) that maintain height balance via rotations after insertions and deletions to guarantee \(O(\log n)\) search, insert, and delete; others are generalizations, such as 2-3 trees and B-trees, which use multi-way nodes to reduce tree height and maintain balance.
+    </li>
+  </ul>
+</section>
 
-  <section id="summary">
-    <h2>Summary &amp; Key Takeaways</h2>
-    <p>
-      Transform-and-Conquer addresses problems by changing their form—either by simplifying the instance, altering the representation, or reducing to a known problem—so that efficient algorithms can be applied. Presorting enables faster queries and deduplication; Horner's Rule achieves linear-time polynomial evaluation by rewriting the expression; Heapsort sorts in-place by leveraging heap structure. Beyond these examples, problem reduction allows mapping new challenges onto well-studied problems, making transform-and-conquer a critical tool in algorithm design and complexity analysis.
-    </p>
-  </section>
+
+<section id="when">
+  <h2>When to Use</h2>
+  <p>Transform-and-conquer shines in situations where a one-time change of form or structure unlocks asymptotic speedups or simplifies future operations. For instance:</p>
+  <ul>
+    <li>
+      <strong>Preprocessing:</strong> When a preliminary transformation reduces the complexity of subsequent operations, such as pre-sorting data before searching or duplicate detection.
+    </li>
+    <li>
+      <strong>Representation Change:</strong> When transforming the problem to a different form yields more efficient algorithms, for example using Horner's Rule to evaluate a polynomial in \(O(n)\) instead of \(O(n^2)\).
+    </li>
+    <li>
+      <strong>Clever Data Structures:</strong> When storing the data in a different data structure
+      allows efficient operations. For instance, constructing a heap in \(O(n)\) and 
+      then performing many \(O(\log n)\) extract operations to sort.
+    </li>
+    <li>
+      <strong>Repeated Queries:</strong> When solving a class of problems repeatedly on similar inputs justifies a one-time preprocessing cost, for instance building a balanced search tree to support fast lookups, insertions, and deletions in \(O(\log n)\).
+    </li>    
+    <li>
+      <strong>Leveraging Existing Algorithms:</strong> When the problem matches a well-known transformation pattern&mdash;such as Gaussian elimination for linear systems, fast Fourier transform for polynomial convolution, or matrix exponentiation for recurrences&mdash;you can directly apply proven, optimized algorithms to ensure correctness and performance.
+    </li>
+  </ul>
+</section>
+
+<section id="limitations">
+  <h2>Limitations</h2>
+  <ul>
+    <li>
+      <strong>Transformation Overhead:</strong> The initial transformation or preprocessing step may carry significant cost, making the technique unsuitable when only a small number of operations follow.
+    </li>
+    <li>
+      <strong>Input Dynamics:</strong> When data changes frequently, repeated transformations (e.g., rebuilding a tree after each update) can negate performance gains.
+    </li>
+    <li>
+      <strong>Space Tradeoffs:</strong> Some transformations require additional memory (such as auxiliary arrays or recursion stacks), which may be impractical in space-constrained environments.
+    </li>
+    <li>
+      <strong>Implementation Complexity:</strong> Transform-and-conquer algorithms can be more complex to implement and debug than straightforward methods, increasing development time and risk of errors.
+    </li>
+    <li>
+      <strong>Problem Suitability:</strong> Not all problems lend themselves to efficient transformations; forcing a transformation may lead to convoluted or suboptimal solutions compared to simpler approaches.
+    </li>
+  </ul>
+</section>
+  
+  <section id="tips">
+  <h2>Implementation Tips</h2>
+  <ul>
+    <li>
+      <strong>Separate transformation from core logic:</strong> Keep preprocessing or representation-change code modular so it can be tested and reused independently of the main algorithm.
+    </li>
+    <li>
+      <strong>Use in-place operations when memory is limited:</strong> Favor algorithms that modify existing data structures (e.g., heapify in Heapsort) rather than allocating new arrays to reduce space overhead.
+    </li>
+        <li>
+      <strong>Isolate structural invariants:</strong> Factor out data-structure maintenance&mdash;such as BST rotations and balance checks&mdash;into dedicated routines; for example, separate all AVL or red-black tree rebalancing logic so that insertion and deletion code remains clear and you can validate height or color invariants separately.
+    </li>
+    <li>
+      <strong>Profile end-to-end performance:</strong> Measure both the cost of the transformation step and subsequent operations to confirm that the overall approach yields net speedups for your target input sizes.
+    </li>
+    <li>
+      <strong>Leverage optimized libraries:</strong> For complex transforms (e.g., FFT, matrix multiplication), consider using well-tested library implementations to benefit from low-level optimizations and avoid subtle bugs.
+    </li>
+  </ul>
+</section>
+
+ <section id="pitfalls">
+  <h2>Common Pitfalls</h2>
+  <ul>
+    <li>
+      <strong>Misjudging transformation cost:</strong> Preprocessing or representation-change overhead may exceed benefits for small inputs or when only a few operations follow.
+    </li>
+    <li>
+      <strong>Breaking problem invariants:</strong> Ensure transformations preserve the original semantics; for example, when converting an array into a heap, verify that all elements remain present and the heap property holds correctly before extraction steps.
+    </li>
+    <li>
+      <strong>Edge-case oversight:</strong> Failing to handle trivial or degenerate inputs (empty arrays, zero-degree polynomials, odd-sized splits) can cause incorrect results or runtime failures.
+    </li>
+    <li>
+      <strong>Numerical instability:</strong> Transforms like Gaussian elimination or FFT can introduce round-off errors if not implemented with stability considerations (pivoting, precision management).
+    </li>
+    <li>
+      <strong>Over-engineering solutions:</strong> Applying complex transforms where simple direct algorithms suffice increases code complexity and reduces maintainability without clear performance gains.
+    </li>
+    <li>
+      <strong>Spurious side-effects:</strong> In-place transformations may corrupt original data if copies are not made when needed later, such as modifying the coefficient matrix in Gaussian elimination and losing the original system of equations.
+    </li>
+  </ul>
+</section>
+
+<section id="applications">
+  <h2>Real-World Applications</h2>
+  <ul>
+    <li>
+      <strong>Database Indexing:</strong> Balanced B-trees and 2-3 trees transform flat datasets into multi-way search structures, enabling efficient range queries and updates in \(O(\log n)\) time&mdash;crucial for high-performance database systems.
+    </li>
+    <li>
+      <strong>Computer Graphics:</strong> Horner's Rule efficiently evaluates polynomial curves and shading functions per pixel in \(O(n)\) time, enabling real-time rendering with minimal computational overhead.
+    </li>
+    <li>
+      <strong>Scientific Simulations:</strong> Gaussian elimination transforms sparse system matrices into triangular form for reliable, direct solutions in finite-element analyses and computational fluid dynamics.
+    </li>
+    <li>
+      <strong>Task Scheduling:</strong> Pre-sorting jobs by deadlines or priorities restructures scheduling problems, allowing greedy or dynamic programming algorithms to optimize throughput, minimize lateness, or balance resource utilization.
+    </li>
+  </ul>
+</section>
+
+
+<section id="summary">
+  <h2>Summary & Key Takeaways</h2>
+  <p>
+    Transform-and-conquer techniques apply one-time transformations&mdash;such as preprocessing, representation changes, and subproblem reduction&mdash;to expose more efficient algorithms than direct methods. This approach is most valuable when a transformation unlocks faster operations across many queries, when mapping to specialized data structures or mathematical forms yields asymptotic speed-ups, or when established algorithmic templates (e.g., FFT, Gaussian elimination) can be leveraged. Always weigh the cost of transformation against the overall performance benefits, verify that problem invariants and numerical stability are maintained, and choose this technique when it clearly simplifies or accelerates the target problem.
+  </p>
+</section>
+
+<section id="resources">
+  <h2>Related Links and Resources</h2>
+  <ul>
+    </li>
+    <li>
+      <a href="https://www.geeksforgeeks.org/transform-and-conquer-technique/">GeeksforGeeks: Transform-and-Conquer Technique</a> Detailed tutorial covering instance simplification, representation change, and problem reduction with code examples.
+    </li>
+    <li>
+      <a href="https://csc.lsu.edu/~jianhua/ch06n.pdf">LSU Lecture Notes: Chapter 6 Transform-and-Conquer</a> Lecture slides that accompany Levitin's examples on presorting, median finding, and heap building.
+    </li>
+    <li>
+      <a href="https://www.csl.mtu.edu/cs4321/www/Lectures/Lecture%2012%20-%20Transform%20and%20Conquer-Presort%20and%20Heap.htm">MTU CS Lecture: Transform and Conquer-Presort and Heap</a> Example-driven notes on instance simplification and representation change strategies. 
+    </li>
+    <li>
+      <a href="https://medium.com/@cokasaki/algorithm-design-technique-transform-conquer-e23a43b3b1b3">Medium: Algorithm Design Technique - Transform & Conquer</a> Conceptual discussion and insights on structuring multi-stage algorithm designs.
+    </li>
+  </ul>
+</section>
+
+  
+ <section id="reading-questions">
+  <h2>Reading Comprehension Questions</h2>
+  <ol>
+    <li>Name the three main categories of transform-and-conquer techniques, and give one example of each.</li>
+    <li>How does representation change differ from instance simplification?</li>
+    <li>Why must you consider preprocessing cost versus query efficiency when using transform-and-conquer?</li>
+    <li>Describe one common pitfall specific to transform-and-conquer and explain how to avoid it.</li>
+    <li>
+      Explain why Horner's Rule is a transform-and-conquer technique. 
+      How does rewriting a degree-\(n\) polynomial into nested form reduce the evaluation cost 
+      from \(O(n^2)\) to \(O(n)\)?
+    </li>
+    <li>
+      Rewrite the polynomial  
+      \[
+        P(x) = 7x^4 - 5x^3 + 3x^2 - 2x + 1
+      \]
+      in Horner's form.
+    </li>
+    <li>
+      Describe how Heapsort transforms an unsorted array into a max-heap in \(O(n)\) time. 
+      Why does this transformation enable each subsequent swap/heapfify operation to run in \(O(\log n)\) time each?
+    </li>
+    <li>
+      In the transform-and-conquer taxonomy, Heapsort uses which type of transformation
+      (instance simplification, representation change, or problem reduction)? Justify your answer.
+    </li>
+
+  </ol>
+  <button id="toggleAnswers" class="show-answer" aria-expanded="false">Show Answers</button>
+  <div id="answers" class="answer" hidden>
+    <ol>
+      <li><strong>Answer:</strong> Instance simplification (e.g. presorting), representation change (e.g. Horner's Rule), problem reduction (e.g. reducing matching to max-flow).</li>
+      <li><strong>Answer:</strong> Representation change alters data encoding or structure (e.g. array -> heap); instance simplification reduces size/complexity via preprocessing (e.g. presorting).</li>
+      <li><strong>Answer:</strong> The one-time transformation may be costly; ensure subsequent speedups outweigh that initial overhead for your input sizes.</li>
+      <li><strong>Answer:</strong> A common pitfall is misjudging transformation cost; avoid it by profiling both preprocessing and follow-up operations to confirm net gains.</li>
+       <li>
+      <strong>Answer:</strong> Horner's Rule is transform-and-conquer because it changes the representation of the polynomial from a standard sum of powers into a nested form. This one-time transformation replaces repeated exponentiation (which would cost \(O(n^2)\) if you computed each \(x^k\) separately) with a single pass that does exactly one multiplication and one addition per coefficient, for a total of \(O(n)\).
+    </li>
+    <li>
+      <strong>Answer:</strong>  
+      \[
+        P(x) = 7x^4 - 5x^3 + 3x^2 - 2x + 1
+        \;\longrightarrow\;
+        1+ x(-2 + x(3+ x(-5 + 7x)))
+      \]
+    </li><li>
+    <strong>Answer:</strong> 
+    Heapsort first performs a bottom-up heapify on the array: it runs heapify on every node from index
+    \(\lfloor n/2\rfloor -1\) down to \(0\).  
+    Although a single heapify can take \(O(\log n)\), the total cost of all these operations 
+    turns out to be  \(O(n)\) (the reason why was left as an exercise).  
+    This builds a valid max-heap in place.  Each swaps takes constant time, 
+    and the call to heapify on the new root takes \(O(\log n)\) time since the height of the heap is 
+    \(\lfloor\log n\rfloor\).
+  </li>
+    <li>
+      <strong>Answer:</strong> Heapsort uses <em>representation change</em>&mdash;it turns the flat array into a heap-structured tree. By changing representation, the subsequent extract-max and insert operations become more efficient.
+    </li>
+    </ol>
+  </div>
+</section>
+
+<section id="activities">
+  <h2>In-Class Activities</h2>
+  <ol>
+    <li><strong>BuildHeap Variations:</strong>
+        Compare and contrast the following variations of <code>buildHeap</code>. 
+        Think in terms of both time and space.
+      <ol type='a'>
+      <li>The one presented above.</li>
+      <li>One that inserts each item from the array into an initially empty heap one by one.</li>
+      </ol>
+    </li>
+    <li><strong>Heapsort Variations:</strong>
+      Compare and contrast the following variations of Heapsort.
+        Think in terms of both time and space.
+      <ol type='a'>
+      <li>The one presented above.</li>
+      <li>One that replaces the <em>swap-then-heapify</em> step with <em>extractMin-and-copy-to-end</em>.</li>
+      </ol>
+    </li>
+    <li><strong>Heapsort versus Others:</strong>
+    It was suggested that in general Heapsort does not perform as well as Quicksort and Merge Sort. 
+    Discuss reasons you think this may be the case.
+    </li>
+    <li><strong>Presorting Race:</strong> Split the class in groups. Each group is given a set of cards (playing cards 
+    or cards with numbers on them&mdash;16 or so is probably a good number) 
+    that they should lay out in a line randomly (to resemble an array). 
+    Each group needs to perform a given number of search queries (6-8 might be good).
+    Half of the groups should first sort their list and then perform the searches.
+    The other half should perform the searches on their unsorted list.
+    After doing this, the class should discuss which method was better/more efficient.
+    A good variation might be to count the number of operations performed to get a more accurate comparision.
+    For linear/binary search it is pretty easy to count. For sorting, use number of times they compare cards and/or
+    swap cards. They can use whatever algorithm they like. 
+    They do not have to be precise with the counts as long as it is reasonably close.
+    </li>
+    <li><strong>Polynomial Evaluation Comparison:</strong> Have groups of 2 or 3 students work on the board to
+    evaluate the polynomial \(P(x) = 3x^5 - 8x^4 + 2x^3 +9x^2 - 2x + 17\) at \(x=3\). Assign each group one
+    of the following algorithms:
+      <ol type='a'>
+      <li>Naive \(O(n^2)\) algorithm (computes \(x^i\) from scratch at each iteration).</li>
+      <li>Better \(O(n)\) algorithm (keeps track of \(result\) and \(power\) so it can compute 
+      \(x^{i}\) as \(x\cdot x^{i-1}\) in one multipliation using \(power=power\cdot x\)).</li>
+      <li>Horner's Rule algorithm</li>
+      </ol>
+      Count the number of additions and multiplications used for each and compare.
+    </li>
+    <li><strong>Horner's Rule Workshop:</strong> Rewrite given polynomials into nested form, then simulate the evaluation loop step by step.</li>
+    <li><strong>Transformation Brainstorm:</strong> In small groups, pick a common problem (e.g. string matching) and propose a transform-and-conquer approach; share your plan with the class.</li>
+  </ol>
+</section>
+
+<section id="problems">
+  <h2>Homework Problems</h2>
+  <h3>Basic</h3>
+  <ol>
+    <li>Use Heapsort to sort the following array. Show the array after <code>BuildHeap</code>, and after every iteration
+    of the loop. \(A=[J, G, E, K, B, F, H, D, I, A, C]\).</li>
+    <Li>Given the array \(A=[3, 6, 8, 1, 5, 7, 2, 4]\), sort it using Heapsort, Quicksort and Merge Sort. For each,
+    count the total number of comparisions, swaps, and moves/copies. 
+    Compare the three algorithms based on the results.
+    How do you think the results will scale with the number of elements of an array?</li>
+    <li>Use Horner's Rule to evaluate the polynomial \(P(x) = 4 + 3x + 2x^2 + x^3\) at \(x = 5\). Show each step and count the number of multiplications and additions.</li>
+     <li>If you need to search for a value in an unsorted array with \(n\) elements \(m\) times,
+    for
+    what values of \(m\) would it make sense to just use linear search, and for what values of \(m\) would
+    it make sense to sort the array first and then use binary search? Clearly justify your answers.</li>
+  </ol>
+  <h3>Advanced</h3>
+  <ol>
+    <li>Write a function that performs Gaussian elimination with partial pivoting on an \(n \times n\) system. Analyze both its time complexity and numerical stability considerations.</li>
+    <li>The <em>mode</em> of an array is the value that occurs the most times in the array.
+    Come up with as many different algorithms as you can to determine the mode of an array.
+    Specify the design technique each uses, and give the time/space complexity. 
+    Then choose the best and explain why it is the best.
+  </ol>
+</section>
+
+  
 </body>
 </html>

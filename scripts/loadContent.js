@@ -130,6 +130,7 @@ function hookIframeContent(iframe) {
   innerDoc.addEventListener('click', (event) => {
     const anchor = event.target.closest('a[href^="?path="]');
     if (!anchor) return;
+
     event.preventDefault();
     const raw = new URLSearchParams(anchor.getAttribute('href').slice(1)).get('path');
     if (!raw) return;
@@ -138,9 +139,17 @@ function hookIframeContent(iframe) {
     window.parent.postMessage({ type: 'navigate', path: raw }, '*');
   });
 
+/*
   // External links break out to top window
   innerDoc.querySelectorAll('a[href]:not([href^="?path="])')
     .forEach(a => a.target = '_top');
+*/
+ innerDoc.querySelectorAll('a[href]:not([href^="?path="])').forEach(a => {
+   // only set a target if none was explicitly given
+   if (!a.hasAttribute('target')) {
+     a.target = '_top';
+   }
+ });
 
   // Auto‐resize any embeddedDemo iframes
   innerDoc.querySelectorAll('iframe.embeddedDemo').forEach((frame) => {

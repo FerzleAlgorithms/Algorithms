@@ -653,6 +653,15 @@ Ideal when you can “peel off” a single subproblem—by a fixed amount, a fix
   </ul>
 </section>
 
+<h2>Related Links and Resources</h2>
+<ul>
+  <li><a href="https://www.geeksforgeeks.org/dsa/decrease-and-conquer/" target="_blank">Decrease and Conquer Algorithm (GeeksforGeeks)</a> A clear tutorial covering the three main flavors (decrease-by-a-constant, decrease-by-a-constant-factor, and variable-size-decrease) with pseudocode and examples.</li>
+  <li><a href="https://www.tutorialspoint.com/decrease-and-conquer" target="_blank">Decrease and Conquer Technique (Tutorialspoint)</a> Concise explanation of the paradigm’s principles, applications such as insertion sort and binary search, and its advantages and disadvantages.</li>
+  <li><a href="https://www.educative.io/blog/decrease-and-conquer" target="_blank">Problem-solving using the Decrease-and-Conquer Technique (Educative)</a> In-depth blog post contrasting decrease-and-conquer with divide-and-conquer and illustrating all three reduction strategies with exercises.</li>
+  <li><a href="https://www.cs.csustan.edu/~xliang/Courses2/CS4440-25S-S1/LectureSlides/PDF/ch04.pdf" target="_blank">Decrease-and-Conquer Lecture Notes</a> Slides covering decrease-by-factor approaches (e.g. fake-coin problem) and variable-size reductions with recurrence analysis. Based on Levitin's book.</li>
+</ul>
+
+
 <section id="reading-questions">
   <h2>Reading Comprehension Questions</h2>
   <ol>
@@ -812,7 +821,7 @@ Ideal when you can “peel off” a single subproblem—by a fixed amount, a fix
 
 
 <section id="problems">
-  <h2>Problems</h2>
+  <h2>Homework Problems</h2>
 
   <h3>Basic Problems</h3>
   <ol>
@@ -852,7 +861,21 @@ Ideal when you can “peel off” a single subproblem—by a fixed amount, a fix
   </ol>
 
   <h3>Advanced Problems</h3>
-  <ol>
+  <ol>  
+  <li>
+      <strong>Kth-Order Statistic Algorithms</strong><br>
+      <ol type="a">
+        <li>Describe a simple (but not necessarily efficient) algorithm to solve the\(k\)-th order statistic problem
+        and give its complexity.</li>
+        <li>Describe Quickselect with random pivot: give pseudocode, derive the average-case recurrence, 
+        and solve for its expected time.</li>
+        <li>Describe the median-of-medians algorithm: give pseudocode, derive the worst-case recurrence  
+          \(\;T(n)=T(n/5)+T(7n/10)+O(n)\;\), and show it is \(O(n)\).
+          (You are allowed to consult outside sources for this part since we did not provide the details!)</li>
+        <li>Compare the practical trade-offs between Quickselect and median-of-medians 
+        (average vs worst case, constant factors, space, etc.).</li>
+      </ol>
+    </li>
     <li>
       <strong>First-Occurrence Binary Search:</strong><br>
       Modify the standard binary search pseudocode so that, in a sorted array with duplicate values, it returns the index of the first occurrence of the target. Explain why your modification still runs in \(O(\log n)\) time.

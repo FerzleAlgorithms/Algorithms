@@ -52,13 +52,13 @@
       "Brute Force": [
         "Bubble Sort Demo.html",
         "Fibonacci 5 Naive Demo.html",
-        "Fibonacci Naive Demo edit.html",
         "Fibonacci Naive Demo.html",
         "Iterative FIb Demo.html",
         "Polynomial Evaluation (Linear) Demo.html",
         "Polynomial Evaluation (Quadratic) Demo.html",
         "Selection Sort Demo.html",
-        "Sequential Search Demo.html"
+        "Sequential Search Demo.html",
+        "matrix multiplcation demo.html"
       ]
     },
     {
@@ -98,8 +98,8 @@
       "Dynamic Programming": [
         "Coin Row Demo.html",
         "Dynamic 0-1 Knapsack Demo.html",
-        "Fib Bottom Up Demo.html",
-        "Fib Top Down Demo.html",
+        "Fibonacci Bottom Up Demo.html",
+        "Fibonacci Top Down Demo.html",
         "Iterative FIb Demo.html"
       ]
     },
