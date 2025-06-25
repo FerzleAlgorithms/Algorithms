@@ -1,6 +1,20 @@
 Transform-and-Conquer
-presorting
-pre-computation
-complete binary tree
-full binary tree
+Presorting, Presort
+Pre-Computation, Precompute
+Complete Binary Tree, Complete Binary Trees
+Full Binary Tree, Full Binary Trees
+Matroid Structure, Matroid Structures, Matroid, Matroids
+Exchange Argument, Exchange Arguments
+Approximation Algorithm, Approximation Algorithms
+Approximate
+Approximation ratio
+Greedy Algorithm, Greedy Algorithms
+Feasible Solution, Feasible Solutions
+Optimal Solution, Optimal Solutions
+Global Optimum, Global Optima
+Local Optimum, Local Optima
+Nondeterministic
+Nondeterministic Algorithm
+DAGs (add to DAG)
+String Matching
 

@@ -14,7 +14,7 @@
     .compare { background: #f99; }
     .merged { background: #9f9; }
 	.element { margin: 6px; }
-    .active-subarray { background-color: #FF9C00; border-radius: 4px; padding: 4px; }
+    .active-subarray { background-color: #FF9C00; border-radius: 4px; padding: 4px; gap: 0px; }
 	
 #aux-container > .element:first-child {
   border-left-width: 9px;
@@ -87,7 +87,22 @@
 		color:transparent
 	}
 	
-
+.array-container .element-wrapper {
+      /* stack vertically as you already have */
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-right: 4px;
+    
+      /* NEW: ideal width = 40px, no grow, can shrink */
+      flex: 0 1 40px;
+      box-sizing: border-box;   /* so padding/margin don’t bust the math */
+    }
+    .array-container .element-wrapper .element {
+      width: 100%;
+      aspect-ratio: 1 / 1;     /* keep it square */
+      height: auto;
+    }
   </style>
 </head>
 <body class="no-tooltips">
