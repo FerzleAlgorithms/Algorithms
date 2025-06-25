@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Sequential Search Algorithm</title>
+    <link rel="stylesheet" href="visualization.css">
+</head>
+<body>
+
+<h1>Sequential Search</h1>
+
+<h2>Problem Statement</h2>
+<p>Given an array of elements and a value to search for, determine the index at which the value is located or return -1 if the value is not present in the array.</p>
+
+<h2>Algorithm Idea</h2>
+<p>Sequential search (also called linear search) checks each element in the array one-by-one, from the beginning until the desired value is found or the end is reached.</p>
+
+<h2>Talk Through Creation of Algorithm</h2>
+<p>The simplest way to find an item in a list is to examine each element sequentially. If the current element matches the searched value, return its index. If no match is found by the end of the list, return -1.</p>
+
+<h2>Pseudocode</h2>
+<pre>
+SequentialSearch(array, value):
+  for i from 0 to length(array) - 1:
+    if array[i] == value:
+      return i
+  return -1
+</pre>
+
+<h2>Interactive Demonstration</h2>
+<iframe src="Sequential Search Demo.html" style="width:100%; height:400px; border:none;"></iframe>
+
+<h2>Time and Space Analysis</h2>
+<ul>
+  <li><strong>Time Complexity:</strong> O(n) - each element is checked once in the worst case.</li>
+  <li><strong>Space Complexity:</strong> O(1) - no additional space needed.</li>
+</ul>
+
+<h2>Variations and Enhancements</h2>
+<ul>
+  <li>Early exit if the array is sorted and the current element is greater than the searched value.</li>
+  <li>Parallel implementation to check multiple elements simultaneously.</li>
+</ul>
+
+<h2>Apply Ideas to New Problems (Reader Guided)</h2>
+<ul>
+  <li>How would the algorithm change if the array were sorted?</li>
+  <li>Consider implementing sequential search on linked lists. What changes?</li>
+</ul>
+
+<h2>Links to Resources</h2>
+<ul>
+  <li><a href="https://en.wikipedia.org/wiki/Linear_search" target="_blank">Wikipedia: Linear Search</a></li>
+  <li><a href="https://www.geeksforgeeks.org/linear-search/" target="_blank">GeeksForGeeks: Linear Search</a></li>
+</ul>
+
+<h2>Reading Comprehension Questions</h2>
+<ol>
+  <li>What is the worst-case time complexity of sequential search? Why?</li>
+  <li>If the search value is at the first position, how many comparisons are made?</li>
+</ol>
+<details>
+<summary>Solutions</summary>
+<ol>
+  <li>O(n), because in the worst case it checks all elements once.</li>
+  <li>Only one comparison is made.</li>
+</ol>
+</details>
+
+<h2>In-Class Activities</h2>
+<ul>
+  <li>Have students implement sequential search in their preferred programming language.</li>
+  <li>Discuss and demonstrate variations and their impacts on performance.</li>
+</ul>
+
+<h2>Problems</h2>
+<ul>
+  <li>Implement sequential search and verify it with various test cases.</li>
+  <li>Analyze how early termination affects the average performance.</li>
+</ul>
+
+</body>
+</html>

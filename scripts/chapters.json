@@ -111,7 +111,7 @@
     },
     {
       "Greedy": [
-        "Greedy Fractional Knapsack Demo.html",
+        "Fractional Knapsack Demo.html",
         "Huffman Encoding Demo.html",
         "Kruskals Algorithm Demo.html",
         "Merge Demo.html",
@@ -181,6 +181,7 @@
     {
       "Other": [
         "Fibonacci.html",
+        "Interval Scheduling.html",
         "Optimal Character Encoding.html",
         "String Matching.html",
         "Subset Sum.html",
@@ -194,6 +195,7 @@
     "Decrease-and-Conquer.html",
     "Divide-and-Conquer.html",
     "Exhaustive Search.html",
+    "Greedy Algorithms.html",
     "Introduction.html",
     "Transform-and-Conquer.html"
   ]
