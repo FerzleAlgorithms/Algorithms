@@ -1,0 +1,117 @@
+body {
+  font-family: cursive;
+  margin: 0px 10px;
+  padding: 0;
+  background-color: #f7f9fc;
+}
+
+#pageWrapper {
+  max-width: 1200px;  /* Set your desired max-width */
+  margin: 0 auto;     /* Centers the whole page horizontally */
+  box-shadow: 0 0 12px rgba(0,0,0,0.1); /* Optional visual depth */
+  background-color: white; /* Ensures content is on white background */
+  min-height: 100vh; /* Ensures full vertical height */
+}
+
+header {
+  background-color: #334155;
+  color: white;
+  text-align: center;
+}
+
+#container {
+  display: flex;
+  max-width: 1050;      /* Adjust as needed */
+  margin: 0 auto;         /* Centers horizontally */
+  height: calc(100vh - 100px);
+  background-color: #ffffff; /* Optional for clear layout */
+  box-shadow: 0 0 10px rgba(0,0,0,0.1); /* Optional shadow for depth */
+}
+
+nav#menu {
+  width: 250px;
+  background-color: #e2e8f0;
+  padding: 10px;
+  overflow-y: auto;
+}
+
+nav#menu ul {
+  list-style: none;
+  padding-left: 15px;
+}
+
+nav#menu a {
+  text-decoration: none;
+  color: #1e293b;
+}
+
+nav#menu a:hover {
+  text-decoration: underline;
+}
+
+object#content {
+  flex-grow: 1;
+  border: none;
+  width: 100%;
+  height: 100%;
+}
+
+/* Buttons and input cells in demos */
+button, input { 
+    margin: 5px; 10px 10px; 
+    padding: 5px 5px; 5px;
+}
+
+/* For array based demos */
+.array-container { 
+    display: flex; 
+    gap: 10px; 
+    align-items: flex-start; 
+    justify-content: flex-start;
+    margin-top: 10px; 
+    margin-bottom: 100px;      
+    font-size: 18px;      
+    position: relative;    
+    }
+    
+.element { /* For a cell of an array based demo */
+    width: 40px; 
+    height: 40px; 
+    line-height: 40px; 
+    text-align: center; 
+    border: 1px solid #333; 
+    background-color: #cce3ff; 
+    position: relative;
+}
+.comparing {  /* A cell that is being compared to another one */
+    background-color: yellow;
+}
+.swap {  /* A cell that is about to be swapped with another one */
+    background-color: #b2f2bb;
+}
+.sorted {  /* A cell that is in its final position */
+    background-color: orange;
+}
+.arrow {  /* An arrow pointing into a cell */
+    position: absolute;  
+    top: 50;  
+    width: 100%;  
+    text-align: center;  
+    font-weight: bold;
+}
+
+/* For demos */
+.embeddedDemoContainer {
+    width: 100%;                 /* container takes full width */
+    display: flex;               /* enable flexible positioning */
+    justify-content: flex-start; /* aligns content to left */
+    margin-left: -10px;          /* adjust this value as needed to nudge left */
+    box-sizing: border-box;      /* ensures padding doesn't affect total width */
+}
+
+.embeddedDemo {
+    width: 100%;                 /* occupy full available width */
+    height: 400px;               /* OVERRODE THIS IN YOUR FILE IF YOU NEED IT DIFFERENT! */
+    border: none;                /* remove borders */
+}
+

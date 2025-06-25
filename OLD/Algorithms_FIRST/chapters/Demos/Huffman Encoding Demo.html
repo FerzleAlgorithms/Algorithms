@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Huffman Encoding Visualization</title>
+  <link rel="stylesheet" href="../../style.css">
+</head>
+<style>
+#output { padding: 1em;  border: none;  font-family: monospace;  min-height: 60px;  white-space: pre-wrap;
+  width: 100vw;           /* viewport width */
+  overflow: hidden;       /* optional */}
+
+button {
+  margin: 0.5em;
+  padding: 0.5em 1em;
+}
+svg {
+  width: 100%;
+}
+.node text {
+  font-size: 12px;
+  text-anchor: middle;
+}
+.node circle {
+  fill: #cce3ff;
+  stroke: #333;
+}
+.node.merging circle {
+  fill: #b2f2bb;
+}
+.edge {
+  stroke: #888;
+}
+.label {
+  font-size: 12px;
+  fill: black;
+  text-anchor: middle;
+}
+#queue-container {
+  margin-top: 1em;
+  padding: 1em;
+  overflow-x: auto;
+	position: absolute;
+	left: 0;
+	width: 100vw;           /* viewport width */
+	overflow: hidden;       /* optional */
+}
+</style>
+<body>
+
+<h1>Huffman Encoding Visualization</h1>
+
+<p>Enter text to encode:</p>
+<input type="text" id="inputText" value="This is a sample string. Change if you want to." style="width:400px;" />
+<button onclick="startVisualization()">Start</button>
+<br>
+<button onclick="prevStep()">Previous</button>
+<button onclick="nextStep()">Next</button>
+<div id="output">Click "Start" to begin.</div>
+
+<h3>Priority Queue (Tree Forest)</h3>
+<div id="queue-container">
+  <svg id="queue-svg" style="width: 100vw; height: 600px;"></svg>
+</div>
+
+<script>
+  let steps = [], queues = [], highlight = [], stepIndex = 0;
+  let highlightId = [], encodingTables = [];
+  let nodeIdCounter = 0;
+
+  const svgQueue = document.getElementById("queue-svg");
+  const output = document.getElementById("output");
+
+  function countFrequencies(str) {
+    const freq = {};
+    for (let ch of str) freq[ch] = (freq[ch] || 0) + 1;
+    return freq;
+  }
+
+  function deepCopy(obj) {
+    return JSON.parse(JSON.stringify(obj));
+  }
+
+  function formatNode(node) {
+    return node.char !== null ? `${node.char}|${node.freq}` : `|${node.freq}`;
+  }
+
+  function layoutTree(node, x, y, levelGap = 60) {
+    if (!node) return 0;
+    const leftWidth = node.left ? layoutTree(node.left, x, y + levelGap, levelGap) : 0;
+    const rightWidth = node.right ? layoutTree(node.right, x + leftWidth + 40, y + levelGap, levelGap) : 0;
+    const width = Math.max(40, leftWidth + rightWidth);
+    node._x = x + width / 2;
+    node._y = y;
+    return width;
+  }
+
+  function drawLine(svg, x1, y1, x2, y2, label = "") {
+    const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+    line.setAttribute("x1", x1);
+    line.setAttribute("y1", y1);
+    line.setAttribute("x2", x2);
+    line.setAttribute("y2", y2);
+    line.setAttribute("class", "edge");
+    svg.appendChild(line);
+
+    if (label) {
+      const midX = (x1 + x2) / 2;
+      const midY = (y1 + y2) / 2;
+      const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+      text.setAttribute("x", midX);
+      text.setAttribute("y", midY - 5);
+      text.setAttribute("class", "label");
+      text.textContent = label;
+      svg.appendChild(text);
+    }
+  }
+
+  function drawEdges(svg, node, labelMode = false) {
+    if (node.left) {
+      drawLine(svg, node._x, node._y, node.left._x, node.left._y, labelMode ? "0" : "");
+      drawEdges(svg, node.left, labelMode);
+    }
+    if (node.right) {
+      drawLine(svg, node._x, node._y, node.right._x, node.right._y, labelMode ? "1" : "");
+      drawEdges(svg, node.right, labelMode);
+    }
+  }
+
+  function drawNode(svg, node, isMerging = false, isRoot = false) {
+    const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+    g.setAttribute("transform", `translate(${node._x},${node._y})`);
+    g.setAttribute("class", `node${isMerging ? " merging" : ""}`);
+
+    const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+    circle.setAttribute("r", 15);
+    if (isRoot) {
+      circle.setAttribute("stroke", "#000");
+      circle.setAttribute("stroke-width", "3");
+    }
+    g.appendChild(circle);
+
+    const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+    text.setAttribute("dy", "5");
+    text.textContent = formatNode(node);
+    if (isRoot) {
+      text.setAttribute("font-weight", "bold");
+    }
+    g.appendChild(text);
+
+    svg.appendChild(g);
+  }
+
+  function drawAllNodes(svg, node, isMerging = false, isRoot = false) {
+    if (!node) return;
+    drawNode(svg, node, isMerging, isRoot);
+    drawAllNodes(svg, node.left, isMerging, false);
+    drawAllNodes(svg, node.right, isMerging, false);
+  }
+
+  function drawQueue(queue, highlightCount = 0, idToHighlight = null, labelEdges = false) {
+    const maxDepth = Math.max(...queue.map(getTreeDepth));
+    const desiredHeight = maxDepth * 60 + 60;
+    svgQueue.setAttribute("height", desiredHeight);
+    svgQueue.innerHTML = "";
+    let x = 10;
+
+    for (let i = 0; i < queue.length; i++) {
+      let tree = queue[i];
+      layoutTree(tree, x, 30);
+      drawEdges(svgQueue, tree, labelEdges && queue.length === 1);
+      const isMerging = (i < highlightCount) || (idToHighlight !== null && tree.id === idToHighlight);
+      drawAllNodes(svgQueue, tree, isMerging, true);
+      x += getTreeWidth(tree) + 20;
+    }
+  }
+
+  function getTreeWidth(node) {
+    if (!node) return 0;
+    return getTreeWidth(node.left) + getTreeWidth(node.right) + 40;
+  }
+
+  function logStep(title, content, queue, highlightCount, nodeIdToHighlight = null, encodingTable = null) {
+    steps.push({ title, content });
+    queues.push(deepCopy(queue));
+    highlight.push(highlightCount);
+    highlightId.push(nodeIdToHighlight);
+    encodingTables.push(encodingTable);
+  }
+
+  function buildHuffmanTree(freqs, inputText) {
+    let queue = Object.entries(freqs).map(([char, freq]) => ({
+      char, freq, left: null, right: null, id: nodeIdCounter++
+    }));
+
+    logStep("Character Frequencies", Object.entries(freqs).map(([c, f]) => `'${c}': ${f}`).join(", "), [], 0);
+
+    queue.sort((a, b) => a.freq - b.freq);
+    logStep("Initial Queue", formatQueue(queue), queue, 0);
+
+    while (queue.length > 1) {
+      let left = queue.shift();
+      let right = queue.shift();
+
+      logStep("Merging Next Two Nodes", `Combining ${formatNode(left)} + ${formatNode(right)}`, [left, right, ...queue], 2);
+
+      let parent = {
+        char: null,
+        freq: left.freq + right.freq,
+        left,
+        right,
+        id: nodeIdCounter++
+      };
+
+      queue.push(parent);
+      queue.sort((a, b) => a.freq - b.freq);
+
+      logStep("Queue After Merge", "", queue, 0, parent.id);
+    }
+
+    const root = queue[0];
+    const codes = {};
+    generateEncodingTable(root, "", codes);
+
+    const huffmanBits = inputText.split("").reduce((sum, ch) => sum + codes[ch].length, 0);
+    const asciiBits = inputText.length * 8;
+    const unicodeBits = inputText.length * 16;
+
+const freqTable = countFrequencies(inputText);  // make sure this is available
+const tableStr = Object.entries(codes)
+  .map(([char, code]) => {
+    const freq = freqTable[char];
+    return `  '${char}' → ${code}   (freq: ${freq})`;
+  })
+  .join("\n");
+
+let costTerms = [];
+for (let [char, code] of Object.entries(codes)) {
+  const freq = freqTable[char];
+  costTerms.push(`(${freq}×${code.length})`);
+}
+const huffmanCostBreakdown = costTerms.join(" + ");
+const huffmanCost = eval(huffmanCostBreakdown.replace(/×/g, '*'));
+
+const summary =
+  `Encoding Table:\n${tableStr}\n\n` +
+  `Bit Comparison:\n` +
+  `-->Huffman: ${huffmanBits} bits` +
+  ` = ${huffmanCostBreakdown} \n` +
+  `-->ASCII:   ${asciiBits} bits = (8 × ${inputText.length} chars)\n` +
+  `-->Unicode: ${unicodeBits} bits = (16 × ${inputText.length} chars)`;
+
+
+    logStep("Huffman Tree Complete", summary, [root], 0, null, codes);
+  }
+
+  function generateEncodingTable(node, code, map) {
+    if (node.char !== null) {
+      map[node.char] = code;
+    } else {
+      if (node.left) generateEncodingTable(node.left, code + "0", map);
+      if (node.right) generateEncodingTable(node.right, code + "1", map);
+    }
+  }
+
+  function formatQueue(queue) {
+    return queue.map(formatNode).join(" | ");
+  }
+
+  function nextStep() {
+    if (stepIndex < steps.length) {
+      const step = steps[stepIndex];
+      output.innerHTML = `▶ <b>${step.title}</b>\n${step.content}`;
+      const isFinalStep = (stepIndex === steps.length - 1);
+      drawQueue(queues[stepIndex], highlight[stepIndex], highlightId[stepIndex], isFinalStep);
+      stepIndex++;
+    } else {
+      output.innerHTML = `✅ <b>All steps complete.</b>`;
+    }
+  }
+
+  function getTreeDepth(node) {
+    if (!node) return 0;
+    return 1 + Math.max(getTreeDepth(node.left), getTreeDepth(node.right));
+  }
+
+  function prevStep() {
+    if (stepIndex > 1) {
+      stepIndex -= 2;
+      nextStep();
+    }
+  }
+
+  function startVisualization() {
+    const input = document.getElementById("inputText").value;
+    if (!input.trim()) return alert("Please enter a string.");
+    steps = [];
+    queues = [];
+    highlight = [];
+    highlightId = [];
+    encodingTables = [];
+    stepIndex = 0;
+    nodeIdCounter = 0;
+    svgQueue.innerHTML = "";
+
+    const freqs = countFrequencies(input);
+    buildHuffmanTree(freqs, input);
+    nextStep();
+  }
+</script>
+</body>
+</html>

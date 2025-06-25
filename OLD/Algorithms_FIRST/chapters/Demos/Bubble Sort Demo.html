@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Bubble Sort Demo</title>
+  <script src="../../scripts/demoScripts.js"></script>
+  <link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+
+<h2>Bubble Sort Demo</h2>
+
+<div>
+  <label>Size:
+  <input type="number" id="arraySize" min="8" max="20" value="10" size="2">
+  </label>
+  <button onclick="randomArray()">Random Array</button>
+  <input type="text" id="inputValues" placeholder="Enter comma-separated values" size="40">
+  <button onclick="generateArray()">Create Array</button>
+</div>
+<div>
+  <button onclick="previousStep()">Previous</button>
+  <button onclick="nextStep()">Next</button>
+</div>
+<div class="array-container" id="arrayContainer"></div>
+<div id="stepInfo"></div>
+<div style="margin-top:20px; padding:10px; border:1px solid #ccc; width:fit-content;">
+  <b>Legend:</b>
+    <span style="display:inline-block;width:15px;height:15px;background-color:orange;margin-right:5px;border:1px solid black;"></span> Sorted 
+    <span style="display:inline-block;width:15px;height:15px;background-color:yellow;margin-right:5px;border:1px solid black;"></span>  Being compared
+    <span style="display:inline-block;width:15px;height:15px;background-color:#b2f2bb;margin-right:5px;border:1px solid black;"></span> Swapped
+    <span style="display:inline-block;width:15px;height:15px;background-color:#cce3ff;margin-right:5px;border:1px solid black;"></span> Unsorted 
+    &nbsp; &nbsp; <b>i, j</b> pointers during sorting
+
+</div>
+<script>
+let array = [];
+let steps = [];
+let currentStep = -1;
+
+function generateArray() {
+  const input = document.getElementById('inputValues').value;
+  array = input.split(',').map(Number);
+  initSort();
+}
+
+function randomArray() {
+  const sizeInput = document.getElementById('arraySize');
+  const inputValues = document.getElementById('inputValues');
+  generateRandomArray(sizeInput,inputValues);
+  initSort();
+}
+
+
+function initSort() {
+  steps = [];
+  currentStep = -1;
+  bubbleSort([...array]);
+  renderStep(0);
+}
+
+function bubbleSort(arr) {
+  let n = arr.length;
+  for (let i = n - 1; i >= 0; i--) {
+    for (let j = 0; j < i; j++) {
+      if (arr[j] > arr[j + 1]) {
+        steps.push({arr: [...arr], i, j, comparing: [j, j+1], swapping: true});
+        [arr[j], arr[j + 1]] = [arr[j + 1], arr[j]];
+        steps.push({arr: [...arr], i, j, comparing: [j, j+1], swapped: true});
+      } else {
+        steps.push({arr: [...arr], i, j, comparing: [j, j+1]});
+      }
+    }
+    steps.push({arr: [...arr], i, iterationEnd: true});
+  }
+}
+
+function renderStep(stepIndex) {
+  if(stepIndex < 0 || stepIndex >= steps.length) return;
+  currentStep = stepIndex;
+
+  const {arr, i, j, comparing, swapped, swapping, iterationStart, iterationEnd} = steps[stepIndex];
+  const container = document.getElementById('arrayContainer');
+  container.innerHTML = '';
+
+  arr.forEach((val, idx) => {
+    const elem = document.createElement('div');
+    elem.className = 'element';
+    elem.textContent = val;
+
+    if (comparing && comparing.includes(idx)) elem.classList.add('comparing');
+    if (swapped && comparing.includes(idx)) elem.classList.add('swap');
+    if (idx > i || (idx===i && j===undefined && !iterationStart)) elem.classList.add('sorted');
+    if(idx === j && j !== undefined) elem.innerHTML += '<div class="arrow">↑<br>j</div>';
+    if(idx === i ) elem.innerHTML += '<div class="arrow">↑<br>i</div>';
+
+    container.appendChild(elem);
+  });
+
+  const stepInfo = document.getElementById('stepInfo');
+  if (iterationStart) {
+    stepInfo.textContent = `Starting next pass.`;
+  } else if (iterationEnd) {
+    stepInfo.textContent = `${arr[i]} is now in its proper location.`;
+  } else if (swapped) {
+    stepInfo.textContent = `Swapped elements at ${j} and ${j+1}.`;
+  } else if (swapping) {
+    stepInfo.textContent = `Comparing elements at ${j} and ${j+1}: ${arr[j]} > ${arr[j+1]}, need to swap.`;
+  } else {
+    stepInfo.textContent = `Comparing elements at ${j} and ${j+1}: ${arr[j]} ≤ ${arr[j+1]}, no swap needed.`;
+  }
+}
+
+function nextStep() {
+  if (currentStep < steps.length - 1) renderStep(currentStep + 1);
+}
+
+function previousStep() {
+  if (currentStep > 0) renderStep(currentStep - 1);
+}
+
+randomArray();
+</script>
+
+</body>
+</html>

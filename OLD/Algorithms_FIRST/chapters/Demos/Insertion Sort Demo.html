@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Insertion Sort Visualizer</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    #controls { margin-bottom: 20px; }
+    #controls input, #controls button { margin-right: 10px; padding: 5px; }
+    h1 { text-align: center; margin-bottom: 10px; }
+    /* Button container moved above visualization, aligned left */
+    #buttons {
+      margin-bottom: 20px;
+      text-align: left;
+    }
+    #buttons button { padding: 5px 10px; margin-right: 5px; }
+    /* Visualization styling */
+    #visualization {
+      position: relative;
+      border: 1px solid #ccc;
+      padding: 10px;
+      height: 180px;
+      overflow: visible;
+      margin: 0 auto;
+      max-width: 1200px;
+    }
+    #cellsContainer {
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      gap: 5px;
+      height: calc(100% - 10px);
+      margin-bottom: 10px;
+    }
+    #floatLayer {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+    }
+    #description {
+      margin-top: 10px;
+      font-style: italic;
+      text-align: center;
+    }
+    /* Legend styling */
+    #legend {
+      margin-top: 30px;
+      margin-bottom: 20px;
+      font-size: 0.9em;
+      text-align: center;
+    }
+    .legend-box {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      vertical-align: middle;
+      margin-right: 5px;
+      border-radius: 4px;
+    }
+    .legend-box.default { background-color: #ddd; border: 1px solid #ccc; }
+    .legend-box.key { background-color: #1f77b4; }
+    .legend-box.compare { background-color: #d62728; }
+    .legend-box.sorted { background-color: #2ca02c; }
+    .legend-box.empty { background-color: transparent; border: 1px dashed #ccc; }
+    .cell {
+      flex: 1;
+      height: 50px;
+      background-color: #ddd;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2em;
+      border-radius: 4px;
+      transition: background-color 0.3s ease;
+      position: relative;
+    }
+    .empty {
+      background-color: transparent;
+      border: 1px dashed #ccc;
+    }
+    .key { background-color: #1f77b4; }
+    .compare { background-color: #d62728; }
+    .sorted { background-color: #2ca02c; }
+    .floating {
+      position: absolute;
+      z-index: 10;
+      transition: transform 0.5s ease;
+    }
+  </style>
+</head>
+<body>
+  <h1>Insertion Sort Visualization</h1>
+  <div id="controls">
+    <label>Array size (5-20):<input type="number" id="size" min="5" max="20" value="10" /></label>
+    <button id="generate">Generate Random Array</button>
+    <label>Custom array (comma-separated):<input type="text" id="customArray" placeholder="e.g. 5,3,8,1,2" size="30" /></label>
+    <button id="useCustom">Use Custom Array</button>
+  </div>
+
+  <!-- Buttons moved above visualization and aligned left -->
+  <div id="buttons">
+    <button id="prev" disabled>Previous</button>
+    <button id="next" disabled>Next</button>
+  </div>
+
+  <div id="visualization">
+    <div id="cellsContainer"></div>
+    <div id="floatLayer"></div>
+  </div>
+  <div id="description">Press "Next" to start sorting.</div>
+
+  <!-- Legend remains below buttons -->
+  <div id="legend">
+    <strong>Legend:</strong>
+    <span><span class="legend-box default"></span> Unsorted element</span>
+    <span><span class="legend-box key"></span> Key element</span>
+    <span><span class="legend-box compare"></span> Element being compared</span>
+    <span><span class="legend-box sorted"></span> Sorted element</span>
+    <span><span class="legend-box empty"></span> Empty placeholder</span>
+  </div>
+
+  <script>
+    const cellsContainer = document.getElementById('cellsContainer');
+    const floatLayer = document.getElementById('floatLayer');
+    const desc = document.getElementById('description');
+    const prevBtn = document.getElementById('prev');
+    const nextBtn = document.getElementById('next');
+    let steps = [];
+    let stepIndex = 0;
+    let floatingKey = null;
+
+    function generateSteps(arr) {
+      const states = [];
+      const a = arr.slice();
+      states.push({ arr: a.slice(), sortedCount: 1, keyIndex: null, compareIndex: null, keyVal: null, stage: 'init', i: 1 });
+      for (let i = 1; i < a.length; i++) {
+        const key = a[i];
+        let j = i - 1;
+        while (j >= 0) {
+          states.push({ arr: a.slice(), sortedCount: i, keyIndex: i, compareIndex: j, keyVal: key, stage: 'compare', i });
+          if (a[j] <= key) break;
+          j--;
+        }
+        let shiftArr = a.slice();
+        for (let k = i; k > j + 1; k--) {
+          shiftArr[k] = shiftArr[k - 1];
+          shiftArr[k - 1] = null;
+          states.push({ arr: shiftArr.slice(), sortedCount: i, keyIndex: i, compareIndex: j + 1, keyVal: key, stage: 'shift', i, firstShiftIndex: k });
+        }
+        a.splice(i, 1);
+        a.splice(j + 1, 0, key);
+        states.push({ arr: a.slice(), sortedCount: i + 1, keyIndex: j + 1, compareIndex: null, keyVal: key, stage: 'placed', i });
+      }
+      return states;
+    }
+
+    function renderState(state) {
+      cellsContainer.innerHTML = '';
+      state.arr.forEach((val, idx) => {
+        const cell = document.createElement('div');
+        const isEmpty = (state.stage === 'compare' && idx === state.keyIndex) || (state.stage === 'shift' && val === null);
+        cell.className = 'cell';
+
+        if (isEmpty) {
+          cell.classList.add('empty');
+        } else {
+          cell.textContent = val;
+          const isFinalShiftSpot = (state.stage === 'shift' && idx === state.i);
+          const isFirstShiftFilled = (state.stage === 'shift' && typeof state.firstShiftIndex === 'number' && idx === state.firstShiftIndex);
+          if (idx < state.sortedCount || isFinalShiftSpot || isFirstShiftFilled) cell.classList.add('sorted');
+          if (state.stage !== 'compare' && idx === state.keyIndex && state.stage !== 'shift') cell.classList.add('key');
+          if (idx === state.compareIndex && state.stage === 'compare') {
+            cell.classList.remove('sorted');
+            cell.classList.add('compare');
+          }
+        }
+        cellsContainer.appendChild(cell);
+      });
+
+      if (state.sortedCount === state.arr.length && state.stage === 'placed') {
+        desc.textContent = 'Array is sorted!';
+      } else if (state.stage === 'init') {
+        desc.textContent = 'Initial array.';
+      } else if (state.stage === 'compare') {
+        const aVal = state.keyVal;
+        const bVal = state.arr[state.compareIndex];
+        const op = aVal <= bVal ? '<=' : '>';
+        desc.textContent = `${aVal} ${op} ${bVal}?`;
+      } else if (state.stage === 'shift') {
+        desc.textContent = `Shifting element to the right.`;
+      } else if (state.stage === 'placed') {
+        desc.textContent = `${state.keyVal} placed at index ${state.keyIndex}.`;
+      }
+
+      if (state.stage === 'compare' || state.stage === 'shift') {
+        const cells = cellsContainer.children;
+        const targetElem = cells[state.i];
+        const targetRect = targetElem.getBoundingClientRect();
+        const parentRect = floatLayer.getBoundingClientRect();
+        const cw = targetRect.width;
+        const ch = targetRect.height;
+        const x = targetRect.left - parentRect.left;
+        const y = targetRect.top - parentRect.top - 80;
+
+        if (!floatingKey) {
+          floatingKey = document.createElement('div');
+          floatingKey.className = 'cell key floating';
+          floatingKey.textContent = state.keyVal;
+          floatingKey.style.width = cw + 'px';
+          floatingKey.style.height = ch + 'px';
+          floatingKey.style.left = x + 'px';
+          floatingKey.style.top = y + 'px';
+          floatLayer.appendChild(floatingKey);
+        }
+      } else {
+        floatLayer.innerHTML = '';
+        floatingKey = null;
+      }
+    }
+
+    function updateButtons() {
+      prevBtn.disabled = stepIndex === 0;
+      nextBtn.disabled = stepIndex === steps.length - 1;
+    }
+
+    function goToStep(index) {
+      stepIndex = index;
+      renderState(steps[stepIndex]);
+      updateButtons();
+    }
+
+    prevBtn.addEventListener('click', () => { if (stepIndex > 0) goToStep(stepIndex - 1); });
+    nextBtn.addEventListener('click', () => { if (stepIndex < steps.length - 1) goToStep(stepIndex + 1); });
+
+    document.getElementById('generate').addEventListener('click', () => {
+      const size = parseInt(document.getElementById('size').value, 10);
+      if (isNaN(size) || size < 5 || size > 20) return alert('Size must be between 5 and 20');
+      const arr = Array.from({ length: size }, () => Math.floor(Math.random() * 90) + 10);
+      steps = generateSteps(arr);
+      goToStep(0);
+    });
+
+    document.getElementById('useCustom').addEventListener('click', () => {
+      const input = document.getElementById('customArray').value.trim();
+      if (!input) return;
+      const arr = input.split(',').map(s => parseInt(s.trim(), 10));
+      if (arr.some(isNaN) || arr.length < 5 || arr.length > 20) {
+        return alert('Custom array must have 5-20 numbers, comma-separated.');
+      }
+      steps = generateSteps(arr);
+      goToStep(0);
+    });
+
+    document.getElementById('generate').click();
+  </script>
+</body>
+</html>

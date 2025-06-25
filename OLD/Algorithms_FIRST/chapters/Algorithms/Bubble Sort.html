@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Bubble Sort</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js"></script>
+  <script src="../../scripts/chapterScripts.js"></script>
+  <link rel="stylesheet" href="../../style.css">
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      hljs.highlightAll();
+    });
+  </script>
+</head>
+<body>
+
+<h1>Bubble Sort</h1>
+
+<h2>Problem Statement</h2>
+<p>
+Bubble sort solves the <i>sorting</i> problem: Given a list of items,
+rearrange them in ascending (or descending) order.
+</p>
+
+<h2>Design and Strategy</h2>
+<p>
+Bubble sort is an iterative algorithm that employs a <b>brute-force</b> strategy 
+to sort a list by repeatedly comparing and swapping adjacent elements that are 
+in the wrong order. With each pass through the array, the largest unsorted 
+element "bubbles up" to its correct position at the end. Once the largest 
+element is in place after the first pass, subsequent passes exclude it, 
+progressively reducing the unsorted portion by one element each time. Due to 
+this characteristic, bubble sort can be categorized as a 
+<b>decrease-and-conquer</b> algorithm, although it is generally not considered 
+an efficient or strong example of this technique. Passes through the array continue until only a 
+single unsorted element remains, at which point the entire array is sorted.
+</p>
+
+<p>
+To implement bubble sort, the algorithm maintains two pointers: an <i>i</i> 
+pointer marks the boundary of the unsorted portion and indicates where the next 
+largest element will settle. Initially, <i>i</i> points to the last element of 
+the array. Another pointer, <i>j</i>, traverses the array from the beginning to 
+the position just before <i>i</i>, comparing adjacent pairs of elements 
+(<i>j</i> and <i>j+1</i>) and swapping them if they are out of order. After the 
+<i>j</i> pointer passes <i>i-1</i>, the current iteration is complete, and the 
+largest element from the unsorted portion of the array is now it its proper position <i>i</i>. 
+The algorithm continues by decrementing <i>i</i>, 
+resetting <i>j</i> to the start of the array, and beginning the next pass.
+</p>
+
+<div class="embeddedDemoContainer">
+  <object class="embeddedDemo" 
+          type="text/html" 
+          style="height: 400px"
+          data="../Demos/Bubble Sort Demo.html"></object>
+</div>
+
+<h2>Implementation in Java, C++, Python</h2>
+<div class="tabs">
+  <button class="tablink active" onclick="openTab(event, 'java')" id="tab-java">Java</button>
+  <button class="tablink" onclick="openTab(event, 'cpp')" id="tab-cpp">C++</button>
+  <button class="tablink" onclick="openTab(event, 'python')" id="tab-python">Python</button>
+</div>
+
+<div id="java" class="code-container" style="display:block;">
+<pre><code class="language-java">void bubbleSort(int[] arr) {
+    int n = arr.length;
+    for (int i = n - 1; i &gt; 0; i--) {
+        for (int j = 0; j &lt; i; j++) {
+            if (arr[j] &gt; arr[j + 1]) {
+                int temp = arr[j];
+                arr[j] = arr[j + 1];
+                arr[j + 1] = temp;
+            }
+        }
+    }
+}
+</code></pre>
+</div>
+
+<div id="cpp" class="code-container">
+<pre><code class="language-cpp">void bubbleSort(int arr[], int n) {
+    for (int i = n - 1; i &gt; 0; i--) {
+        for (int j = 0; j &lt; i; j++) {
+            if (arr[j] &gt; arr[j + 1]) {
+                int temp = arr[j];
+                arr[j] = arr[j + 1];
+                arr[j + 1] = temp;
+            }
+        }
+    }
+}
+</code></pre>
+</div>
+
+<div id="python" class="code-container">
+<pre><code class="language-python">def bubble_sort(arr):
+    n = len(arr)
+    for i in range(n - 1, 0, -1):
+        for j in range(i):
+            if arr[j] &gt; arr[j + 1]:
+                arr[j], arr[j + 1] = arr[j + 1], arr[j]
+</code></pre>
+</div>
+  
+<h2>Time/Space Analysis</h2>
+<p>
+To analyze the worst-case complexity of Bubble Sort, we examine how many 
+comparisons and swaps are performed when the array is initially arranged in 
+descending order (fully unsorted). This scenario represents Bubble Sort’s worst 
+case because every possible swap needs to occur to achieve ascending order.
+</p>
+
+<p>
+Bubble Sort operates by making multiple passes through the array. On each pass, 
+it compares adjacent elements, swapping them if they are in the wrong order. 
+Let's analyze each operation:
+</p>
+
+<ul>
+  <li>
+    <b>First pass:</b> Bubble Sort compares each pair of adjacent elements. 
+    This involves <i>n - 1</i> comparisons and potentially <i>n - 1</i> swaps. 
+    After this pass, the largest element is correctly positioned at the end.
+  </li>
+  <li>
+    <b>Second pass:</b> Now, it must compare each pair up to the second-to-last 
+    element, requiring <i>n - 2</i> comparisons and potentially <i>n - 2</i> 
+    swaps.
+  </li>
+  <li>
+    <b>Subsequent passes:</b> Each subsequent pass reduces the number of 
+    comparisons by one, leading to <i>n - 3, n - 4, ..., 1</i> comparisons 
+    respectively in each pass until the final element is in position.
+  </li>
+</ul>
+
+<p>
+The total number of comparisons performed is thus the sum of the arithmetic 
+series:
+</p>
+
+<pre>
+    (n - 1) + (n - 2) + (n - 3) + ... + 2 + 1 = n(n - 1)/2 = O(n²).
+</pre>
+
+<p>Since each comparison might lead to a swap, in the worst case the number of swaps
+is the same as the number of comparisons. 
+This leads to an overall worst-case time complexity of O(n²).
+</p>
+
+<p>
+Notice that in the best case, even though the number of swaps would be 0 (if the array
+is already sorted), the number of comparisons is still <i>n(n - 1)/2 = O(n²)</i>.
+Although this can be improved (see below), 
+the average case of Bubble Sort is still <i>O(n²)</i>.
+This quadratic complexity makes Bubble Sort inefficient for large datasets 
+compared to more advanced algorithms like quicksort, mergesort, or heapsort, 
+which have better average-case complexities.
+</p>
+
+<p>
+<b>Space Complexity:</b> Bubble Sort operates in-place, only requiring a 
+constant amount of additional space for <i>i</i>, <i>j</i>, and the temporary 
+variable used while swapping elements. Thus, 
+the space complexity is <i>O(1)</i>.
+</p>
+
+
+
+
+<h2>Variations/Improvements</h2>
+<p>
+Some versions of Bubble Sort bubble the smallest element to the beginning of the array
+instead of the largest element to the end. This does not change the time or space
+complexity of the algorithm.
+
+<p>
+The primary optimization for Bubble Sort involves adding an <b>early termination check</b>. 
+This optimization leverages the fact that if during an entire pass 
+through the array no swaps are required, the list must already be sorted, and 
+the algorithm can immediately terminate.
+</p>
+
+<p>
+To implement this optimization:
+</p>
+
+<ul>
+  <li>
+    Introduce a boolean variable (often named <code>swapped</code>) initialized 
+    as <code>false</code> at the beginning of each pass.
+  </li>
+  <li>
+    Set <code>swapped</code> to <code>true</code> whenever a swap is performed.
+  </li>
+  <li>
+    After each pass, if <code>swapped</code> remains <code>false</code>, the 
+    algorithm terminates early, as it indicates the array is already sorted.
+  </li>
+</ul>
+
+<p>
+This simple enhancement significantly improves Bubble Sort’s best-case 
+performance, changing it from <code>O(n²)</code> (in the non-optimized version) 
+to <code>O(n)</code>, as it no longer unnecessarily completes additional passes.
+</p>
+
+
+<h2>Links to Resources</h2>
+<ul>
+  <li><a href="https://www.geeksforgeeks.org/bubble-sort/">GeeksforGeeks Bubble Sort</a></li>
+  <li><a href="https://visualgo.net/en/sorting">Visual Algo Sorting</a></li>
+  <li><a href="https://en.wikipedia.org/wiki/Bubble_sort">Bubble Sort (Wikipedia)</a></li>
+  <li><a href="https://www.cs.usfca.edu/~galles/visualization/ComparisonSort.html">Comparison Sorts Demo</a></li>
+</ul>
+
+<h2>Reading Comprehension Questions</h2>
+<ol>
+  <li>
+    True or False: Bubble sort guarantees a linear time complexity (O(n)) in the 
+    worst case.
+    <button onclick="this.nextElementSibling.style.display='inline'">Show Answer</button>
+    <span style="display:none;"><b>False</b></span>
+  </li>
+
+  <li>
+    Multiple Choice: After the first pass of Bubble Sort on an array of size n, 
+    which element is guaranteed to be in its correct position?
+    <ul>
+      <li>a) The smallest element</li>
+      <li>b) The largest element</li>
+      <li>c) A randomly chosen element</li>
+      <li>d) The middle element</li>
+    </ul>
+    <button onclick="this.nextElementSibling.style.display='inline'">Show Answer</button>
+    <span style="display:none;"><b>b) The largest element</b></span>
+  </li>
+
+  <li>
+    Fill in the blank: In the optimized Bubble Sort, the algorithm terminates 
+    early when __________.
+    <button onclick="this.nextElementSibling.style.display='inline'">Show Answer</button>
+    <span style="display:none;"><b>no swaps occur during a complete pass</b></span>
+  </li>
+
+  <li>
+    Multiple Choice: Bubble sort is primarily considered an example of what 
+    algorithm design strategy?
+    <ul>
+      <li>a) Greedy algorithm</li>
+      <li>b) Dynamic programming</li>
+      <li>c) Divide and conquer</li>
+      <li>d) Brute force</li>
+    </ul>
+    <button onclick="this.nextElementSibling.style.display='inline'">Show Answer</button>
+    <span style="display:none;"><b>d) Brute force</b></span>
+  </li>
+  
+	<li>
+	  Select all algorithm design strategies below that Bubble Sort could reasonably be classified under (choose all that apply):
+	  <ul>
+		<li>a) Greedy algorithm</li>
+		<li>b) Brute force</li>
+		<li>c) Decrease-and-conquer</li>
+		<li>d) Divide-and-conquer</li>
+		<li>e) Dynamic programming</li>
+	  </ul>
+	  <button onclick="this.nextElementSibling.style.display='inline'">Show Answer</button>
+	  <span style="display:none;"><b>b) Brute force, c) Decrease-and-conquer</b></span>
+</li>
+
+  <li>
+    Short Answer: What is the primary reason Bubble Sort is inefficient for 
+    large datasets?
+    <button onclick="this.nextElementSibling.style.display='inline'">Show Answer</button>
+    <span style="display:none;"><b>Its quadratic O(n²) time complexity</b></span>
+  </li>
+</ol>
+
+
+<h2>In-Class Activities</h2>
+<ol>
+  <li><b>Sorting with Cards:</b>
+  Sort cards with Bubble Sort manually to understand the swaps clearly.</li>
+    <li>
+    <b>Human Bubble Sort:</b> 
+    Students line up holding cards with numbers. Perform Bubble Sort physically 
+    by comparing adjacent students and swapping positions if needed, clearly 
+    visualizing each step of the sorting process.
+  </li>
+  <li>
+    <b>Bubble Sort Optimization Discussion:</b> 
+    Divide the class into groups. Each group discusses and proposes one or more 
+    ways to optimize Bubble Sort, then shares their ideas with the class.
+  </li>
+
+  <li>
+    <b>Algorithm Comparison:</b> 
+    Provide students with printed arrays of varying sizes and arrangements 
+    (random, nearly sorted, reversed). Students manually sort arrays using 
+    Bubble Sort, Insertion Sort, and Selection Sort to compare and discuss the 
+    performance and efficiency of each method.
+  </li>
+
+  <li>
+    <b>Code Tracing Exercise:</b> 
+    Give students short segments of code implementing Bubble Sort. Ask them to 
+    step-by-step trace through sorting small sample arrays, recording each swap 
+    to ensure they understand exactly how the algorithm behaves.
+  </li>
+
+  <li>
+    <b>Identify the Sorting Mistake:</b> 
+    Present students with a Bubble Sort implementation that includes an error. 
+    Students work in pairs to identify, explain, and correct the mistake, 
+    reinforcing their understanding of algorithm logic and correctness.
+  </li>
+  <li><b>Linked List Bubble Sort</b>
+  Would it make sense to implement Bubble Sort on a linked list? Explain 
+  the advantages and disadvantages. What would the best and worst case 
+  complexities be?</li>
+</ol>
+
+<h2>Problems</h2>
+<ol>
+  <li>
+    Write pseudocode or actual code for Bubble Sort that includes an early 
+    termination check to optimize its best-case complexity. Explain how your 
+    modification improves the algorithm.
+  </li>
+
+  <li>
+    Modify Bubble Sort so that it repeatedly moves the smallest unsorted 
+    element to the front of the array (instead of the largest to the end). 
+    Provide your modified code or pseudocode.
+  </li>
+
+  <li>
+    Develop a recursive version of Bubble Sort. Clearly outline your algorithm's 
+    base case and recursive steps, and provide pseudocode or actual code for 
+    your solution.
+  </li>
+
+  <li>
+    Derive a recurrence relation for the worst-case complexity of your recursive 
+    Bubble Sort from Problem 3. Solve this recurrence to show its complexity is 
+    still O(n²).
+  </li>
+
+  <li>
+    Conduct an empirical analysis: Run Bubble Sort on arrays of three types 
+    (sorted, reversed, and randomly ordered) for various array sizes. Record and 
+    analyze the number of comparisons and swaps in each scenario, and summarize 
+    your findings.
+  </li>
+
+  <li>
+    Discuss practical scenarios where Bubble Sort might be preferred over faster 
+    sorting algorithms. Consider ease of implementation, small dataset size, 
+    and partially sorted arrays.
+  </li>
+
+  <li>
+    Suppose Bubble Sort is run on the array <code>[4, 2, 3, 1, 5]</code>. Show 
+    the state of the array after each pass through the array.
+  </li>
+
+  <li>
+    Compare Bubble Sort to Selection Sort. Provide at least two similarities and 
+    two differences between these algorithms, focusing on complexity, algorithm 
+    strategy, and practical performance.
+  </li>
+
+  <li>
+    Implement Bubble Sort to sort an array of strings alphabetically. Discuss 
+    any modifications required compared to sorting numerical data.
+  </li>
+
+  <li>
+  Cocktail Shaker Sort (also known as Bidirectional Bubble Sort) alternates
+  between bubbling the largest element up and the smallest element down.
+  Implement Cocktail Shaker Sort, and discuss any advantages or disadvantages
+  it has compared to traditional Bubble Sort.
+</li>
+
+</ol>
+
+
+</body>
+</html>
