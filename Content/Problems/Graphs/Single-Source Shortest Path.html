@@ -24,7 +24,7 @@
     <h3>Output</h3>
     <p>
       A mapping of each vertex \( v \in V \) to the length of the shortest path from \( s \) to \( v \), 
-	  or ∞ if no such path exists. Optionally, the actual paths. 
+	  or \(\infty\) if no such path exists. Optionally, the actual paths. 
 	  When a graph has no negative weight edges, 
 	  the edges in a shortest-path tree rooted at \(s\) can also be given. When negative weights are allowed,
 	  the solutions can be more complicated than a simple tree, so the best you can do is list the paths from \(s\)
@@ -206,13 +206,14 @@
       <li>Dijkstra’s Algorithm — for graphs with non-negative weights</li>
       <li>Bellman-Ford — supports negative weights (no negative cycles)</li>
       <li>BFS — for unweighted graphs (all edge weights = 1)</li>
-      <li>A* Search — informed version of Dijkstra with heuristics</li>
+      <li>A* Search — informed version of Dijkstra with heuristics (solves shortest path from \(s\) to \(t\))</li>
     </ul>
   </section>
 
   <section>
     <h2>Variants/Related Problems</h2>
     <ul>
+      <li>Shortest path from \(s\) to \(t\)</li>
       <li>All-Pairs Shortest Path</li>
       <li>Minimum Spanning Tree</li>
       <li>Traveling Salesman Problem (TSP)</li>

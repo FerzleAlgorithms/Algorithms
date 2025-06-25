@@ -140,6 +140,22 @@
     </select>
   </div>
 
+
+<div class="legend">
+  <div class="legend-label">
+    <strong>Legend:</strong>
+  </div>
+  <div class="legend-items">
+    <span class="legend-box default"></span> Unprocessed
+    <span class="legend-box comparing"></span> Comparing
+    <span class="legend-box swap"></span> Bucketed
+    <span class="legend-box sorted"></span> Placed<br>
+    <span class="legend-box comparing-insert"></span> Insertion Sort Key
+    <span class="legend-box bucket-range"></span> Bucket Range
+    <span class="bucket-arrow">↓</span> Bucket Arrow
+  </div>
+</div>
+
   <div id="step-desc" class="step-comment"></div>
   
   <!-- Main array label -->
@@ -157,22 +173,6 @@
   <!-- Buckets label -->
   <div class="section-label">Buckets:</div>
   <div id="buckets"></div>
-
-
-<div class="legend">
-  <div class="legend-label">
-    <strong>Legend:</strong>
-  </div>
-  <div class="legend-items">
-    <span class="legend-box default"></span> Unprocessed
-    <span class="legend-box comparing"></span> comparing
-    <span class="legend-box swap"></span> Bucketed
-    <span class="legend-box sorted"></span> Placed<br>
-    <span class="legend-box comparing-insert"></span> key for comparison sort
-    <span class="legend-box bucket-range"></span> Bucket Range
-    <span class="bucket-arrow">↓</span> Bucket Arrow
-  </div>
-</div>
 
   <script>
     let originalArray = [], steps = [], cur = 0;

@@ -14,6 +14,64 @@
   <h1>Greedy Algorithms</h1>
 
   <!-- Motivation & Introduction -->
+    <section id="introduction">
+  <h2>Introduction</h2>
+  <p>
+    Greedy algorithms build a solution iteratively by making the most favorable choice available at each step.
+    When the following two properties hold, this approach is guaranteed to produce an optimal solution:
+  </p>
+  <ul>
+    <li>
+      <strong>Greedy-choice property:</strong>
+      A global optimal solution can be reached by making a locally optimal (greedy) choice at each step,
+      without reconsidering previous choices.
+    </li>
+    <li>
+      <strong>Optimal substructure:</strong>
+      A problem exhibits optimal substructure if once you make any optimal first choice, 
+      the leftover instance is of the same form, and solving that smaller instance optimally 
+      and combining it with your initial choice yields a globally optimal solution.
+    </li>
+  </ul>
+  <p>
+    Bringing these together: the greedy-choice property lets us make the best local decision at each step, 
+    and optimal substructure ensures that each decision leaves a smaller problem that can still be solved optimally.
+    Together, they guarantee the greedy method yields a global optimum.
+  </p>
+  <p>
+    In order to guarantee that an algorithm produces an optimal solution, a problem must exhibit both properties:
+  </p>
+  <ul>
+    <li>
+      If it does not exhibit the greedy-choice property, making only locally optimal choices may lead to a suboptimal global solution.
+    </li>
+    <li>
+      If it does not exhibit optimal substructure, solving each subproblem optimally does not ensure a globally optimal outcome.
+    </li>
+  </ul>
+  <p>
+    Proving these properties is sometimes straightforward and sometimes not. In general:
+  </p>
+  <ul>
+    <li>
+      To prove the greedy-choice property, use an exchange argument that shows any optimal solution can be transformed to one that begins with the greedy choice without losing optimality.
+    </li>
+    <li>
+      To prove optimal substructure, demonstrate that the tail of any optimal solution&mdash;after its first decision&mdash;remains optimal for the residual subproblem, often via contradiction.
+    </li>
+  </ul>
+      
+  <p>
+    Because they never backtrack, greedy methods are often simple to implement and run in near-linear time
+    (or \(O(n\log n)\) when sorting is involved, which is not uncommon).
+    Even when the greedy-choice property fails, 
+    they can yield <em>pretty good</em> approximations 
+    quickly&mdash;how close depends on the particular problem.
+  </p>
+</section>
+
+
+
 <section id="introduction">
   <h2>Introduction</h2>
   <p>
@@ -26,15 +84,32 @@
       A global optimal solution can be reached by making a locally optimal (greedy) choice at each step,
       without reconsidering previous choices.
     </li>
-    <li><strong>Optimal substructure:</strong> 
-    A problem exhibits optimal substructure when an optimal solution to the overall problem can be composed 
-    from optimal solutions of its smaller subproblems. In other words, once you make a decision&mdash;say, 
-    picking an element or allocating some resource&mdash;the remaining portion of the problem is of the same form, 
-    and solving that smaller instance optimally and appending its solution preserves overall optimality. 
-    This guarantees that greedy choices don't "paint you into a corner," 
-    because each local decision leaves behind a subproblem whose best answer leads directly to the global optimum.
+    <li>
+      <strong>Optimal substructure:</strong>
+      A problem exhibits optimal substructure if once you make any optimal first choice, 
+      the leftover instance is of the same form, and solving that smaller instance optimally 
+      and combining it with your initial choice yields a globally optimal solution.
     </li>
   </ul>
+  
+  <p>Bringing these togetger, 
+    the greedy-choice property says we can make the obvious choice, and optimal substructure says that we
+    can simply continue to solve the remaining subproblem since making the greedy choice did 
+    not "paint us in a corner."</p>
+  <p>In order to guarantee that an algorithm produces an optimal solution, a problem must exhibit both properties.  
+  <ul>
+    <li>If it does not exhibit the greedy-choice property...   </li>
+    <li>If it does not exbibit optimal substructure...   </li>
+  </ul>
+    </p>
+    <p>Proving these properties is sometimes straightforward and sometimes not. In general, 
+      <ul>
+    <li>To prove the greedy-choice property...   </li>
+    <li>To prove optimal substructure...   </li>
+  </ul>
+    </p>
+    
+    
   <p>
     Because they never backtrack, greedy methods are often simple to implement and run in near-linear time
     (or \(O(n\log n)\) when sorting is involved, which is not uncommon).
@@ -88,11 +163,21 @@
     return selected</code></pre>
   
 <p>
-We can prove that the greedy algorithm produces an optimal solution using an "exchange" argument. 
+We can prove that the greedy algorithm produces an optimal solution by proving the problem has the two required properties.
+<ul>
+<li><strong>Greedy-Choice:</strong>
+We use an "exchange" argument. 
 Let \(G\) be the schedule produced by the greedy algorithm and \(S\) be any optimal schedule.
 Assume the intervals are stored in increasing order by finish time in each schedule. 
 Suppose the first interval chosen by \(G\) finishes at \(f(g_1)\) and the first interval in \(S\) finishes at \(f(o_1)\). Since \(g_1\) is the interval with the earliest finish time, \(f(g_1)\le f(o_1)\). If \(o_1\ne g_1\), replace \(o_1\) with \(g_1\) in \(S\); the new schedule remains feasible and retains optimal size. Repeating this exchange for each subsequent interval shows that \(G\) selects at least as many intervals as \(S\), establishing that the greedy strategy is optimal.
-</p>
+</li><li>
+  <strong>Optimal Substructure:</strong>
+  Once you take the first interval (the one finishing earliest), the remaining task is exactly another interval scheduling instance on the intervals that start at or after its finish time.  
+  Any optimal schedule for this reduced set, when appended to your first choice, yields an optimal schedule for the full collection.  
+  If there were a better way to schedule the remaining intervals, swapping in that improved schedule would strictly increase the total number of intervals&mdash;contradicting the optimality of the original greedy solution.
+</li>
+</ul>
+
 <p>
 Let's see the algorithm in action.
 </p>
@@ -199,40 +284,46 @@ with the original items.
     <p>
     To prove that the algorithm computes an optimal solution, we will show that the problem exhibits
     optimal substructure and the greedy-choice property.
+    </p>
     <ul>
-  <li>
-  <font color="red" size="5em">I AM HERE</font>
-  <strong>Optimal Substructure:</strong> If an optimal solution for capacity \(W\) includes a fraction of item \(i\), 
-  then the remaining \(W - x_i w_i\) capacity can be filled optimally by the same greedy process on the residual problem. 
-  Any optimal solution for the smaller capacity subproblem can be extended by adding the chosen fraction to form an 
-  optimal solution for the original problem.
-  
-  <Br><strong>Optimal Substructure:</strong>
-  Suppose in an optimal packing of capacity \(W\), we take a fraction \(x_i\) of item \(i\) (where \(0 \lt x_i \le 1\)).  
-  Then the remaining capacity is \(W' = W - x_i\,w_i\).  
-  Because values and weights add linearly, the best way to fill that leftover capacity \(W'\) is exactly the same fractional-knapsack process applied to the reduced set of items (with item \(i\) now having weight \((1 - x_i)\,w_i\) if it isn’t completely used).  
-  Any optimal solution on the smaller problem can be appended after taking \(x_i\) of item \(i\) to yield an optimal solution for the original problem.</li>
-<li>
-  <strong>Greedy-Choice Property:</strong>
-  Let item \(i\) have the highest density \(p_i = v_i/w_i\).  
-  If an optimal solution did not use item \(i\) first, it must instead use some combination of lower-density items totaling the same weight.  
-  Swapping out that weight for item \(i\) (or taking as much of \(i\) as possible) can only increase or preserve total value, since
-  \[
-    \text{value exchanged} 
-    = p_i \cdot (\text{weight exchanged})
-    \;\ge\; p_j \cdot (\text{weight exchanged})
-  \]
-  for any other item \(j\) with density \(p_j \le p_i\).  
-  Thus there is always an optimal solution that “starts” with as much of the highest-density item as feasible.
-</li>
-</ul>
+      <li>
+        <strong>Optimal Substructure:</strong>
+        Let \((A,W)\) be an instance of fractional knapsack with items \(A\) and knapsack weight \(W,\) and let  
+        \(S\) be an optimal solution for \((A,W)\) with value \(V\). 
+        Let \(k\) be some item that \(S\) includes with fractional amount \(x_k\).  
+        We define a subproblem as solution as follows:
+        <ul>
+          <li>
+            \(S' = S \setminus \{k\}\), the part of the original solution excluding the fraction of item \(k\).
+          </li>
+          <li>
+            \(W' = W - x_k\,w_k\), the remaining capacity after reserving room for a fraction \(x_k\) of item \(k\).
+          </li>
+          <li>
+            \(A'\) is the item set identical to \(A\), except item \(k\) now has only \((1-x_k)w_k\) weight left.
+          </li>
+          <li>\(V'=V-v_k\cdot x_k\), is the value of \(S'\).
+        </ul>
+        Then \((A',W')\) is a smaller knapsack instance, and \(S'\) fills it exactly.  
+        We need to prove that \(S'\) is optimal for \((A',W')\). 
+        <br> 
+        Suppose, for contradiction, that \(S'\) is <em>not</em> optimal for \((A',W')\).  
+        Then there is some other solution \(T'\) of weight \(\le W'\) with value \(V_{T'}>V'\). 
+        But if we take \(x_k\) of item \(k\) (as \(S\) did) and then follow it with \(T'\), 
+        we get a valid solution for \((A,W)\) whose value is \(V_{T'}+v_k\cdot x_k \gt V' + v_k\cdot x_k = V\).
+        But since \(S\) was optimal, this is a contradiction since it is a better solution. 
+        Therefore \(S'\) <em>must</em> be optimal for \((A',W')\).  
+        Since this holds for <em>any</em> optimal \(S\), the fractional-knapsack problem has optimal substructure.
+      </li>
 
-      <p>
-        
-      </p>
-      <p>
-        <strong>Greedy-Choice Property:</strong> Let \(i\) be the item with highest density \(p_i\). Taking as much as possible of \(i\) cannot worsen the final total value, because any optimal solution that does not begin with item \(i\) can be modified by swapping in \(i\) for an equal-weight portion of lower-density items without decreasing value, maintaining feasibility.
-      </p>
+      <li>
+        <strong>Greedy-Choice Property:</strong> Let \(i\) be an item with highest density \(p_i = v_i/w_i\). 
+        Taking as much as possible of \(i\) cannot worsen the final total value, 
+        because any optimal solution that does not begin with item \(i\) can be modified 
+        by swapping in \(i\) for an equal-weight portion of any other items since none have a higher density,
+        so the swap cannot decrease the value.
+      </li>
+   </ul>
       
       <p><strong>Time Complexity:</strong> \(O(n\log n)\) for sorting, plus \(O(n)\) time
       for selecting, for a total of \(O(n\log n + n)= O(n\log n)\) time.
