@@ -71,55 +71,6 @@
 </section>
 
 
-
-<section id="introduction">
-  <h2>Introduction</h2>
-  <p>
-    Greedy algorithms build a solution iteratively by making the most favorable choice available at each step.
-    When the following two properties hold, this approach is guaranteed to produce an optimal solution:
-  </p>
-  <ul>
-    <li>
-      <strong>Greedy-choice property:</strong>
-      A global optimal solution can be reached by making a locally optimal (greedy) choice at each step,
-      without reconsidering previous choices.
-    </li>
-    <li>
-      <strong>Optimal substructure:</strong>
-      A problem exhibits optimal substructure if once you make any optimal first choice, 
-      the leftover instance is of the same form, and solving that smaller instance optimally 
-      and combining it with your initial choice yields a globally optimal solution.
-    </li>
-  </ul>
-  
-  <p>Bringing these togetger, 
-    the greedy-choice property says we can make the obvious choice, and optimal substructure says that we
-    can simply continue to solve the remaining subproblem since making the greedy choice did 
-    not "paint us in a corner."</p>
-  <p>In order to guarantee that an algorithm produces an optimal solution, a problem must exhibit both properties.  
-  <ul>
-    <li>If it does not exhibit the greedy-choice property...   </li>
-    <li>If it does not exbibit optimal substructure...   </li>
-  </ul>
-    </p>
-    <p>Proving these properties is sometimes straightforward and sometimes not. In general, 
-      <ul>
-    <li>To prove the greedy-choice property...   </li>
-    <li>To prove optimal substructure...   </li>
-  </ul>
-    </p>
-    
-    
-  <p>
-    Because they never backtrack, greedy methods are often simple to implement and run in near-linear time
-    (or \(O(n\log n)\) when sorting is involved, which is not uncommon).
-    Even when the greedy-choice property fails, 
-    they can yield <em>pretty good</em> approximations 
-    quickly&mdash;how close depends on the particular problem.
-  </p>
-</section>
-
-
   <!-- Pseudocode Skeleton -->
   <section id="pseudocode">
     <h2>Pseudocode Skeleton</h2>
@@ -493,29 +444,109 @@ with the original items.
       Chosing items in decreasing order of value per unit weight ensures an optimal solution.</li>
       <li><strong>Answer:</strong> An exchange argument shows that swapping any choice in an optimal solution with the greedy choice maintains feasibility and does not decrease the solution's quality.</li>
       <li><strong>Answer:</strong> For example, in the 0-1 knapsack problem greedy by density fails because items cannot be fractioned.</li>
-      <li><strong>Answer:</strong> Typically \(O(n log n)\) time, due to the initial sorting or priority-queue operations.</li>
+      <li><strong>Answer:</strong> Typically \(O(n)\) time, unless sorting is involved in which case it is \(O(n \log n)\) time.</li>
       <li><strong>Answer:</strong> Inconsistent tie-breaking can lead to different valid solutions; defining a clear rule ensures deterministic and correct outcomes.</li>
     </ol>
   </div>
 </section>
-  <!-- In-Class Activities -->
-  <section id="activities">
-    <h2>In-Class Activities</h2>
-    <ul>
-      <li>Work in pairs to sketch the technique flow on the whiteboard.</li>
-      <li>Use cards representing subproblems and arrange them.</li>
-    </ul>
-  </section>
+<section id="activities">
+  <h2>In-Class Activities</h2>
+  <ol>
+    <li><strong>Counterexample/Proof:</strong>
+    Pick either Interval Scheduling or Fractional Knapsack and try to find a counterexample that shows that
+    the greedy algorithm doesn't alwayts work. Alternatively, convince yourself that the greedy algorithm will
+    indeed always produce and optimal solution. Have one or more students give clear arguments for their case.
+    </li>
+    <li>
+      <strong>Exchange Argument Workshop:</strong>
+      In small groups, use colored cards to represent two schedules&mdash;one greedy (interval scheduling) and one 'optimal'.  
+      Step through the exchange argument by swapping later-finishing intervals for earlier ones until both match.
+    </li>
+    <li>
+      <strong>Design and Test a Greedy Strategy:</strong>
+      Give each pair a coin system that is not canonical (for example {1, 3, 4}).  
+      Have them propose and simulate a greedy coin-change algorithm, then find a counterexample where it fails.
+    </li>
+    <li>
+      <strong>Fractional Knapsack Simulation:</strong>
+      Each student receives a set of 5 items with given values and weights and a capacity.  
+      Manually compute densities \(p_i = v_i / w_i\), sort the items by density, and fill the knapsack with fractions.  
+      Compare with a brute-force check for the same instance.
+    </li>
+    <li>
+      <strong>Greedy versus Non-Greedy Debate:</strong>
+      Pick a problem. 
+      Split the class: half argue that a greedy strategy works for a given problem, half argue that it does not.  
+      Each side presents either a proof sketch or a counterexample.
+    </li>
+        <li>
+      <strong>Minimum Stabbing Points:</strong>  
+      You are given a set of \(n\) closed intervals \([s_i, f_i]\) on the real line.  
+      Design a greedy algorithm that selects the smallest possible set of points \(P\) such that every interval contains at least one point in \(P\).  
+      Provide pseudocode, analyze its time complexity, and give a brief proof of correctness.
+    </li>
+    <li>
+      <strong>Optimal Rope Merging:</strong>  
+      You have \(n\) ropes with lengths \(l_1, l_2, \dots, l_n\).  Merging any two ropes of lengths \(a\) and \(b\) costs \(a + b\) and produces a new rope of length \(a + b\).  
+      Design a greedy strategy to merge all ropes into one at minimum total cost.  
+      Provide pseudocode, analyze its time complexity (hint: consider an appropriate data structure), and justify why your greedy choice yields an optimal solution.
+    </li>
+  </ol>
+</section>
 
-  <!-- Practice Problems -->
-  <section id="problems">
-    <h2>Homework Problems</h2>
-    <h3>Basic</h3>
-    <ul>
-      <li>Apply the technique to [Simple Problem A].</li>
-    </ul>
-    <h3>Advanced</h3>
-    <ul>
-      <li>Combine this technique with [Another Technique] to solve [Complex Problem].</li>
-    </ul>
-  </section>
+<section id="problems">
+  <h2>Homework Problems</h2>
+
+  <h3>Basic</h3>
+  <ol>
+    <li>
+      <strong>Canonical Coin Change:</strong><br>
+      For U.S. coin denominations \(\{1,5,10,25\}\), design a greedy algorithm to make change for any amount \(C\).  
+      Clearly define what the greedy choice is and prove that the greedy choice minimizes the number of coins.
+    </li>
+    <li>
+      <strong>Non-Canonical Coin Change:</strong><br>
+      For the coin system \(\{1,3,4\}\), design a greedy algorithm to make change and find 
+      an explicit amount where it fails to be optimal. Then propose a modification that fixes the counterexample.
+      Give a clear justification for why the modifies algorithm is correct.
+    </li>
+    <li>
+      <strong>Minimum Stabbing Points:</strong><br>
+      Given \(n\) closed intervals on the line, devise a greedy algorithm that chooses the smallest set of points so each interval contains at least one point.  
+      Explain your choice and prove correctness.
+    </li>
+    <li>
+      <strong>Rope Merging:</strong><br>
+      You have \(n\) ropes of lengths \(l_1, \dots, l_n\). Merging two ropes of lengths \(a\) and \(b\) costs \(a + b\).  
+      Give a greedy strategy to minimize total merge cost, analyze its complexity, and argue why it is optimal.
+    </li>
+  </ol>
+
+  <h3>Advanced</h3>
+  <ol>
+    <li>
+      <strong>Minimizing Maximum Lateness:</strong><br>
+      Each job \(i\) has processing time \(t_i\) and deadline \(d_i\).  
+      Design a greedy algorithm to schedule all jobs so as to minimize the maximum lateness \(\max_i(C_i - d_i)\), where \(C_i\) is completion time.  
+      Justify why sorting by earliest deadline works.
+    </li>
+    <li>
+      <strong>Job Sequencing with Deadlines and Profit:</strong><br>
+      You have jobs with deadlines \(d_i\) and profits \(p_i\). Each job takes unit time.  
+      Devise a greedy strategy to maximize total profit by scheduling at most one job per time slot.  
+      Analyze your algorithm and prove why it works (clearly define what the greedy choice is and prove that
+      the greedy-choice proprty holds).
+    </li>
+    <li>
+      <strong>Greedy Set Cover Approximation:</strong><br>
+      Given a universe \(U\) and a collection of subsets \(S_1, \dots, S_m\), 
+      design a greedy algorithm that attempts to cover \(U\) with the fewest possible subsets.
+      Clearly explain what your greedy choice is. Determine the computational complexity of your algorithm.
+      If you algorithm is correct (i.e. it always give an optimal solution), give a proof. If it is not,
+      give a counterexample.
+    </li>
+  </ol>
+</section>
+
+</body>
+</html>

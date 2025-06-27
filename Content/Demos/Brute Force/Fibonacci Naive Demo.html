@@ -29,7 +29,7 @@
       stroke-width: 3;
     }
     .node-text {
-      font-size: 12px;
+      font-size: 14px;
       text-anchor: middle;
       dominant-baseline: middle;
       pointer-events: none;
@@ -80,7 +80,7 @@
   <h2>Naïve Recursive Fibonacci Demo</h2>
   <div id="controls">
     <label for="inputN">n:</label>
-    <input type="number" id="inputN" min="2" max="9" value="5">
+    <input type="number" id="inputN" min="2" max="8" value="5">
     <button id="startBtn">Start</button>
     <button id="prevBtn" disabled>Previous</button>
     <button id="nextBtn" disabled>Next</button>
@@ -91,6 +91,7 @@
       <option value="1">1×</option>
       <option value="2">2×</option>
       <option value="4">4×</option>
+      <option value="8">8×</option>
     </select>
     <br><br>
     <span id="nodeCount">Number of nodes: 0</span>
@@ -138,6 +139,7 @@
     let svg = document.getElementById('treeSvg');
     let svgNS = 'http://www.w3.org/2000/svg';
     let createCount = 0;
+    const r = 12;
 
     // Playback globals
     let playing = false;
@@ -180,9 +182,8 @@
       });
       const viewBoxWidth  = 800;
       const viewBoxHeight = 400;
-      const radius        = 10;
       const levelHeight   = 50;
-      const marginX       = radius + 5;
+      const marginX       = r + 5;
       const usableWidth   = viewBoxWidth - 2 * marginX;
       const total         = allNodes.length;
 
@@ -194,7 +195,7 @@
         } else {
           node.x = viewBoxWidth / 2;
         }
-        node.y = node.depth * levelHeight + radius;
+        node.y = node.depth * levelHeight + r;
         xCounter++;
         inorder(node.right);
       }
@@ -224,7 +225,6 @@
 
     function drawLink(node) {
   if (!node.parent) return;
-  const r      = 10;                // circle radius
   const parent = node.parent;
   // vector from parent to child
   const dx     = node.x - parent.x;
@@ -255,13 +255,13 @@
       let circle = document.createElementNS(svgNS, 'circle');
       circle.setAttribute('cx', node.x);
       circle.setAttribute('cy', node.y);
-      circle.setAttribute('r', 10);
+      circle.setAttribute('r', r);
       circle.setAttribute('id', 'circle-' + node.id);
       circle.setAttribute('class', 'node-circle node-call node-current');
       document.getElementById('nodeLayer').appendChild(circle);
       let label = document.createElementNS(svgNS, 'text');
       label.setAttribute('x', node.x + 25);
-      label.setAttribute('y', node.y + 10);
+      label.setAttribute('y', node.y + r);
       label.setAttribute('id', 'label-' + node.id);
       label.setAttribute('class', 'node-label');
       label.textContent = `F(${node.n})`;
@@ -420,8 +420,8 @@
 
     document.getElementById('startBtn').addEventListener('click', () => {
       let n = parseInt(document.getElementById('inputN').value, 10);
-      if (isNaN(n) || n < 2 || n > 9) {
-        alert("Please enter an integer n with 2 ≤ n ≤ 9.");
+      if (isNaN(n) || n < 2 || n > 8) {
+        alert("Please enter an integer n with 2 ≤ n ≤ 8.");
         return;
       }
       initializeDemo(n);
