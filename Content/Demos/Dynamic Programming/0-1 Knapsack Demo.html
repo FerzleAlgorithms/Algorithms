@@ -3,54 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <title>0-1 Knapsack DP Demo</title>
-  <script src="../../scripts/demoScripts.js"></script>
-  <link rel="stylesheet" href="../../css/style.css">
-  <link rel="stylesheet" href="../../css/demo.css">
+  <script src="../../../scripts/demoScripts.js"></script>
+  <link rel="stylesheet" href="../../../css/style.css">
+  <link rel="stylesheet" href="../../../css/demo.css">
 <style>
-  body {
-    font-family: sans-serif;
-    margin: 20px;
-  }
-
-  #buttons {
-    margin: 10px 0;
-  }
-  #buttons button,
-  #buttons select {
-    margin-right: 8px;
-  }
-
-  .legend {
-    margin-top: 10px;
-  }
-  .legend-box {
-    display: inline-block;
-    width: 16px;
-    height: 16px;
-    margin-right: 4px;
-    vertical-align: middle;
-    border: 1px solid #333;
-  }
-  .legend-label {
-    margin-right: 16px;
-    vertical-align: middle;
-    font-size: 14px;
-  }
-
-  #commentary {
-  margin-top: 10px;
-  margin-bottom: 4px;      /* add a little breathing room below */
-  font-style: italic;
-  white-space: pre-line;  
-  line-height: 1.7em;      /* tighten the gap between lines */
-  height: calc(1.7em * 2); /* reserve exactly two lines */
-  
-}
 
   .array-container {
-    display: flex;
-    align-items: flex-end;
-    margin-top: 4px;
     margin-bottom: 20px;
   }
 
@@ -64,15 +22,9 @@
     position: relative;
     margin-right: 4px;
     text-align: center;
+	font-size: .8em;
   }
 
-  /* global element sizing */
-  .element {
-    width: 40px;
-    height: 40px;
-    line-height: 40px;
-    font-size: 0.8em;
-  }
 
   /* dp‐table layout */
   .dp-table {
@@ -182,7 +134,7 @@
 
 /* Solution‐items key in legend */
 .legend-box.insideKnapsack-element {
-  background-color: #12f7d1;
+  background-color: #72ebae;
 }
 
 /* Solution‐items key in legend */
@@ -226,7 +178,7 @@
     <label style="margin-left:16px;">W (Capacity):</label>
     <input type="number" id="capacityInput" min="0" max="30" placeholder="W" style="width:50px;">
     <button id="setWeightBtn">Set weight</button>
-
+	<br><br>
     <button id="prevBtn" disabled>Previous</button>
     <button id="nextBtn" disabled>Next</button>
     <button id="playBtn">Play</button>
@@ -246,16 +198,16 @@
     <!-- <span class="legend-box v-element"></span><span class="legend-label">v (Values)</span>
     <span class="legend-box w-element"></span><span class="legend-label">w (Weights)</span>
     <span class="legend-box k-element"></span><span class="legend-label">K (DP table)</span> -->
-    <span class="legend-box sel-element"></span><span class="legend-label">Current cell</span>
+	<strong>Legend:</strong>
+    <span class="legend-box sel-element"></span><span class="legend-label">Current Cell</span>
     <span class="legend-box choice-element"></span><span class="legend-label">Include Item</span>
      <span class="legend-box skip-element"></span><span class="legend-label">Exclude Item</span>
-    <span class="legend-box insideKnapsack-element"></span><span class="legend-label">Inside Knapsack</span>
-<span class="legend-box outsideKnapsack-element"></span><span class="legend-label">Outside Knapsack</span>
+    <span class="legend-box insideKnapsack-element"></span><span class="legend-label">Taken</span>
+<span class="legend-box outsideKnapsack-element"></span><span class="legend-label">Not Taken</span>
 
      
   </div>
 
-  <div id="commentary"></div>
 
   <!-- Arrays -->
   <div><strong>v (Values):</strong></div>
@@ -264,6 +216,7 @@
   <div><strong>w (Weights):</strong></div>
   <div id="w-array" class="array-container"></div>
 
+  <div id="commentary" style=" height: 90px; margin-top: 10px; margin-bottom: 20px; line-height: 1.5;"></div>
   <!-- DP Table -->
   <div><strong>K (DP table):</strong></div>
   <table id="k-table" class="dp-table">
@@ -276,9 +229,9 @@
   </div>
   <script>
     // ---- Global State ----
-    let v = [6, 8, 4, 7, 5];
-    let w = [4, 5, 3, 7, 2];
-    let W = 12;
+    let v = [7,10,2,3,2,6];
+    let w = [3,2,6,1,7,4];
+    let W = 10;
 
     let steps = [];
     let current = 0;
@@ -344,8 +297,9 @@
             // ─── Special‐case row 0 ─────────────────────────────────
       for (let j = 0; j <= W; j++) {
         const cmp0 = j < w[0]
-        ? `w[0] > j: ${w[0]} > ${j} (weight of first item is greater than current capacity)`
-        : `i < n: ${j} < ${W+1} (weight of current item is less than current capacity, populating first row with item value until row is full)`;
+        ? `Compare w[0] and j: ${w[0]} > ${j} ( w[0] > j ) <br>Weight of first item is greater than current capacity&mdash;cannot include item`
+        : `Compare w[0] and j: ${w[0]} <= ${j} ( w[0] <= j ) <br>Weight of current item is less than current capacity&mdash;including item`;
+        //: `i < n: ${j} < ${W+1} (weight of current item is less than current capacity, populating first row with item value until row is full)`;
 
 
         if (j < w[0]) {
@@ -359,7 +313,7 @@
           });
           // assign = 0
           K[0][j] = 0;
-          const assign0 = `K[0][${j}] = 0 (not included)`;
+          const assign0 = `K[0][${j}] = 0 (item not included)`;
           recordStep({
             v, w, K, selected: [], i: 0, j,
             takePrev: null,
@@ -399,21 +353,24 @@
         : v[i] + K[i-1][j - w[i]];
      let cmp;
     if (j < w[i]) {
-      cmp = `j < w[${i}]: ${j} < ${w[i]}  (weight of current item is greater than current capacity)`;
+      cmp = `Compare j and w[${i}]: ${j} < ${w[i]} ( j < w[${i}] )<br>`;
+	  cmp += `Weight of current item is greater than current capacity&mdash;cannot include item`;
     } else {
       const vi = v[i];
-     const lhs = `K[${i-1}][${j - w[i]}] + v[${i}]`;
+	  let intro=`Including item yields value K[${i-1}][${j - w[i]}] + v[${i}] = ${K[i-1][j - w[i]]} + ${v[i]} = ${withItem} <br>`;
+	  intro += `Excluding item yields value K[${i-1}][${j}] = ${K[i-1][j]}<br>`;
+      const lhs = `K[${i-1}][${j - w[i]}] + v[${i}]`;
       const rhs = `K[${i-1}][${j}]`;
       const cmpSymbol = withItem > without ? '>' : withItem < without ? '<' : '==';
 
-      cmp = `${lhs} ${cmpSymbol} ${rhs}: ${withItem} ${cmpSymbol} ${without} `;
+      cmp = intro+`${withItem} ${cmpSymbol} ${without} ( ${lhs} ${cmpSymbol} ${rhs} )<br>`;
 
       if (withItem > without) {
-        cmp += `(value of ${j}th weight knapsack is greater including item than excluding it)`;
+        cmp += `Including item ${i} is better`;
       } else if (withItem < without) {
-        cmp += `(value of ${j}th weight knapsack is lesser including item than excluding it)`;
+        cmp += `Excluding item ${i} is better`;
       } else {
-        cmp += `(including and excluding the item for the ${j}th weight knsapsack are the same)`;
+        cmp += `Including and excluding item ${i} give same value`;
       }
 
     }
@@ -442,14 +399,15 @@
         }
       }
 
-      recordStep({ v, w, K, selected: [], i: null, j: null, description: 'Completed DP table' });
+      recordStep({ v, w, K, selected: [], i: null, j: null, 
+	  description: `Completed DP table. <br>Optimal value is ${K[n-1][W-1]}.` });
 
       // Backtracking
       let solCells = [];
       let skipCells = [];        // ← NEW
       let selected = [];
-      let i = n - 1, j = W;
           // mark start of backtracking
+      let i = n - 1, j = W;
      recordStep({ v, w, K, selected, solCells: solCells.slice(), skipCells: skipCells.slice(),i, j, description: 'Backtracking to find selected items' });
 
      // step backwards through rows  i = n−1 … 1
@@ -457,9 +415,10 @@
        // 1) comparison step
        const prevVal = K[i-1][j];
        const currVal = K[i][j];
-       const cmpDesc = (currVal !== prevVal)
-         ? `k[${i}][${j}] != k[${i-1}][${j}]: ${currVal} != ${prevVal} (item ${i} is in solution)`
-         : `k[${i}][${j}] == k[${i-1}][${j}]: ${currVal} == ${prevVal} (item ${i} is not in solution)`;
+       let cmpDesc = `Comparing K[${i}][${j}] and K[${i-1}][${j}]<br>`;
+	   cmpDesc += (currVal !== prevVal)
+         ? `${currVal} > ${prevVal} ( K[${i}][${j}] > K[${i-1}][${j}] )<br>Item ${i} is in solution`
+         : `${currVal} == ${prevVal} ( K[${i}][${j}] == K[${i-1}][${j}] )<br>Item ${i} is not in solution*<br>(*If we wanted to compute all solutions we would need to explore this case futher, but we will not.)`;
        const prevSkip = [i-1, j];
        recordStep({
         v, w, K,
@@ -481,8 +440,8 @@
   const newJ = oldJ - w[i];
 
   const assignDesc =
-    `selected[${i}] = True (item included in final solution)\n` +
-    `j = ${oldJ} - ${w[i]} = ${newJ} (weight left); i-- (move to next item)`;
+    `Item ${i} included in final solution<br>` +
+    `j = ${oldJ} - ${w[i]} = ${newJ} (subtract weight of item ${i})<br>i-- (move to next item)`;
 
   // step showing the inclusion (preserve skipCells so far)
   recordStep({
@@ -509,7 +468,7 @@
     j,
     takePrev: null,
     skipPrev: null,
-    description: `Advance to next i=${i - 1}, j=${j}`
+    description: `Continue at K[${i - 1},${j}]`
   });
 
   // ✅ DO NOT overwrite skipCells
@@ -517,7 +476,7 @@
 else {
       // 1) record that this cell was permanently skipped
       skipCells.push([i, j]);
-      const skipDesc = `selected[${i}] = False (item excluded)`;
+      const skipDesc = `Item ${i} excluded)`;
       recordStep({
           v, w, K,
           selected,
@@ -533,9 +492,8 @@ else {
      // ── special case for row 0 ────────────────────────────────
     // 1) comparison for item 0
 const cmp0 = (j >= w[0] && K[0][j] > 0)
-  ? `j >= w[0] && k[0][${j}] > 0 (${j} ≥ ${w[0]})`
-  : `j < w[0] or k[0][${j}] == 0 (${j} < ${w[0]} or K[0][${j}]=${K[0][j]})`;
-
+  ? `${j} ≥ ${w[0]} (j >= w[0])<br>There is enough space left for item 0`
+  : `${j} < ${w[0]} (j < w[0]<br>There is NOT enough space left for item 0`;
 recordStep({
   v, w, K,
   selected,
@@ -554,7 +512,7 @@ if (j >= w[0] && K[0][j] > 0) {
     solCells: solCells.slice(),
     skipCells: skipCells.slice(),  // ✅ preserve red again
     i: 0, j,
-    description: 'selected[0] = True'
+    description: 'Include item 0.'
   });
 } else {
   skipCells.push([0, j]);  // ✅ final red highlight for item 0
@@ -564,23 +522,16 @@ if (j >= w[0] && K[0][j] > 0) {
     solCells: solCells.slice(),
     skipCells: skipCells.slice(),
     i: 0, j,
-    description: 'selected[0] = False'
+    description: 'Exclude item 0.'
   });
 }
-     recordStep({
-  v, w, K, selected,
-  solCells: solCells.slice(),
-  skipCells: skipCells.slice(),   // ← PRESERVE red cells
-  i: null, j: null,
-  description: 'Backtracking complete'
-});
 
 recordStep({
   v, w, K, selected,
   solCells: solCells.slice(),
   skipCells: skipCells.slice(),   // ← PRESERVE red cells here too
   i: null, j: null,
-  description: `Demo finished. Selected items: [${selected}]. Final value: ${K[n-1][W]}`
+  description: `Backtracking complete. Selected items: [${selected}]. Final value: ${K[n-1][W]}`
 });
 
     }
@@ -814,7 +765,7 @@ function smashArrayElement(arrayId, idx, toRow, toCol) {
        renderArray('w-array', step.w, step.selected, null, step.i);
       renderDPTable(step);
 
-      document.getElementById('commentary').textContent = step.description;
+      document.getElementById('commentary').innerHTML = step.description;
       document.getElementById('prevBtn').disabled = (current < 0);
       document.getElementById('nextBtn').disabled = (current === steps.length - 1);
 

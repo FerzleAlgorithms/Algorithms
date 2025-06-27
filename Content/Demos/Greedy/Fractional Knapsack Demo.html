@@ -3,19 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <title>Fractional Knapsack Demo</title>
-  <script src="../../scripts/demoScripts.js"></script>
-  <link rel="stylesheet" href="../../css/style.css">
-  <link rel="stylesheet" href="../../css/demo.css">
+  <script src="../../../scripts/demoScripts.js"></script>
+  <link rel="stylesheet" href="../../../css/style.css">
+  <link rel="stylesheet" href="../../../css/demo.css">
   <style>
     /* === Shared styling with Heapsort Demo for consistency === */
-    body { font-family: sans-serif; margin: 20px; }
-    #buttons { margin: 10px 0; }
-    #buttons button, #buttons select { margin-right: 8px; }
-    .legend { margin-top: 10px; }
-    .legend-box { display: inline-block; width: 16px; height: 16px; margin-right: 4px; vertical-align: middle; border: 1px solid #666; }
-    .legend-label { margin-right: 16px; vertical-align: middle; font-size: 14px; }
-    #commentary { margin-top: 10px; font-style: italic; height: 40px; }
-    .array-container { display: flex; margin-top: 10px; align-items: flex-end; }
     .element-wrapper { display: flex; flex-direction: column; align-items: center; margin-right: 8px; }
     .element { width: 40px; height: 40px; line-height: 40px; text-align: center; border: 1px solid #333; font-size: 0.75em;}
    .index-label {font-size: 0.8em;margin-top: 4px;color: #333;width: 40px;display: block;text-align: center;}
@@ -128,23 +120,28 @@
            placeholder="W"
            style="width: 50px;">
     <button id="setWeightBtn">Set weight</button>
-    <button id="prevBtn" onclick="prevStep()" disabled>Previous</button>
-    <button id="nextBtn" onclick="nextStep()" disabled>Next</button>
-    <button id="playBtn">Play</button>
-    <label for="speed">Speed:</label>
-    <select id="speed">
-      <option value="1">1×</option>
-      <option value="2">2×</option>
-      <option value="4">4×</option>
-    </select>
+  </div>
+
+    <!-- new row for nav buttons, with matching 10px gap -->
+<div id="navButtons" style="margin-top:10px; white-space: nowrap;">
+  <button id="prevBtn" onclick="prevStep()" disabled>Previous</button>
+  <button id="nextBtn" onclick="nextStep()" disabled>Next</button>
+  <button id="playBtn">Play</button>
+  <label for="speed">Speed:</label>
+  <select id="speed">
+    <option value="1">1×</option>
+    <option value="2">2×</option>
+    <option value="4">4×</option>
+  </select>
+</div>
 
 <!-- Force legend to appear on a new line -->
 <div style="clear: both; height: 10px;"></div>
 <div class="legend">
+<strong>Legend:</strong>
   <span class="legend-box v"></span><span class="legend-label">v (Values)</span>
   <span class="legend-box w"></span><span class="legend-label">w (Weights)</span>
   <span class="legend-box p"></span><span class="legend-label">p (Ratios)</span>
-  <span class="legend-box i"></span><span class="legend-label">i (Indices)</span>
   <span class="legend-box s"></span><span class="legend-label">s (Solutions)</span>
 </div>
   <div id="commentary"></div>
@@ -156,6 +153,11 @@
   <!-- solutionContainer starts hidden -->
   <div id="solutionContainer" style="margin-top:10px; display:none;">
   <strong>Solution :</strong> <span id="solution">0.000</span>
+  </div>
+
+    <!-- proportionsContainer starts hidden -->
+  <div id="proportionsContainer" style="margin-top:4px; display:none;">
+    <strong>Proportions:</strong> <span id="proportions"></span>
   </div>
 
   <script>
@@ -286,8 +288,9 @@ function resetDemo() {
       //recordStep('');
       // 1) Create ratio array p
       p = Array.from({ length: v.length }, (_, i) => ({ value: 0, index: i }));
-      recordStep('Creating p (ratio) and i (indices) array.', { pIdx: 0 });
+      recordStep('Creating p (ratio)', { pIdx: 0 });
 
+ recordStep('Computing ratios for p...');   
 for (let i = 0; i < v.length; i++) {
   const ratio = v[i] / w[i];
   const displayRatio = Number(ratio.toFixed(3));
@@ -302,41 +305,45 @@ recordStep('Finished computing ratios');
 
 
        // ── Sort values, weights & ratios together ──
-       recordStep('Sorting p in descending order, with corresponding i values reordered accordingly using an O(n log n) algorithm.');
+       recordStep('Sorting p in descending order, with corresponding v, w values and their indices \n values reordered accordingly using an O(n log n) algorithm.');
        p.sort((a, b) => b.value - a.value);
        // 4) animate the now-sorted bars
       recordStep('sorted', { animate: true });
 
-      // 2) Create solution array s
-      s = new Array(v.length).fill(0);
-      recordStep('Created solution array s');
+         // 2) Create solution array s (in selection order)
+       // 2) Create solution array s (zero‐initialized, same length as v/w/p)
+s = new Array(v.length).fill(0);
+recordStep('Created solution array s (all zeros)');
+let solIdx = 0;             // insertion pointer
 
-      // Greedy fill
-      recordStep('Finding Solution: while W > 0');
-      let idx = 0;
-      let totalSolution = 0;
-        while (W > 0 && idx < v.length) {
-        // pre-compute everything
-        const { value, index } = p[idx];
-        const weightTaken = Math.min(W, w[index]);
-        const prevW = W;
-        const valueTaken = weightTaken * value;
-        s[index] = valueTaken;
-        const prevSol = totalSolution;
-        totalSolution += valueTaken;
-        W -= weightTaken;
+// Greedy fill
+recordStep('Finding Solution: while W > 0');
+let idx = 0;
+let totalSolution = 0;
+while (W > 0 && idx < v.length) {
+  const { value, index } = p[idx];
+  const weightTaken = Math.min(W, w[index]);
+  const prevW = W;
+  const valueTaken = weightTaken * value;
 
+  // write into s from left→right
+  s[solIdx] = weightTaken;
 
-        // 3b) single combined recordStep with pointer on s[idx]
-        recordStep(
-        `weightTaken = min(w[${index}], W) = (${w[index]}, ${prevW}) = ${weightTaken}; ` +
-        `s[${index}] = ${weightTaken} × ${value.toFixed(3)} = ${valueTaken.toFixed(3)};\n` +
-        `solution = ${prevSol.toFixed(3)} + ${valueTaken.toFixed(3)} = ${totalSolution.toFixed(3)};  ` +
-        `W = ${prevW} - ${weightTaken} = ${W};\n`,
-        { sIdx: index }
-      );
-        idx++;
-      }
+  const prevSol = totalSolution;
+  totalSolution += valueTaken;
+  W -= weightTaken;
+
+ recordStep(
+  `weightTaken = min(w[${index}], W) = (${w[index]}, ${prevW}) = ${weightTaken}; ` +
+  `s[${solIdx}] = ${weightTaken};\n` +
+  `solution = solution + p[${idx}]*weightTaken = ${prevSol.toFixed(3)} + ${valueTaken.toFixed(3)} = ${totalSolution.toFixed(3)};\n` +
+  `W = ${prevW} - ${weightTaken} = ${W};`,
+  { sIdx: solIdx }
+);
+
+  solIdx++;
+  idx++;
+}
 
       // Final answer
       recordStep(
@@ -421,43 +428,62 @@ function renderCombinedTable(v, w, p, s, pointers, description) {
   emptyLabel.style.marginRight = '8px';
   indexRow.appendChild(emptyLabel);
 
-  const maxLen = Math.max(v.length, w.length, p.length, s.length);
-  for (let i = 0; i < maxLen; i++) {
+    // decide which indices to print: if we're past ratio-step, use p[].index
+  const indices = (current > 0)
+    ? p.map(r => r.index)
+    : Array.from({ length: Math.max(v.length, w.length, p.length, s.length) }, (_, i) => i);
+
+  indices.forEach(idxVal => {
     const index = document.createElement('div');
-    index.textContent = i;
+    index.textContent = idxVal;       // ← now dynamic
     index.style.width = '40px';
     index.style.textAlign = 'center';
     index.style.fontSize = '0.8em';
     index.style.color = '#333';
     index.style.marginRight = '8px';
     indexRow.appendChild(index);
-  }
+  });
+
   container.appendChild(indexRow);
 
 
-  const arrays = [
-    { id: 'v', label: 'v (Values):', data: v, className: 'v-element', pointerKey: 'vIdx' },
-    { id: 'w', label: 'w (Weights):', data: w, className: 'w-element', pointerKey: 'wIdx' }
-  ];
+  // when p[] has been sorted, grab its .index order and permute v & w to match
+const displayOrder = (current > 0)
+  ? p.map(obj => obj.index)
+  : null;
 
-  // Only show p & i arrays if we are beyond step 0
+const vDisplay = displayOrder
+  ? displayOrder.map(i => v[i])
+  : v;
+const wDisplay = displayOrder
+  ? displayOrder.map(i => w[i])
+  : w;
+
+
+  const arrays = [
+  { id: 'v', label: 'v (Values):', data: vDisplay, className: 'v-element', pointerKey: 'vIdx' },
+  { id: 'w', label: 'w (Weights):', data: wDisplay, className: 'w-element', pointerKey: 'wIdx' }
+];
+
+    // Only show p array if we are beyond step 0
   if (current > 0) {
     arrays.push(
-      { id: 'p', label: 'p (Ratios):', data: p, className: 'p-element', pointerKey: 'pIdx' },
-      { id: 'i', label: 'i (Indices):', data: p.map(r => r?.index ?? '?'), className: 'i-element', pointerKey: null }
+      { id: 'p', label: 'p (Ratios):', data: p, className: 'p-element', pointerKey: 'pIdx' }
     );
   }
 
-// ✅ Only include `s` after the step explicitly creates it
-if (current > steps.findIndex(step => step.description.includes('Created solution array s'))) {
-  arrays.push({
-    id: 's',
-    label: 's (Solutions):',
-    data: s,
-    className: 's-element',
-    pointerKey: 'sIdx'
-  });
-}
+  // include `s` starting on the creation step itself
+  if (current >= steps.findIndex(step =>
+        step.description.includes('Created solution array s')
+      )) {
+    arrays.push({
+      id: 's',
+      label: 's (Solutions):',
+      data: s,
+      className: 's-element',
+      pointerKey: 'sIdx'
+    });
+  }
 
     arrays.forEach(arr => {
     const rowContainer = document.createElement('div');
@@ -493,17 +519,7 @@ else if (arr.id === 's') {
     elem.textContent = val;
   }
 
-
     wrapper.appendChild(elem);
-
-
-    // Add index label underneath for s row only
-    // if (arr.id === 's') {
-    //   const label = document.createElement('div');
-    //   label.classList.add('index-label');
-    //   label.textContent = i;
-    //   wrapper.appendChild(label);
-    // }
 
       rowContainer.appendChild(wrapper);
     });
@@ -514,6 +530,9 @@ else if (arr.id === 's') {
 
     function renderStep() {
   const step = steps[current];
+  // render the textual comment for this step
+  document.getElementById('commentary').innerHTML =
+    step.description.replace(/\n/g, '<br>');
   renderCombinedTable(step.v, step.w, step.p, step.s, step.pointers, step.description);
 
   //renderArray('s-array', step.s, step.s.map(v=>v>0?'final':null), step.pointers.sIdx);
@@ -528,28 +547,50 @@ else if (arr.id === 's') {
 
 
   // always update the running total from s[]
-  const totalSol = step.s.reduce((sum, x) => sum + x, 0);
-  document.getElementById('solution').textContent = totalSol.toFixed(3);
+  // 1) update the solution line as you already do:
+    // (fixed) sums up valueTaken = weightTaken × ratio
+    const totalSol = step.s.reduce(
+      (sum, weightTaken, j) => sum + weightTaken * step.p[j].value,
+      0
+    );
+    document.getElementById('solution').textContent = totalSol.toFixed(3);
 
-  // replace newlines with <br> so they show up on separate lines
-  document.getElementById('commentary').innerHTML =
-  step.description.replace(/\n/g, '<br>');
+    // 2) compute & show proportions under the Solution
+    const propContainer = document.getElementById('proportionsContainer');
+    const propSpan      = document.getElementById('proportions');
+
+    if (step.s.some(wt => wt > 0)) {
+      // build array of wt/originalWeight for each selected slot
+      const props = step.s.map((wt, selIdx) => {
+        if (wt > 0) {
+          const origIdx = step.p[selIdx].index;
+          return (wt / step.w[origIdx]).toFixed(2);
+        }
+        return '0';
+      });
+      propSpan.textContent       = '[' + props.join(', ') + ']';
+      propContainer.style.display = '';
+    } else {
+      propContainer.style.display = 'none';
+    }
+
   document.getElementById('prevBtn').disabled = !current;
   document.getElementById('nextBtn').disabled = current === steps.length - 1;
 
   // ←— NEW: if this step has animate:true, pop all three arrays
-  if (step.pointers.animate) {
+ // ←— animate v, w, and p rows on the sort step
+if (step.pointers.animate) {
+  // match these labels exactly to your renderCombinedTable labels
   const arrayLabels = {
-    p: 'p (Ratios):',
-    i: 'i (Indices):'
+    v: 'v (Values):',
+    w: 'w (Weights):',
+    p: 'p (Ratios):'
   };
 
-  Object.keys(arrayLabels).forEach(id => {
-    const labelText = arrayLabels[id];
-
-    const row = Array.from(document.querySelectorAll('#v-array .array-container'))
-      .find(row => row.firstChild?.textContent?.trim() === labelText);
-
+  Object.values(arrayLabels).forEach(labelText => {
+    const row = Array.from(
+      document.querySelectorAll('#v-array .array-container')
+    ).find(r => r.firstChild?.textContent?.trim() === labelText);
     if (!row) return;
 
     row.querySelectorAll('.element-wrapper').forEach(wr => {
@@ -564,6 +605,7 @@ else if (arr.id === 's') {
     });
   });
 }
+
 
 }
 

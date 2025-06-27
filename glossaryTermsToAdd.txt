@@ -17,4 +17,6 @@ Nondeterministic
 Nondeterministic Algorithm
 DAGs (add to DAG)
 String Matching
+Interval scheduling
+fractional knapsack (add to fractional knapsack problem)
 
