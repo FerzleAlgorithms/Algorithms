@@ -89,6 +89,7 @@
     },
     {
       "Divide-and-Conquer": [
+        "D & C Matrix Multiplcation Demo.html",
         "Exponentiation Demo.html",
         "Merge Sort Demo.html",
         "QuickSort Demo.html"
@@ -96,8 +97,8 @@
     },
     {
       "Dynamic Programming": [
+        "0-1 Knapsack Demo.html",
         "Coin Row Demo.html",
-        "Dynamic 0-1 Knapsack Demo.html",
         "Fibonacci Bottom Up Demo.html",
         "Fibonacci Top Down Demo.html",
         "Iterative FIb Demo.html"
@@ -122,6 +123,7 @@
       "Space-Time Tradeoff": [
         "Bucket Sort Demo.html",
         "Counting Sort Demo.html",
+        "Hashing-Chaining Demo.html",
         "Radix Sort Demo.html"
       ]
     },
@@ -194,6 +196,7 @@
     "Brute Force.html",
     "Decrease-and-Conquer.html",
     "Divide-and-Conquer.html",
+    "Dynamic Programming.html",
     "Exhaustive Search.html",
     "Greedy Algorithms.html",
     "Introduction.html",

@@ -60,7 +60,7 @@
     }
     .f-array-container {
       display: flex;
-      gap: 10px;
+      gap: 4px;
       align-items: flex-start;
       font-size: 18px;
       position: relative;
@@ -77,10 +77,39 @@
       font-size: 0.9em;
       color: #555;
     }
-
-    /* Styles for Play/Pause and Speed controls */
-    #play { margin-left: 10px; }
-    #speed { margin-left: 5px; }
+    .array-container .element-wrapper {
+      /* stack vertically as you already have */
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-right: 4px;
+    
+      /* NEW: ideal width = 40px, no grow, can shrink */
+      flex: 0 1 40px;
+      box-sizing: border-box;   /* so padding/margin don’t bust the math */
+    }
+    .array-container .element-wrapper .element {
+      width: 100%;
+      aspect-ratio: 1 / 1;     /* keep it square */
+      height: auto;
+    }
+    .f-array-container .element-wrapper {
+      /* stack vertically as you already have */
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-right: 4px;
+    
+      /* NEW: ideal width = 40px, no grow, can shrink */
+      flex: 0 1 40px;
+      box-sizing: border-box;   /* so padding/margin don’t bust the math */
+    }
+    .f-array-container .element-wrapper .element {
+      width: 100%;
+      aspect-ratio: 1 / 1;     /* keep it square */
+      height: auto;
+    }
+    
   </style>
 </head>
 <body class="no-tooltips">
@@ -110,21 +139,21 @@
   </div>
 
   <div class="array-section">
-    <div class="array-label">Coins (input array)</div>
+    <div class="array-label" style="margin-top: 10px;">C (Coin array)</div>
     <div class="array-container" id="arrayContainer"></div>
     <!-- ↓ one flex row of “pointer” slots under each box -->
     <div class="pointer-row" id="inputPointerRow"></div>
   </div>
   <div class="array-section">
-    <div class="array-label">F (DP array)</div>
+    <div class="array-label">M (Dynamic Programming array)</div>
     <div class="f-array-container" id="dpContainer"></div>
   </div>
-  <div id="stepInfo"></div>
+  <div id="stepInfo" style="margin-top: 10px; margin-bottom: 10px;"></div>
 
   <div class="legend">
     <strong>Legend:</strong>
-    <span class="legend-box comparing"></span>Choice 1 (c[i] + F[i−2])
-    <span class="legend-box red-highlight"></span>Choice 2 (F[i-1])
+    <span class="legend-box comparing"></span>Choice 1: CM[i−2] + C[i]
+    <span class="legend-box red-highlight"></span>Choice 2: M[i-1]
     <span class="legend-box sorted"></span>Computed
     <span class="legend-box swap"></span>Selected coin
   </div>
@@ -178,7 +207,7 @@
         dp: [...dp],
         i: 0,
         phase: 'init',
-        info: `Base Case 1: F[0] = Coins[0] = ${arr[0]}`
+        info: `Base Case 1: M[0] = C[0] = ${arr[0]}`
       });
 
       // Initialize F[1] = max(coins[0], coins[1])
@@ -189,7 +218,7 @@
           dp: [...dp],
           i: 1,
           phase: 'init',
-          info: `Base Case 2: F[1] = max{Coins[0], Coins[1]} = ${dp[1]}`
+          info: `Base Case 2: M[1] = max{ C[0], C[1] } = ${dp[1]}`
         });
       }
 
@@ -204,8 +233,8 @@
             dp: [...dp],
             i,
             phase: 'choice',
-            info: `F[${i}] = max{ Coins[${i}] + F[${i - 2}], F[${i - 1}] } = ` +
-                  `max{${arr[i]} + ${dp[i - 2]}, ${dp[i - 1]}} = ${includeVal} (coin taken!)`
+            info: `M[${i}] = max{ M[${i - 2}] + C[${i}], M[${i - 1}] } = ` +
+                  `max{${dp[i - 2]} + ${arr[i]} , ${dp[i - 1]}} = ${includeVal} (coin taken!)`
           });
         } else {
           steps.push({
@@ -213,8 +242,8 @@
             dp: [...dp],
             i,
             phase: 'choice',
-            info: `F[${i}] = max{ Coins[${i}] + F[${i - 2}], F[${i - 1}] } = ` +
-                  `max{${arr[i]} + ${dp[i - 2]}, ${dp[i - 1]}} = ${excludeVal} (coin not taken!)`
+            info: `M[${i}] = max{ M[${i - 2}] + C[${i}], M[${i - 1}] } = ` +
+                  `max{${dp[i - 2]} + ${arr[i]}, ${dp[i - 1]}} = ${excludeVal} (coin not taken!)`
           });
         }
       }
@@ -227,7 +256,7 @@
         arr: [...arr],
         dp: [...dp],
         phase: 'backtrack',
-        info: `Begin backtracking at i = ${i}, F[${i}] = ${dp[i]}`
+        info: `Begin backtracking at i = ${i}, M[${i}] = ${dp[i]}`
       });
 
       while (i > 0) {
@@ -241,7 +270,7 @@
             i,
             phase: 'exclude',
             info:
-              `At i = ${i}: F[${i}] = F[${i - 1}] = ${dp[i]}. ` +
+              `At i = ${i}: M[${i}] = M[${i - 1}] = ${dp[i]}. ` +
               `Skipping coin ${i} (value = ${arr[i]}). Move to i = ${i - 1}.`
           });
           i--;
@@ -252,7 +281,7 @@
             i,
             phase: 'select',
             info:
-              `At i = ${i}: F[${i}] = Coins[${i}] + F[${i - 2}] ` +
+              `At i = ${i}: M[${i}] = C[${i}] + M[${i - 2}] ` +
               `= ${arr[i]} + ${dp[i - 2]} = ${dp[i]}. Selecting coin ${i}. Move to i = ${i - 2}.`
           });
           selected.push(i);

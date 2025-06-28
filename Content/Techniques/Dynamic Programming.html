@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Technique: Dynamic Programming</title>
+  <script src="/Algorithms/scripts/chapterScripts.js"></script>
+  <link rel="stylesheet" href="/Algorithms/css/style.css">
+  <link rel="stylesheet" href="/Algorithms/css/chapter.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js"></script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body>
+  <h1>Dynamic Programming</h1>
+
+  <!-- Motivation & Introduction -->
+  <section id="introduction">
+    <h2>Introduction</h2>
+    <p>
+      Dynamic programming (DP) is a powerful technique for solving optimization and counting problems by 
+      breaking them into overlapping subproblems and storing (memoizing) their solutions.  It relies on two 
+      key properties:
+    </p>
+    <ul class="spaced">
+      <li><strong>Optimal substructure:</strong> an optimal solution to the whole can be composed from optimal solutions to subproblems.</li>
+      <li><strong>Overlapping subproblems:</strong> the same subproblems recur multiple times.</li>
+    </ul>
+      <p>
+    These two properties are necessary because they allow us to build complex solutions efficiently. 
+    
+    <ul class="spaced">
+      <li>
+      Optimal substructure means that solving larger instances can be reduced to combining solutions of 
+    smaller instances without losing correctness.  In particular, it is what allows us to construct
+    a recursive formula that is the basis of the technique.</li>
+      <li>
+      Overlapping subproblems ensures that many of these smaller instances repeat, so by storing (or tabulating) 
+    their results once, we avoid redundant work and achieve polynomial-time performance instead of exponential.
+    Technically, a problem does not need to have overlappins subproblems to be solved by dynamic programming,
+    but there is no benefit of the approach in this case.</li>
+    </ul>
+    
+  </p>   
+    <p>
+      Classic first examples include the coin row problem, where you pick non-adjacent coins for maximum value, 
+      and computing Fibonacci numbers without exponential blow-up.  We'll see both bottom-up (tabulation) 
+      and top-down (memoized recursion) approaches in action. Later, hopefully you will also read about dynamic
+      programming algorithms to solve the 0-1 Knapsack problem, Matrix Chain Multiplication, Longest Common Subsequence,
+      and others.
+    </p>
+  </section>
+
+
+
+<section id="examples">
+  <h2>Examples</h2>
+  
+  <div class="example-box">
+  <strong class="example-title">Example: Coin Row Problem</strong>
+    <p>
+      In the Coin Row Problem, you are given a row of coins with values \(c_1, c_2, \dots, c_n\), 
+      and the goal is to  choose a subset of non-adjacent coins to maximize the total value.
+    </p> 
+    <p>
+    For example, given the set of values \([1, 6, 8, 7]\), it is not hard to see that taking coins 6 and 7
+    will give the maximum value of \(6+7=13\).
+  </p>
+  
+    <p>
+    The dynamic programming approach works as follows.
+    Index the coins from \(0\) to \(n-1\), with values \(C[0],\) \(C[1],\) \(\dots,\) \(C[n-1]\).
+    Define an array \(M\) of length \(n\) so that \(M[j]\) is the maximum
+    value obtainable for coins \(0\) through \(j\).  
+    We initialize the first two entries directly,
+    then for each subsequent coin choose between skipping it or taking it (in which case
+    we add its value to the best solution two steps back).
+  </p>
+  <p>In words:</p>
+  <ul>
+    <li>\(M[0] = C[0]\) &nbsp; &nbsp; (only coin 0 is available).</li>
+    <li>\(M[1] = \max\{ C[0], C[1] \}\) &nbsp; &nbsp; (best of coin 0 or coin 1).</li>
+    <li>For each \(j = 2,3,…,n-1\), there are two choices:
+      <ul>
+        <li>Skip coin \(j\): The best we can do is the solution for coins \(1\) through \(j-1\), giving value \(M[j-1]\).</li>
+        <li>Take coin \(j\): The best we can so it take coin \(j\) and add it to the best solution 
+        for coins \(0\) through \(j-2\) (since we cannot take coin \(j-1\)), giving value \(M[j-2] + C[j]\).</li>
+      </ul>
+      Thus, each \(j = 2,3,…,n-1\),
+      \[M[j] = \max\{ M[j-1], M[j-2] + C[j] \}.\]
+    </li>
+  </ul>
+  <p>
+    The optimal value obtainable for all \(n\) coins is \(M[n-1]\).  
+    Putting this together, we get the following pseudocode.
+  </p>
+  <pre><code>coinRowDP(C, n):
+    if n == 0:
+        return 0
+    if n == 1:
+        return C[0]
+    M[0] = C[0]
+    M[1] = max(C[0], C[1])
+    for j from 2 to n-1:
+        M[j] = max(M[j-1], M[j-2] + C[j])
+    return M[n-1]
+  </code></pre>
+  
+  
+    <p>
+    The following demonstration shows the algorithm in action, including the part we have not discussed yet:
+    determining which coins to take. We will discuss that after the demo.
+    </p>
+    <div class="embeddedDemoContainer">
+      <iframe class="embeddedDemo" 
+      src="/Algorithms/Content/Demos/Dynamic Programming/Coin Row Demo.html"></iframe>
+    </div>
+      
+       <p>
+    As seen in the demo, 
+    once the array \(M\) is filled, we can determine which coins yield the optimal value by scanning
+    backward from index \(n-1\) and comparing \(M[j]\) with \(M[j-1]\). 
+    If you think back to how the first part of the algorithm works, it is not hard to see that
+    <ul>
+    <li>If \(M[j] > M[j-1]\), then coin \(j\) was definitely taken.</li>
+    <li>If \(M[j] = M[j-1]\), we can assume coin \(j\) was not taken.
+    (If we want to find all solutions, we would have to do an additional check for this case since it
+    might lead to two different solutions, but we will not worry about that here.)</li>
+    </ul>
+    If coin \(j\) was taken, coin \(j-1\) was not, so we consider coin \(j-2\).
+    If coin \(j\) was not taken, then we consider coin \(j-1\). 
+    We also need a base case: If we ever consider coin \(0\), then we take it since there is no
+    reason not to.
+    This leads to the following pseudocode.
+  </p>
+  <pre><code>determineCoins(C, M, n):
+    S = []    // Selected coins array
+    j = n - 1
+    while j &gt;= 0:
+        if j == 0 or M[j] > M[j - 1]:
+            S.add(C[j])
+            j = j - 2
+        else:
+            j = j - 1
+    return S</code></pre>
+      <p>
+      <strong>Time Complexity:</strong> It is pretty clear that the complexity of both parts of 
+      the algorithm is \(O(n)\).<br>
+      <strong>Space Complexity:</strong> It requires \(O(n)\) space for the arrays \(M\) and \(S\), plus a constant
+      number of other variables. 
+      Finding the maximal value can be optimized to \(O(1)\) space by only keeping two variables, 
+      but then determining the coins becomes impossible (or very tricky&mdash;I do not know how to make it work).
+      </p>
+  </div>  
+  
+   <p>
+    You may have seen that the brute force algorithm to compute the \(n\)th Fibonacci number 
+    (See the
+    <a class="problem" href="?path=Problems/Other/Fibonacci">Fibonacci number</a> page
+    if you are not already familiar)  
+    is terrible
+    (If not, read about it on the 
+    <a class="problem" href="?path=Techniques/Brute%20Force">Brute Force</a> page). 
+    Dynamic Programming is exactly what we need to fix that algorithm. 
+    Instead of recomputing the same Fibonacci numbers repeatedly, we can compute them once
+    and store the result. Then we can look it up when we need it again.
+    </p>
+    <p>
+    There are two ways to implement this idea:
+    <ul>
+    <li><strong>Top-Down (sometimes called Memoization):</strong> 
+    Start with the naive recursive algorithm, but every time 
+    a value is computed, store it in an array. 
+    Then, before a recursive call is made, the algorithm first looks at the array to see if it
+    has already been computed. If so, use that value. If not, make a recursive call.
+    </li>
+    <li><strong>Bottom-Up (sometimes called Tabulation):</strong>
+    Start by solving the smallest cases of the problem, itertatively building your way to the final solution.
+    </li>
+    </ul>
+    </p>
+    <p>
+    These two approaches are applicable to all dynamic programming algorithms.
+    However, there are important differences. 
+    In cases where determining the optimal solution requires knowing the solution to <em>every</em>
+    subproblem, bottom-up is generally preferred since by design it computes solutions to every
+    subproblem, and it avoids the overhead of recursion.
+    On the other hand, for some problems, not every subproblem needs to be solved. 
+    In these cases, significant time can be saved by using the top-down approach since it only 
+    computes the values needed by the initial call.
+    </p>
+    <p>
+    We will look at both of these approaches to computing the \(n\)th Fibonacci number.
+    </p>
+  <div class="example-box">
+    <strong class="example-title">Example 2: Fibonacci Numbers (Top-Down)</strong>
+     <p>
+        To compute the \(n\)th Fibonacci number using the top-down dynamic programming algorithm,
+        we need to create an array to store the first \(n\) Fibonacci numbers,
+        initialize it with some value to indicate the values have not been computed yet (we will use 0),
+        and modify the brute force algorithm to store and lookup the values as needed.
+        Here is the pseudocode.
+      </p>
+      <pre><code>fibonacciTopDown(n)
+  fib = [0...0];    // Array of n 0s
+  return fibRec(n, fib);  // Start the recursion
+
+function fibRec(i, fib) { // Recursive helper with memoization
+   if (i < 2)             // Base cases
+      fib[i]=i
+      return fib[i]
+   else if (fib[i] != 0)  // If we've already computed fib[i], return it
+       return fib[i]
+   else                   // Otherwise compute, store, and return
+       fib[i] = fibRec(i - 1, fib) + fibRec(i - 2, fib)
+       return fib[i]</code></pre>
+
+    <p>Here is a demonstration of the algorithm.
+    </p>
+      <div class="embeddedDemoContainer">
+        <iframe class="embeddedDemo" 
+        src="/Algorithms/Content/Demos/Dynamic Programming/Fibonacci Top Down Demo.html"></iframe>
+      </div>
+      
+       <p>
+      <strong>Time Complexity:</strong> 
+    We will prove by induction on \(n\) that <code>fibonacciTopDown(n)</code> runs in \(O(n)\) time.
+    This is overkill since it is probably pretty clear to most readers that this algorithm is linear,
+    especially after viewing the demo, however, it is a nice review of induction proofs.
+    We will prove this by proving that <code>fibRec(k,fib)</code> is called no more than twice for
+    each value of \(k\). 
+    <font color="red" style="font-size: 5em">Or something like that. Still working on it.</font>
+    <br>
+  <strong>Base case:</strong>
+    For \(n = 0\) or \(n = 1\), the call returns immediately (just a constant number of checks and assignments), 
+    which is clearly \(O(n)\).</br>
+  <strong>Induction hypothesis:</strong>
+    Assume that for all \(k < n\), the call <code>fibRec(k, fib)</code> runs in \(O(k)\) time.<br>
+  <strong>Induction step</strong><br>
+    Consider \(n > 1\). There are two cases in <code>fibRec(n, fib)</code>:
+  </p>
+  <ol>
+    <li>
+      If <code>fib[n] != 0</code>, we return in \(O(1)\) time.
+    </li>
+    <li>
+      Otherwise, we do:
+      <ul>
+        <li>a recursive call to <code>fibRec(n-1, fib)</code>,</li>
+        <li>a recursive call to <code>fibRec(n-2, fib)</code>,</li>
+        <li>and a constant amount of additional work (checks, addition, assignment).</li>
+      </ul>
+    </li>
+  </ol>
+  <p>
+    By the induction hypothesis, the first call costs \(O(n-1)\). 
+    Since the first call computed the 
+    The second call returns immediately from the array in \(O(1)\).  Adding the constant extra work,
+  \[
+    T(n) \;\le\; T(n-1) + O(1) \;=\; O(n-1) + O(1) \;=\; O(n).
+  \]
+  Thus, by induction, <code>fibonacciTopDown(n)</code> runs in \(O(n)\) time.
+  </p>
+  
+  
+           <p>
+      
+      Each recusive call to <code>fibRec</code> does only a constant amount of work
+      including . 
+      However, each recursive call
+      
+      Since each value in the \(fib\) array is computed only once,
+      
+       \(O(n)\).<br>
+      <strong>Space Complexity:</strong> It requires \(O(n)\) space for the arrays \(M\) and \(S\), plus a constant
+      number of other variables. 
+      Finding the maximal value can be optimized to \(O(1)\) space by only keeping two variables, 
+      but then determining the coins becomes impossible (or very tricky&mdash;I do not know how to make it work).
+      </p>
+      
+    </div>
+    
+    
+    
+    
+    
+  <div class="example-box">
+    <strong class="example-title">Example 3: Fibonacci Numbers (Bottom-Up)</strong>
+      <p>
+        Compute the \(n\)th Fibonacci number by filling an array from the bottom up,
+        avoiding redundant recursion.
+      </p>
+      <pre><code>fibonacciBottomUp(n):
+  F[0] = 0
+  F[1] = 1
+  for i from 2 to n:
+    F[i] = F[i-1] + F[i-2]
+  return F[n]
+</code></pre>
+      <div class="embeddedDemoContainer"><iframe class="embeddedDemo" src="/Algorithms/Content/Demos/Dynamic Programming/Fibonacci Bottom Up Demo.html"></iframe>
+      </div>
+    </div>
+    
+  </section>
+  
+  
+  <a href="https://medium.com/@beyond_verse/top-10-dynamic-programming-problems-every-programmer-should-solve-4b18ea7eca83>Top 10 Dynamic Programming Problems Every Programmer Should Solve</a> Foo.
+</body>
+</html>
