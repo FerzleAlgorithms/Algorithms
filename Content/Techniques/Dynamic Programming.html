@@ -56,10 +56,12 @@
   <h2>Examples</h2>
   
   <div class="example-box">
+  
   <strong class="example-title">Example: Coin Row Problem</strong>
     <p>
       In the Coin Row Problem, you are given a row of coins with values \(c_1, c_2, \dots, c_n\), 
       and the goal is to  choose a subset of non-adjacent coins to maximize the total value.
+      That is, you cannot choose two coins that are next to each other.
     </p> 
     <p>
     For example, given the set of values \([1, 6, 8, 7]\), it is not hard to see that taking coins 6 and 7
@@ -98,6 +100,7 @@
         return 0
     if n == 1:
         return C[0]
+    M = [n] // An array of size n
     M[0] = C[0]
     M[1] = max(C[0], C[1])
     for j from 2 to n-1:
@@ -105,7 +108,20 @@
     return M[n-1]
   </code></pre>
   
-  
+<!-- Correctness argument -->
+<p>
+  In order to prove that the algorithm returns the correct answer, 
+  we prove by induction on \(j\) that \(M[j]\) indeed stores the maximum value obtainable from 
+  coins \(0\) through \(j\). 
+  For the base cases \(j=0\) and \(j=1\), the formula clearly gives the optimal solution.  
+  Assume it holds for all indices up to \(j-1\).  Now consider an optimal solution for coins \(0\) through \(j\).  
+  If coin \(j\) is not in the solution, then total value is exactly the optimum for coins 
+  up to \(j-1\), namely \(M[j-1]\).
+  If coin \(j\) is taken, the solution cannot include coin \(j-1\), 
+  so its value is \(C[j]\) plus the optimum for coins up to \(j-2\), namely \(M[j-2] + C[j]\).  
+  Our recurrence \(M[j] = \max\{M[j-1],\,M[j-2] + C[j]\}\) therefore captures both possibilities and thus yields the optimal value.
+</p>
+
     <p>
     The following demonstration shows the algorithm in action, including the part we have not discussed yet:
     determining which coins to take. We will discuss that after the demo.
@@ -150,6 +166,13 @@
       Finding the maximal value can be optimized to \(O(1)\) space by only keeping two variables, 
       but then determining the coins becomes impossible (or very tricky&mdash;I do not know how to make it work).
       </p>
+      <!-- Pattern comment -->
+    <p>
+      The idea of strategically deciding for each item whether to take it or skip it underlies many algorithms. 
+      This pattern shows up 
+      not only in dynamic programming algorithms to solve various other problems (e.g. this one, 0-1 Knapsack), 
+      but also in techniques like backtracking and branch-and-bound. 
+    </p>
   </div>  
   
    <p>
@@ -191,6 +214,7 @@
     <p>
     We will look at both of these approaches to computing the \(n\)th Fibonacci number.
     </p>
+    
   <div class="example-box">
     <strong class="example-title">Example 2: Fibonacci Numbers (Top-Down)</strong>
      <p>
@@ -201,10 +225,10 @@
         Here is the pseudocode.
       </p>
       <pre><code>fibonacciTopDown(n)
-  fib = [0...0];    // Array of n 0s
+  fib = [0...0];          // Array of n 0s
   return fibRec(n, fib);  // Start the recursion
 
-function fibRec(i, fib) { // Recursive helper with memoization
+fibRec(i, fib) { // Recursive helper with memoization //
    if (i < 2)             // Base cases
       fib[i]=i
       return fib[i]
@@ -223,86 +247,99 @@ function fibRec(i, fib) { // Recursive helper with memoization
       
        <p>
       <strong>Time Complexity:</strong> 
-    We will prove by induction on \(n\) that <code>fibonacciTopDown(n)</code> runs in \(O(n)\) time.
-    This is overkill since it is probably pretty clear to most readers that this algorithm is linear,
-    especially after viewing the demo, however, it is a nice review of induction proofs.
-    We will prove this by proving that <code>fibRec(k,fib)</code> is called no more than twice for
-    each value of \(k\). 
-    <font color="red" style="font-size: 5em">Or something like that. Still working on it.</font>
-    <br>
-  <strong>Base case:</strong>
-    For \(n = 0\) or \(n = 1\), the call returns immediately (just a constant number of checks and assignments), 
-    which is clearly \(O(n)\).</br>
-  <strong>Induction hypothesis:</strong>
-    Assume that for all \(k < n\), the call <code>fibRec(k, fib)</code> runs in \(O(k)\) time.<br>
-  <strong>Induction step</strong><br>
-    Consider \(n > 1\). There are two cases in <code>fibRec(n, fib)</code>:
-  </p>
-  <ol>
-    <li>
-      If <code>fib[n] != 0</code>, we return in \(O(1)\) time.
-    </li>
-    <li>
-      Otherwise, we do:
-      <ul>
-        <li>a recursive call to <code>fibRec(n-1, fib)</code>,</li>
-        <li>a recursive call to <code>fibRec(n-2, fib)</code>,</li>
-        <li>and a constant amount of additional work (checks, addition, assignment).</li>
-      </ul>
-    </li>
-  </ol>
-  <p>
-    By the induction hypothesis, the first call costs \(O(n-1)\). 
-    Since the first call computed the 
-    The second call returns immediately from the array in \(O(1)\).  Adding the constant extra work,
-  \[
-    T(n) \;\le\; T(n-1) + O(1) \;=\; O(n-1) + O(1) \;=\; O(n).
-  \]
-  Thus, by induction, <code>fibonacciTopDown(n)</code> runs in \(O(n)\) time.
-  </p>
-  
-  
-           <p>
-      
-      Each recusive call to <code>fibRec</code> does only a constant amount of work
-      including . 
-      However, each recursive call
-      
-      Since each value in the \(fib\) array is computed only once,
-      
-       \(O(n)\).<br>
-      <strong>Space Complexity:</strong> It requires \(O(n)\) space for the arrays \(M\) and \(S\), plus a constant
-      number of other variables. 
-      Finding the maximal value can be optimized to \(O(1)\) space by only keeping two variables, 
-      but then determining the coins becomes impossible (or very tricky&mdash;I do not know how to make it work).
+      Although we could simply say something like "It is clear that this algorithm runs in \(O(n)\) time,"
+      and many readers would just buy it and/or move on and accept it,
+      we will instead go overboard to prove it by induction since reviewing induction might not be a bad thing.</p>
+      <p> 
+      <code>fibonacciTopDown(n)</code> initializes an array of size \(n\) (which takes either constant time or
+      \(O(n)\) time depending on implementation) and makes a call to <code>fibRec(n,fib)</code>.
+      Thus, if we can prove that <code>fibRec(n,fib)</code> is linear, this implies that <code>fibonacciTopDown(n)</code>
+      is as well.</p>
+      <p>
+      First, notice that <code>fibRec(i,fib)</code> executes a constant number of instructions aside
+      from the recursive calls. Let \(C\) be the maximum number of instructructions that 
+      <code>fibRec(i,fib)</code> executes for any path through its execution (not including the recursive calls, if any).
+      We will use induction to prove that for all \(k\geq 1\), 
+      <code>fibRec(k,fib)</code> executes at most \(2C\, k\) instructions,
+      and fills entries 0 through \(k\) of the \(fib\) array (For technical reasons, we have to exclude \(k=0\). Do you see why?).
+      <div class="lemma">
+          <p>For all \(k\geq 1\), 
+              <code>fibRec(k,fib)</code> executes at most \(2C\, k\) instructions,
+              correctly fills entries 0 through \(k\) of the \(fib\) array, 
+              and returns \(F_k\), the \(k\)th Fibonacci number.</p>
+              <p><strong>Proof:</strong><br>
+          <strong>Base case:</strong> 
+            When \(k = 1\), the algorithm uses at most \(C\leq 2C\,1\) steps, sets \(fib[1]=1\),
+            and by default, \(fib[0]=0\) already. It then returns \(F_1=1\).</br>
+          <strong>Induction hypothesis:</strong> 
+            Assume that for all \(1\leq j < k\), the call <code>fibRec(j, fib)</code> takes no more that \(2C\, j\) steps,
+            correctly fills entries 0 through \(j\) of the \(fib\) array, and returns \(F_j\).<br>
+          <strong>Induction step:</strong> 
+            Let \(k > 1\). The call to <code>fibRec(k, fib)</code> takes at most \(C\) steps, plus the cost of
+            the two recursive calls. By the induction hypothesis, the call to <code>fibRec(k-1, fib)</code> takes at
+            most \(2C(k-1)\) steps, correclty fills entries 0 through \(k-1\) of the \(fib\) array, and returns \(F_{k-1}\).
+            Thus, when <code>fibRec(k-2, fib)</code> is called, entry \(fib(k-2)\) is filled, 
+            so it takes at most \(C\) steps and returns \(F_{k-2}\) without a recursive call.
+            Finally, according to the code, <code>fibRec(k, fib)</code> correctly returns \(F_k=F_{k-1}+F_{k-2}\),
+            and does so in no more than \(C+2C(k-1)+C\)\(=\)\(2C\, k\) steps.
+          </p>
+     </div>
+    <p>
+    Hopefully you can put it all together and see that <code>fibonacciTopDown(n)</code> has a time complexity of \(O(n)\).
+    </p>
+  <strong>Space Complexity:</strong> It requires \(O(n)\) space for the \(fib\) array, plus a few extra local variables.
       </p>
-      
     </div>
     
-    
-    
-    
-    
+
   <div class="example-box">
     <strong class="example-title">Example 3: Fibonacci Numbers (Bottom-Up)</strong>
       <p>
-        Compute the \(n\)th Fibonacci number by filling an array from the bottom up,
-        avoiding redundant recursion.
+        Computing the \(n\)th Fibonacci number by filling an array from the bottom up
+        turns out to be a lot easier than the top-down approach: Compute \(F_0=0\) and \(F_1=1\) to start,
+        then just use the definition \(\left(F_n=F_{n-1}+F_{n-2}\right)\) to compute \(F_2\), \(F_3\), etc. until you get 
+        to \(F_n\). The pseudocode is almost trivial:
       </p>
       <pre><code>fibonacciBottomUp(n):
+  F = [n] // array of size n
   F[0] = 0
   F[1] = 1
   for i from 2 to n:
     F[i] = F[i-1] + F[i-2]
   return F[n]
 </code></pre>
+<p><strong>Time Complexity:</strong> It is not too difficult to see that this takes \(O(n)\) time.
+</p>
+<p><strong>Space Complexity:</strong> Clearly it takes \(O(n)\) memory: \(n\) for the array and a few local variables.
+    </p>
+    <p>
+    Here is a demo of the algorithms.
+    </p>
       <div class="embeddedDemoContainer"><iframe class="embeddedDemo" src="/Algorithms/Content/Demos/Dynamic Programming/Fibonacci Bottom Up Demo.html"></iframe>
       </div>
+    <p>Clearly the bottom-up approach is better in every way than the top-down in this case!
+    We can do even better by making the space requirement only \(O(1)\). More on that later.</p>
+    <p>I feel kind of bad that this example is so much shorter than the other ones.
+    But when you use the right technique in the right way, sometimes it's just that easy!</p>
     </div>
     
+    <p>
+    These examples are pretty simple compared to most instanced of dynamic programming (which is why we presnted them first!). 
+    For many problems, a 2-dimensional array is needed to store values. But the idea is the same: Define a recurrence relation that
+    defines a solution (or cost of a solution) based on subsolutions, use an array to keep track of subsolutions, and
+    choose top-down or bottom-up.</p>
+    <p> We will also see that for some optimization problems, a second array is needed in order to
+    determine the solution&mdash;the main array used in dynamic programming algorithms for optimization problems only stores
+    information about the<em>cost</em> or <em>value</em> of the subsolutions. In some cases, that array provided enough 
+    information to allow us to compute the solution (e.g. coin-row (as we saw), 0-1 knpasack problem). 
+    But in other cases, it does not (as we will see with matrix chain multiplication).
+    </p>
   </section>
   
+  Coming soon: More!
   
-  <a href="https://medium.com/@beyond_verse/top-10-dynamic-programming-problems-every-programmer-should-solve-4b18ea7eca83>Top 10 Dynamic Programming Problems Every Programmer Should Solve</a> Foo.
+  <p>For the links section: 
+  <a href="https://medium.com/@beyond_verse/top-10-dynamic-programming-problems-every-programmer-should-solve-4b18ea7eca83">Top 10 Dynamic Programming Problems Every Programmer Should Solve</a> Foo.
+  </p>
 </body>
 </html>
