@@ -17,7 +17,7 @@
     <section id="introduction">
   <h2>Introduction</h2>
   <p>
-    Greedy algorithms build a solution iteratively by making the most favorable choice available at each step.
+    Greedy algorithms build a solution iteratively by making the most appropriate/optimal choice available at each step.
     When the following two properties hold, this approach is guaranteed to produce an optimal solution:
   </p>
   <ul>
@@ -50,14 +50,13 @@
     </li>
   </ul>
   <p>
-    Proving these properties is sometimes straightforward and sometimes not. In general:
+    The general method of proving each property follows a general pattern:
   </p>
   <ul>
     <li>
-      To prove the greedy-choice property, use an exchange argument that shows any optimal solution can be transformed to one that begins with the greedy choice without losing optimality.
+      <strong>Greedy-choice property:</strong> Use an exchange argument that shows any optimal solution can be transformed to one that begins with the greedy choice without losing optimality.
     </li>
-    <li>
-      To prove optimal substructure, demonstrate that the tail of any optimal solution&mdash;after its first decision&mdash;remains optimal for the residual subproblem, often via contradiction.
+    <li><strong>Optimal substructure:</strong> Demonstrate that the tail of any optimal solution&mdash;after its first decision&mdash;remains optimal for the residual subproblem, often via contradiction.
     </li>
   </ul>
       
@@ -297,19 +296,19 @@ with the original items.
   <section id="algorithms">
     <h2>Algorithms Using This Technique</h2>
     <ul>
-      <li><strong>Activity Selection (Interval Scheduling)</strong> 
+      <li><strong>Activity Selection (Interval Scheduling):</strong> 
       Choose the next job that finishes earliest to maximize the number of non-overlapping activities.</li>
-      <li><a class="problem" href="?path=Algorithms/Greedy/Fractional Knapsack">Fractional Knapsack Algorithm</a> 
-      take items (or fractions) in decreasing order of value-to-weight ratio to maximize total value under a weight limit.</li>
-      <li><a  class="problem" href="?path=Algorithms/Greedy/Huffman Encoding">Huffman Encoding</a> builds an optimal prefix code by repeatedly merging least frequent symbols.</li>
-      <li><a  class="problem" href="?path=Algorithms/Greedy/Kruskals Algorithm">Kruskal's Algorithm</a> selects cheapest edges one by one to build a minimum spanning tree.</li>
-      <li><a  class="problem" href="?path=Algorithms/Greedy/Prims Algorithm">Prim's Algorithm</a> grows a minimum spanning tree starting from a single vertex, 
+      <li><a class="problem" href="?path=Algorithms/Greedy/Fractional Knapsack">Fractional Knapsack Algorithm:</a> 
+      Take items (or fractions) in decreasing order of value-to-weight ratio to maximize total value under a weight limit.</li>
+      <li><a  class="problem" href="?path=Algorithms/Greedy/Huffman Encoding">Huffman Encoding:</a> Builds an optimal prefix code by repeatedly merging least frequent symbols.</li>
+      <li><a  class="problem" href="?path=Algorithms/Greedy/Kruskals Algorithm">Kruskal's Algorithm:</a> Selects cheapest edges one by one to build a minimum spanning tree.</li>
+      <li><a  class="problem" href="?path=Algorithms/Greedy/Prims Algorithm">Prim's Algorithm:</a> Grows a minimum spanning tree starting from a single vertex, 
       adding the cheapest edge from the existing tree to a new vertex.</li>
-      <li><a  class="problem" href="?path=Algorithms/Greedy/Dijkstra">Dijkstra's Algorithm</a> greedily selects the vertex with the shortest path 
+      <li><a  class="problem" href="?path=Algorithms/Greedy/Dijkstra">Dijkstra's Algorithm:</a> Greedily selects the vertex with the shortest path 
       to grow the single-source shortest-path tree.</li>
-       <li><strong>Job Sequencing with Deadlines and Profit</strong> schedule jobs in order of decreasing profit, placing each job in the latest available slot before its deadline to maximize total profit.</li>
-    <li><strong>Coin Change (Canonical Coin Systems)</strong> repeatedly take the largest coin denomination not exceeding the remaining amount to minimize the total number of coins.</li>
-    <li><strong>Minimizing Maximum Lateness</strong> sort jobs by earliest due date first and schedule in that order to minimize the maximum lateness across all jobs.</li>
+       <li><strong>Job Sequencing with Deadlines and Profit:</strong> Schedule jobs in order of decreasing profit, placing each job in the latest available slot before its deadline to maximize total profit.</li>
+    <li><strong>Coin Change (Canonical Coin Systems):</strong> Repeatedly take the largest coin denomination not exceeding the remaining amount to minimize the total number of coins.</li>
+    <li><strong>Minimizing Maximum Lateness:</strong> Sort jobs by earliest due date first and schedule in that order to minimize the maximum lateness across all jobs.</li>
 
     </ul>
   </section>
@@ -340,7 +339,7 @@ with the original items.
       <li><strong>Local View Only:</strong> Lack of lookahead can miss better solutions that require considering future consequences.</li>
       <li><strong>No Backtracking:</strong> Irreversible choices mean the algorithm cannot correct mistakes made earlier.</li>
       <li><strong>Sensitivity to Ordering:</strong> Performance can depend heavily on input order and tie-breaking rules.</li>
-      <li><strong>Approximation Bounds:</strong> Greedy heuristics may yield no guaranteed approximation ratio for some NP-hard Problems.</li>
+      <li><strong>Approximation Bounds:</strong> Greedy heuristics may yield no guaranteed approximation ratio for some NP-hard problems.</li>
     </ul>
   </section>
 

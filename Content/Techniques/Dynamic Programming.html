@@ -18,7 +18,7 @@
     <h2>Introduction</h2>
     <p>
       Dynamic programming (DP) is a powerful technique for solving optimization and counting problems by 
-      breaking them into overlapping subproblems and storing (memoizing) their solutions.  It relies on two 
+      breaking them into overlapping subproblems and storing (memoizing) their solutions (often in a table/array).  It relies on two 
       key properties:
     </p>
     <ul class="spaced">
@@ -39,8 +39,10 @@
     Technically, a problem does not need to have overlappins subproblems to be solved by dynamic programming,
     but there is no benefit of the approach in this case.</li>
     </ul>
-    
   </p>   
+  <p>
+  Because dynamic programming uses a table to store results, it can be considered a special case of space-time tradeoffs.
+  </p>
     <p>
       Classic first examples include the coin row problem, where you pick non-adjacent coins for maximum value, 
       and computing Fibonacci numbers without exponential blow-up.  We'll see both bottom-up (tabulation) 
@@ -336,10 +338,265 @@ fibRec(i, fib) { // Recursive helper with memoization //
     </p>
   </section>
   
-  Coming soon: More!
+<section id="algorithms">
+  <h2>Algorithms Using This Technique</h2>
+  The following are dynamic programming algorithms or problems where a dynamic programming algorithm exists, but does not have an official name, so we just list the name of the problem.
+  <ul>
+    <li><strong>0-1 Knapsack Problem:</strong> Choose items with weights \(w_i\) and values \(v_i\) to maximize \(\sum_{i=1}^n v_i\) subject to \(\sum_{i=1}^n w_i \le W\).</li>
+    <li><strong>Matrix Chain Multiplication:</strong> Determine optimal parenthesization of matrices \(A_1 \cdots A_n\) to minimize total scalar multiplications.</li>
+    <li><strong>Optimal Binary Search Tree:</strong> Build a BST for keys with given search probabilities to minimize expected search cost.</li>
+    <li><strong>Floyd–Warshall Algorithm:</strong> Compute all-pairs shortest paths in a weighted graph by iteratively improving path lengths.</li>
+    <li><strong>Bellman–Ford Algorithm:</strong> Find shortest paths from a single source in graphs that may have negative edge weights.</li>
+    <li><strong>Coin Change Problem:</strong> Count the number of ways (or minimize the number of coins) to make amount \(n\) using given coin denominations.</li>
+    <li><strong>Edit Distance:</strong> Compute the minimum number of insertions, deletions, and substitutions to transform one string into another.</li>
+    <li><strong>Longest Common Subsequence (LCS):</strong> Find the longest sequence common to two strings \(X\) and \(Y\).</li>
+    <li><strong>Longest Increasing Subsequence (LIS):</strong> Find the longest strictly increasing subsequence in a sequence of numbers.</li>
+    <li><strong>Subset Sum Problem:</strong> Decide whether a subset of \(\{a_1, \dots, a_n\}\) sums exactly to a target \(T\).</li>
+  </ul>
+</section>
+
+<section id="when">
+  <h2>When to Use</h2>
+  <ul>
+    <li><strong>Overlapping Subproblems:</strong> Identical subproblems recur and can be computed once and reused.</li>
+    <li><strong>Optimal Substructure:</strong> On optimal solution can be built from optimal solutions to its subproblems.</li>
+    <li><strong>Recurrence Relation:</strong> You can express the solution as a recurrence combining smaller subproblem results.</li>
+    <li><strong>Polynomial-Size State Space:</strong> The total number of distinct subproblems is bounded by a polynomial in the input size.</li>
+    <li><strong>Efficient Computations:</strong> Each table entry is filled by choosing among a small number of options (preferrably a small constant (often 2), sometimes linear), so the overall dynamic programming algorithm runs in polynomial time.</li>
+    <li><strong>Exponential Naïve Recursion:</strong> A straightforward recursive approach runs in exponential time, but dynamic programming reduces it to polynomial time.</li>
+  </ul>
+</section>
+
+<section id="Limitations">
+  <h2>Limitations</h2>
+  <ul>
+    <li><strong>High Memory Usage:</strong> For some problems, the lookup table can be fairly large. For instance, the table for the 0-1 knapsack  (which you will hopefully
+    read about later) has size \(n\times W\), where \(n\) is the number of items, and \(W\) is the size of the knapsack. Although this sounds fine, 
+    what if \(W=2^n\)? Not only does this take a lot of space, but filling it takes a lot of time!</li>
+    <li><strong>State Space Explosion:</strong> If the number of distinct subproblems grows exponentially with input parameters, dynamic programming becomes infeasible.</li>
+    <li><strong>Complex Recurrence Derivation:</strong> Formulating the correct recurrence relation and transition logic can be nontrivial and error-prone.</li>
+    <li><strong>Poor Parallelism:</strong> Dependencies between table entries often limit opportunities for parallel or distributed computation.</li>
+    <li><strong>Discrete Substructure Required:</strong> Problems without clear, finite subproblem structure (e.g. continuous problems) cannot benefit from dynamic programming.</li>
+  </ul>
+</section>
+
+<section id="tips">
+  <h2>Implementation Tips</h2>
+  <ul>
+    <li><strong>Choose Bottom-Up vs. Top-Down:</strong> Bottom-up tabulation often yields clearer, faster loops when you need to compute all subproblems; Top-down memoization is more efficient if only a subset of subproblems is required, and is quicker to write and easier to debug.</li>
+    <li><strong>Initialize Base Cases Explicitly:</strong> Set all base-case entries (e.g. first row and/or column of table) before filling the rest to avoid uninitialized values.</li>
+    <li><strong>Optimize Space:</strong> If your recurrence only uses the previous row or a fixed window, use rolling arrays to drop memory from \(O(nm)\) to \(O(m)\) or \(O(n)\). 
+    This will not work in some cases, e.g. where the entire table is needed to determine the details of the optimal solution and not just the cost.</li>
+    <li><strong>Order Loops to Satisfy Dependencies:</strong> Ensure your outer and inner loops follow the natural dependency order (e.g. rows then columns or vice-versa, depending on the recurrence relation) so every subproblem is ready when needed.</li>
+    <li><strong>Use Suitable Data Types:</strong> Choose integer or floating types (e.g. 64-bit) that can hold your dynamic programming values without overflow or precision loss.</li>
+    <li><strong>Encapsulate Transitions:</strong> Factor out the recurrence logic into a helper function or macro to reduce code duplication and simplify testing.</li>
+    <li><strong>Test, including Edge Cases:</strong> Verify correctness and expected efficiency on small inputs, 
+    including minimal and maximal inputs (e.g. 0-1 knapsack with only 1 item, or with a bag so heavy it fits all items, or so light
+    it fits none).</li>
+  </ul>
+</section>
+
+<section id="pitfalls">
+  <h2>Common Pitfalls</h2>
+  <ul>
+    <li><strong>Off-by-One Errors:</strong> Loop indices and table dimensions often mismatch; ensure your loops cover exactly the intended range.</li>
+    <li><strong>Incorrect Base Cases:</strong> Failing to initialize or using wrong values for base cases causes cascading errors in the table.</li>
+    <li><strong>Wrong Dependency Order:</strong> Filling entries before their prerequisites can lead to use of uninitialized values; order your loops to satisfy dependencies.</li>
+    <li><strong>Excessive Memory Usage:</strong> Very large tables can exhaust memory—consider rolling array when only a subset of data is needed.</li>
+    <li><strong>Stack Overflow:</strong> Deep recursion in top-down memoization can exceed call-stack limits on large inputs; switch to bottom-up if needed.</li>
+    <li><strong>Incorrect Recurrence Logic:</strong> A small typo or off-by-one in the transition formula can produce completely wrong results.</li>
+  </ul>
+</section>
+
+<section id="applications">
+  <h2>Real-World Applications</h2>
+  <ul>
+    <li><strong>Network Routing:</strong> Computing shortest or least-cost paths in large-scale networks via dynamic programming on path costs (e.g. Bellman–Ford in distance-vector routing).</li>
+    <li><strong>Job Scheduling:</strong> Selecting and sequencing jobs to maximize profit or minimize makespan using dynamic programming algorithms like weighted interval scheduling.</li>
+    <li><strong>Sequence Alignment:</strong> Aligning DNA, RNA, or protein sequences using the Needleman–Wunsch or Smith–Waterman dynamic programming algorithms.</li>
+    <li><strong>Viterbi Decoding:</strong> Finding the most probable state sequence in Hidden Markov Models via the Viterbi dynamic programming algorithm for speech recognition or part-of-speech tagging.</li>
+    <li><strong>Financial Modeling:</strong> Pricing options and optimizing portfolios using dynamic programming approaches like the binomial options pricing model.</li>
+    <li><strong>Inventory Management:</strong> Computing optimal reorder points and order quantities in multi-period models via dynamic programming to balance holding and shortage costs.</li>
+    <li><strong>Image Processing:</strong> Content-aware image resizing via seam carving, which uses dynamic programming to find and remove low-energy paths through an image.</li>
+    <li><strong>Robot Path Planning:</strong> Determining optimal trajectories in grid environments via dynamic programming under motion and obstacle constraints.</li>
+  </ul>
+</section>
+
+<section id="summary">
+  <h2>Summary &amp; Key Takeaways</h2>
+  <p>
+    Dynamic programming is a method for solving complex problems by breaking them down into simpler subproblems, storing the results of those subproblems, and combining them to build up an optimal solution. It relies on two core properties:
+  </p>
+  <ul>
+    <li><strong>Overlapping Subproblems:</strong> Identical subproblems recur and can be solved once and reused.</li>
+    <li><strong>Optimal Substructure:</strong> An optimal solution to the overall problem can be constructed from optimal solutions to its subproblems.</li>
+  </ul>
+  <p>
+    You can implement dynamic programming algorithms in two different ways:
+    <ul>
+    <li><strong>Bottom-Up Tabulation:</strong> Filling a table in dependency order. 
+    Best used for problems where every value needs to be computed.</li>
+    <li><strong>Top-Down Memoization:</strong> Recursively computing only needed entries and caching results.
+    Best used when (hopefully large) portions of the table do not need to be accessed/computed.</li>
+    </ul>
+    Always define your recurrence clearly, initialize base cases explicitly, and order your computations to match dependencies.
+  </p>
+  <p>
+    By recognizing the dynamic programming pattern&mdash;define subproblem states, derive a recurrence, choose an implementation strategy, and optimize space&mdash;you can transform many exponential-time recursive solutions into efficient polynomial-time solutions.
+  </p>
+</section>
+
+<section id="resources">
+  <h2>Related Links and Resources</h2>
+  <ul>
+    <li><a href="https://en.wikipedia.org/wiki/Dynamic_programming" target="_blank">Dynamic Programming</a> (Wikipedia) Overview of dynamic programming concepts, history, and key examples.</li>
+    <li><a href="https://www.geeksforgeeks.org/dynamic-programming/" target="_blank">Dynamic Programming Tutorial</a> (GeeksforGeeks) Step-by-step guides with code snippets in multiple languages.</li>
+    <li><strong>Cormen et al., <em>Introduction to Algorithms</em>, 4th Edition</strong> Chapter 14 is the authoritative textbook treatment on dynamic programming algorithms.</li>
+    <li><a href="https://leetcode.com/tag/dynamic-programming/" target="_blank">Practice Problems: Dynamic Programming</a> (LeetCode) Curated set of coding challenges to apply dynamic programming.</li>
+    <li><a href="https://www.hackerrank.com/domains/algorithms/dynamic-programming" target="_blank">Dynamic Programming Challenges</a> (HackerRank) Progressive problem sets for honing dynamic programming skills.</li>
+    <li><a href="https://medium.com/@beyond_verse/top-10-dynamic-programming-problems-every-programmer-should-solve-4b18ea7eca83">Top 10 Dynamic Programming Problems Every Programmer Should Solve</a> The title speaks for itself.</li>
+  </ul>
+</section>
+
+
+<section id="reading-questions">
+  <h2>Reading Comprehension Questions</h2>
+  <ol>
+    <li>What two core properties does dynamic programming rely on?</li>
+    <li>In the Coin Row example, what recurrence relation defines <code>M[j]</code>?</li>
+    <li>Under what condition is bottom-up tabulation preferred over top-down memoization?</li>
+    <li>How can you reduce memory from <code>O(nm)</code> to <code>O(m)</code> according to the implementation tips?</li>
+    <li>What is a drawback of top-down memoization on large inputs mentioned in the pitfalls?</li>
+    <li>Which limitation describes problems that cannot benefit from dynamic programming?</li>
+    <li>What key advantage does dynamic programming offer when a naive recursive solution is exponential-time?</li>
+    <li>Which dynamic programming algorithm is cited for sequence alignment in the Real-World Applications?</li>
+    <li>Which algorithm is highlighted for network routing in the Real-World Applications?</li>
+    <li>When is dynamic programming better than a naive recursive algorithm?</li>
+    <!-- New questions about Coin Row and Fibonacci -->
+    <li>What base cases are initialized in the memoized Fibonacci algorithm?</li>
+    <li>How does memoization prevent repeated work in the Fibonacci computation?</li>
+    <li>In the Coin Row algorithm, why do we compare <code>M[j-1]</code> with <code>M[j-2] + C[j]</code>?</li>
+    <li>What is the time complexity of the dynamic programming Coin Row algorithm?</li>
+    <!-- Problem asking for rolling array algorithm -->
+    <li>Give pseudocode for an algorithm that uses the rolling array optimization to compute the 
+    \(n\)-th Fibonacci number in \(O(n)\) time and \(O(1)\) space.
+    See the following demonstration for inspiration.</li>
+  </ol>      
+  <div class="embeddedDemoContainer"><iframe class="embeddedDemo" src="/Algorithms/Content/Demos/Dynamic Programming/Fibonacci Improved Demo.html"></iframe>
+      </div><br>
   
-  <p>For the links section: 
-  <a href="https://medium.com/@beyond_verse/top-10-dynamic-programming-problems-every-programmer-should-solve-4b18ea7eca83">Top 10 Dynamic Programming Problems Every Programmer Should Solve</a> Foo.
+  <button id="toggleAnswers" class="show-answer" aria-expanded="false">
+    Show Answers
+  </button>
+  <div id="answers" class="answer" hidden>
+    <ol>
+      <li>
+        <strong>Answer:</strong><br>
+        It relies on <em>optimal substructure</em> and <em>overlapping subproblems</em>.
+      </li>
+      <li>
+        <strong>Answer:</strong><br>
+        \(M[j] = \max\{\,M[j-1],\,M[j-2] + C[j]\}\).
+      </li>
+      <li>
+        <strong>Answer:</strong><br>
+        When you need to compute <em>all</em> subproblems, making bottom-up loops clearer and faster.
+      </li>
+      <li>
+        <strong>Answer:</strong><br>
+        Use rolling arrays to drop memory from \(O(nm)\) to \(O(m)\).
+      </li>
+      <li>
+        <strong>Answer:</strong><br>
+        Deep recursion can cause a stack overflow on large inputs.
+      </li>
+      <li>
+        <strong>Answer:</strong><br>
+        Problems without a clear, finite subproblem structure (e.g. continuous or online problems).
+      </li>
+      <li>
+        <strong>Answer:</strong><br>
+        It transforms an exponential-time recursive solution into a polynomial-time algorithm by reusing subproblem results.
+      </li>
+      <li>
+        <strong>Answer:</strong><br>
+        The Needleman–Wunsch or Smith–Waterman algorithms for sequence alignment.
+      </li>
+      <li>
+        <strong>Answer:</strong><br>
+        The Bellman–Ford algorithm used in distance-vector routing.
+      </li>
+      <li>
+        <strong>Answer:</strong><br>
+        When the naive recursive solution runs in exponential time but the problem has a polynomial-size state space and overlapping subproblems.
+      </li>
+      <li>
+        <strong>Answer:</strong><br>
+        The base cases are initialized as \(fib[0] = 0\) and \(fib[1] = 1\).
+      </li>
+      <li>
+        <strong>Answer:</strong><br>
+        Memoization stores each computed \(fib[i]\) so that each value is calculated only once instead of repeatedly.
+      </li>
+      <li>
+        <strong>Answer:</strong><br>
+        Because you either skip coin \(j\) (value \(M[j-1]\)) or take it and add its value to the best solution involving coins
+        0 through \((j-2)\) (value \(M[j-2] + C[j]\)).
+      </li>
+      <li>
+        <strong>Answer:</strong><br>
+        It runs in \(O(n)\) time, filling one table entry per coin in constant time each.
+      </li>
+      <li>
+        <strong>Answer:</strong><br>
+        You should have come up with something like the following. Notice that we need three variables
+        (in addition to the index variable): one for the current value, one for the previous value, and one for the
+        value before that.
+        <pre><code>fibonacciRolling(n)
+    if(n<2)
+        return n
+    prev = 0      // represents F[i-2]
+    curr = 1      // represents F[i-1]
+    for i from 2 to n:
+       next = prev + curr
+       prev = curr
+       curr = next
+    return curr  // now holds F[n]</code></pre>
+</li>
+</ol>
+</div>
+</section>
+
+<section id="activities">
+  <h2>In-Class Activities</h2>
+  <ol>
+    <li><strong>Whiteboard Sketch:</strong> In pairs, students map out the recursion tree and corresponding dynamic programming table for a simple problem (e.g., Fibonacci) to visualize overlapping subproblems and memoization.</li>
+    <li><strong>Algorithm Comparison:</strong> Discuss alternative algorithms to solve the coin-row problem, including their computational complexities,
+    and whether or not they are better than the dynamic programming approach.</li>
+    <li><strong>Pseudocode Translation:</strong> Given a recurrence relation verbally described by the instructor, students write clear bottom-up pseudocode with proper base-case initialization.</li>
+    <li><strong>Error Spotting:</strong> Provide each group with a snippet of buggy dynamic programming code; have them identify and fix common pitfalls like off-by-one loops or missing base cases.</li>
+    <li><strong>Space Optimization Challenge:</strong> Students refactor a two-dimensional dynamic programming solution into a rolling-array (one-dimensional) version and calculate the memory savings.</li>
+    <li><strong>Real-World Case Study:</strong> In small groups, analyze an application (e.g., sequence alignment) to identify subproblem definitions, recurrence, and table-filling order, then present insights.</li>
+    <li><strong>Algorithm Variation:</strong> Pose a twist on a standard dynamic programming problem (e.g., weight limits change dynamically) and have students adapt the recurrence and implementation approach.</li>
+    <li><strong>Visualization Exercise:</strong> Use diagramming tools or hand-drawn animations to illustrate how Floyd–Warshall updates shortest-path distances on a tiny graph step by step.</li>
+    <li><strong>Reflective Summary:</strong> Individually, students write a one-paragraph summary of when to use dynamic programming and list two pitfalls to watch for, then share and discuss as a class.</li>
+  </ol>
+</section>
+
+
+  <!-- Practice Problems -->
+  <section id="problems">
+    <h2>Homework Problems</h2>
+    <h3>Basic</h3>
+    <ul>
+      <li>Apply the technique to [Simple Problem A].</li>
+    </ul>
+    <h3>Advanced</h3>
+    <ul>
+      <li>Combine this technique with [Another Technique] to solve [Complex Problem].</li>
+    </ul>
+  </section>
+  
   </p>
 </body>
 </html>
