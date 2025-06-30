@@ -19,4 +19,5 @@ DAGs (add to DAG)
 String Matching
 Interval scheduling
 fractional knapsack (add to fractional knapsack problem)
-
+Coin row problem
+Bellman-Ford Algorithm, Bellman-Ford
