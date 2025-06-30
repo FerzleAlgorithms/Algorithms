@@ -1,94 +1,190 @@
-/* 0) Reset margins/padding */
-html, body {
-  height: auto;
+/*
+ * style.css — updated: single‐scroll container + side‐by‐side menu & content
+ */
+
+
+
+/* 0) Global reset for all documents */
+html {
+  box-sizing: border-box;
   margin: 0;
   padding: 0;
+  height: auto;
+  overflow: visible;
 }
-
+*, *::before, *::after {
+  box-sizing: inherit;
+}
 body {
   font-family: 'Times New Roman', Times, serif;
   background-color: #f7f9fc;
+  height: 100%;
+  margin: 0;
+  padding: 0 5px;              /* horizontal gutters */
+  height: auto;
+  overflow: visible;
 }
 
-/* ─── SITE LAYOUT (only when <body class="mainSite">) ─────────── */
+/*-------------- header -----------------*/
+header h1,
+header h2,
+header h3 {
+  color: #DDDDDD;
+  margin-top: 0.2em;    /* shrink the space above */
+  margin-bottom: 0.2em; /* shrink the space below */
+  padding: 0;           /* remove any extra padding */
+}
+header h3 {
+  font-style: italic;
+}
+
+/* 1) Site layout (only on <body class="mainSite">) */
 body.mainSite {
-  margin: 0 10px;              /* your 10px side-gutters */
   display: flex;
   flex-direction: column;
-  height: 100vh;               /* fill viewport */
+  height: 100%;                /* fill the viewport */
+  margin: 0 10px;              /* inner side gutters */
+  height: auto;
+  overflow: visible;
 }
-body.mainSite html {
-  height: 100%;
-}
+
 body.mainSite #pageWrapper {
   display: flex;
   flex-direction: column;
-  flex: 1;                     /* take all vertical space under header */
-  max-width: 1050px;           /* restore your desired max width */
-  margin: 0 auto;              /* center it horizontally */
-  background: white;
+  flex: 1 1 auto;              /* fill available space */
+  width: 100%;
+  max-width: 1050px;           /* or whatever you prefer */
+  margin: 0 auto;
+  background: #fff;
 }
+
+/* header stays its own size */
 body.mainSite header {
+  flex: 0 0 auto;
   padding: 8px 0;
-  background: #334155;
-  color: white;
+  background-color: #4F7AA1;
+  color: #fff;
   text-align: center;
-  flex: 0;                     /* natural height */
 }
+/*---------------------------------------*/
+
+
+/* 2) Container holds menu + content and is the *only* scrollable area */
 body.mainSite #container {
-  display: flex;
-  flex: 1;                     /* fill under the header */
-  overflow: hidden;
+  display: flex;               /* row by default */
+  flex: 1 1 auto;              /* fill remaining space under header */
+  min-height: 0;       /* allow children to shrink */
+  overflow-y: auto;            /* ← single scrollbar lives here */
 }
-body.mainSite nav#menu {
-  flex: 0 0 220px;             /* fixed sidebar width */
-  background: #e2e8f0;
-  padding: 0.5em;
-  box-sizing: border-box;
-  overflow-y: auto;
-}
+
+/* 4) Main content area (iframe) */
 body.mainSite #content {
-  flex: 1;
-  margin: 0.5em;               /* small gutter around iframe */
+  flex: 1 1 auto;              /* fill remaining width */
   border: 1px solid #ccc;
   box-sizing: border-box;
+  overflow: hidden;            /* no internal scroll */
+  min-height: 0;               /* allow shrinking in flex context */
 }
+
+/*---------------------------------------------------------*/
+/* 3) Sidebar menu */
+body.mainSite nav#menu { 
+  width: 190px;                 /* explicit width */
+  flex-shrink: 0;
+  box-sizing: border-box;
+  background-color: #e2e8f0;
+  padding: 0.5em;
+  overflow-y: auto;            /* scroll if menu is too tall */
+  word-wrap: break-word;
+}
+
+body.mainSite nav#menu ul {
+  list-style: none;
+  padding-left: 0;
+  margin: 0;
+}
+body.mainSite nav#menu ul ul {
+  display: none;               /* hide submenus */
+  padding-left: 1em;
+}
+body.mainSite nav#menu li {
+  margin-bottom: 0.3em;
+}
+body.mainSite nav#menu li.open > ul {
+  display: block;              /* show when open */
+}
+body.mainSite nav#menu li span {
+  display: block;              /* so it fills the width */
+  width: 100%;
+  align-items: flex-start;
+  gap: 0.4em;
+  cursor: pointer;
+}
+
+body.mainSite nav#menu li ul {
+  width: 100%;
+}
+
+body.mainSite nav#menu li span::before {
+  content: "▶";
+  flex-shrink: 0;
+  line-height: 1;
+  transition: transform 0.15s ease;
+  transform-origin: center;
+}
+body.mainSite nav#menu li.open > span::before {
+  transform: rotate(90deg);
+}
+
+body.mainSite nav#menu li span:hover {
+  background-color: #94a3b8;
+}
+
+/*body.mainSite nav#menu li:hover span {
+  background-color: #94a3b8;
+}
+*/
+body.mainSite nav#menu a {
+  color: #1e293b;
+  text-decoration: none;
+}
+
+body.mainSite nav#menu a:hover {
+  text-decoration: underline;
+}
+
+
+nav#menu .menu-controls {
+  margin-bottom: 0.5em;
+  display: flex;
+  gap: 0.5em;
+  justify-content: space-between;
+}
+
+nav#menu .menu-controls button {
+  font-size: 0.85em;
+  padding: 2px 6px;
+  cursor: pointer;
+  border-radius: 4px;
+  border: 1px solid #94a3b8;
+  background-color: #cbd5e1;
+}
+
+nav#menu .menu-controls button:hover {
+  background-color: #a8b7cc;
+}
+
+
+
+
+/* 5) Error message below iframe (if shown) */
 body.mainSite #errorMessage {
-  flex: 0;
+  flex: 0 0 auto;
   align-self: flex-start;
   margin: 0.5em;
 }
-/* ───────────────────────────────────────────────────────────────── */
 
-
-/* style for inline “problem” links */
-a.problem {
-  color: #0366d6;               /* a medium-dark blue for good contrast */
-  text-decoration: none;        /* remove the default underline */
-  border-bottom: 2px solid #8bbde0; /* subtle light-blue underline echoing your node fill */
-  padding-bottom: 1px;          /* give the underline a little breathing room */
-  transition: color 0.2s, border-color 0.2s;
-}
-
-a.problem:hover {
-  color: #024f9a;               /* darken text on hover */
-  border-color: #559ecb;        /* slightly deeper accent underline */
-}
-
-
-header {
-  background-color: #334155;
-  color: white;
-  text-align: center;
-  padding: 8px 0;      /* reduce top/bottom padding */
-}
-
-header h1 {
-  margin: 0;           /* eliminate default h1 margins */
-  font-size: 1.5rem;   /* pick a size that feels right */
-  line-height: 1.2;    /* tighten the vertical spacing */
-}
-
+/* 8) Error message (global) */
 .error {
   padding: 1em;
   background-color: #fdd;
@@ -98,281 +194,31 @@ header h1 {
   margin-top: 1em;
 }
 
-#errorMessage {
-  align-self: flex-start;   /* only this child opts out of stretching */
-}
-
-
-/* Styles to override when full width is needed */
-body.fullWidth #pageWrapper,
-body.fullWidth #container {
-  max-width: none !important;
-  width: 100% !important;
-  box-shadow: none;
-}
-
-/* nav menu */
-nav#menu {
-  width: 200px;
-  background-color: #e2e8f0;
-  padding: 0px;
-  overflow-y: auto;
-}
-
-nav#menu ul {
-  list-style: none;
-  padding-left: 0px;
-}
-
-nav#menu li {
-  cursor: pointer;
-  user-select: none;
-}
-
-/* make the heading spans inline-flex so the arrow and text are aligned line-by-line */
-nav#menu li span {
-  display: inline-flex;
-  align-items: flex-start;   /* align arrow to the first line of text */
-  gap: 0.4em;                /* space between arrow and text */
-  cursor: pointer;
-}
-
-/* turn off the old absolute‐positioned arrow */
-nav#menu li span::before {
-  /* remove position, left, top, padding adjustments */
-  content: "▶";              /* right-pointing arrow */
-  flex-shrink: 0;            /* don’t let it get squished */
-  line-height: 1;            /* keep it tight to its font size */
-  transition: transform 0.15s ease;
-  transform-origin: center;
-}
-
-/* rotate down when open */
-nav#menu li.open > span::before {
-  transform: rotate(90deg);
-}
-
-nav#menu li span:hover {
-  background-color: #94a3b8;
-}
-
-nav#menu ul ul {
-  display: none;
-  padding-left: 10px;
-}
-
-nav#menu li.open > ul {
-  display: block;
-}
-
-nav#menu a {
+/* 7) Problem-link styling (global) */
+a.problem {
+  color: #0366d6;
   text-decoration: none;
-  color: #1e293b;
+  /* border-bottom: 2px solid #8bbde0;*/
+  padding-bottom: 1px;
+  transition: color 0.2s, border-color 0.2s;
 }
-
-nav#menu a:hover {
-  text-decoration: underline;
-}
-
-
-/* menu */
-#menu ul {
-  list-style-type: none;
-  padding-left: 1em;
-}
-
-#menu ul ul {
-  margin-left: 1em;
-}
-
-#menu li {
-  margin-bottom: 0.3em;
-  padding: 0.1em 0.1em;
-  border-radius: 4px;
-  transition: background 0.2s;
-}
-#menu li:hover {
-  background: #f1f5f9;
+a.problem:hover {
+  color: #024f9a;
+  border-color: #559ecb;
 }
 
 
-
-/* Buttons and input cells in demos */
-button { 
-    margin: 5px; 10px 10px; 
-    padding: 5px 5px; 5px;
+/* 9) Resource-list link styling in main content */
+.resource-list a {
+  color: #038c7f;
+  text-decoration: none;
+  /*border-bottom: 2px solid #8bdcc9;*/
+  padding-bottom: 0px;
+  line-height: 1.75;      /* spacing within each item */
 }
-/* Buttons and input cells in demos */
-input { 
-    margin: 5px; 5px; 
-    padding: 5px 5px; 5px;
-}
-
-/* For array based demos */
-.array-container { 
-    display: flex; 
-    gap: 10px; 
-    align-items: flex-start; 
-    justify-content: flex-start;
-    margin-top: 10px; 
-    margin-bottom: 100px;      
-    font-size: 18px;      
-    position: relative;    
-    }
-	
-	/* For Legends */
- .legend {
-      margin-top: 30px; /* added buffer from buttons */
-      margin-bottom: 20px;
-      text-align: left;
-    }
-	
-.legend-box {
-      display: inline-block;
-      width: 15px;
-      height: 15px;
-      vertical-align: middle;
-      margin-right: 1px;
-      margin-left: 10px;
-      border-radius: 4px;
-	  border: 1px solid #333;
-	  background-color: transparent;
-    }
-	
-	/* For code display? */
-.tabs {   
-    overflow: hidden;  
-	background-color: #eaeaea;  
-	display: inline-flex;  
-	border-radius: 5px 5px 0 0;
-	}
-.tabs button {  
-    background-color: inherit; 
-	padding: 8px 12px; 
-	cursor: pointer; 
-	transition: background-color 0.3s ease; 
-    color: #333; 
-	border: none; 
-	outline: none; 
-	font-size: 14px;
-	}
-.tabs button:hover, .tabs button.active {  
-    background-color: #d4d4d4;
-}
-.code-container { 
-    background-color: white;   
-	width:500px;
-	border-radius: 0 5px 5px 5px; 
-	border: 1px solid #ccc; 
-	overflow-x: auto;
-}
- 
- 
-.element { /* For a cell of an array based demo */
-    width: 40px; 
-    height: 40px; 
-    line-height: 40px; 
-    text-align: center; 
-    border: 1px solid #333; 
-    background-color: #cce3ff; 
-    position: relative;
-}
-.default { background-color: #cce3ff; border: 1px solid; }
-
-.key { background-color: #1f77b4; }
-
-.finished { background-color: lightgreen; }
-   	
-.blank{
-	background-color:white;
+.resource-list a:hover {
+  color: #024f9a;
+  border-color: #559ecb;
 }
 
-.right-partition{
-	background-color:#1e90ff;
-}
-
-.left-partition{
-	background-color: lightsalmon;
-}
-.pivot{
-	 background-color: lightgreen;
-}
-.comparing {  /* A cell that is being compared to another one */
-    background-color: yellow;
-}
-.swap {  /* A cell that is about to be swapped with another one */
-    background-color: #b2f2bb;
-}
-.sorted {  /* A cell that is in its final position */
-    background-color: orange;
-}
-.empty { background-color: transparent; border: 1px dashed #ccc; }
-
-.arrow {  /* An arrow pointing into a cell */
-    position: absolute;  
-    top: 50px;  
-    width: 100%;  
-    text-align: center;  
-    font-weight: bold;
-}
-
-/* For demos */
-.embeddedDemoContainer {
-    width: 100%;                 /* container takes full width */
-    display: flex;               /* enable flexible positioning */
-    justify-content: flex-start; /* aligns content to left */
-    margin-left: 0px;          /* adjust this value as needed to nudge left */
-    box-sizing: border-box;      /* ensures padding doesn't affect total width */
-}
-
-.embeddedDemo {
-    width: 100%;                 /* occupy full available width */
-    height: 400px;               /* OVERRODE THIS IN YOUR FILE IF YOU NEED IT DIFFERENT! */
-    border: none;                /* remove borders */
-}
-
-.example-box strong.example-title {
-    color: #1a73e8; /* Adjust this color as desired */
-    font-style: italic;
-}
-
-.example-box {
-    display: inline-block;
-  vertical-align: top;
-    border: 1px solid #888;
-    background-color: #f0f8ff;
-    padding: 10px;
-    margin-bottom: 10px;
-}
-
-/* Example table styling */
-.example-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin: 1em 0;
-  font-size: 0.95rem;
-  line-height: 1.4;
-}
-
-.example-table th {
-  background-color: #f2f2f2;
-  font-weight: 600;
-  padding: 0.75em;
-  text-align: left;
-  border-bottom: 2px solid #ddd;
-}
-
-.example-table td {
-  /*padding: 0.75em;*/
-  border-bottom: 1px solid #eee;
-  text-align: center;
-}
-
-.example-table tbody tr:nth-child(even) {
-  background-color: #fafafa;
-}
-
-.example-table tbody tr:hover {
-  background-color: #f5f5f5;
-}
 
