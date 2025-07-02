@@ -478,7 +478,7 @@ fibRec(i, fib) { // Recursive helper with memoization //
     <li>In the Coin Row algorithm, why do we compare <code>M[j-1]</code> with <code>M[j-2] + C[j]</code>?</li>
     <li>What is the time complexity of the dynamic programming Coin Row algorithm?</li>
     <!-- Problem asking for rolling array algorithm -->
-    <li>Give pseudocode for an algorithm that uses the rolling array optimization to compute the 
+    <li>Give pseudocode for an algorithm that uses the rolling array optimization idea to compute the 
     \(n\)-th Fibonacci number in \(O(n)\) time and \(O(1)\) space.
     See the following demonstration for inspiration.</li>
   </ol>      
@@ -569,34 +569,111 @@ fibRec(i, fib) { // Recursive helper with memoization //
 
 <section id="activities">
   <h2>In-Class Activities</h2>
+  <ol> 
+    <li><strong>Fibonacci Numbers:</strong> Have one group of students go up on the board and draw the recursion tree showing how to compute
+    \(F(6)\) based on the naive recursive algorithm. 
+    Have a second group use the top-down dynamic programming algorithm. 
+    Have a third group use the bottom-up dynamic programming algorithm. 
+    Make sure each group shows all of their work clearly and count the number of additons performed.
+    Compare results to make sure they match. Then have them compare the number of additions needed. Discuss the results.</li>
+    <li><strong>Memoization Trace:</strong> Demonstrate (or have a student demonstrate) the top-down dynamic programming algorithm to compute
+    \(F(8)\). Ask students to draw the call tree, marking which calls compute a value and which look it up.</li>
+     <li><strong>Coin Row DP Table:</strong> Give the coin values <code>C=[5, 1, 3, 6, 2, 7, 1, 4, 8]</code> and have students build the table <code>M</code> 
+     using the recurrence \(M[j] = max(M[j-1], M[j-2] + C[j])\). Then identify the chosen coins, clearly showing how they are determined.</li>
+    <li><strong>Algorithm Comparison:</strong> Discuss alternative algorithms to solve the coin-row problem, including their difficulty implementing and 
+    computational complexities, and whether or not they are better than the dynamic programming approach.</li>
+     <li><strong>Saving Space:</strong> Discuss if/how space can be saved in the dynamic programming algorithm for the coin-row problem.
+     What are the benefits of saving space? What are the downsides? Should you do it?</li>
+    <li><strong>Longest Increasing Subsequence:</strong> Given a sequence of integers <code>A[0..n-1]</code>, find the length of the longest strictly increasing subsequence in <code>A</code>. Derive the recurrence relation and outline a dynamic programming algorithm, specifying the state definition, base cases, table dimensions, and loop order.</li>
+    <li><strong>Reflective Pair Share:</strong> Each student writes a one-sentence definition of “optimal substructure” and “overlapping subproblems,” then pairs exchange and critique each other’s definitions.</li>
+    <li><strong>Robot Coin Collection:</strong> You are given an \(n \times m\) grid of non-negative coin values \(C_{i,j}\) for \(0 \le i < n\), \(0 \le j < m\). A robot starts at \((0,0)\) and can only move right or down to reach \((n-1,m-1)\), collecting coins on its path.
+    Let \(M[i,j]\) be the maximum value of coins collectable upon reaching cell \((i,j)\).
   <ol>
-    <li><strong>Whiteboard Sketch:</strong> In pairs, students map out the recursion tree and corresponding dynamic programming table for a simple problem (e.g., Fibonacci) to visualize overlapping subproblems and memoization.</li>
-    <li><strong>Algorithm Comparison:</strong> Discuss alternative algorithms to solve the coin-row problem, including their computational complexities,
-    and whether or not they are better than the dynamic programming approach.</li>
-    <li><strong>Pseudocode Translation:</strong> Given a recurrence relation verbally described by the instructor, students write clear bottom-up pseudocode with proper base-case initialization.</li>
-    <li><strong>Error Spotting:</strong> Provide each group with a snippet of buggy dynamic programming code; have them identify and fix common pitfalls like off-by-one loops or missing base cases.</li>
-    <li><strong>Space Optimization Challenge:</strong> Students refactor a two-dimensional dynamic programming solution into a rolling-array (one-dimensional) version and calculate the memory savings.</li>
-    <li><strong>Real-World Case Study:</strong> In small groups, analyze an application (e.g., sequence alignment) to identify subproblem definitions, recurrence, and table-filling order, then present insights.</li>
-    <li><strong>Algorithm Variation:</strong> Pose a twist on a standard dynamic programming problem (e.g., weight limits change dynamically) and have students adapt the recurrence and implementation approach.</li>
-    <li><strong>Visualization Exercise:</strong> Use diagramming tools or hand-drawn animations to illustrate how Floyd–Warshall updates shortest-path distances on a tiny graph step by step.</li>
-    <li><strong>Reflective Summary:</strong> Individually, students write a one-paragraph summary of when to use dynamic programming and list two pitfalls to watch for, then share and discuss as a class.</li>
+    <li>Derive a recurrence relation for \(M[i,j]\) valid for all \(i,j\), specifying how to handle boundary conditions.</li>
+    <li>Describe initialization of base cases \(M[0,j]\) and \(M[i,0]\).</li>
+    <li>Outline a bottom-up algorithm that fills \(M\) in row-major order to compute \(DP[n-1,m-1]\).</li>
+    <li>Explain how to trace back the optimal path from \((n-1,m-1)\) to \((0,0)\).</li>
+    <li>Apply your algorithm to the following \(5\times7\) grid. 
+      Compute \(DP[4,6]\) and trace the optimal path that collects the maximum coins.<br>
+      <pre>3 1 2 4 0 1 2
+0 4 1 5 2 3 0
+2 0 3 2 4 1 3
+1 2 0 4 1 2 1
+3 1 2 0 2 4 1</pre>
+    </li>
+  </ol>
+</li>
+   </ol>
+</section>
+
+ <section id="problems">
+  <h2>Homework Problems</h2>
+  <h3>Basic</h3>
+  <ol>
+    <li><strong>Fibonacci:</strong> Implement the following algorithms to compute the \(n\)th Fibonacci number,
+    inserting code that allows you to time how long each takes.
+    <ul>
+    <li>Naive</li>
+    <li>Top-Down Dynamic Programming</li>
+    <li>Bottom-Up Dynamic Programming</li>
+    <li>Constant-Space Dynamic Programming (The one that only needs 2 or 3 (depending on how you count) extra variables)</li>
+    </ul>
+    Then run the algorithms on \(n=10,15,20,25,30,35,40,45,50,55\). Create a table of the times of each algorithm on each number.
+    Then discuss the results&mdash;Do the algorithms perform as you expcted? Did anything surprize you?
+    </li>
+    <li><strong>Coin Row:</strong> Solve the coin-row problem with coins \([5, 2, 7, 8, 3, 5, 1, 4, 9, 2, 6, 3, 7, 2, 10]\)
+    using the dynamic programming algorithm. Give the coins to take and total value. 
+    Show the table, make the coins taken, and somehow note how you determined the proper coins.</li>
+    <li><strong>Counting Unique Paths:</strong> In a \(n\times m\) grid, give a dynamic programming algorithm to 
+    count the number of distinct paths from the top-left to bottom-right, moving only right or down. 
+    Can you devise a better algorithm to solve the problem than using dynamic programming? Compare </li>
+    <li><strong>Robot Coin Collection:</strong> Solve the following instance of the Robot Coin Collection problem (See In-Class activities
+    for a full description). Make sure to show the table of values used in the dynamic programming algorithm, draw the path, and give
+    the value of the coins collected.<br>
+      <pre>
+1 3 0 1 2 0
+2 0 4 0 1 2
+0 6 0 4 0 1
+5 0 2 1 3 0
+0 1 0 1 0 0</pre></li>
+    <li><strong>Climbing Stairs:</strong> You need to climb \(n\) stairs, taking 1 or 2 steps at a time. 
+    Use a dynamic programming approach to determine the number of different ways you can reach the top of the stairs.</em></li>
+  </ol>
+
+  <h3>Advanced</h3>
+  <ol>  
+  <li><strong>0-1 Knapsack:</strong> For items with weights \([2,5,1,6,1,7,3,2]\) and values \([8,6,7,5,3,9,1,2]\) and capacity \(W=11\), 
+  build and fill the dynamic programming table to find the maximum value. State the optimal value and which items to take.</li>
+  <li><strong>Matrix Chain Multiplication:</strong> Given dimensions \(p=[20,5,30,10,50,60,70]\), 
+  find the minimum number of scalar multiplications to compute \(A_1A_2A_3A_4A_5A_6\). 
+  Show how you fill the cost table and indicate the optimal parenthesization.</li>
+  <li><strong>Edit Distance:</strong> Compute the edit distance between “encyclopedia” and “bibliography.” 
+  using the the dynamic programming algorithm. Give one sequence of edits to go from the first word to the second.</li>
+  <li><strong>Longest Common Subsequence:</strong> 
+  For strings “INSTRUCTIONAL” and “CONSTRUCTION,” determine the length of their LCS and recover one LCS. 
+  Show the dynamic programming table and backtracking steps to find the sequence. </li>
+  <li><strong>Subset Sum:</strong> Given set \(\{3,34,4,12,5,2,7,8,15,6,11,9\}\) and target \(26\), 
+  decide whether a subset sums to \(26\). 
+  Use the dynamic programming approach. Show the appropriate table of values and identify the subset if it exists.</li>
+  <li><strong>Optimal Binary Search Tree:</strong> 
+  Use a dynamic programming algorithm to find an optimal binary search tree
+  for keys  keys \([A,B,C,D,E,F,G,H]\), search probabilities \([0.12,0.03,0.15,0.05,0.25,0.1,0.2,0.1]\). 
+  Draw the tree, show the work required to construct the tree, and give the expected search cost.</li>
+  <li><strong>Floyd–Warshall:</strong> Apply the Floyd–Warshall algorithm to compute all-pairs shortest paths of the following graph. 
+  Show the distance matrix after each intermediate step.<br>
+    <pre>0  3  ∞  7  ∞  ∞ 13  ∞
+8  0 12  ∞  ∞  1  3  ∞
+∞  5  0  8  ∞  ∞  ∞ 11
+∞  ∞  ∞  0  4  ∞  ∞  ∞
+∞  ∞  ∞  ∞  0  9  2  ∞
+∞  2  ∞  ∞  ∞  0  3  ∞
+∞  ∞  ∞  ∞  4  ∞  0  6
+1  ∞  ∞  9  ∞  ∞  ∞  0
+    </pre>
+  </li>
   </ol>
 </section>
 
-
-  <!-- Practice Problems -->
-  <section id="problems">
-    <h2>Homework Problems</h2>
-    <h3>Basic</h3>
-    <ul>
-      <li>Apply the technique to [Simple Problem A].</li>
-    </ul>
-    <h3>Advanced</h3>
-    <ul>
-      <li>Combine this technique with [Another Technique] to solve [Complex Problem].</li>
-    </ul>
-  </section>
-  
   </p>
 </body>
 </html>
