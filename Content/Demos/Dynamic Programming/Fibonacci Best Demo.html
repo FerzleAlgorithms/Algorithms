@@ -26,16 +26,28 @@
       font-size: 1.6em;
       vertical-align: middle;
     }
-    .arrow-cell span {
-      display: inline-block;
-      /*transform: rotate(45deg);*/
-      font-size: 1.2em;
+  .fib-table td.arrow-cell {
+      position: relative;
+      overflow: visible;    /* allow the arrow to poke out */
+    }
+    
+    .fib-table td.arrow-cell span {
+      position: absolute;
+      top: 50%;             /* halfway down its own cell */
+      left: 50%;            /* center horizontally */
+      transform-origin: center center;
+      /* rotate into place and stretch it longer */
+      transform: translate(-50%, -150%) scale(2, 2);
+      font-size: 1em;       /* base size before scaling */
       color: red;
+      line-height: 1;
       visibility: hidden;
     }
-    .arrow-cell.active span {
+    
+    .fib-table td.arrow-cell.active span {
       visibility: visible;
     }
+
     .crossed {
       text-decoration: line-through;
       opacity: 0.4;
@@ -56,7 +68,8 @@
 </head>
 <body>
   <div class="demo-container">
-    <h2>Iterative Fibonacci Demo</h2>
+    <h2>Fibonacci Iterative Demo</h2>
+    <div>(Can be thought of as bottom-up dynamic programming with a "rolling array")</div><br>
     <div class="controls">
       <label>
         Enter n:
@@ -67,18 +80,18 @@
     </div>
 
     <table class="fib-table" id="fib-table">
+    
+      <tr id="row-fn2">
+        <th>F<sub>n−2</sub>=</th>
+      </tr> 
+      <tr id="row-fn1">
+        <th>F<sub>n−1</sub>=</th>
+      </tr> 
       <tr id="row-fn">
         <th>F<sub>n</sub>=</th>
       </tr>
-      <tr id="row-fn1">
-        <th>F<sub>n−1</sub>=</th>
-      </tr>
-      <tr id="row-fn2">
-        <th>F<sub>n−2</sub>=</th>
-      </tr>
     </table>
-
-    <div class="comment" id="comment"></div>
+    <div class="comment" id="comment"></div><br>
   </div>
 
   <script>
@@ -131,11 +144,11 @@
         // arrow cells (same as before)…
         const a1 = document.createElement("td");
         a1.className = "arrow-cell";
-        a1.innerHTML = '<span>↘</span>';
+        a1.innerHTML = '<span>&nearrow;</span>';
         rowFn.appendChild(a1);
         const a2 = document.createElement("td");
         a2.className = "arrow-cell";
-        a2.innerHTML = '<span>↘</span>';
+        a2.innerHTML = '<span>&nearrow;</span>';
         rowFn1.appendChild(a2);
         const a3 = document.createElement("td");
         a3.className = "arrow-cell";

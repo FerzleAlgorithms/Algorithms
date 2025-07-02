@@ -1,137 +1,242 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Memoized Fibonacci Demo</title>
-  <script src="../../scripts/demoScripts.js"></script>
-  <link rel="stylesheet" href="../../css/style.css">
-  <link rel="stylesheet" href="../../css/demo.css">
+  <meta charset="UTF-8"/>
+  <title>Top-Down DP Fibonacci Demo</title>
+  <!-- Common CSS -->
+  <script src="/Algorithms/scripts/demoScripts.js"></script>
+  <link rel="stylesheet" href="/Algorithms/css/style.css"/>
+  <link rel="stylesheet" href="/Algorithms/css/demo.css"/>
+  <!-- Demo-specific styling for nodes -->
   <style>
-    svg { width: 100%; min-height: 600px; display: block; margin: 0 auto; overflow: visible; }
+    .array-container { display: inline-block; white-space: nowrap; margin-bottom: 10px; }
+    .element-wrapper { display: inline-block; text-align: center; margin-right: 4px; }
+
+    /* Node and link styling */
     .link-line { stroke: #777; stroke-width: 1; }
-    .node-circle { stroke: #333; fill: #fff; transition: fill 0.3s; }
+    .node-circle { stroke: #333; fill: #fff; }
     .node-call { fill: #f8d3d3; }
     .node-computed { fill: #d3f8d3; }
-    .node-cached { fill: #d3d3f8; }
     .node-current { stroke: #f00; stroke-width: 3; }
-    .node-text, .node-label { font-family: sans-serif; pointer-events: none; }
-    .node-text { font-size: 12px; text-anchor: middle; dominant-baseline: middle; }
-    .node-label { font-size: 10px; text-anchor: end; dominant-baseline: hanging; }
-    #controls { font-family: sans-serif; margin-bottom: 10px; }
-    #commentary { margin-top: 8px; font-style: italic; font-family: sans-serif; }
+    .node-text { font-size: 14px; text-anchor: middle; dominant-baseline: middle; }
+    .node-label { font-size: 10px; text-anchor: start; dominant-baseline: middle; }
+
+    /* Toggle handle inside call panel */
+    .toggle-handle {
+      position: absolute;
+      top: 50%;
+      left: 8px;
+      width: 8px;
+      height: 40px;
+      transform: translateY(-50%);
+      cursor: ew-resize;
+      background: #ccc;
+      border-radius: 4px;
+    }
+
+    /* Call panel styling - resizable */
+    #callPanel {
+      position: fixed;
+      top: 0;
+      right: 0;
+      width: 240px;
+      min-width: 150px;
+      max-width: 80%;
+      height: 100%;
+      background: #fff;
+      border-left: 1px solid #ccc;
+      overflow: auto;
+      resize: horizontal;
+      z-index: 1000;
+    }
+    
+    #callPanel ul {
+      margin: 0;
+      padding: 5px;
+      list-style: none;
+    }
+    #callPanel li {
+      font-family: sans-serif;
+      font-size: 14px;
+    }
   </style>
 </head>
-<body class = "no-tooltips">
-  <h2>Memoized Fibonacci Demo</h2>
+<body class="no-tooltips">
+  <h2>Top-Down DP Fibonacci Demo</h2>
   <div id="controls">
-    n:<input id="inputN" type="number" min="2" max="20" value="6">
-    <button id="prev" disabled>Previous</button>
-    <button id="next" disabled>Next</button>
+    <label for="inputN">n:</label>
+    <input type="number" id="inputN" min="2" max="11" value="8"/>
+    <button id="startBtn">Start</button>
+    <button id="prevBtn" disabled>Previous</button>
+    <button id="nextBtn" disabled>Next</button>
     <button id="play">Play</button>
-    Speed:<select id="speed"><option value="1">1×</option><option value="2">2×</option><option value="4">4×</option></select>
-    <span id="count">Calls:0</span>
-    <div id="commentary"></div>
+    <label for="speed">Speed:</label>
+    <select id="speed">
+      <option value="1">1x</option>
+      <option value="2">2x</option>
+      <option value="4">4x</option>
+      <option value="8">8x</option>
+    </select>
+    <br/><br/>
+    <span id="nodeCount">Number of nodes: 0</span><div id="commentary" style="height:70px; margin-top:10px;"></div>
   </div>
-  <svg id="svg"><g id="links"></g><g id="nodes"></g></svg>
+
+  <div style="font-family:sans-serif; margin-bottom:10px;">
+    <span style="font-weight:bold; vertical-align:middle;">M = </span>
+    <div class="array-container" id="memoArray" style="display:inline-block; vertical-align:middle;"></div>
+  </div>
+
+  <svg id="treeSvg" viewBox="0 0 600 600" preserveAspectRatio="xMidYMid meet"
+       style="width:100%; max-width:600px; aspect-ratio:1/1; display:block; margin-left:5%; overflow:visible; height:auto;">
+    <g id="linkLayer"></g>
+    <g id="nodeLayer"></g>
+  </svg>
+
+  <div id="callPanel">
+    <ul id="callList"></ul>
+    <div class="toggle-handle"></div>
+  </div>
+
   <script>
-    const memo = {};
-    class FibNode { constructor(n){ this.n=n; this.id=FibNode.nextId++; this.left=null; this.right=null; this.parent=null; this.value=null; this.depth=0; this.x=0; this.y=0; }} FibNode.nextId=0;
-    const svg=document.getElementById('svg'), linkLayer=svg.querySelector('#links'), nodeLayer=svg.querySelector('#nodes'), NS='http://www.w3.org/2000/svg';
-    let root, allNodes, events, idx, callCount, playing, timer;
-    const vGap=80, r=15;
+    class FibNode { constructor(n,id){ this.n=n; this.id=id; this.left=null; this.right=null; this.parent=null; this.value=null; this.x=0; this.y=0; this.depth=0;} }
+    let root, allNodes, eventList, stepIndex, createCount, playing=false, intervalId, memo;
+    const svgNS='http://www.w3.org/2000/svg';
 
-    function buildFull(n, depth=0, parent=null){ const node=new FibNode(n); node.depth=depth; node.parent=parent; allNodes.push(node); if(n>=2){node.left=buildFull(n-1,depth+1,node);node.right=buildFull(n-2,depth+1,node);} return node; }
-    function assignPositions(){ const width=svg.clientWidth, span=width/4; (function layout(n,x,s){ n.x=x; n.y=n.depth*vGap+r*2; if(n.left) layout(n.left,x-s,s/2); if(n.right) layout(n.right,x+s,s/2); })(root,width/2,span); }
-    function generateMemoEvents(n,seen=new Set()){ if(!n)return; if(!seen.has(n.n)){seen.add(n.n); events.push({type:'call',node:n,cached:false}); generateMemoEvents(n.left,seen); generateMemoEvents(n.right,seen); events.push({type:'return',node:n,cached:false});} else {events.push({type:'call',node:n,cached:true}); events.push({type:'return',node:n,cached:true});}}
-    function clearSvg(){ linkLayer.innerHTML=''; nodeLayer.innerHTML=''; }
-    function updateComment(msg){ document.getElementById('commentary').textContent=msg; }
-    function drawLink(n){ const p=n.parent, dx=n.x-p.x, dy=n.y-p.y, d=Math.hypot(dx,dy)||1, ux=dx/d, uy=dy/d, line=document.createElementNS(NS,'line'); line.setAttribute('x1',p.x+ux*r); line.setAttribute('y1',p.y+uy*r); line.setAttribute('x2',n.x-ux*r); line.setAttribute('y2',n.y-uy*r); line.classList.add('link-line'); linkLayer.appendChild(line);}    
-    function drawCall(n,ca){ if(!document.getElementById('node-'+n.id)){ if(n.parent) drawLink(n); const c=document.createElementNS(NS,'circle'); c.setAttribute('cx',n.x); c.setAttribute('cy',n.y); c.setAttribute('r',r); c.id='node-'+n.id; c.classList.add('node-circle'); nodeLayer.appendChild(c); const l=document.createElementNS(NS,'text'); l.setAttribute('x',n.x+r*1.5); l.setAttribute('y',n.y+r*0.8); l.classList.add('node-label'); l.textContent=`F(${n.n})`; nodeLayer.appendChild(l); const t=document.createElementNS(NS,'text'); t.setAttribute('x',n.x); t.setAttribute('y',n.y); t.id='text-'+n.id; t.classList.add('node-text'); nodeLayer.appendChild(t);} allNodes.forEach(x=>{const e=document.getElementById('node-'+x.id); if(e) e.classList.remove('node-current','node-call','node-cached');}); const el=document.getElementById('node-'+n.id); el.classList.add(ca?'node-cached':'node-call','node-current'); document.getElementById('count').textContent=`Calls:${++callCount}`; updateComment(ca?`Retrieve F(${n.n}) from cache`:`Calling F(${n.n})`);}    
-    function drawReturn(n, ca) {
-      if (!ca) {
-        n.value = n.n < 2 ? n.n : n.left.value + n.right.value;
-        memo[n.n] = n.value;
-        const el = document.getElementById('node-' + n.id);
-        const txt = document.getElementById('text-' + n.id);
-        if (el && txt) {
-          el.classList.remove('node-call', 'node-cached');
-          el.classList.add('node-computed');
-          txt.textContent = n.value;
-        }
-        updateComment(`Returning F(${n.n}) = ${n.value}`);
-      } else {
-        n.value = memo[n.n];
-        allNodes.forEach(x => {
-          if (x.n === n.n) {
-            const el = document.getElementById('node-' + x.id);
-            const txt = document.getElementById('text-' + x.id);
-            if (el && txt) {
-              el.classList.remove('node-call', 'node-cached');
-              el.classList.add('node-computed', 'node-current');
-              txt.textContent = x.value;
-            }
-          }
-        });
-        updateComment(`Retrieve F(${n.n}) = ${n.value} (cached)`);
-      }
-    }
+    function updateCommentary(msg){ const el=document.getElementById('commentary'); if(el) el.innerHTML=msg; }
 
-    function renderUpTo(k) {
-      clearSvg();
-      callCount = 0;
-      document.getElementById('count').textContent = 'Calls:0';
-      updateComment('');
-      // Render events up to k
-      for (let i = 0; i < k; i++) {
-        const ev = events[i];
-        if (ev.type === 'call') drawCall(ev.node, ev.cached);
-        else drawReturn(ev.node, ev.cached);
-      }
-      idx = k;
-      document.getElementById('prev').disabled = idx === 0;
-      document.getElementById('next').disabled = idx >= events.length;
-      // If finished all steps, show completion commentary and clear highlights
-      if (idx === events.length) {
-        updateComment('Memoized fibonacci demo complete');
-        // remove all current highlights
-        allNodes.forEach(n => {
-          const el = document.getElementById('node-' + n.id);
-          if (el) el.classList.remove('node-current');
-        });
-      }
-    }
-    function init() {
+    function renderMemoArray(n){ const arr=document.getElementById('memoArray'); arr.innerHTML=''; for(let i=0;i<=n;i++){ const w=document.createElement('div'); w.className='element-wrapper'; const c=document.createElement('div'); c.className='element'; c.textContent=''; const idx=document.createElement('div'); idx.className='element-index'; idx.textContent=i; w.append(c,idx); arr.appendChild(w);} }
+    function updateMemoCell(i,val){ document.getElementById('memoArray').children[i].querySelector('.element').textContent=val; }
+
+    function buildTree(n){ allNodes=[]; let idc=0; function h(k,p,d){ const node=new FibNode(k,idc++); node.parent=p; node.depth=d; allNodes.push(node); if(k>=2){ node.left=h(k-1,node,d+1); node.right=h(k-2,node,d+1);} return node;} return h(n,null,0); }
+
+    function generateEvents(root){ let seen=new Set([0,1]); eventList=[]; function t(n){ eventList.push({type:'call',node:n}); if(seen.has(n.n)){ eventList.push({type:'returnMemo',node:n}); return;} if(n.n<2){ eventList.push({type:'return',node:n}); seen.add(n.n);} else{ t(n.left); eventList.push({type:'resume',node:n}); t(n.right); eventList.push({type:'return',node:n}); seen.add(n.n);} } t(root);}    
+
+    function assignPositions(root){ const viewSize=600,leftMargin=20,topMargin=20,vSpacing=70; const n=root.n,maxOffset=viewSize/2-leftMargin,hOffset=maxOffset/n; function sp(node,x,y){ if(!node) return; node.x=x; node.y=y; sp(node.left,x-hOffset,y+vSpacing); sp(node.right,x+hOffset,y+vSpacing);} sp(root,viewSize/2,topMargin); const maxY=Math.max(...allNodes.map(n=>n.y)); const svgEl=document.getElementById('treeSvg'); svgEl.setAttribute('viewBox',`0 0 ${viewSize} ${maxY+50}`); svgEl.style.height=`${maxY+50}px`; }
+
+    function clearSvg(){ const svg=document.getElementById('treeSvg'); while(svg.firstChild) svg.removeChild(svg.firstChild); const l=document.createElementNS(svgNS,'g');l.id='linkLayer'; svg.append(l); const n=document.createElementNS(svgNS,'g');n.id='nodeLayer'; svg.append(n);}    
+
+    function clearHighlights(){ allNodes.forEach(n=>{ document.getElementById('circle-'+n.id)?.classList.remove('node-current');}); }
+
+    function logCall(n,d,msg){ const li=document.createElement('li'); li.style.paddingLeft=`${d*20}px`; li.textContent=msg; document.getElementById('callList').append(li);}    
+
+    function drawLink(node){ if(!node.parent) return; const r=16,p=node.parent,dx=node.x-p.x,dy=node.y-p.y,d=Math.hypot(dx,dy)||1,ux=dx/d,uy=dy/d,x1=p.x+ux*r,y1=p.y+uy*r,x2=node.x-ux*r,y2=node.y-uy*r; const line=document.createElementNS(svgNS,'line'); line.setAttribute('x1',x1); line.setAttribute('y1',y1); line.setAttribute('x2',x2); line.setAttribute('y2',y2); line.classList.add('link-line'); document.getElementById('linkLayer').append(line);}    
+
+    function drawNode(node){ clearHighlights(); const r=16; const c=document.createElementNS(svgNS,'circle'); c.setAttribute('cx',node.x); c.setAttribute('cy',node.y); c.setAttribute('r',r); c.id='circle-'+node.id; c.classList.add('node-circle','node-call','node-current'); document.getElementById('nodeLayer').append(c); const lbl=document.createElementNS(svgNS,'text'); lbl.id='label-'+node.id; lbl.setAttribute('x', node.x + r + 4); lbl.setAttribute('y',node.y+r/2); lbl.classList.add('node-label'); lbl.textContent=`F(${node.n})`; document.getElementById('nodeLayer').append(lbl); const txt=document.createElementNS(svgNS,'text'); txt.setAttribute('x',node.x); txt.setAttribute('y',node.y); txt.id='text-'+node.id; txt.classList.add('node-text'); txt.textContent=''; document.getElementById('nodeLayer').append(txt); createCount++; document.getElementById('nodeCount').textContent=`Number of nodes: ${createCount}`; updateCommentary(`Calling F(${node.n})`); logCall(node.n,node.depth,`Call F(${node.n})`);}    
+
+    function computeNode(node){ clearHighlights(); let formula; if(node.n<2){ node.value=node.n; formula=`${node.value}`;} else{ node.value=node.left.value+node.right.value; formula=`${node.left.value}+${node.right.value}=${node.value}`;} memo[node.n]=node.value; updateMemoCell(node.n,node.value); const c=document.getElementById('circle-'+node.id); const tEl=document.getElementById('text-'+node.id); c.setAttribute('class','node-circle node-computed node-current'); tEl.textContent=node.value; updateCommentary(`Computing F(${node.n}) = F(${node.n-1}) + F(${node.n-2}) = ${formula}<br>saving M[${node.n}] = ${node.value}<br>Returning ${node.value}`); logCall(node.n,node.depth,`Return fib(${node.n}) = ${formula}`);}    
+
+    function handleReturnMemo(node){ clearHighlights(); node.value=memo[node.n]; updateMemoCell(node.n,node.value); const c=document.getElementById('circle-'+node.id); const tEl=document.getElementById('text-'+node.id); c.setAttribute('class','node-circle node-computed node-current'); tEl.textContent=node.value; if(node.n<2){ updateCommentary(`Base case return F(${node.n}) = ${node.value}`);} else{ updateCommentary(`Retrieved F(${node.n}) = ${node.value} from memo`);} logCall(node.n,node.depth,`Return fib(${node.n}) (memoized) = ${node.value}`);}    
+
+    function removeNode(node){ const circleEl=document.getElementById('circle-'+node.id); const textEl=document.getElementById('text-'+node.id); const labelEl=document.getElementById('label-'+node.id); const lines=document.getElementById('linkLayer').getElementsByTagName('line'); if(lines.length) lines[lines.length-1].remove(); if(circleEl) circleEl.remove(); if(textEl) textEl.remove(); if(labelEl) labelEl.remove(); createCount--; document.getElementById('nodeCount').textContent=`Number of nodes: ${createCount}`; updateCommentary(`Undo call fib(${node.n})`); const ul=document.getElementById('callList'); if(ul.lastElementChild) ul.removeChild(ul.lastElementChild);}    
+
+    function undoCompute(node){ clearHighlights(); const cEl=document.getElementById('circle-'+node.id); const tEl=document.getElementById('text-'+node.id); if(cEl) cEl.setAttribute('class','node-circle node-call'); if(tEl) tEl.textContent=''; updateMemoCell(node.n,''); node.value=null; updateCommentary(`Undo return fib(${node.n})`); const ul=document.getElementById('callList'); if(ul.lastElementChild) ul.removeChild(ul.lastElementChild);}    
+
+    function initializeDemo(n) {
       allNodes = [];
-      FibNode.nextId = 0;
-      events = [];
-      idx = 0;
-      callCount = 0;
-      playing = false;
-      clearInterval(timer);
-      document.getElementById('count').textContent = 'Calls:0';
-      updateComment('');
-      const n = parseInt(document.getElementById('inputN').value, 10);
-      root = buildFull(n);
-      assignPositions();
+      eventList = [];
+      stepIndex = 0;
+      createCount = 0;
+      renderMemoArray(n);
+      memo = {0:0,1:1};
+      root = buildTree(n);
+      generateEvents(root);
+      assignPositions(root);
       clearSvg();
-      generateMemoEvents(root);
-      renderUpTo(0);
+      document.getElementById('nodeCount').textContent = 'Number of nodes: 0';
+      updateCommentary('');
+      // reset buttons state
+      document.getElementById('prevBtn').disabled = true;
+      document.getElementById('nextBtn').disabled = false;
+      // clear call list
+      document.getElementById('callList').innerHTML = '';
     }
-    document.getElementById('prev').onclick = () => renderUpTo(idx - 1);
-    document.getElementById('next').onclick = () => renderUpTo(idx + 1);
-    document.getElementById('play').onclick = function() {
-      if (playing) {
-        clearInterval(timer);
-        playing = false;
-        this.textContent = 'Play';
-      } else {
-        playing = true;
-        this.textContent = 'Pause';
-        timer = setInterval(() => renderUpTo(idx + 1), 1000 / +document.getElementById('speed').value);
+
+    // Step controls
+    function nextStep() {
+      if (stepIndex >= eventList.length) return;
+      const ev = eventList[stepIndex++];
+      if (ev.type === 'call') {
+        drawLink(ev.node);
+        drawNode(ev.node);
+      } else if (ev.type === 'resume') {
+        clearHighlights();
+        const parent = ev.node;
+        document.getElementById('circle-' + parent.id)?.classList.add('node-current');
+        updateCommentary(`First call done for F(${parent.n-1}); now computing F(${parent.n-2})`);
+      } else if (ev.type === 'return') {
+        computeNode(ev.node);
+      } else if (ev.type === 'returnMemo') {
+        handleReturnMemo(ev.node);
       }
-    };
-    document.getElementById('inputN').onchange = init;
-    window.onload = init;
+      updateButtons();
+    }
+
+    function prevStep() {
+      if (stepIndex <= 0) return;
+      const ev = eventList[--stepIndex];
+      if (ev.type === 'call') {
+        removeNode(ev.node);
+      } else if (ev.type === 'resume') {
+        clearHighlights();
+      } else {
+        undoCompute(ev.node);
+      }
+      updateButtons();
+    }
+
+    function updateButtons() {
+      document.getElementById('prevBtn').disabled = (stepIndex === 0);
+      document.getElementById('nextBtn').disabled = (stepIndex === eventList.length);
+    }
+
+    // Control event listeners
+    document.getElementById('startBtn').addEventListener('click', () => {
+      const n = parseInt(document.getElementById('inputN').value, 10);
+      if (isNaN(n) || n < 2 || n > 11) return alert('Enter an integer 2 = n = 11');
+      initializeDemo(n);
+    });
+    document.getElementById('nextBtn').addEventListener('click', nextStep);
+    document.getElementById('prevBtn').addEventListener('click', prevStep);
+    document.getElementById('play').addEventListener('click', function() {
+      playing = !playing;
+      this.textContent = playing ? 'Pause' : 'Play';
+      if (playing) {
+        const speed = parseInt(document.getElementById('speed').value, 10);
+        intervalId = setInterval(nextStep, 1000 / speed);
+      } else {
+        clearInterval(intervalId);
+      }
+    });
+
+        // Enable dragging of left-edge toggle handle for custom panel resizing
+    (function() {
+      const panel = document.getElementById('callPanel');
+      const handle = panel.querySelector('.toggle-handle');
+      let isDragging = false;
+      handle.addEventListener('mousedown', e => {
+        isDragging = true;
+        e.preventDefault();
+      });
+      document.addEventListener('mouseup', () => {
+        isDragging = false;
+      });
+      document.addEventListener('mousemove', e => {
+        if (!isDragging) return;
+        // Compute new width as distance from mouse to right edge
+        const maxWidth = window.innerWidth * 0.8;
+        let newWidth = window.innerWidth - e.clientX;
+        // Enforce min/max
+        if (newWidth < 150) newWidth = 150;
+        if (newWidth > maxWidth) newWidth = maxWidth;
+        panel.style.width = newWidth + 'px';
+      });
+    })();
+
+    // Auto-start on load
+    window.addEventListener('load', () => {
+      const n = parseInt(document.getElementById('inputN').value, 10);
+      initializeDemo(n);
+    });
   </script>
 </body>
 </html>

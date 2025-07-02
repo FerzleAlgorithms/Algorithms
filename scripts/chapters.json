@@ -27,8 +27,10 @@
     },
     {
       "Space-Time Tradeoff": [
+        "Boyer-Moore.html",
         "Bucket Sort.html",
         "Counting Sort.html",
+        "Horspool.html",
         "Radix Sort.html"
       ]
     },
@@ -53,12 +55,12 @@
         "Bubble Sort Demo.html",
         "Fibonacci 5 Naive Demo.html",
         "Fibonacci Naive Demo.html",
-        "Iterative FIb Demo.html",
         "Matrix Multiplcation Demo.html",
         "Polynomial Evaluation (Linear) Demo.html",
         "Polynomial Evaluation (Quadratic) Demo.html",
         "Selection Sort Demo.html",
-        "Sequential Search Demo.html"
+        "Sequential Search Demo.html",
+        "String Matching Demo.html"
       ]
     },
     {
@@ -89,8 +91,8 @@
     },
     {
       "Divide-and-Conquer": [
-        "D & C Matrix Multiplcation Demo.html",
         "Exponentiation Demo.html",
+        "Matrix Multiplcation Demo.html",
         "Merge Sort Demo.html",
         "QuickSort Demo.html"
       ]
@@ -99,9 +101,10 @@
       "Dynamic Programming": [
         "0-1 Knapsack Demo.html",
         "Coin Row Demo.html",
+        "Fibonacci Best Demo.html",
         "Fibonacci Bottom Up Demo.html",
         "Fibonacci Top Down Demo.html",
-        "Iterative FIb Demo.html"
+        "Fibonacci Top Down OLD Demo.html"
       ]
     },
     {
@@ -121,9 +124,11 @@
     },
     {
       "Space-Time Tradeoff": [
+        "Boyer-Moore Demo.html",
         "Bucket Sort Demo.html",
         "Counting Sort Demo.html",
         "Hashing-Chaining Demo.html",
+        "Horspool Demo.html",
         "Radix Sort Demo.html"
       ]
     },
