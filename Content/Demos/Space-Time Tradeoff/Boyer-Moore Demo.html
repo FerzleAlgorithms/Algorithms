@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="../../scripts/demoScripts.js"></script>
+  <link rel="stylesheet" href="../../css/style.css">
+  <link rel="stylesheet" href="../../css/demo.css">
+  <title>String Matching (Boyer–Moore) Demo</title>
+  <style>
+  #indexRow .element {font-size: 12px;}
+    .array-container { display: flex; gap: 0 !important; margin: 2px 0; padding: 0; }
+    .element { width: 20px; height: 20px; font-size: 16px; line-height: 20px; text-align: center; padding: 0; margin: 0; }
+    .legend { font-size: 0.9em; }
+    .hidden { display: none; }
+    .tight { margin: 0; }
+    /* Highlighting */
+    .element.comparing { background-color: yellow; }
+    .mismatch { background-color: #e63946 !important; color: white; border: 1px solid #a62639; }
+    .match    { background: green; color: white; }
+    .window   { box-shadow: 0 0 0 2px rgba(0,0,255,0.5); }
+	.empty { background: none; border: none; }
+    /* Scrabble theme overrides */
+    body.scrabble-theme { background: #f4f1de; }
+    body.scrabble-theme .element { background: #e5c07b; border: 1px solid #b28d5b; font-weight: bold; }
+    body.scrabble-theme .element.empty { background: none; border: none; }
+    body.scrabble-theme h1, #controls, #buttons, .legend { font-family: 'Trebuchet MS', sans-serif; }
+    body.scrabble-theme .element.comparing { background-color: #FFE066 !important; }
+    body.scrabble-theme .element.key { background-color: #74C0FC !important; }
+    body.scrabble-theme .element.finished { background-color: #69DB7C !important; }
+	body.scrabble-theme .element.match {
+  background-color: green !important;
+  color: white;
+}
+
+    /* Controls layout */
+    #controls, #buttons { margin-bottom: 10px; }
+    /* Tables styling */
+    table { border-collapse: collapse; margin: 5px 0; }
+    th, td { border: 1px solid #333; padding: 4px; text-align: center; }
+    .highlight-row { background: #ffeeba; }
+    .collapse-panel { margin: 5px 0; }
+	 /* Add to your existing <style> */
+  .tables-container {
+    display: flex;
+    gap: 1rem;               /* space between the two panels */
+    align-items: flex-start; /* align both tops */
+	width: 350px;
+  }
+  .table-panel {
+    flex: 1;                 /* let them each grow equally */
+    display: flex;
+    flex-direction: column;  /* button on top, panel below */
+  }
+  /* Container */
+.switch-label {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+  user-select: none;
+  font-size: 0.9em;
+  gap: 0.5em; /* space between slider and text */
+}
+
+
+
+/* Hide the real checkbox */
+.switch-label input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+/* The track */
+.switch-slider {
+  position: relative;
+  width: 40px;
+  height: 20px;
+  background-color: #ccc;
+  border-radius: 10px;
+  transition: background-color 0.2s;
+  flex-shrink: 0;
+}
+
+/* The knob */
+.switch-slider::before {
+  content: "";
+  position: absolute;
+  height: 16px;
+  width: 16px;
+  left: 2px;
+  top: 2px;
+  background-color: white;
+  border-radius: 50%;
+  transition: transform 0.2s;
+}
+
+/* Checked styles */
+.switch-label input:checked + .switch-slider {
+  background-color: #4caf50;
+}
+.switch-label input:checked + .switch-slider::before {
+  transform: translateX(20px);
+}
+
+  </style>
+</head>
+<body>
+  <h1>String Matching (Boyer–Moore) Demo</h1>
+  <div id="controls">
+    <label>Pattern: <input type="text" id="patternInput" size="15" placeholder="up to 15 chars" value="banana"/></label>
+    <label>Text: <input type="text" id="textInput" size="70" placeholder="up to 70 chars" value="zbbananbbanaabnananabananaz"/></label>
+    
+    
+    
+  </div>
+  <span>
+  <button id="defaultTextBtn">Use Default Text</button>
+  <button id="searchBtn">Start</button>
+  <label class="switch-label">
+  <input type="checkbox" id="themeToggle">
+  <span class="switch-slider"></span>
+  Scrabble Theme
+</label></span>
+  <div id="buttons">
+    <button id="prevBtn" disabled>Previous</button>
+    <button id="nextBtn" disabled>Next</button>
+    <button id="playBtn">Play</button>
+    <label>Speed: <select id="speedSelect"><option value="1">1×</option><option value="2">2×</option><option value="4">4×</option></select></label>
+  </div>
+  <div class="legend">
+    <span><span class="legend-box" style="background:yellow;"></span> Comparing</span>
+    <span><span class="legend-box" style="background:red;"></span> Mismatch</span>
+    <span><span class="legend-box" style="background:green;"></span> Match</span>
+  </div>
+  
+  <div class="tables-container">
+  <div class="table-panel">
+    
+	<div id="badCharPanel">
+  <strong>Bad-Character Table</strong>
+  <table id="badCharTable">
+        <thead><tr><th>Character</th><th>Shift</th></tr></thead>
+        <tbody></tbody>
+      </table>
+</div>
+
+    
+  </div>
+
+  <div class="table-panel">
+    
+    <div id="goodSuffixPanel">
+	<strong>Good Suffix Table</strong>
+      <table id="goodSuffixTable">
+        <thead><tr><th>k</th><th>Segment</th><th>Shift</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+<div id="description" style= "margin:20px 0;">Press "Start" to begin.</div>
+
+  <div id="compare-counter" style="margin-bottom:20px;">
+    <strong>Comparisons:</strong>
+    <span id="compareCount">0</span>
+  </div>
+
+<div id="indexRow" class="array-container"></div>
+  <div id="textArray" class="array-container"></div>
+  <div id="patternArray" class="array-container"></div>
+  <div id="failureSnapshots"></div>
+  <script>
+    // Core functions
+    function buildBadCharTable(pat) {
+      const table = {};
+      for (let i = 0; i < pat.length; i++) table[pat[i]] = pat.length - 1 - i;
+	  table['*']=pat.length;
+      return table;
+    }
+    function suffixes(pat) {
+      const m = pat.length, suff = Array(m).fill(0);
+      suff[m-1] = m;
+      let g = m-1, f = 0;
+      for (let i = m-2; i >= 0; i--) {
+        if (i > g && suff[i + m - 1 - f] < i - g + 1)
+          suff[i] = suff[i + m - 1 - f];
+        else {
+          if (i < g) g = i;
+          f = i;
+          while (g >= 0 && pat[g] === pat[g + m - 1 - f]) g--;
+          suff[i] = f - g;
+        }
+      }
+      return suff;
+    }
+    function buildGoodSuffixTable(pat) {
+      const m = pat.length, gs = Array(m).fill(m), suff = suffixes(pat);
+      let j = 0;
+      for (let i = m-1; i >= 0; i--) {
+        if (suff[i] === i+1) {
+          for (; j < m-1-i; j++) {
+            if (gs[j] === m) gs[j] = m-1-i;
+          }
+        }
+      }
+      for (let i = 0; i < m-1; i++) gs[m-1-suff[i]] = m-1-i;
+      return gs;
+    }
+	let elemsByStep = {};
+	let lastStepIdx=-1;
+let compareCount = 0;
+function updateCompareDisplay() {
+  document.getElementById('compareCount').textContent = compareCount;
+}
+
+    function genSteps(text, pat) {
+	
+      const steps = [], bc = buildBadCharTable(pat);
+	  let localCompareCount = 0;
+      steps.push({ type: 'init' });
+      for (const ch in bc) steps.push({ type: 'bcEntry', ch, shift: bc[ch] });
+      steps.push({ type: 'bcDone' });
+      const gs = buildGoodSuffixTable(pat);
+      for (let k = 0; k < pat.length - 1; k++) steps.push({ type: 'gsEntry', k, segment: pat.slice(k+1), shift: gs[k] });
+	  steps.push({
+  type: 'gsEntry',
+  k: pat.length - 1,
+  segment: '',              // empty suffix
+  shift: gs[pat.length - 1] // this will be pat.length
+});
+      steps.push({ type: 'gsDone' });
+      let i = pat.length - 1;
+      while (i < text.length) {
+        const start = i - (pat.length - 1);
+        steps.push({ type: 'window', pos: start,compareCount: localCompareCount });
+        let j = pat.length - 1;
+        while (j >= 0) {
+         localCompareCount++;
+        steps.push({ type: 'compare', i: start + j, j,
+                     compareCount: localCompareCount });
+          if (text[start+j] !== pat[j]) {
+            steps.push({ type: 'mismatch', i: start + j, j,compareCount: localCompareCount });
+            break;
+          } else {
+            steps.push({ type: 'match', i: start + j, j,compareCount: localCompareCount });
+            j--;
+          }
+        }
+        if (j < 0) steps.push({ type: 'found', pos: start,compareCount: localCompareCount });
+        const badChar = text[i];
+        // use hasOwnProperty so that a 0 shift is preserved
+  const bcShift = bc.hasOwnProperty(badChar)
+                ? bc[badChar]
+                : pat.length;
+		
+        const gsShift = (j >= 0 ? gs[j] : pat.length);
+        const shift = Math.max(bcShift, gsShift);
+        steps.push({ type: 'shift', badChar: badChar, bcShift, gsShift, shift,gsIndex:j,pos:  start,compareCount: localCompareCount });
+        i += shift;
+      }
+        steps.push({ type: 'done', compareCount: localCompareCount });
+
+      steps.text = text;
+      steps.pat  = pat;
+      return steps;
+    }
+    function renderStep(steps, idx) {
+      const rec     = steps[idx] || {};
+      const desc    = document.getElementById('description');
+      const textArr = document.getElementById('textArray');
+      const patArr  = document.getElementById('patternArray');
+      const bcBody  = document.querySelector('#badCharTable tbody');
+      const gsBody  = document.querySelector('#goodSuffixTable tbody');
+	  const failureContainer = document.getElementById('failureSnapshots');
+	  const oldIdx = lastStepIdx;
+	  compareCount = rec.compareCount || 0;
+  updateCompareDisplay();
+	  //reset table highlights
+  bcBody.querySelectorAll('td').forEach(td => td.classList.remove('mismatch'));
+  gsBody.querySelectorAll('td').forEach(td => td.classList.remove('mismatch'));
+	  const isBackward = idx < oldIdx;
+const isForward  = idx > oldIdx;
+lastStepIdx = idx;
+// if we’re stepping backwards, drop the snapshot we added on the “old” step
+if (isBackward) {
+  const oldElems = elemsByStep[oldIdx] || [];
+  oldElems.forEach(node => {
+    if (node.parentNode) node.parentNode.removeChild(node);
+  });
+  delete elemsByStep[oldIdx];
+}
+
+      // helper to paint pattern window
+      function drawWindow(start) {
+        const m = steps.pat.length;
+        // clear only pattern row
+        for (let x = 0; x < steps.text.length; x++) {
+          const cell = patArr.children[x];
+          cell.className   = 'element empty';
+          cell.textContent = '';
+        }
+        // paint letters + window
+        for (let j = 0; j < m; j++) {
+          const x = start + j;
+          if (x >= 0 && x < steps.text.length) {
+            const cell = patArr.children[x];
+            cell.textContent = steps.pat[j];
+			cell.classList.remove('empty');
+            
+          }
+        }
+      }
+
+      // reset only text highlights
+      [...textArr.children].forEach(el => el.className = 'element');
+	  // clear any old highlights…
+  
+
+      switch (rec.type) {
+        case 'init':
+		patArr.querySelectorAll('.element').forEach(el =>
+        el.classList.remove('mismatch'));
+          desc.textContent = 'Initializing tables...';
+          break;
+        case 'bcEntry': {
+  // ─── hide every text character ───
+  Array.from(textArr.children).forEach(el => {
+    el.textContent = '';
+    
+  });
+  // ─── show only the char above the last pattern slot ───
+  const last = steps.pat.length - 1;
+  const keep = textArr.children[last];
+  keep.textContent = rec.ch;
+  keep.classList.remove('empty');
+  keep.classList.add('mismatch');
+          const row = document.createElement('tr');
+          row.className = 'highlight-row';
+          row.innerHTML = `<td>${rec.ch}</td><td>${rec.shift}</td>`;
+          if (isForward) {
+  bcBody.appendChild(row);
+  
+  elemsByStep[idx] = elemsByStep[idx] || [];
+  elemsByStep[idx].push(row);
+}
+ // ⬅️ NEW: draw the pattern row and highlight the bad-char position
+  drawWindow(0);
+  const idxPat = steps.pat.lastIndexOf(rec.ch);
+  if (idxPat >= 0) {
+    patArr.children[idxPat].classList.add('mismatch');
+  }
+
+          if (rec.shift === 0) {
+  desc.innerHTML =
+    `<em>Bad-Character Heuristic:</em><br> The mismatch happened on the last character '${rec.ch}', ` +
+    `so the pattern’s end will be handled in the good suffix table.<br>Hence a placeholder shift = 0.`;
+} else {
+    if(rec.ch==='*') {
+        desc.innerHTML =`<em>Bad-Character Heuristic:</em><br> When a mismatch occurs on characters not in pattern, ` +
+		`we shift the full length.<br>` +
+		`Hence shift = ${rec.shift}.`;
+	} else {
+        desc.innerHTML =`<em>Bad-Character Heuristic:</em><br> When a mismatch occurs on '${rec.ch}', ` +
+		`we shift so the last occurrence of '${rec.ch}' in the pattern lines up under the text.<br>` +
+		`Hence shift = ${rec.shift}.`;
+	}
+}
+          break;
+        }
+        case 'bcDone':
+          desc.textContent = 'Bad-character table complete.';
+          break;
+        case 'gsEntry': {
+  // 1. hide every text character
+  Array.from(textArr.children).forEach(el => {
+    el.textContent = '';
+    
+  });
+
+  // 2. show the full suffix across its proper cells
+  const patLen = steps.pat.length;
+  const seg    = rec.segment;            // e.g. "tern" for suffix of length 4
+  const segLen = seg.length;
+  // start placing at index = patLen - segLen
+  const start  = patLen - segLen;
+  for (let x = 0; x < segLen; x++) {
+    const cell = textArr.children[start + x];
+    cell.textContent = seg[x];
+    cell.classList.remove('empty');
+  }
+
+  // 3. draw the GS table row as before
+  const row = document.createElement('tr');
+  row.className = 'highlight-row';
+  row.innerHTML = `<td>${rec.k}</td><td>${rec.segment}</td><td>${rec.shift}</td>`;
+  if (isForward) {
+    gsBody.appendChild(row);
+    elemsByStep[idx] = elemsByStep[idx] || [];
+    elemsByStep[idx].push(row);
+  }
+
+  // 4. redraw the pattern window
+  drawWindow(0);
+
+ // 5. description text
+if (rec.segment === '') {
+  // placeholder '' means “no proper suffix matched” —
+  // we use it as a sentinel to indicate we should do a full-pattern shift
+  desc.innerHTML =
+    `<em>Good-Suffix Heuristic:</em><br>No proper suffix matched (empty segment), ` +
+    `so we shift according to the Bad Character table.<br>Placeholder shift = ${rec.shift}.`;
+} else {
+	if(steps.pat.length===rec.shift) {
+		desc.innerHTML =
+		`<em>Good-Suffix Heuristic:</em><br>If the suffix '${rec.segment}' matches, ` +
+		`since it does not occur again in the pattern, shift by the whole pattern length.<br>`+
+		`Thus, shift = ${rec.shift}.`;
+	} else {
+		desc.innerHTML =
+		`<em>Good-Suffix Heuristic:</em><br>If the suffix '${rec.segment}' matches, ` +
+		`it occurs again in the pattern, and we can shift the next occurrence of that suffix into place.<br>`+
+		`Shift = ${rec.shift}.`;
+	}
+}
+  break;
+}
+
+        case 'gsDone':
+  // 1) clear any residual pattern highlights
+  patArr.querySelectorAll('.element').forEach(el =>
+    el.classList.remove('mismatch')
+  );
+
+  // 2) restore the full text array
+  Array.from(textArr.children).forEach((cell, i) => {
+    cell.textContent = steps.text[i];
+    cell.classList.remove('empty');
+  });
+
+  // 3) description
+  desc.textContent = 'Good-suffix table complete.';
+          break;
+        case 'window': {
+          drawWindow(rec.pos);
+          desc.textContent = `Window at pos ${rec.pos}`;
+          break;
+        }
+        case 'compare': {
+          const start = rec.i - rec.j;
+		  
+
+          drawWindow(start);
+          // highlight comparing cells
+          textArr.children[rec.i].classList.add('comparing');
+          patArr.children[start + rec.j].classList.add('comparing');
+		  for(let k = rec.j+1 ; k <steps.pat.length;k++){
+		  textArr.children[start+k].classList.add('match');
+		  }
+          desc.textContent = `Comparing text[${rec.i}]='${steps.text[rec.i]}' with pat[${rec.j}]='${steps.pat[rec.j]}'`;
+          break;
+        }
+        case 'match': {
+          const start = rec.i - rec.j;
+          drawWindow(start);
+          
+		   for(let k = rec.j; k <steps.pat.length;k++){
+		   const patIndex = start + k;
+		  if (patIndex < textArr.children.length) {
+    textArr.children[patIndex].classList.add('match');
+  }
+		  }
+		  if(rec.j ===0)
+		  {
+		  const snap = document.createElement('div');
+          snap.className = 'array-container';
+          // add empty cells to align snapshot under the window position
+          for (let x = 0; x < start; x++) {
+            const emptyCell = document.createElement('div');
+            emptyCell.className = 'element empty';
+            snap.appendChild(emptyCell);
+          }
+          // add pattern letters with match/mismatch highlights
+          for (let k = 0; k < steps.pat.length; k++) {
+            const cell = document.createElement('div');
+            cell.className = 'element';
+            cell.textContent = steps.pat[k];
+            cell.classList.add('match');
+            
+            snap.appendChild(cell);
+          }if (isForward) {
+  failureContainer.appendChild(snap);
+  elemsByStep[idx] = elemsByStep[idx] || [];
+  elemsByStep[idx].push(snap);
+}
+
+
+		  }
+          desc.textContent = `Match found at pos ${start+rec.j}`;
+          break;
+        }
+        case 'mismatch': {
+          const start = rec.i - rec.j;
+		  
+          // highlight the mismatched cells in the main arrays
+          textArr.children[rec.i].classList.replace('comparing', 'mismatch');
+          patArr.children[start + rec.j].classList.replace('comparing', 'mismatch');
+          // snapshot failure alignment beneath pattern
+          const snap = document.createElement('div');
+          snap.className = 'array-container';
+          // add empty cells to align snapshot under the window position
+          for (let x = 0; x < start; x++) {
+            const emptyCell = document.createElement('div');
+            emptyCell.className = 'element empty';
+            snap.appendChild(emptyCell);
+          }
+          // add pattern letters with match/mismatch highlights
+          for (let k = 0; k < steps.pat.length; k++) {
+            const cell = document.createElement('div');
+            cell.className = 'element';
+            cell.textContent = steps.pat[k];
+            if (k > rec.j) cell.classList.add('match');
+            else if (k === rec.j) cell.classList.add('mismatch');
+            snap.appendChild(cell);
+          }if (isForward) {
+  failureContainer.appendChild(snap);
+  elemsByStep[idx] = elemsByStep[idx] || [];
+  elemsByStep[idx].push(snap);
+}
+
+
+drawWindow(start);
+          desc.textContent = `Mismatch at index ${rec.i}`;
+          break;
+        }
+        case 'found':
+		     const snap = document.createElement('div');
+          snap.className = 'array-container';
+          // add empty cells to align snapshot under the window position
+          for (let x = 0; x < start; x++) {
+            const emptyCell = document.createElement('div');
+            emptyCell.className = 'element empty';
+            snap.appendChild(emptyCell);
+          }
+          // add pattern letters with match/mismatch highlights
+          for (let k = 0; k < steps.pat.length; k++) {
+            const cell = document.createElement('div');
+            cell.className = 'element';
+            cell.textContent = steps.pat[k];
+            cell.classList.add('match');
+            
+            snap.appendChild(cell);
+          }
+          document.getElementById('failureSnapshots').appendChild(snap);
+          desc.textContent = `Pattern found at pos ${rec.pos}`;
+          break;
+       case 'shift': {
+      const { bcShift, gsShift, shift, gsIndex, pos } = rec;
+
+      // 1) redraw the blue window so the pattern is in exactly the right spot
+      drawWindow(pos);
+
+      // 2) clear any old red highlights on the pattern row
+      textArr.querySelectorAll('.element').forEach(el =>
+        el.classList.remove('mismatch')
+      );
+
+      // 3) paint the *one* cell (or suffix region) that drove the shift:
+      if (bcShift >= gsShift) {
+        // bad-character rule won: highlight the single mismatched cell
+        const badIdx = pos + gsIndex;
+        if (badIdx >= 0 && badIdx < textArr.children.length) {
+          textArr.children[badIdx].classList.add('mismatch');
+        }
+      } else {
+        // good-suffix rule won: highlight everything right of the mismatch
+        for (let k = gsIndex + 1; k < steps.pat.length; k++) {
+          const idx2 = pos + k;
+          if (idx2 >= 0 && idx2 < textArr.children.length) {
+            textArr.children[idx2].classList.add('mismatch');
+          }
+        }
+      }
+
+  // 1) clear any old red highlights on individual cells
+  bcBody.querySelectorAll('td').forEach(td => td.classList.remove('mismatch'));
+  gsBody.querySelectorAll('td').forEach(td => td.classList.remove('mismatch'));
+
+  // 2) highlight BC row by matching the shift value (covers 'other' too)
+  Array.from(bcBody.rows).forEach(row => {
+    const shiftVal = parseInt(row.cells[1].textContent, 10);
+    if (shiftVal === bcShift) {
+      // paint *every* cell in that row
+      Array.from(row.cells).forEach(cell => cell.classList.add('mismatch'));
+    }
+  });
+
+  // 3) highlight GS row by its index
+  if (gsIndex >= 0 && gsBody.rows[gsIndex]) {
+    Array.from(gsBody.rows[gsIndex].cells)
+      .forEach(cell => cell.classList.add('mismatch'));
+  }
+
+
+  desc.textContent = `Shift by max{bc=${bcShift}, gs=${gsShift}} = ${shift}`;
+  break;
+}
+
+        case 'done':
+  compareCount = rec.compareCount;   // now populated
+  updateCompareDisplay();
+  desc.textContent = 'Next shift would exceed array boundaries. Search complete.';
+  break;}
+
+    }
+
+  // 1) after all your helper functions, but *before* DOMContentLoaded…
+  function setPanelHeightsFromPattern() {
+    const pat        = document.getElementById('patternInput').value;
+    const bcRows     = Object.keys(buildBadCharTable(pat)).length;
+    const gsRows     = Math.max(0, pat.length - 1);
+
+    // measure header + a single row once
+    const bcTable    = document.getElementById('badCharTable');
+    const headerH    = bcTable.tHead.getBoundingClientRect().height;
+    // create a temporary row to measure row-height
+    const tmpRow     = bcTable.tBodies[0].insertRow();
+    tmpRow.insertCell().textContent = 'W';
+    tmpRow.insertCell().textContent = 'W';
+    tmpRow.style.visibility = 'hidden';
+    const rowH       = tmpRow.getBoundingClientRect().height;
+    bcTable.tBodies[0].removeChild(tmpRow);
+
+    // compute final heights
+    const bcH = headerH + bcRows * rowH +50;
+    const gsH = headerH + gsRows * rowH + 50;
+
+    // apply as min-height on the panels
+    document.getElementById('badCharPanel').style.minHeight        = bcH + 'px';
+    document.getElementById('goodSuffixPanel').style.minHeight     = gsH + 'px';
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    // set it once on load
+    setPanelHeightsFromPattern();
+ 
+  });
+
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const defaultText = 'zbbananbbanaabnananabananaz';
+      let steps = [], idx = 0, timer = null;
+      const elems = {
+        patternInput: document.getElementById('patternInput'),
+        textInput: document.getElementById('textInput'),
+        defaultTextBtn: document.getElementById('defaultTextBtn'),
+        searchBtn: document.getElementById('searchBtn'),
+        prevBtn: document.getElementById('prevBtn'),
+        nextBtn: document.getElementById('nextBtn'),
+        playBtn: document.getElementById('playBtn'),
+        speedSelect: document.getElementById('speedSelect'),
+        textArray: document.getElementById('textArray'),
+        patternArray: document.getElementById('patternArray')
+      };
+      document.getElementById('themeToggle').addEventListener('change', e => {
+        document.body.classList.toggle('scrabble-theme', e.target.checked);
+      });
+      function renderArrays(text, pat) {
+        elems.textArray.innerHTML = '';
+        elems.patternArray.innerHTML = '';
+        for (const ch of text) {
+          const d = document.createElement('div');
+          d.className = 'element'; d.textContent = ch;
+          elems.textArray.appendChild(d);
+        }
+        for (let x = 0; x < text.length; x++) {
+          const d = document.createElement('div');
+          d.className = 'element empty';
+          elems.patternArray.appendChild(d);
+        }
+		 const idxRow = document.getElementById('indexRow');
+  idxRow.innerHTML = '';
+  for (let i = 0; i < text.length; i++) {
+    const d = document.createElement('div');
+    d.className   = 'element empty';
+    d.textContent = i;
+    idxRow.appendChild(d);
+  }
+      }
+      function start() {
+	  setPanelHeightsFromPattern();
+        document.querySelector('#badCharTable tbody').innerHTML = '';
+        document.querySelector('#goodSuffixTable tbody').innerHTML = '';
+        document.getElementById('failureSnapshots').innerHTML = '';
+        const pat = elems.patternInput.value;
+        const txt = elems.textInput.value;
+        renderArrays(txt, pat);
+        steps = genSteps(txt, pat);
+        idx = 0;
+        go(0);
+		compareCount = 0;
+  updateCompareDisplay();
+      }
+      function updateButtons() {
+        elems.prevBtn.disabled = idx <= 0;
+        elems.nextBtn.disabled = idx >= steps.length - 1;
+      }
+      function go(n) {
+        idx = n;
+        renderStep(steps, idx);
+        updateButtons();
+      }
+      elems.defaultTextBtn.onclick = () => { elems.textInput.value = defaultText; };
+      elems.searchBtn.onclick = () => { clearInterval(timer); elems.playBtn.textContent = 'Play'; start(); };
+      elems.prevBtn.onclick = () => { clearInterval(timer); elems.playBtn.textContent = 'Play'; if (idx > 0) go(idx - 1); };
+      elems.nextBtn.onclick = () => { clearInterval(timer); elems.playBtn.textContent = 'Play'; if (idx < steps.length - 1) go(idx + 1); };
+      elems.playBtn.onclick = () => {
+        if (timer) { clearInterval(timer); timer = null; elems.playBtn.textContent = 'Play'; }
+        else {
+          elems.playBtn.textContent = 'Pause';
+          const interval = 800 / parseInt(elems.speedSelect.value);
+          timer = setInterval(() => { if (idx < steps.length - 1) go(idx + 1); else { clearInterval(timer); elems.playBtn.textContent = 'Play'; } }, interval);
+        }
+      };
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Boyer-Moore Algorithm Tutorial & Demo</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js"></script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <script src="/Algorithms/scripts/chapterScripts.js"></script>
+  <link rel="stylesheet" href="/Algorithms/css/style.css">
+  <link rel="stylesheet" href="/Algorithms/css/chapter.css">
+</head>
+<body>
+  <h1>Boyer-Moore Algorithm</h1>
+
+  <h2>Problem Statement</h2>
+  <p>Boyer-Moore algorithm solves the <a class="problem" href="?path=Problems%2FFoundational%2FStringMatching">String Matching</a> problem by finding all occurrences of a pattern <em>P</em> of length <em>m</em> in a text <em>T</em> of length <em>n</em>.</p>
+
+  <h2>Design and Strategy</h2>
+  <p>Boyer-Moore uses two powerful heuristics: the <em>bad-character</em> and <em>good-suffix</em> heuristics. It preprocesses the pattern to build two tables that determine optimal shifts on mismatches.</p>
+
+  <ol>
+    <li><strong>Preprocessing – Bad Character Table:</strong><br>
+      Initialize an array <code>last</code> of size 256, setting each entry <code>last[c] = -1</code> to indicate that character <code>c</code> does not appear in the pattern. Then, for each index <code>j</code> from <code>0</code> to <code>m−1</code>, set:
+      <pre><code>last[P.charAt(j)] = j;</code></pre>
+      This records the index of the rightmost occurrence of each character in the pattern. 
+	  When a mismatch occurs at <code>P[j] != T[i+j]</code>, the bad-character shift is 
+	  computed as <code>shift_bc = j − last[T.charAt(i+j)]</code>, sliding the pattern so 
+	  its last occurrence of that text character aligns under the mismatch. <br>
+      <strong>Special case:</strong> for mismatches at the last pattern position 
+	  (<code>j = m−1</code>), we always defer to the good-suffix heuristic. 
+	  To enforce this, you can reset <code>last[P.charAt(m−1)]</code> to <code>-1</code> 
+	  after filling—or simply treat <code>shift_bc</code> as zero when <code>j = m−1</code>
+	  —so that the overall shift is determined solely by the good-suffix table.</li><br>
+
+    <li><strong>Preprocessing – Good Suffix Table:</strong><br>
+      Compute two arrays, <code>f</code> and <code>l</code>, or directly build a shift table <code>gs</code> of length <code>m</code> such that:
+      <pre><code>• gs[m−1] = 1;
+• For each suffix length k, find largest shift that aligns a prefix with this suffix or a matching suffix elsewhere.
+</code></pre>
+    </li>
+    <li><strong>Searching:</strong><br>
+      Set <code>i = 0</code>. While <code>i <= n − m</code>:
+      <ul>
+        <li>Compare <code>P[j]</code> to <code>T[i+j]</code> from right (<code>j = m−1</code>) to left.</li>
+        <li>If mismatch at <code>P[j] != T[i+j]</code>, shift by <code>max(j − last[T.charAt(i+j)], gs[j])</code>.</li>
+        <li>If <code>j < 0</code>, a match is found at position <code>i</code>; then shift by <code>gs[0]</code>.</li>
+      </ul>
+    </li>
+  </ol>
+
+  <div class="embeddedDemoContainer">
+    <iframe class="embeddedDemo"
+            src="/Algorithms/Content/Demos/Space-Time Tradeoff/Boyer-Moore Demo.html"
+            allow="fullscreen"
+            name="boyer-moore-demo">
+    </iframe>
+  </div>
+
+  <h2>Code Implementations</h2>
+  <div class="tab-group">
+    <div class="tabs" role="tablist">
+      <button id="tab-java" class="tablink active" data-lang="java" role="tab" aria-controls="java" aria-selected="true">Java</button>
+      <button id="tab-cpp" class="tablink" data-lang="cpp" role="tab" aria-controls="c++" aria-selected="false">C++</button>
+      <button id="tab-python" class="tablink" data-lang="python" role="tab" aria-controls="python" aria-selected="false">Python</button>
+    </div>
+    <div id="java" class="code-container active" role="tabpanel" aria-labelledby="tab-java">
+<pre><code class="language-java">public List<Integer> boyerMooreSearch(String T, String P) {
+    int n = T.length(), m = P.length();
+    List<Integer> result = new ArrayList<>();
+    if (m == 0 || n < m) return result;
+
+    // Bad-character preprocessing
+    int[] last = new int[256];
+    Arrays.fill(last, -1);
+    for (int j = 0; j < m; j++) {
+        last[P.charAt(j)] = j;
+    }
+
+    // Good-suffix preprocessing
+    int[] gs = computeGoodSuffixShift(P);
+
+    // Searching
+    int i = 0;
+    while (i <= n - m) {
+        int j = m - 1;
+        while (j >= 0 && P.charAt(j) == T.charAt(i + j)) {
+            j--;
+        }
+        if (j < 0) {
+            result.add(i);
+            i += gs[0];
+        } else {
+            int bcShift = j - last[T.charAt(i + j)];
+            i += Math.max(bcShift, gs[j]);
+        }
+    }
+    return result;
+}
+
+// Helper for good-suffix shift
+private int[] computeGoodSuffixShift(String P) {
+    int m = P.length();
+    int[] f = new int[m+1], l = new int[m+1], gs = new int[m];
+    // Compute f and l arrays...
+    // Fill gs based on f and l...
+    return gs;
+}</code></pre>
+    </div>
+    <div id="cpp" class="code-container" role="tabpanel" aria-labelledby="tab-cpp">
+<pre><code class="language-cpp">vector<int> boyerMooreSearch(const string &T, const string &P) {
+    int n = T.size(), m = P.size();
+    vector<int> result;
+    if (m == 0 || n < m) return result;
+
+    // Bad-character preprocessing
+    vector<int> last(256, -1);
+    for (int j = 0; j < m; j++) {
+        last[(unsigned char)P[j]] = j;
+    }
+
+    // Good-suffix preprocessing
+    vector<int> gs = computeGoodSuffixShift(P);
+
+    // Searching
+    int i = 0;
+    while (i <= n - m) {
+        int j = m - 1;
+        while (j >= 0 && P[j] == T[i + j]) {
+            j--;
+        }
+        if (j < 0) {
+            result.push_back(i);
+            i += gs[0];
+        } else {
+            int bcShift = j - last[(unsigned char)T[i + j]];
+            i += max(bcShift, gs[j]);
+        }
+    }
+    return result;
+}
+
+vector<int> computeGoodSuffixShift(const string &P) {
+    int m = P.size();
+    vector<int> f(m+1), l(m+1), gs(m);
+    // Compute f and l arrays...
+    // Fill gs based on f and l...
+    return gs;
+}</code></pre>
+    </div>
+    <div id="python" class="code-container" role="tabpanel" aria-labelledby="tab-python">
+<pre><code class="language-python">def boyer_moore_search(text: str, pattern: str) -> List[int]:
+    n, m = len(text), len(pattern)
+    result = []
+    if m == 0 or n < m:
+        return result
+
+    # Bad-character preprocessing
+    last = {chr(c): -1 for c in range(256)}
+    for j in range(m):
+        last[pattern[j]] = j
+
+    # Good-suffix preprocessing
+    gs = compute_good_suffix_shift(pattern)
+
+    # Searching
+    i = 0
+    while i <= n - m:
+        j = m - 1
+        while j >= 0 and pattern[j] == text[i + j]:
+            j -= 1
+        if j < 0:
+            result.append(i)
+            i += gs[0]
+        else:
+            bc_shift = j - last.get(text[i + j], -1)
+            i += max(bc_shift, gs[j])
+    return result
+
+
+def compute_good_suffix_shift(P: str) -> List[int]:
+    m = len(P)
+    f = [0] * (m+1)
+    l = [0] * (m+1)
+    gs = [m] * m
+    # Compute f and l arrays...
+    # Fill gs based on f and l...
+    return gs</code></pre>
+    </div>
+  </div>
+
+  <h2>Time/Space Analysis</h2>
+  <p>Preprocessing time is <em>O(m + σ)</em> for bad-character and <em>O(m)</em> for good-suffix, totaling <em>O(m + σ)</em>. Worst-case search is <em>O(n + m)</em>, with average-case <em>O(n)</em>. Space is <em>O(m + σ)</em>.</p>
+
+  <div class="section">
+    <h2>Reading Comprehension Questions</h2>
+    <ol>
+      <li>What are the two heuristics used by Boyer-Moore?</li>
+      <li>How is the last-occurrence table built?</li>
+      <li>How does the good-suffix shift differ from the bad-character shift?</li>
+      <li>Why does the algorithm scan from right to left?</li>
+      <li>What is the worst-case time complexity?</li>
+    </ol>
+  </div>
+
+  <div class="section">
+    <h2>In-Class Activities</h2>
+    <ol>
+      <li>Build both shift tables for a sample pattern by hand.</li>
+      <li>Step through the search on paper for a given text and pattern.</li>
+      <li>Compare Boyer-Moore against Horspool and naive search.</li>
+      <li>Modify the algorithm to handle case-insensitive matching.</li>
+      <li>Experiment with random texts to measure average performance.</li>
+      <li>Implement a visualization of table computations and shifts.</li>
+    </ol>
+  </div>
+
+  <div class="section">
+    <h2>Problems</h2>
+    <ol>
+      <li>Prove correctness of both heuristics in Boyer-Moore.</li>
+      <li>Adapt the algorithm to support wildcard characters.</li>
+      <li>Analyze performance on periodic texts.</li>
+      <li>Design a parallel version emphasizing both heuristics.</li>
+      <li>Optimize for large Unicode alphabets and discuss trade-offs.</li>
+    </ol>
+  </div>
+
+</body>
+</html>

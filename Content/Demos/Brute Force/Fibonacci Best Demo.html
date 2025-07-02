@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Iterative Fibonacci Demo</title>
+  <link rel="stylesheet" href="../../../css/demo.css" />
+  <style>
+    :root { --cell-width: 1.5em; }
+
+    .fib-table {
+      border-collapse: collapse;
+      font-family: monospace;
+      margin-bottom: 1em;
+    }
+    .fib-table th {
+      text-align: right;
+      padding-right: 0.5em;
+      font-weight: bold;
+      font-size: 1.6em;
+      padding: 0;
+    }
+    .fib-table td {
+      width: var(--cell-width);
+      height: 2em;
+      text-align: center;
+      font-size: 1.6em;
+      vertical-align: middle;
+    }
+    .arrow-cell span {
+      display: inline-block;
+      /*transform: rotate(45deg);*/
+      font-size: 1.2em;
+      color: red;
+      visibility: hidden;
+    }
+    .arrow-cell.active span {
+      visibility: visible;
+    }
+    .crossed {
+      text-decoration: line-through;
+      opacity: 0.4;
+    }
+    .controls {
+      margin-bottom: 1em;
+    }
+    .controls button:disabled {
+      opacity: 0.5;
+      cursor: default;
+    }
+    .comment {
+      font-style: italic;
+      font-size: 1.4em;
+    }
+    #n-input { width: 60px; }
+  </style>
+</head>
+<body>
+  <div class="demo-container">
+    <h2>Iterative Fibonacci Demo</h2>
+    <div class="controls">
+      <label>
+        Enter n:
+        <input type="number" id="n-input" value="7" min="1" max="30" />
+      </label>
+      <button id="prev-btn" disabled>Previous</button>
+      <button id="next-btn" disabled>Next</button>
+    </div>
+
+    <table class="fib-table" id="fib-table">
+      <tr id="row-fn">
+        <th>F<sub>n</sub>=</th>
+      </tr>
+      <tr id="row-fn1">
+        <th>F<sub>n−1</sub>=</th>
+      </tr>
+      <tr id="row-fn2">
+        <th>F<sub>n−2</sub>=</th>
+      </tr>
+    </table>
+
+    <div class="comment" id="comment"></div>
+  </div>
+
+  <script>
+    const nInput   = document.getElementById("n-input");
+    const prevBtn  = document.getElementById("prev-btn");
+    const nextBtn  = document.getElementById("next-btn");
+    const table    = document.getElementById("fib-table");
+    const rowFn    = document.getElementById("row-fn");
+    const rowFn1   = document.getElementById("row-fn1");
+    const rowFn2   = document.getElementById("row-fn2");
+    const commentD = document.getElementById("comment");
+
+    let steps = [], currentStep = 0;
+
+    function runFib(n) {
+      steps = [];
+      let Fm2 = 0, Fm1 = 0, F = 1;
+      steps.push({ i: 0, F, Fm1, Fm2, comment: "init" });
+      steps.push({ i: 0, comment: "begin" });
+      for (let i = 1; i < n; i++) {
+        Fm2 = Fm1;
+        Fm1 = F;
+        F = Fm1 + Fm2;
+        steps.push({ i, F, Fm1, Fm2 });
+      }
+      steps.push({ i: n - 1, F, comment: "done" });
+    }
+
+    function initializeDemo() {
+      const n = parseInt(nInput.value, 10);
+      runFib(n);
+      currentStep = -1;
+      // clear existing cells
+      [rowFn, rowFn1, rowFn2].forEach(r => {
+        // keep the <th>, remove all <td>
+        Array.from(r.querySelectorAll("td")).forEach(td => td.remove());
+      });
+      commentD.textContent = "";
+
+      // build value+arrow columns
+      for (let i = 0; i < steps.length - 1; i++) {
+        // ← don’t build a column for step.comment === "begin"
+        if (steps[i].comment === "begin") continue;
+
+        // value cell for each row
+        rowFn.appendChild(document.createElement("td"));
+        rowFn1.appendChild(document.createElement("td"));
+        rowFn2.appendChild(document.createElement("td"));
+
+        // arrow cells (same as before)…
+        const a1 = document.createElement("td");
+        a1.className = "arrow-cell";
+        a1.innerHTML = '<span>↘</span>';
+        rowFn.appendChild(a1);
+        const a2 = document.createElement("td");
+        a2.className = "arrow-cell";
+        a2.innerHTML = '<span>↘</span>';
+        rowFn1.appendChild(a2);
+        const a3 = document.createElement("td");
+        a3.className = "arrow-cell";
+        rowFn2.appendChild(a3);
+      }
+
+
+      prevBtn.disabled = true;
+      nextBtn.disabled = false;
+    }
+
+    function updateDisplay(idx) {
+  const step    = steps[idx];
+  const cellsFn  = rowFn.querySelectorAll("td");
+  const cellsFn1 = rowFn1.querySelectorAll("td");
+  const cellsFn2 = rowFn2.querySelectorAll("td");
+
+  // 1) Clear all arrow highlights & crossed classes
+  [cellsFn, cellsFn1].forEach(cells => {
+    cells.forEach(td => {
+      if (td.classList.contains("arrow-cell")) td.classList.remove("active");
+      td.classList.remove("crossed");
+    });
+  });
+  cellsFn2.forEach(td => td.classList.remove("crossed"));
+
+    // 2) Spawn the arrows from the **previous** step,
+  //    but only on real compute‐steps (skip “begin” & “done”)
+  if (idx > 0 && step.comment !== "begin" && step.comment !== "done") {
+    const prevIdx = idx - 1;
+    const prevColIndex = steps
+      .slice(0, prevIdx + 1)
+      .filter(s => s.comment !== "begin")
+      .length - 1;
+    const prevBase = prevColIndex * 2;
+    cellsFn [prevBase + 1].classList.add("active");
+    cellsFn1[prevBase + 1].classList.add("active");
+  }
+
+
+  // 3) Special branches — no arrows forced here
+  if (step.comment === "init") {
+    // put initial values in column 0
+    cellsFn[0].textContent  = step.F;
+    cellsFn1[0].textContent = step.Fm1;
+    cellsFn2[0].textContent = step.Fm2;
+    commentD.innerHTML =
+      `Initialized: F<sub>n−2</sub>=${step.Fm2}, ` +
+      `F<sub>n−1</sub>=${step.Fm1}, F<sub>n</sub>=${step.F}`;
+    prevBtn.disabled = false;
+    return;
+  }
+  if (step.comment === "begin") {
+    commentD.textContent = "Beginning iterations…";
+    return;
+  }
+  if (step.comment === "done") {
+        // cross out every column except the last one
+   // ─── new ───────────────────────────────────────────────
+    // figure out how many *built* columns there actually are (init + all computes)
+    const builtCols = steps
+      .slice(0, steps.length - 1)   // we never built a column for the final "done" step
+      .filter(s => s.comment !== "begin")
+      .length;
+
+    // the very last built column lives at base = (builtCols - 1) * 2
+    const lastBase = (builtCols - 1) * 2;
+    for (let j = 0; j < lastBase; j += 2) {
+      cellsFn[j].classList.add("crossed");
+      cellsFn1[j].classList.add("crossed");
+      cellsFn2[j].classList.add("crossed");
+    }
+
+    commentD.innerHTML = `Done! F<sub>n</sub> = ${step.F}`;
+    nextBtn.disabled = true;
+    prevBtn.disabled = (idx === 0);
+    return;
+  }
+
+  // 4) Normal compute step: fill in values, cross out old ones, show comment
+  const colIndex = steps
+    .slice(0, idx + 1)
+    .filter(s => s.comment !== "begin")
+    .length - 1;
+  const base = colIndex * 2;
+
+  // fill new values
+  cellsFn [base].textContent  = step.F;
+  cellsFn1[base].textContent  = step.Fm1;
+  cellsFn2[base].textContent  = step.Fm2;
+
+  // cross out all earlier value-cells
+  for (let j = 0; j < base; j += 2) {
+    cellsFn [j].classList.add("crossed");
+    cellsFn1[j].classList.add("crossed");
+    cellsFn2[j].classList.add("crossed");
+  }
+
+  // update comment
+  commentD.innerHTML =
+    `F<sub>n−2</sub>=${step.Fm2}<br>` +
+    `F<sub>n−1</sub>=${step.Fm1}<br>` +
+    `F<sub>n</sub>=F<sub>n−1</sub>+F<sub>n−2</sub>=` +
+    `${step.Fm1}+${step.Fm2}=${step.F}`;
+
+  // enable/disable buttons
+  prevBtn.disabled = (idx === 0);
+  nextBtn.disabled = (idx >= steps.length - 1);
+}
+
+    nInput.addEventListener("change", initializeDemo);
+    nextBtn.addEventListener("click", () => {
+      if (currentStep < steps.length - 1) {
+        currentStep++;
+        updateDisplay(currentStep);
+      }
+    });
+  
+ prevBtn.addEventListener("click", () => {
+  if (currentStep > 0) {
+    currentStep--;
+    updateDisplay(currentStep);
+
+    // clear out any columns *beyond* currentStep so Next can redraw them
+    const builtCols = steps
+      .slice(0, currentStep + 1)
+      .filter(s => s.comment !== "begin")
+      .length;
+    const expectedTds = builtCols * 2; // each column has one value-cell + one arrow-cell
+
+    [rowFn, rowFn1, rowFn2].forEach(row => {
+      const tds = Array.from(row.querySelectorAll("td"));
+      tds.forEach((td, i) => {
+        if (i >= expectedTds) {
+          // blank out text & remove any highlight/crossed
+         if (!td.classList.contains("arrow-cell")) {
+           td.textContent = "";
+         }
+          td.classList.remove("active", "crossed");
+        }
+      });
+    });
+  }
+});
+
+    window.onload = initializeDemo;
+  </script>
+</body>
+</html>

@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Horspool's Algorithm Tutorial & Demo</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js"></script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <script src="/Algorithms/scripts/chapterScripts.js"></script>
+  <link rel="stylesheet" href="/Algorithms/css/style.css">
+  <link rel="stylesheet" href="/Algorithms/css/chapter.css">
+</head>
+<body>
+  <h1>Horspool's Algorithm</h1>
+
+  <h2>Problem Statement</h2>
+  <p>Horspool's algorithm solves the <a class="problem" href="?path=Problems%2FFoundational%2FStringMatching">String Matching</a>
+  problem by finding all occurrences of a pattern <em>P</em> of length <em>m</em> in a text <em>T</em> of length <em>n</em>.</p>
+
+  <h2>Design and Strategy</h2>
+  <p>Horspool's algorithm is a <strong>simplified Boyer-Moore</strong> 
+  string matching algorithm that uses the <em>bad-character heuristic</em>. 
+  It preprocesses the pattern to build a shift table that determines how far 
+  the pattern can slide when a mismatch occurs, based on the character in the 
+  text that aligns with the last character in the pattern at the time of a mismatch.</p>
+
+  <ol>
+    <li><strong>Preprocessing &ndash; Bad Character Shift Table:</strong><br>
+      Initialize a shift table <code>B</code> for the alphabet (e.g., size 256), setting each entry <code>B[c] = m</code> initially. For each index <code>j</code> from 0 to <code>m&minus;2</code>, set:
+      <pre><code>B[P[j]] = m &minus; 1 &minus; j</code></pre><br>
+	  This assignment ensures that when there is a mismatch, the character in <em>T</em> that is
+	  currently aligned with the last character of <em>P</em> is used to look up how much the pattern 
+	  needs to shift to in order to minimize comparisons.
+	  
+    </li>
+    <strong>Searching:</strong><br>
+      When a mismatch occurs, look to the character in the text that is aligned with the last character in the pattern.
+	  Find the value for that character in shift table, shift and begin comparing characters again. If a full match is found, 
+	  add the index of the start of that character to the list of results.
+  </ol>
+
+  <div class="embeddedDemoContainer">
+    <iframe class="embeddedDemo"
+            src="../../Content/Demos/Space-Time Tradeoff/Horspool Demo.html"
+            allow="fullscreen"
+            name="horspool-demo">
+    </iframe>
+  </div>
+
+  <h2>Code Implementations</h2>
+  <div class="tab-group">
+    <div class="tabs" role="tablist">
+      <button id="tab-java" class="tablink active" data-lang="java" role="tab" aria-controls="java" aria-selected="true">Java</button>
+      <button id="tab-cpp" class="tablink" data-lang="cpp" role="tab" aria-controls="c++" aria-selected="false">C++</button>
+      <button id="tab-python" class="tablink" data-lang="python" role="tab" aria-controls="python" aria-selected="false">Python</button>
+    </div>
+
+    <div id="java" class="code-container active" role="tabpanel" aria-labelledby="tab-java">
+<pre><code class="language-java">public List<Integer> horspoolSearch(String T, String P) {
+    int n = T.length(), m = P.length();
+    List<Integer> result = new ArrayList<>();
+    if (m == 0 || n < m) return result;
+
+    // Preprocessing
+    int[] B = new int[256];
+    Arrays.fill(B, m);
+    for (int j = 0; j < m - 1; j++) {
+        B[P.charAt(j)] = m - 1 - j;
+    }
+
+    // Searching
+    int i = 0;
+    while (i <= n - m) {
+        int j = m - 1;
+        while (j >= 0 && P.charAt(j) == T.charAt(i + j)) {
+            j--;
+        }
+        if (j < 0) {
+            result.add(i);
+        }
+        char next = T.charAt(i + m - 1);
+        i += B[next & 0xFF];
+    }
+    return result;
+}</code></pre>
+    </div>
+
+    <div id="cpp" class="code-container" role="tabpanel" aria-labelledby="tab-cpp">
+<pre><code class="language-cpp">vector<int> horspoolSearch(const string &T, const string &P) {
+    int n = T.size(), m = P.size();
+    vector<int> result;
+    if (m == 0 || n < m) return result;
+
+    // Preprocessing
+    vector<int> B(256, m);
+    for (int j = 0; j < m - 1; j++) {
+        B[(unsigned char)P[j]] = m - 1 - j;
+    }
+
+    // Searching
+    int i = 0;
+    while (i <= n - m) {
+        int j = m - 1;
+        while (j >= 0 && P[j] == T[i + j]) {
+            j--;
+        }
+        if (j < 0) {
+            result.push_back(i);
+        }
+        unsigned char next = T[i + m - 1];
+        i += B[next];
+    }
+    return result;
+}</code></pre>
+    </div>
+
+    <div id="python" class="code-container" role="tabpanel" aria-labelledby="tab-python">
+<pre><code class="language-python">def horspool_search(text: str, pattern: str) -> List[int]:
+    n, m = len(text), len(pattern)
+    result = []
+    if m == 0 or n < m:
+        return result
+
+    # Preprocessing
+    B = {chr(c): m for c in range(256)}
+    for j in range(m - 1):
+        B[pattern[j]] = m - 1 - j
+
+    # Searching
+    i = 0
+    while i <= n - m:
+        j = m - 1
+        while j >= 0 and pattern[j] == text[i + j]:
+            j -= 1
+        if j < 0:
+            result.append(i)
+        next_char = text[i + m - 1]
+        i += B.get(next_char, m)
+    return result</code></pre>
+    </div>
+  </div>
+
+  <h2>Time/Space Analysis</h2>
+  <p>Preprocessing time is <em>O(m + σ)</em>, where <em>σ</em> is the alphabet size. Each search shift requires up to <em>m</em> character comparisons, resulting in a worst-case time of <em>O(mn)</em> (for pathological texts) and an average-case time of <em>O(n)</em>. Space complexity is <em>O(σ)</em> for the shift table.</p>
+
+  <div class="section">
+    <h2>Reading Comprehension Questions</h2>
+    <ol>
+      <li>What is the purpose of the bad-character shift table in Horspool's algorithm?</li>
+      <li>How is the shift value for each character computed during preprocessing?</li>
+      <li>Why does the algorithm compare pattern and text characters from right to left?</li>
+      <li>What are the worst-case and average-case time complexities?</li>
+      <li>How would the algorithm behave if the alphabet size σ is very large?</li>
+    </ol>
+  </div>
+
+  <div class="section">
+    <h2>In-Class Activities</h2>
+    <ol>
+      <li>Manually build the shift table for a given pattern and alphabet.</li>
+      <li>Simulate text-pattern matching on paper to observe shifts and comparisons.</li>
+      <li>Compare Horspool's performance with naive string search on various texts.</li>
+      <li>Modify the algorithm to include the good-suffix heuristic and discuss changes.</li>
+      <li>Experiment with different alphabets (e.g., Unicode) and measure preprocessing time.</li>
+      <li>Implement a benchmark harness to test average-case runtime on random texts.</li>
+    </ol>
+  </div>
+
+  <div class="section">
+    <h2>Problems</h2>
+    <ol>
+      <li>Prove the correctness of Horspool's algorithm based on the bad-character heuristic.</li>
+      <li>Generalize the algorithm to support wildcard characters in the pattern.</li>
+      <li>Analyze the algorithm's performance on periodic texts (e.g., "aaaaaa...").</li>
+      <li>Design a parallel version of Horspool's algorithm and discuss its scalability.</li>
+      <li>Optimize the algorithm for large Unicode alphabets and analyze space-time trade-offs.</li>
+    </ol>
+  </div>
+
+</body>
+</html>
