@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Counting Sort (Simple Version) Demo</title>
+  <script src="../../../scripts/demoScripts.js"></script>
+  <link rel="stylesheet" href="../../../css/style.css">
+  <link rel="stylesheet" href="../../../css/demo.css">
+ <style>
+:root {
+  --cell-size: 40px;    /* ideal bucket size */
+  --cell-gap: 4px;      /* space between cells */
+}
+
+.array-container { margin-bottom: 5px; display: flex; }
+
+/* Description and phase labels */
+#description {
+  margin-top: 10px;
+  font-style: italic;
+  height: 70px;
+}
+#phase-label,
+#minmax-label {
+  margin: 10px 0;
+  font-weight: bold;
+}
+
+/* Min/Max display */
+#minmax-container {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 10px;
+  font-family: sans-serif;
+  font-size: 0.95em;
+}
+.min-max-box {
+  border: 1px solid #ccc;
+  background: #f9f9f9;
+  padding: 6px 10px;
+  border-radius: 4px;
+}
+.min-max-box span {
+  font-weight: bold;
+}
+
+/* Universal cell wrapper */
+.count-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 0 var(--cell-gap);
+  flex: 0 1 var(--cell-size);
+  min-width: 0;
+  box-sizing: border-box;
+}
+.count-label {
+  font-size: 0.8em;
+  margin-top: 4px;
+}
+
+/* Ensure cells stay square and fill wrapper */
+.count-wrapper .element {
+  width: 100% !important;
+  aspect-ratio: 1 / 1;
+  height: auto !important;
+  box-sizing: border-box;
+  text-align: center;
+}
+
+/* Input arrow and active indicator */
+#input-container {
+  position: relative;
+  display: flex;
+}
+.arrow {
+	margin-top: 15px;
+      position: absolute;
+      font-size: 1.2em;
+      display: none;
+      text-align: center;
+      transform: translateX(-50%);
+    }
+    
+#input-container .arrow {
+  position: absolute;
+  display: none;
+  top: calc(100% + 4px);
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 1.2em;
+  pointer-events: none;
+}
+#input-container .element.active::after {
+  content: '?';
+  position: absolute;
+  left: 50%;
+  bottom: -1em;
+  transform: translateX(-50%);
+  font-size: 1.2em;
+  pointer-events: none;
+}
+
+/* Count grid layout using CSS Grid for perfect alignment */
+#count-grid-wrapper {
+  display: grid;
+  grid-template-columns: auto auto;
+  grid-template-rows:
+    auto  /* title */
+    auto  /* count row */
+    auto  /* index row */
+    auto; /* value row */
+  grid-template-areas:
+    "count-label    count-label"
+    "legend-count   count-boxes"
+    "legend-index   count-index-row"
+    "legend-value   count-value-row";
+  column-gap: var(--cell-gap);
+  row-gap: var(--cell-gap);
+  align-items: center;
+}
+#count-grid-wrapper > #count-label    { grid-area: count-label; }
+#legend-count   { grid-area: legend-count; }
+#legend-index   { grid-area: legend-index; }
+#legend-value   { grid-area: legend-value; }
+#count-boxes     { grid-area: count-boxes; }
+#count-index-row { grid-area: count-index-row; }
+#count-value-row { grid-area: count-value-row; }
+
+/* Use grid on the three rows to sync columns */
+#count-boxes,
+#count-index-row,
+#count-value-row {
+  display: grid !important;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, var(--cell-size));
+  gap: var(--cell-gap);
+}
+#count-index-row > div,
+#count-value-row > div {
+  box-sizing: border-box;
+  text-align: center;
+}
+
+/* 1) Ensure the grid lines up flush at the left */
+#count-grid-wrapper {
+  /* align the grid tracks to the start of the container */
+  justify-content: start;
+}
+
+/* Output array: flexible width, but blank slots stay at least 40px tall */
+#output-container {
+  display: flex;
+  gap: var(--cell-gap);
+}
+
+#output-container .count-wrapper {
+  flex: 0 1 var(--cell-size);  /* basis=40px, can shrink */
+  min-width: 0;                /* allows actual shrinking */
+  box-sizing: border-box;
+}
+
+#output-container .count-wrapper .element {
+  width: 100% !important;      /* fill wrapper width */
+  height: auto !important;     /* let aspect-ratio drive height */
+  aspect-ratio: 1 / 1;         /* stay square */
+}
+
+#output-container .count-wrapper .element:empty {
+  min-height: var(--cell-size);/* blank slots keep full height */
+}
+
+/* Container for tooltip */
+.tooltip {
+  position: relative;
+  display: inline-block;
+  cursor: help; /* shows ? cursor on hover */
+}
+
+/* Hidden tooltip text */
+.tooltip .tooltiptext {
+  visibility: hidden;
+  width: 300px;
+  background-color: rgba(0,0,0,0.8);
+  color: #fff;
+  text-align: left;
+  border-radius: 4px;
+  padding: 8px;
+  position: absolute;
+  top: 100%;         /* drop down just under the label */
+  left: 100%;        /* push it to the right of the label */
+  transform: none;   /* undo the old centering transform */
+  opacity: 0;
+  transition: opacity 0.2s ease-in-out;
+  font-size: 0.9em;
+  line-height: 1.3;
+  z-index: 10;
+}
+
+/* Show on hover */
+.tooltip:hover .tooltiptext {
+  visibility: visible;
+  opacity: 1;
+}
+
+.tooltip .tooltiptext::after {
+  /* little arrow pointing up-left toward the label */
+  top: -5px;         
+  left: 10px;        /* shift the arrow over a bit */
+  border-color: transparent transparent rgba(0,0,0,0.8) transparent;
+}
+
+</style>
+
+</head>
+<body class = "no-tooltips">
+  <h1>Counting Sort (Simple Version) Demo</h1>
+
+  <label class="tooltip">
+  <input type="checkbox" id="offsetByMin"> Offset by min
+   <span class="tooltiptext">
+    <strong>Offset by min:</strong><ul>
+     <li>If unchecked, min is treated as 0 (the simple version of the algorithm).</li>
+     <li>If checked, the Count array indices will be shifted by the minimum input value 
+     (more space-efficient version).</li>
+     </ul>
+  </span>
+</label>
+
+  <div id="controls">
+    <label>Size:
+      <input type="number" id="arraySize" min="2" max="20" value="10" size="2">
+    </label>
+    <button id="generate">Random Array</button>
+    <input type="text" id="customArray" placeholder="e.g. 4,1,3,2,5" size="40">
+    <button id="useCustom">Create Array</button>
+  </div>
+  
+
+
+  <div id="buttons">
+    <button id="prev" disabled>Previous</button>
+    <button id="next" disabled>Next</button>
+    <button id="play">Play</button>
+    <label for="speed">Speed:</label>
+    <select id="speed">
+      <option value="1">1x</option>
+      <option value="2">2x</option>
+      <option value="4">4x</option>
+    </select>
+  </div>
+
+  <div id="minmax-container">
+  <div class="min-max-box">
+    Min: <span id="curr-min"></span>
+  </div>
+  <div class="min-max-box">
+    Max: <span id="curr-max"></span>
+  </div>
+</div>
+
+
+  <div id="description">Press "Next" to begin.</div>
+
+  <div id="input-label"><strong>Input Array:</strong></div>
+  <div class="array-container" id="input-container">
+    <div id="input-arrow" class="arrow">&uarr;</div>
+  </div><br>
+  
+<div id="count-grid-wrapper">
+  <!-- Big title spanning both columns -->
+  <div id="count-label"><strong>Count Array:</strong></div>
+
+  <!-- Row-labels on the left -->
+  <div id="legend-count" class="count-legend">Count</div>
+  <div id="legend-index" class="count-legend">Index</div>
+  <div id="legend-value" class="count-legend">Value</div>
+
+  <!-- Three horizontal strips on the right -->
+  <div id="count-boxes"     class="array-container"></div>
+  <div id="count-index-row" class="labels-row"></div>
+  <div id="count-value-row" class="labels-row"></div>
+</div>
+<br>
+  <div id="output-label"><strong>Output Array:</strong></div>
+  <div class="array-container" id="output-container"></div>
+
+  <script>
+    let steps = [], cur = 0;
+    const phaseNames = {
+      range_init:       'Finding Range',
+      range_check:      'Finding Range',
+      range_update_min: 'Updating Min',
+      range_update_max: 'Updating Max',
+      range_end:        'Range Found',
+      init:             'Initialization',
+      count:            'Counting Occurrences',
+      count_end:        'Counting Complete',
+      output_input:     'Select Element',
+      output_count:     'Determine Position',
+      output_place:     'Place Element',
+      output_end:       'Output Complete',
+      output_selectKey: 'Selecting Key',
+      output_placeKey:  'Placing Key',
+      };
+
+    function record(state) {
+      steps.push({
+        input:      state.input.slice(),
+        count:      (state.count || []).slice(),
+        output:     state.output.slice(),
+        phase:      state.phase,
+        index:      state.index,
+        value:      state.value,
+        outPos:     state.outPos,
+        min:        state.min,
+        currMinIdx: state.currMinIdx,
+        currMaxIdx: state.currMaxIdx,
+        inc:        state.inc  
+      });
+    }
+
+    function generateSteps(arr) {
+       const offsetByMin = document.getElementById('offsetByMin').checked;
+      const input = arr.slice();
+      const output = Array(input.length).fill(null);
+      steps = [];
+
+      // ---------- Initial “blank” record, no arrow, null min/max -----------
+      record({
+        input:       input,
+        count:       [],
+        output:      output,
+        phase:       'start',
+        index:       -1,      // arrow hidden
+        value:       null,
+        outPos:      null,
+        min:         null,
+        currMinIdx:  null,
+        currMaxIdx:  null,
+        inc:         false
+      });
+
+      // ------ 1st pass: find min/max  ------
+      let currMin    = input[0], 
+          currMax    = input[0];
+      let currMinIdx = 0, 
+          currMaxIdx = 0;
+      // Show initial min/max at index 0
+      record({ 
+        input, count: [], output, 
+        phase: 'range_init', 
+        index: 0, 
+        currMinIdx, currMaxIdx, 
+        min: currMin 
+      });
+
+      for (let i = 1; i < input.length; i++) {
+        record({ input, count: [], output, phase: 'range_check', index: i, currMinIdx, currMaxIdx, min: currMin });
+        if (input[i] < currMin) {
+          currMin = input[i]; currMinIdx = i;
+          record({ input, count: [], output, phase: 'range_update_min', index: i, currMinIdx, currMaxIdx, min: currMin });
+        }
+        if (input[i] > currMax) {
+          currMax = input[i]; currMaxIdx = i;
+          record({ input, count: [], output, phase: 'range_update_max', index: i, currMinIdx, currMaxIdx, min: currMin });
+        }
+      }
+      record({ input, count: [], output, phase: 'range_end', currMinIdx, currMaxIdx, min: currMin });
+
+      // ------ 2nd pass: initialize count array  ------
+      const min = offsetByMin ? currMin : 0;
+      const max = currMax;
+      const count = Array(max - min + 1).fill(0);
+      record({ input, count, output, phase: 'init', min });
+
+      // ------ 3rd pass: counting occurrences  ------
+      input.forEach((v, i) => {
+        let inc = false;
+        record({ inc, input, count, output, phase: 'count', index: i, value: v, min });
+        count[v - min]++;
+        inc = true;
+        record({ inc, input, count, output, phase: 'count', index: i, value: v, min });
+      });
+      record({ input, count, output, phase: 'count_end', min });
+
+      // ------ 4th pass: emit each key count[i] times ------
+      let outIdx = 0;
+      for (let i = 0; i < count.length; i++) {
+        const key = i + min;
+        // for each occurrence of `key`:         
+        record({
+            input, count, output,
+            phase:   'output_selectKey',
+            index:   i,         // count-array index
+            value:   key,
+            min,
+            outPos:  outIdx
+          });
+        for (let c = 0; c < count[i]; c++) {
+ 
+          output[outIdx] = key;
+          record({
+            input, count, output,
+            phase:   'output_placeKey',
+            index:   i,
+            value:   key,
+            min,
+            outPos:  outIdx
+          });
+          outIdx++;
+        }
+      }
+      record({ input, count, output, phase: 'output_end', min });
+
+      record({ input, count, output, phase: 'output_end', min });
+      
+      return steps;
+    }
+
+    function positionInputArrow(i) {
+      const arrow     = document.getElementById('input-arrow');
+      const container = document.getElementById('input-container');
+      const cells     = container.querySelectorAll('.element');
+
+       if (!cells[i]) {
+          arrow.style.display = 'none';
+          return;
+        }
+
+      const target = cells[i];
+      arrow.style.width = `${target.offsetWidth}px`;
+      arrow.style.left  = `${target.offsetLeft + target.offsetWidth / 2}px`;
+      arrow.style.top   = `${target.offsetTop + target.offsetHeight + 4}px`;
+      arrow.style.display = 'block';
+    }
+
+    function render() {
+      const inpC = document.getElementById('input-container');
+      const outC = document.getElementById('output-container');
+      const desc = document.getElementById('description');
+      const rangeEl = document.getElementById('range-size');
+
+      const boxesC = document.getElementById('count-boxes');
+      const idxC   = document.getElementById('count-index-row');
+      const valC   = document.getElementById('count-value-row');
+      boxesC.innerHTML = idxC.innerHTML = valC.innerHTML = '';
+
+
+
+      inpC.innerHTML = '<div id="input-arrow" class="arrow">&uarr;</div>';
+      outC.innerHTML = '';
+      boxesC.innerHTML = '';
+      idxC  .innerHTML = '';
+      valC  .innerHTML = '';
+
+      if (!steps.length) return;
+
+      
+      const st = steps[cur];
+
+      
+      // hide the entire output container until we start copying into it
+      if (!st.phase.startsWith('output')) {
+        outC.style.display = 'none';
+      } else {
+        outC.style.display = '';  // restore it once output phases begin
+      }
+      
+      
+      // --- Build the **INPUT** array with index-labels under each element ---
+      st.input.forEach((v, i) => {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'count-wrapper'; 
+        const d = document.createElement('div');
+        d.className = 'element';
+        d.textContent = v;
+        const lbl = document.createElement('div');
+        lbl.className = 'count-label';
+        lbl.textContent = i;       // <-- show the input-index
+        wrapper.appendChild(d);
+        wrapper.appendChild(lbl);
+        inpC.appendChild(wrapper);
+      });
+
+      // --- If we’re still finding the range (phases start with “range” or “start”) ---
+      if (st.phase.startsWith('range') || st.phase === 'start') {
+        document.getElementById('curr-min').textContent = st.currMinIdx !== null
+          ? st.input[st.currMinIdx]
+          : '';
+        document.getElementById('curr-max').textContent = st.currMaxIdx !== null
+          ? st.input[st.currMaxIdx]
+          : '';
+
+        positionInputArrow(st.index);
+
+        switch (st.phase) {
+          case 'start':
+            desc.innerHTML = `Click "Next" to begin`;
+            break;
+
+          case 'range_init':
+            desc.innerHTML = `Determining range. Checking index 0 (<strong>${st.input[0]}</strong>)<br>` +
+                             `Min = <strong>${st.input[0]}</strong><br>` +
+                             `Max = <strong>${st.input[0]}</strong>`;
+            break;
+
+          case 'range_check':
+            desc.innerHTML = `Determining range. Checking index ${st.index} (<strong>${st.input[st.index]}</strong>)`;
+            break;
+
+          case 'range_update_min':
+            desc.innerHTML = `New min: <strong>${st.input[st.index]}</strong> at index <strong>${st.index}</strong>`;
+            break;
+
+          case 'range_update_max':
+            desc.innerHTML = `New max: <strong>${st.input[st.index]}</strong> at index <strong>${st.index}</strong>`;
+            break;
+
+          case 'range_end':
+            desc.innerHTML = 
+              `Range determined: Min = <strong>${st.input[st.currMinIdx]}</strong>, ` +
+              `Max = <strong>${st.input[st.currMaxIdx]}</strong><br>`+
+              `Counting array will be offset by Min = <strong>${st.input[st.currMinIdx]}</strong><br>`+
+			        `Count Array Size = Max - Min + 1 = ${st.input[st.currMaxIdx]-st.input[st.currMinIdx] + 1}`;
+            break;
+        }
+        return;
+      }
+
+      st.count.forEach((c,i) => {
+        // 1) box
+        const wrap = document.createElement('div');
+        wrap.className = 'count-wrapper';
+        const cell = document.createElement('div');
+        cell.className = 'element';
+        cell.textContent = c;
+        wrap.appendChild(cell);
+        boxesC.appendChild(wrap);
+    
+        // 2) index label
+        const lb1 = document.createElement('div');
+        lb1.textContent = i;
+        idxC.appendChild(lb1);
+    
+        // 3) value label
+        const lb2 = document.createElement('div');
+        lb2.textContent = i + st.min;
+        valC.appendChild(lb2);
+      });
+
+      // --- Build the **OUTPUT** array **with** index-labels under each cell ---
+      st.output.forEach((v, i) => {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'count-wrapper';    // re-use the same wrapper style
+        const cell = document.createElement('div');
+        cell.className = 'element';
+        if (v !== null) cell.textContent = v;
+        const lbl = document.createElement('div');
+        lbl.className = 'count-label';
+        lbl.textContent = i;                     // ? here’s your index
+      
+        wrapper.appendChild(cell);
+        wrapper.appendChild(lbl);
+        outC.appendChild(wrapper);
+      });
+
+    // now mark “finished” just like before, but on the inner .element
+    st.output.forEach((v, i) => {
+      if (v !== null) outC.children[i].querySelector('.element').classList.add('finished');
+    });
+
+
+      // --- Clear any “comparing” highlight from all three containers ---
+      [inpC, boxesC, outC].forEach(container =>
+        Array.from(container.children).forEach(c => c.classList.remove('comparing'))
+      );
+
+      // --- Now handle each phase after range-finding: ---
+      switch (st.phase) {
+        case 'init':
+          desc.textContent = 'Count array initialized. Begin Counting.';
+          inpC.querySelectorAll('.element').forEach(el => el.classList.remove('active'));
+          const target = inpC.querySelectorAll('.element')[st.index];
+          if (target) target.classList.add('active');
+          break;
+
+        case 'count':
+          const ccIdx = st.value - st.min;
+          if (st.inc === false) {
+            desc.innerHTML =
+              `Value <strong>${st.value}</strong> at index <strong>${st.index}</strong><br>` +
+              `Count index = <strong>${st.value} - ${st.min} = ${ccIdx}</strong>`;
+          } else {
+            desc.innerHTML = `Increment <code>count[${ccIdx}]</code>`;
+          }
+          inpC.querySelectorAll('.element')[st.index].classList.add('comparing');
+          positionInputArrow(st.index);
+          boxesC.children[ccIdx].querySelector('.element').classList.add('comparing');
+          break;
+
+        case 'count_end':
+          desc.textContent = 'Counting phase complete. Next: Copy into output.';
+          positionInputArrow(-1);
+          break;
+
+        case 'output_input':
+          desc.innerHTML = `Selecting input element <strong>${st.value}</strong> at index ${st.index}.`;
+          inpC.querySelectorAll('.element')[st.index].classList.add('comparing');
+          positionInputArrow(st.index);
+          break;
+
+        case 'output_count':
+          desc.innerHTML = 
+            `Determining position.
+			<br> Output index = <strong>count[${st.value} - ${st.min}] - 1</strong> = ${st.count[st.value - st.min]} - 1 = ${st.count[st.value - st.min] - 1}` ;
+          inpC.querySelectorAll('.element')[st.index].classList.add('comparing');
+          positionInputArrow(st.index);
+          boxesC.children[st.value - st.min].querySelector('.element').classList.add('comparing');
+          break;
+
+        case 'output_place':
+          desc.innerHTML = 
+            `Placing value <strong>${st.value}</strong> at output index <strong>${st.outPos}</strong>.<br>` +
+            `Decremented count[${st.value - st.min}]`;
+          inpC.querySelectorAll('.element')[st.index].classList.add('comparing');
+          positionInputArrow(st.index);
+          boxesC.children[st.value - st.min].querySelector('.element').classList.add('comparing');
+           break;
+
+        case 'output_end':
+          desc.textContent = 'Counting Sort complete!';
+          positionInputArrow(-1);
+          break;
+        case 'output_selectKey':
+          desc.innerHTML =
+            `Count[${st.index}] = ${st.count[st.index]}: Copy <strong>${st.value}</strong> into output <strong>${st.count[st.index]}</strong> times.`;
+          positionInputArrow(-1);
+          boxesC.children[st.index].querySelector('.element')
+              .classList.add('comparing');
+          break;
+        
+        case 'output_placeKey':
+          desc.innerHTML =
+            `Placing value <strong>${st.value}</strong> at output index ` +
+            `<strong>${st.outPos}</strong>.`;
+          outC.children[st.outPos].querySelector('.element')
+              .classList.add('finished');
+          // 2) re-highlight the count bucket (st.index is the count-array index)
+          boxesC.children[st.index].querySelector('.element')
+              .classList.add('comparing');
+          break;
+      }
+    }
+
+    // Hook into demoScripts
+   window.onGenerate = function(isCustom) {
+  if (isCustom) {
+    const txt = document.getElementById('customArray').value.trim();
+    return txt.split(',').map(s => parseInt(s.trim(), 10));
+  }
+  const n   = parseInt(document.getElementById('arraySize').value, 10);
+  const min = 2;
+  const max = 15;
+  return Array.from({ length: n }, () =>
+    Math.floor(Math.random() * (max - min + 1)) + min
+  );
+};
+
+    window.genSteps = function(arr) {
+      return generateSteps(arr);
+    };
+
+    window.renderStep = function(stepsArr, idx, original) {
+      steps = stepsArr;
+      cur = idx;
+      render();
+    };
+  </script>
+</body>
+</html>

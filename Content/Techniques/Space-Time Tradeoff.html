@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Technique: Space-Time Tradeoff</title>
+  <script src="/Algorithms/scripts/chapterScripts.js"></script>
+  <link rel="stylesheet" href="/Algorithms/css/style.css">
+  <link rel="stylesheet" href="/Algorithms/css/chapter.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js"></script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body>
+  <h1>Technique: Space-Time Tradeoff</h1>
+
+  <!-- Introduction -->
+   <section id="introduction">
+    <h2>Introduction</h2>
+    <p>A <strong>space-time tradeoff</strong> in algorithm design arises when we allocate extra memory to store 
+    useful information (e.g. lookup/memoization tables, caches of partial results, or precomputed results)
+    in order to accelerate computation. By doing so, we can replace repeated or costly operations with simple retrievals,
+    achieving faster overall running time at the cost of higher space usage.</p>
+    <p>Many classical algorithms and data structures apply these ideas, 
+    including counting sort, hash tables
+    (using chaining or open-addressing), B-trees, and string searching algorithms such as Horspool's and Boyer-Moore. 
+    If you have already read about dynamic programming, it might have occured to you that it
+    is a special case of space-time tradeoffs
+    (See the <a href="?path=Techniques/Dynamic Programming">Dynamic Programming</a> page).</p>
+    <p>
+     Here we will present two straightforward examples: Counting Sort and Hashing with Chaining.</p>
+  </section>
+
+  <!-- Worked Examples -->
+  <section id="examples">
+    <h2>Examples</h2>
+
+    <div class="example-box">
+      <strong class="example-title">Example 1: Counting Sort</strong>
+      <p>You have likely already seen many algorithms to solve the 
+      <a class="problem" href="?path=Problems/Foundational/Sorting">Sorting Problem</a>.
+      Counting sort is probably very different than those you have seen. The other algorithms you have seen
+      are probably all what are called compatison sorts&mdash;they accomplish the job of sorting
+      a list by comparing elements with each other. 
+      At first glance, that term may seem like nonsense&mdash;of course we have to compare elements with each other
+      in order to sort them! Except that it is not true. For certain situtations and types of data, we can sort more
+      efficiently by doing something else.</p>
+      <p>The idea behind Counting Sort is to count the number of occurrences of each item in an array, and then copy the
+      numbers back out in order. For instance, if \(A=[6, 3, 2, 7, 1, 2, 7, 8, 9, 2, 3, 7]\), we can go through the
+      list once and see that there is one 1, three 2s, two 3s, zero 4s, zero 5s, one 6, three 7s, one 8, and one 9.
+      Then we can just output them in order by going through that list, 
+      repeating each number the number of times it occurs: 
+      \([1, 2, 2, 2, 3, 3, 6, 7, 7, 7, 8, 9]\) (by writing down one 1, three 2s, etc.).</p>
+      <p>Hopefully it occured to you that there might be a problem with applying this idea in general. 
+      For instance, how would you apply this to strings? And what if the numbers on the list can be large?
+      This technique is best applied when the numbers in the list come from a small range of values. 
+      When we analyze the algorithm later, 
+      we will discuss the affect of the range of numbers on the time and space complexity.</p>
+      <p>Since it is ideally suited for dealing with integers, we will restrict our attention on describing
+      the details of counting sort on them. We leave it to the reader to figure out what other sorts of data
+      it can and cannot work on, and what adjustment need to be made.</p>
+      <p>At a high level, the algorithm is easy to describe: 
+      determine the range of integers on the list, 
+      allocate space (the counting array) to store the number of occurences of each number in the range, 
+      go through the input array incremementing the appropriate counts, 
+      and finally go through the counting array,
+      copying the appropriate values into the output array according to the counts.
+      For simplicity, we will assume the numbers on the list range from 0 to \(m\) for some positive integer \(m\).
+      With a little more detail, the steps of the algorithm as as follows:
+      <ol>
+      <li>Determine \(m\), the maximum number in the array \(A\).</li>
+      <li>Create an array \(C\) of size \(m\) to hold the counts.</li>
+      <li>For each element \(v\) of \(A\), increment the value in \(C[v]\).</li>
+      <li>Create an output array/list \(B\).
+      <li>Go through \(C\) in order (letting \(k=0,1,\ldots,m-1\)) and 
+      place \(C[k]\) \(k\)'s at the end of \(B\).</li>
+      </ol>
+      </p>
+      <p>
+     
+      <p>Here is a more formal version of the algorithm:
+      <pre><code>CountingSort(A,n):
+   m = A[0]
+   for i = 1 to n-1:          // 1. Find maximum value m in A
+      if A[i] > m:
+         m = A[i]
+   for j = 0 to m:            // 2. Initialize count array C[0..m] to 0
+      C[j] = 0
+   for i = 0 to n-1:          // 3. Count occurrences of each number
+      C[A[i]] = C[A[i]] + 1
+   B = empty list             // 4. Construct output list B
+   for k = 0 to m:            // 5. Append each value k, C[k] times
+      do C[k] times:
+         append k to B
+   return B</code></pre>
+   </p>
+      <p>Below is a demonstration of the algorithm.
+      You will notice that in addition to determining the maximum value of the array, it also determines
+      the minimum. This allows the algorithm to create a smaller counting array.
+      By default, the minimum is ignored and the algorithm proceeds exactly as described above.
+      If you want to see the space-saving version in action, check the "Offset by min" button.
+      You will be asked later to give the pseudocode for that version.</p>
+      <div class="embeddedDemoContainer">
+        <iframe class="embeddedDemo" src="/Algorithms/Content/Demos/Space-Time Tradeoff/Counting Sort (Simple) Demo.html">
+        </iframe>
+      </div>
+      <p><strong>Time Complexity:</strong> If \(m\) is the largest value in the array, 
+      it executes two for loops of length \(n\) and two for loops of
+      length \(m\), doing a constant amount of work each for for a total of \(O(n + m)\) time. 
+      </p>
+      <p><strong>Space Complexity:</strong> It uses an extra counting array of size \(m\), where \(m\) is
+      the maximum value in the array, and an extra output array (although in some cases you can copy 
+      back onto the original array) of size \(n\), plus a few local variables, for a total
+      of \(O(n + m)\) space.</p>
+      <p>
+      Depending on the value of \(m\), this can be significantly better than the 
+      \(O(n\log n)\) comparison sorting algorithms you are familiar with. 
+      Often it is used when \(m\) is a fixed and relatively small value, yeilding a linear-time algorithm.
+      This beats the best possible comparison sorting algorithm. (If you have not already learned about this,
+      you should know that it is impossible to devise a sorting algorithm based on comparing elements
+      whose worst-case is better than \(O(n\log n)\). Hopefully you will learn about it because the proof
+      uses binary trees in an interesting way.) 
+      This is a key example of the space-tiime tradeoff: by using an extra \(m\) space, you can potentially
+      save a factor of \(\log n\) time.
+      </p>
+      <p>For a more detailed converage of the algorithm, see the 
+      <a class="problem" href="?path=Algorithms/Space-Time Tradeoff/Counting Sort">Counting Sort</a> page.
+      That page presents a slightly different version of the algorithm that is better suited for general use,
+      particularly if the keys being sorted have data associated with them. That one uses a prefix-sum of the
+      counting array and walks through the input array backwards, coping values into their proper location.
+      <?p>
+    </div>
+
+    <div class="example-box">
+      <strong class="example-title">Example 2: Hashing with Chaining</strong>
+      <p>Given a set <code>S</code> of <code>n</code> keys, we want to support <code>INSERT</code> and <code>SEARCH</code> operations in constant expected time. For more details about this problem, see the <a class="problem" href="?path=Problems/Foundational/Searching">Searching Problem</a> page.</p>
+      <p>We allocate a hash table <code>T[0..m-1]</code> of size <code>m</code> and store keys in linked lists at index <code>h(key)</code>. The extra space in the table and chains lets us achieve <code>O(1)</code> expected time per operation.</p>
+      <p>Here is a more formal version of the algorithm:</p>
+      <pre><code>INSERT-HASH(T, key):
+  i = h(key)         // compute hash index
+  insert key at head of T[i]
+
+SEARCH-HASH(T, key):
+  i = h(key)
+  for each x in T[i]:
+    if x == key:
+      return x
+  return NIL
+</code></pre>
+      <p>Here is a demonstration of the algorithm:</p>
+      <div class="embeddedDemoContainer">
+        <iframe class="embeddedDemo" src="/Algorithms/Content/Demos/Space-Time Tradeoff/Hashing-Chaining.html"></iframe>
+      </div>
+      <p><strong>Expected time per operation:</strong> <code>O(1)</code> when load factor <code>a = n/m = O(1)</code> &nbsp; <strong>Space:</strong> <code>O(n + m)</code></p>
+      <p>Hashing with chaining allocates <code>O(n + m)</code> space to achieve <code>O(1)</code> expected time operations, illustrating the power of space-time tradeoffs.</p>
+    </div>
+
+  </section>
+
+</body>
+</html>
