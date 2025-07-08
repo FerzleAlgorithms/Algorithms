@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Hash Chaining Demo</title>
+  <script src="../../../scripts/demoScripts.js"></script>
+  <link rel="stylesheet" href="../../../css/style.css">
+  <link rel="stylesheet" href="../../../css/demo.css">
+  <style>
+    /* --------------------
+       Global page styling
+       -------------------- */
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      background: #f9f9f9;
+    }
+    h1 {
+     
+      margin-bottom: 10px;
+    }
+    #controls {
+      margin-bottom: 20px;
+    }
+    #controls input, #controls select, #controls button {
+      margin: 0 5px;
+      padding: 5px 8px;
+      font-size: 14px;
+    }
+
+    /* --------------------
+       Array & bucket styling
+       -------------------- */
+    .array-container, .bucket-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      margin-bottom: 20px;
+      padding-left: 4px;
+    }
+
+    /* and remove any margin on the buckets themselves: */
+    .bucket {
+      margin: 0;      
+    }
+
+      .array-item, .node {
+    width: 40px;
+    height: 40px;
+    line-height: 40px;
+    border: 1px solid #333;    /* ← same 1px #333 border as bucket sort */
+    box-sizing: border-box;     /* ← include the border inside the 40×40 size */
+    border-radius: 0;           /* ← sharp corners */
+    background: #fff;
+    position: relative;
+    font-weight: bold;
+    text-align: center; 
+  }
+
+    .array-item.current, .node.current {
+  border-color: #2a2a2a;            /* ← black border */
+  box-shadow: 0 0 8px rgba(0,0,0,0.6); /* ← subtle black glow */
+}
+
+    .bucket {
+      margin: 0;
+    }
+    .bucket-title {
+      font-weight: bold;
+      font-weight: bold;
+      margin: 0 0 4px;
+      width: 40px;           /* ← match the box width */
+      text-align: center;    /* ← center the index */
+    }
+    .linked-list {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 40px;
+    gap: 4px;
+    padding: 0;
+  }
+    /* New (or replace your existing arrow rules) */
+.arrow {
+  display: block;       /* so it sits on its own line */
+  font-weight: bold;    /* match Demo 45 */
+  margin: 4px 0;        /* vertical spacing between nodes */
+  text-align: center;   /* center under the node */
+}
+
+/* force the arrow to fill the bucket-width and be large enough to see */
+.arrow {
+  width: 40px;             /* same as your node width */
+  font-size: 18px;         /* bump it up so it’s obvious */
+  line-height: 1;          /* no extra line-height padding */
+  text-align: center;      /* center the arrow under the node */
+  margin: 4px 0;           /* vertical spacing */
+}
+
+    /* --------------------
+       Step description
+       -------------------- */
+    /* New */
+#step-desc {
+  font-style: italic;
+  margin-bottom: 10px;
+  height: 24px;        /* reserve 24px of vertical space */
+  overflow: hidden;    /* don’t push the table down when text changes */
+}
+
+  .array-item,
+.node {
+  margin: 0;    /* drop per-box margins—use container gap instead */
+}
+
+  .linked-list {
+  gap: 4px;     /* same as .array-container */
+}
+
+
+/* 1) Base circle style for all chain‐nodes */
+.bucket-container .linked-list .node {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;       /* make it round */
+  background: #cce3ff;      /* same fill as expo demo */
+  border: 1.5px solid #2a2a2a;  /* same stroke & width */
+  box-sizing: border-box;
+  line-height: 40px;        /* vertical centering */
+  text-align: center;       /* horizontal centering */
+  font-size: 16px;          /* match expo-demo text size */
+}
+
+/* 2) Revert the dummy‐head (first circle) back to your old square box */
+.bucket-container .linked-list .node:first-child {
+  border-radius: 0;
+  background: #fff;
+  border: 1px solid #333;
+}
+
+/* ─── Legend (matches Expo demo) ─── */
+.legend {
+  margin: 8px 0;
+  font-family: sans-serif;
+  font-size: 14px;
+  border: 1px solid #333;      /* ← black outline around the whole legend */
+  padding: 6px 12px;           /* ← space inside the box */
+  display: inline-block;       /* ← shrink-wrap to its contents */
+  border-radius: 4px;          /* ← optional, for a softer look */
+}
+
+/* matches demo.css / style.css */
+.legend-box {
+  display: inline-block;
+  width: 15px;
+  height: 15px;
+  vertical-align: middle;
+  margin: 0 5px;
+  border-radius: 4px;
+  border: 1px solid #333;
+  background-color: transparent;
+  box-sizing: border-box;
+}
+
+
+.legend-label {
+  margin-right: 12px;
+  vertical-align: middle;
+}
+
+.bucket-container .linked-list .node:first-child {
+  background-color: #5bc0de;   /* bootstrap light-blue */
+}
+.bucket-container .linked-list .node {
+  background-color: #5cb85c;   /* bootstrap green */
+}
+
+/* New */
+.legend-box.table     { background: #337ab7; }  /* darker blue for buckets */
+.legend-box.list      { background: #5bc0de; }  /* blue for key nodes */
+
+.bucket-container .linked-list .node:first-child {
+  background-color: #337ab7;   /* darker blue for bucket-head dummy nodes */
+}
+.bucket-container .linked-list .node {
+  background-color: #5bc0de;   /* blue for all key nodes */
+}
+
+.node.found {
+  background-color: #5cb85c !important;   /* green for “found” keys */
+  border: 3px solid #2a2a2a !important;
+  box-shadow: none !important;
+}
+
+.legend-box.found {
+  background-color: #5cb85c;   /* match green “found” color in legend */
+}
+
+
+/* ── Inserted-key node ── */
+.node.inserted {
+  background-color: red !important;
+  border: 3px solid #2a2a2a !important;
+  box-shadow: none !important;
+}
+
+/* ── Legend box for Inserted-key ── */
+.legend-box.inserted {
+  background-color: red;
+}
+
+  </style>
+</head>
+<body>
+
+  <h1>Hash-Chaining Visualization</h1>
+
+<div id="controls">
+  <label>Table Size:
+    <input type="number" id="bucketCount" min="1" max="20" value="8">
+  </label>
+ <label style="margin-left:12px;">Initialize Count:
+  <input
+    type="number"
+    id="initCount"
+    min="1"
+    value="4"
+    style="width:60px; margin-left:4px;"
+  >
+</label>
+
+  <button id="btnGenerate">Generate</button>
+  <br><br>
+
+   <label for="txtSearchValue">Search Value:</label>
+  <input type="number" id="txtSearchValue" style="width:60px; margin:0 8px;">
+  <button id="btnSearch">Search</button>
+
+  <label for="txtInsertValues" style="margin-left:16px;">Insert Value(s):</label>
+  <input type="text" id="txtInsertValues" placeholder="e.g. 5,12,27" style="width:120px; margin:0 8px;">
+  <button id="btnInsert">Insert</button>
+  <br><br>
+
+  <button id="btnPrev">Previous</button>
+  <button id="btnNext">Next</button>
+  <button id="btnPlay">Play</button>
+  <label>Speed:
+    <select id="selSpeed">
+      <option value="1">1×</option>
+      <option value="2">2×</option>
+      <option value="4">4×</option>
+    </select>
+  </label>
+
+
+<br><br>
+<div class="legend">
+  <strong>Legend:</strong>
+  <span class="legend-box table"></span><span class="legend-label">Hash Table</span>
+  <span class="legend-box list"></span><span class="legend-label">Keys</span>
+  <span class="legend-box found"></span><span class="legend-label">Found Key</span>
+  <span class="legend-box inserted"></span><span class="legend-label">Inserted Key</span>
+</div>
+
+
+
+
+  <div id="step-desc">Initialize to begin.</div>
+
+  <h3>Hashing Table: </h3>
+  <div class="bucket-container" id="bucketContainer"></div>
+
+  <script>
+    /*****************************************************
+     * Hash-Chaining Demo
+     * - uses modulo hash
+     * - chains by tail-insertion (singly linked lists)
+     *****************************************************/
+
+    // A simple singly-linked list node
+    class ListNode {
+      constructor(value) {
+        this.value = value;
+        this.next = null;
+      }
+    }
+
+    // Globals for demo state
+    let originalArray = [];
+    let buckets = [];      // ← NEW
+    let steps = [];
+    let curStep = 0;
+    let lastAction = null;
+
+    // Track when to re-enable controls
+    let activeSearch = null;
+    let activeInsert = null;
+    
+    // Record a snapshot of the entire state
+    function recordState(arr, buckets, desc, highlight) {
+      // Deep-clone list of buckets (arrays of values)
+      const copyBuckets = buckets.map(chain => {
+        // flatten chain to array of values
+        let vals = [];
+        let node = chain.head;
+        while (node) {
+          vals.push(node.value);
+          node = node.next;
+        }
+        return vals;
+      });
+      steps.push({
+    array: [...arr],
+    buckets: copyBuckets,
+    description: desc,
+    highlight: highlight || {},
+    action: lastAction || 'generate'
+  });
+    }
+
+    // Generate all the steps for chaining
+    function generateSteps(arr) {
+      steps = [];
+      originalArray = [...arr];
+      const m = parseInt(document.getElementById('bucketCount').value, 10);
+
+      // build the static buckets once
+      const bucketContainer = document.getElementById('bucketContainer');
+      bucketContainer.innerHTML = '';           // clear old if any
+      for (let b = 0; b < m; b++) {
+        const bucketBox = document.createElement('div');
+        bucketBox.className = 'bucket';
+        bucketBox.dataset.index = b;            // so we can target it in render()
+        bucketBox.innerHTML = `
+        <div class="bucket-title">${b}</div>
+        <div class="linked-list"></div>
+      `;  
+        bucketContainer.appendChild(bucketBox);
+      }
+
+       // now assigning the global
+  buckets = Array.from({ length: m }, () => ({ head: null, tail: null }));
+
+      // ── ADD dummy head nodes ──
+      for (let i = 0; i < m; i++) {
+        const dummy = new ListNode('');
+        buckets[i].head = buckets[i].tail = dummy;
+      }
+
+      // now record that initial blank‐node state
+      recordState(arr, buckets, `Initialized ${m} empty buckets.`, {});
+
+
+      // For each element, hash and insert at tail
+      for (let i = 0; i < arr.length; i++) {
+        const val = arr[i];
+        const idx = ((val % m) + m) % m; // handle negative
+        // create node
+        const node = new ListNode(val);
+        if (!buckets[idx].head) {
+          buckets[idx].head = buckets[idx].tail = node;
+        } else {
+          buckets[idx].tail.next = node;
+          buckets[idx].tail = node;
+        }
+      recordState(arr, buckets,
+        `Insert ${val} (${val} % ${m} = ${((val % m) + m) % m}) --> bucket ${idx}.`,
+        { arrayIndex: i, bucketIndex: idx });
+
+      }
+
+      recordState(arr, buckets,
+        `All elements hashed and chained.`,
+        {});
+      curStep = 0;
+      render();
+    }
+
+    // Render current snapshot
+    function render() {
+  const snap = steps[curStep];
+  // update the step description
+  document.getElementById('step-desc').innerText = snap.description;
+
+  // ── Render hash‐table buckets ──
+  const container = document.getElementById('bucketContainer');
+  snap.buckets.forEach((chain, bIdx) => {
+    // find the pre-built bucket frame
+    const bucketBox = container.querySelector(`.bucket[data-index="${bIdx}"]`);
+
+    // → New
+// ─── New ───
+const ll = bucketBox.querySelector('.linked-list');
+
+// 1) clear any old nodes
+ll.innerHTML = '';
+
+// 2) rebuild the chain
+chain.forEach((val, j) => {
+  const nodeDiv = document.createElement('div');
+  nodeDiv.className = 'node';
+  nodeDiv.textContent = val;
+  ll.appendChild(nodeDiv);
+
+  // ── SEARCH/TRAVERSE HIGHLIGHT ──
+  if (
+    snap.highlight.bucketIndex === bIdx &&
+    typeof snap.highlight.listIndex === 'number' &&
+    j === snap.highlight.listIndex + 1
+  ) {
+    if (snap.highlight.found) {
+      nodeDiv.classList.add('found');
+    } else {
+      nodeDiv.classList.add('current');
+    }
+  }
+
+  // ── INSERTION HIGHLIGHT ──
+  if (
+    snap.highlight.stage === 'inserted' &&
+    snap.highlight.bucketIndex === bIdx &&
+    j === chain.length - 1
+  ) {
+    nodeDiv.classList.add('inserted');
+    if (snap.highlight.collision) {
+      nodeDiv.classList.add('collision');
+    }
+  }
+
+  // arrows…
+  // ─── arrow injection ───
+if (j < chain.length - 1) {
+  // use a div so it’s block-level by default
+  const arrow = document.createElement('div');
+  arrow.className = 'arrow';
+  // HTML entity is more robust than a raw ↓ char
+  arrow.innerHTML = '&darr;';
+  ll.appendChild(arrow);
+}
+});
+
+// 3) now highlight dummy-head for “bucket-only” steps
+if (
+  snap.highlight.stage === 'compute' &&
+  snap.highlight.bucketIndex === bIdx
+) {
+  const dummy = ll.querySelector('.node:first-child');
+  if (dummy) dummy.classList.add('current');
+}
+
+
+// 3) now highlight dummy-head for “bucket-only” steps
+// ─── New :contentReference[oaicite:5]{index=5}
+if (
+  snap.highlight.stage === 'compute' &&
+  snap.highlight.bucketIndex === bIdx
+) {
+  const dummy = ll.querySelector('.node:first-child');
+  if (dummy) dummy.classList.add('current');
+}
+  });
+
+    // if we’ve reached the last search step, re-enable + clear
+  if (activeSearch !== null && curStep === activeSearch) {
+    const inputEl = document.getElementById('txtSearchValue');
+    const btnEl   = document.getElementById('btnSearch');
+    inputEl.value    = '';
+    inputEl.disabled = false;
+    btnEl.disabled   = false;
+    activeSearch     = null;
+  }
+  
+  // if we’ve reached the last insert step, re-enable + clear
+  if (activeInsert !== null && curStep === activeInsert) {
+    const inputEl = document.getElementById('txtInsertValues');
+    const btnEl   = document.getElementById('btnInsert');
+    inputEl.value    = '';
+    inputEl.disabled = false;
+    btnEl.disabled   = false;
+    activeInsert     = null;
+  }
+}
+
+    // Controls
+    
+  // “Generate” uses whatever is in txtValues, or else random m values
+document.getElementById('btnGenerate').addEventListener('click', () => {
+  const m = parseInt(document.getElementById('bucketCount').value, 10);
+  const n = parseInt(document.getElementById('initCount').value, 10);
+  const arr = (n > 0)
+    ? Array.from({ length: n }, () => Math.floor(Math.random() * 100))
+    : Array.from({ length: m }, () => Math.floor(Math.random() * 100));
+  lastAction = 'generate';
+  generateSteps(arr);
+  // ← Jump to the last step so you immediately see all n values
+  curStep = steps.length - 1;
+  render();
+});
+
+
+
+
+// Search using the textbox instead of prompt
+// ─── New ───
+document.getElementById('btnSearch').addEventListener('click', function() {
+  const v = parseInt(document.getElementById('txtSearchValue').value, 10);
+  if (isNaN(v)) return;
+
+  // …disable controls…
+  lastAction = 'search';
+  const firstNewStep = steps.length;
+  const m = parseInt(document.getElementById('bucketCount').value, 10);
+  const idx = ((v % m) + m) % m;
+
+  // ← EXTRA announce snapshot
+  recordState(
+    originalArray,
+    buckets,
+    `Searching for value ${v}.`,
+    {}
+  );
+
+  // existing computation snapshot
+  recordState(
+    originalArray,
+    buckets,
+    `Searching for ${v} (${v} % ${m} = ${idx}) → bucket ${idx}.`,
+    { bucketIndex: idx, stage: 'compute' }
+  );
+
+  // 3) Traverse the chain, checking each node
+  let node = buckets[idx].head.next;  // skip dummy head
+  let pos  = 0;
+  while (node) {
+    recordState(
+      originalArray,
+      buckets,
+      `Checking node with value ${node.value}.`,
+      { bucketIndex: idx, listIndex: pos }
+    );
+    if (node.value === v) {
+    recordState(
+      originalArray,
+      buckets,
+      `key ${v} exists in table.`,
+      { bucketIndex: idx, listIndex: pos, found: true }
+    );
+    break;
+  }
+    node = node.next;
+    pos++;
+  }
+
+  // 4) If we fell off the list, record “not found”
+  if (!node) {
+    recordState(
+      originalArray,
+      buckets,
+      `key ${v} does not exist in table.`,
+      { bucketIndex: idx }
+    );
+  }
+
+  // 5) mark where to re-enable controls
+  const endSearchStep = steps.length - 1;
+  activeSearch = endSearchStep;
+
+  // 6) jump into the first search snapshot
+  curStep = firstNewStep;
+  render();
+});
+
+
+// New insert handler just appends new nodes & snapshots
+// Complete insert handler – clears the textbox after inserting
+// Enhanced insert handler: two-step insert per value, supports multiple values
+document.getElementById('btnInsert').addEventListener('click', function() {
+  const input     = document.getElementById('txtInsertValues');
+  const btnInsert = this;
+  const txt       = input.value;
+  if (!txt) return;
+
+  // 1) disable controls until demo ends
+  input.disabled     = true;
+  btnInsert.disabled = true;
+
+// parse comma-separated values
+  const toInsert = txt
+    .split(',')
+    .map(x => parseInt(x, 10))
+    .filter(x => !isNaN(x));
+  if (!toInsert.length) {
+    input.disabled     = false;
+    btnInsert.disabled = false;
+    return;
+  }
+
+  // ── NEW: mark this as an insert and remember where our announce will land
+  lastAction     = 'insert';
+  const firstNewStep = steps.length;
+
+    // ── compute the correct announce text for single vs. multiple
+  const announceMsg = toInsert.length === 1
+    ? `Inserting value ${toInsert[0]}.`
+    : `Inserting values ${toInsert.join(',')}.`;
+
+  // 2-a) announce the entire batch (now with singular/plural handled)
+  recordState(
+    originalArray,
+    buckets,
+    announceMsg,
+    {}
+  );
+
+
+  // ── immediately jump to that announce
+  curStep = firstNewStep;
+  render();
+
+
+
+  const m = parseInt(document.getElementById('bucketCount').value, 10);
+
+  toInsert.forEach(val => {
+    // add to backing array
+    originalArray.push(val);
+    const idx = ((val % m) + m) % m;
+
+    // 2-a) computation snapshot
+  // 2-a) computation snapshot
+recordState(
+  originalArray,
+  buckets,
+  `Insert ${val} (${val} % ${m} = ${idx}) → bucket ${idx}.`,
+  { bucketIndex: idx, stage: 'compute' }   // ← mark compute step
+);
+
+
+
+    // actually chain the node
+    const node = new ListNode(val);
+    buckets[idx].tail.next = node;
+    buckets[idx].tail = node;
+
+    // 2-b) insertion snapshot
+    recordState(
+  originalArray,
+  buckets,
+  `${val} added to bucket ${idx}.`,
+  { bucketIndex: idx, stage: 'inserted' }  // ← mark real insertion
+);
+  });
+
+  // 3) mark where to re-enable controls
+  const endInsertStep = steps.length - 1;
+  activeInsert = endInsertStep;
+
+  // 4) jump into the first insert snapshot
+  curStep = firstNewStep;
+  render();
+});
+
+
+
+  //   // ↓ this element doesn’t exist, so remove it
+  // document.getElementById('btnSetBuckets').addEventListener('click', () => {
+  //   generateSteps(originalArray);
+  // });
+
+
+    document.getElementById('btnNext').addEventListener('click', () => {
+      if (curStep < steps.length - 1) curStep++;
+      render();
+      lastAction = 'navigate';
+    });
+
+ document.getElementById('btnPrev').addEventListener('click', () => {
+  let target = curStep - 1;
+  // skip backwards past any generate-tagged snapshots
+  // (but stop skipping once you hit index 0)
+  while (target > 0 && steps[target].action === 'generate') {
+    target--;
+  }
+  if (target >= 0) {
+    curStep = target;
+    render();
+    lastAction = 'navigate';
+  }
+});
+
+
+
+    let playInterval = null;
+    document.getElementById('btnPlay').addEventListener('click', function() {
+      if (playInterval) {
+        clearInterval(playInterval);
+        playInterval = null;
+        this.innerText = 'Play';
+      } else {
+        const speed = parseInt(document.getElementById('selSpeed').value, 10);
+        this.innerText = 'Pause';
+        playInterval = setInterval(() => {
+          if (curStep < steps.length - 1) {
+            curStep++;
+            render();
+          } else {
+            clearInterval(playInterval);
+            playInterval = null;
+            document.getElementById('btnPlay').innerText = 'Play';
+          }
+        }, 1000 / speed);
+      }
+    });
+
+// Initialize on page load: set table to 8 buckets & pre-fill 4 random values in one shot
+// Initialize on page load: set table to 8 buckets & pre-fill 4 random values in one shot
+// Initialize on page load: set table to 8 buckets & pre-fill 4 random values in one shot
+window.onload = () => {
+  // 1) Force table size to 8
+  const bucketInput = document.getElementById('bucketCount');
+  bucketInput.value = 8;
+  const m = parseInt(bucketInput.value, 10);
+
+  // 2) Build the bucket frames in the DOM
+  const bucketContainer = document.getElementById('bucketContainer');
+  bucketContainer.innerHTML = '';
+  for (let b = 0; b < m; b++) {
+    const bucketBox = document.createElement('div');
+    bucketBox.className = 'bucket';
+    bucketBox.dataset.index = b;
+    bucketBox.innerHTML = `
+      <div class="bucket-title">${b}</div>
+      <div class="linked-list"></div>
+    `;
+    bucketContainer.appendChild(bucketBox);
+  }
+
+  // 3) Generate 4 random values
+  originalArray = Array.from({ length: 4 }, () => Math.floor(Math.random() * 100));
+
+  // 4) Create buckets with dummy head nodes so every bucket shows a box
+   buckets = Array.from({ length: m }, () => {
+    const dummy = new ListNode('');    // empty‐string dummy head
+    return { head: dummy, tail: dummy };
+  });
+
+  // 5) Insert each random value as a linked‐list node
+  originalArray.forEach(val => {
+    const idx = ((val % m) + m) % m;
+    const node = new ListNode(val);
+    buckets[idx].tail.next = node;
+    buckets[idx].tail = node;
+  });
+
+  // 6) Record exactly one snapshot and render
+  steps = [];
+  recordState(originalArray, buckets, '', {});
+  curStep = 0;
+  render();
+  lastAction = 'generate';
+};
+  </script>
+
+</body>
+</html>
