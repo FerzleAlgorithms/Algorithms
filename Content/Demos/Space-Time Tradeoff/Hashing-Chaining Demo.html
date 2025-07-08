@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <title>Hash Chaining Demo</title>
-  <script src="../../../scripts/demoScripts.js"></script>
-  <link rel="stylesheet" href="../../../css/style.css">
-  <link rel="stylesheet" href="../../../css/demo.css">
+  <script src="/Algorithms/scripts/demoScripts.js"></script>
+  <link rel="stylesheet" href="/Algorithms/css/style.css">
+  <link rel="stylesheet" href="/Algorithms/css/demo.css">
   <style>
     /* --------------------
        Global page styling
@@ -82,19 +82,14 @@
   }
     /* New (or replace your existing arrow rules) */
 .arrow {
+  position: static;
   display: block;       /* so it sits on its own line */
   font-weight: bold;    /* match Demo 45 */
   margin: 4px 0;        /* vertical spacing between nodes */
   text-align: center;   /* center under the node */
-}
-
-/* force the arrow to fill the bucket-width and be large enough to see */
-.arrow {
   width: 40px;             /* same as your node width */
   font-size: 18px;         /* bump it up so it’s obvious */
   line-height: 1;          /* no extra line-height padding */
-  text-align: center;      /* center the arrow under the node */
-  margin: 4px 0;           /* vertical spacing */
 }
 
     /* --------------------
