@@ -126,6 +126,7 @@
       "Space-Time Tradeoff": [
         "Boyer-Moore Demo.html",
         "Bucket Sort Demo.html",
+        "Counting Sort (Simple) Demo.html",
         "Counting Sort Demo.html",
         "Hashing-Chaining Demo.html",
         "Horspool Demo.html",
@@ -205,6 +206,7 @@
     "Exhaustive Search.html",
     "Greedy Algorithms.html",
     "Introduction.html",
+    "Space-Time Tradeoff.html",
     "Transform-and-Conquer.html"
   ]
 }
