@@ -47,7 +47,8 @@
   "Demos": [
     {
       "Backtracking": [
-        "Subset Sum Demo.html"
+        "Subset Sum Demo.html",
+        "Subset Sum Old Demo.html"
       ]
     },
     {
@@ -105,7 +106,6 @@
         "Fibonacci Best Demo.html",
         "Fibonacci Bottom Up Demo.html",
         "Fibonacci Top Down Demo.html",
-        "Fibonacci Top Down OLD Demo.html",
         "Floyd Demo.html",
         "Warshall Demo.html"
       ]
@@ -131,8 +131,7 @@
         "Bucket Sort Demo.html",
         "Counting Sort (Simple) Demo.html",
         "Counting Sort Demo.html",
-        "Hashing-Chaining NEW Demo.html",
-        "Hashing-Chaining OLD Demo.html",
+        "Hashing-Chaining Demo.html",
         "Horspool Demo.html",
         "Radix Sort Demo.html"
       ]
@@ -203,6 +202,7 @@
     "Problem List.html"
   ],
   "Techniques": [
+    "Backtracking.html",
     "Brute Force.html",
     "Decrease-and-Conquer.html",
     "Divide-and-Conquer.html",

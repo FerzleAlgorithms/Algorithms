@@ -251,7 +251,7 @@ bits.slice(1).forEach((bit) => {
   let multCount  = 1;
 
   // start the text with the square
-  let resultComp = `bit=${bit} → result = ${beforeSquare} × ${beforeSquare}`;
+  let resultComp = `bit=${bit} → result = ${beforeSquare}<sup>2</sup>`;
 
   // 2) multiply‐by‐a step (only when bit===1)
   if (bit === 1) {
@@ -355,7 +355,7 @@ for (let idx = 0; idx <= pointer; idx++) {
 
     // computation (either “Initialize…” or “bit=… → …”)
     const tdResComp = document.createElement('td');
-    tdResComp.textContent = e.resultComp;
+    tdResComp.innerHTML = e.resultComp;
     tr.appendChild(tdResComp);
 
     // result after this step

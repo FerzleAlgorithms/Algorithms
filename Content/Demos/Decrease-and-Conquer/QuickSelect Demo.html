@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <title>Quickselect  Demo </title>
-  <script src="../../../scripts/demoScripts.js"></script>
-  <link rel="stylesheet" href="../../../css/style.css">
-  <link rel="stylesheet" href="../../../css/demo.css">
+  <script src="/Algorithms/scripts/demoScripts.js"></script>
+  <link rel="stylesheet" href="/Algorithms/css/style.css">
+  <link rel="stylesheet" href="/Algorithms/css/demo.css">
   <style>
     .element-wrapper {
       display: flex;
@@ -99,18 +99,20 @@
     </select>
   </div>
 
-  <div id="legend" class="legend">
-  <b>Legend:</b>
-  <span class="legend-box" style="background-color: lightgreen;"></span> Pivot
+<div class="legend">
+  <div class="legend-label">
+    <strong>Legend:</strong>
+  </div>
+  <div class="legend-items"><span class="legend-box" style="background-color: lightgreen;"></span> Pivot
   <span class="legend-box" style="background-color: orange;"></span> ≤ pivot
   <span class="legend-box" style="background-color: #1e90ff;"></span> &gt; pivot
   <span class="legend-box" style="background-color: #ff7f7f;"></span> Comparing
-  <span class="legend-box" style="background-color: yellow;"></span> Swapping
+  <span class="legend-box" style="background-color: yellow;"></span> Swapping<br>
   <span class="legend-box" style="background-color: white;"></span> Unpartitioned
   <span class="legend-box" style="background-color: #b579ee;"></span> k-th element
   <span class="legend-box" style="background-color: white; outline: 2px solid gold; outline-offset: -1px;"></span> k-th position
+  </div>
 </div>
-
 
   <!-- Header for main array -->
   <h3>Main Array</h3>

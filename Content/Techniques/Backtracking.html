@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Backtracking</title>
+  <script src="/Algorithms/scripts/chapterScripts.js"></script>
+  <link rel="stylesheet" href="/Algorithms/css/style.css">
+  <link rel="stylesheet" href="/Algorithms/css/chapter.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js"></script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body>
+  <h1>Backtracking</h1>
+
+ <!-- Motivation & Introduction -->
+<section id="introduction">
+  <h2>Introduction</h2>
+  <p>
+    Backtracking is a general algorithmic technique for solving problems incrementally,
+    building candidates to the solutions piece by piece and abandoning a candidate
+    ("backtracking") as soon as it is determined that this candidate cannot possibly
+    lead to a valid solution. It is especially useful for combinatorial search and
+    constraint-satisfaction problems where the solution space is large but can be
+    pruned by early detection of infeasible partial solutions.
+  </p>
+  <p>
+    A motivating example is the <em>subset-sum</em> problem: given a set of integers
+    \(\{a_1, a_2, \dots, a_n\}\) and a target \(T\), find a subset whose elements sum
+    to \(T\). A backtracking approach tries to include or exclude each \(a_i\) in turn,
+    and as soon as the partial sum exceeds \(T\), it abandons that branch.
+  </p>
+  <p>
+    Backtracking works well on problems such as:
+    <ul>
+      <li>Subset-sum and knapsack-style searches</li>
+      <li>Permutation and combination generation</li>
+      <li>Constraint satisfaction (e.g. graph coloring, Sudoku)</li>
+      <li>Combinatorial puzzles (e.g. n-queens, magic squares)</li>
+      <li>Path-finding in graphs with constraints (e.g. Hamiltonian paths)</li>
+    </ul>
+  </p>
+  <p>
+    In this chapter we will present two canonical examples of backtracking:
+    the <em>subset-sum</em> problem and the <em>n-queens</em> problem.
+  </p>
+</section>
+
+  
+  <!-- Worked Examples -->
+  <section id="examples">
+    <h2>Examples</h2>
+	
+ <div class="example-box">
+  <strong class="example-title">Example 1: Subset-Sum Problem</strong>
+  <p>
+    In the <em>subset-sum</em> problem, given a set \(S = \{a_1, a_2, \dots, a_n\}\)
+    (typically stored in an array)
+    and a target \(T\), we want to find a subset whose elements sum to \(T\).
+    For example, if \(S=\{2, 5, 7, 11, 13\}\) and \(T=18\), then there is at least one solution:  
+    \(\{2, 5, 11\}\). But if \(T=19\), then there is not (check for yourself).
+    For more details about this problem, see the
+    <a class="problem" href="?path=Problems/Other/Subset Sum">Subset Sum</a> problem page.
+  </p>
+  <p>
+    The backtracking algorithm to solve subset sum explores each element either including or excluding it,
+    and prunes any branch where the partial sum exceeds \(T\).
+    So, for instance, we decide to see what happens if we take the first item. Once we have done
+    that we decide to take the second item. And so on. At some point we try to take an item and the
+    value makes the sum of the elements in the subset add to a number larger than the target. So
+    we backtrack and then see what happens if we do not take that item. 
+    If this is a bit confusing, do not worry. The following example should help you visualize
+    what is happenning.
+  </p>
+  <div class="embeddedDemoContainer">
+    <iframe class="embeddedDemo"
+      src="/Algorithms/Content/Demos/Backtracking/Subset Sum Demo.html">
+    </iframe>
+  </div>
+   <p>In the following pseudocode, we assume for simplicity that the array \(S\) of values and the
+  target \(T\) are global variable (or fields). In the code the sum of the current subset is maintained
+  and passed to recursive calls so it does not need to be recomputed from scratch.</p>
+  <pre><code>backtrackSubsetSum(i, currentSubset, currentSum):
+    if currentSum == T:
+        output(currentSubset)    // Solution found!
+        return 
+    if i == n or currentSum > T: // No more items or target exceeded
+        return
+
+    // Include S[i]
+    currentSubset.add(S[i])
+    backtrackSubsetSum(i + 1, currentSubset, currentSum + S[i])
+    currentSubset.remove(S[i])
+
+    // Exclude S[i]
+    backtrackSubsetSum(i + 1, currentSubset, currentSum)
+</code></pre>
+
+  <p><strong>Time complexity:</strong> Worst-case \(O(2^n)\), though pruning often reduces the search space.</p>
+  <p><strong>Space complexity:</strong> \(O(n)\) for the recursion stack and current subset.</p>
+  <p><strong>Summary:</strong> Systematically enumerates all subsets, abandoning any
+     with partial sums exceeding \(T\), and outputs each valid solution.</p>
+</div>
+
+
+   <div class="example-box">
+  <strong class="example-title">Example 2: [Toy Problem Name2]</strong>
+      <p>Describe the problem being solved. 
+	  For more details about this problem, see the <a href="?path=Problems/TYPE2/NAME2">PROBLEM2</a> page.
+	  </p>
+	  <p>Talk through the idea of the algorithm. Discuss how it applies the technique.</p>
+	  <p>Here is a more formal version of the algorithm:</p>
+      <pre><code>// More formal pseudocode of the algorithm
+      </code></pre>
+	  <p>Here is a demonstration of the algorithm</p>
+	  <div class="embeddedDemoContainer">
+         <iframe class="embeddedDemo" src="/Algorithms/Content/Demos/TECHNIQUE/ALGORITHM2 Demo.html"></iframe>
+      </div>
+	  <p>Time and space complexity</p>
+	  <p>Summary</p>
+   </div>
+  </section>
+  
+  
+  
+<!-- Pseudocode Skeleton OPTIONAL. Only if it makes sense for the technique.-->
+<section id="pseudocode">
+  <h2>Pseudocode Skeleton</h2>
+  <p>
+    Backtracking works by gradually building a partial solution one choice at a time,
+    checking at each step whether it can still lead to a valid complete solution.
+    If the partial solution is complete, we record it; otherwise we generate all
+    possible next choices, prune those that violate constraints, and recurse on each
+    promising extension. After exploring one branch, we remove the last choice
+    (backtrack) and try the next. Here is a generic backtracking algorithm based on this idea:
+  </p>
+  <pre><code>backtrack(partialSolution):
+    if isCompleteSolution(partialSolution):
+            output(partialSolution)
+        return
+    for choice in getChoices(partialSolution):
+        if isPromising(choice, partialSolution):
+            partialSolution.add(choice)
+            backtrack(partialSolution)
+            partialSolution.remove(choice)</code></pre>
+    <p>
+    In order to implement a backtracking algorithm using this skeleton, 
+    you need to figure out what it means to implement each
+    of the following functions.
+    <ul>
+    <li><code>isCompleteSolution</code>: Based on the criteria for the given problem, you need to determine
+    if the partial solution is actually a full solution. 
+    For instance, with subset sum, we return true if and only if the numbers
+    in the partial solution add up to the target. </li>
+    <li><code>getChoices</code>: Determine what choices can be added to the current solution.
+    Sometimes this step only adds known valid choices, making the next function, <code>isPromising</code>,
+    unnecessary. For subset sum, the choices are to take or not take the next available number on the list.
+    This may or may not be promising since adding it may go over the target value.</li>
+    <li><code>isPromising</code>: Determine whether or not the partial solution with the new choice added 
+    is still promising. For instance, with subset sum, if the sum is above the target, it is not promising,
+    and otherwise it is.</li>
+    </ul>
+    It is also sometimes necessary to add additional parameters to the various functions, depending on 
+    both the algorithm and the chosen programming language. For instance, using object-oriented programming
+    in Java, the class fields may have the required information and the skeleton above may work fine. But in
+    other contexts, you need to know information that is not readily available&mdash;e.g. the list of possible
+    values and the target for the subset sum problem.
+    </p>
+    <p>
+    Backtracking can also be implemented iteratively, but then you have to explicietly maintain a stack
+    of partial solutions and the implementation gets a bit more complicated. 
+    If the depth of the recursive calls is high enough, it can be worth it. 
+    But in most cases the recursive implemention is sufficient (and much easier!).
+    </p>
+</section>
+
+
+
+  <section id="algorithms">
+    <h2>Algorithms Using This Technique</h2>
+    <ul>
+      <li><a href="merge-sort.html">Merge Sort</a> – classic divide-and-conquer sort.</li>
+      <li><a href="binary-search.html">Binary Search</a> – textbook decrease-and-conquer search.</li>
+    </ul>
+  </section>
+  
+  <section id="when">
+    <h2>When to Use</h2>
+    <ul>
+      <li>In This situation.</li>
+      <li>Also this one.</li>
+    </ul>
+  </section>
+  
+   <section id="Limitations">
+    <h2>Limitations</h2>
+    <ul>
+      <li>This is a problem.</li>
+      <li>Also this one.</li>
+    </ul>
+  </section>
+  
+  <section id="tips">
+    <h2>Implementation Tips</h2>
+    <ul>
+      <li>Do this.</li>
+      <li>Also, this.</li>
+    </ul>
+  </section>
+  
+  <section id="pitfalls">
+    <h2>Common Pitfalls</h2>
+    <ul>
+      <li>Avoid off-by-one errors in loops.</li>
+      <li>Check base cases carefully.</li>
+    </ul>
+  </section>
+
+  <section id="applications">
+    <h2>Real-World Applications</h2>
+    <ul>
+      <li>Describe a use-case in networking, scheduling, etc.</li>
+    </ul>
+  </section>
+
+  <section id="summary">
+    <h2>Summary & Key Takeaways</h2>
+    <p>Recap the main points and remind students when to use this technique.</p>
+  </section>
+
+  <h2>Related Links and Resources</h2>
+  <ul>
+    <li></li>
+    <li></li>
+    <li></li>
+  </ul>
+  
+  <!-- Reading Comprehension Questions -->
+  <section id="reading-questions">
+    <h2>Reading Comprehension Questions</h2>
+    <ol>
+      <li>What key property makes this technique applicable?</li>
+      <li>How does the toy example illustrate the main idea?</li>
+    </ol>
+    <button id="toggleAnswers" class="show-answer" aria-expanded="false">
+    Show Answers
+  </button>
+  <div id="answers" class="answer" hidden>
+    <ol>
+      <li>
+        <strong>Answer:</strong><br> This.
+        </li>
+      <li>
+        <strong>Answer:</strong><br> Another reason.
+        </li>
+      </ol>
+  </div>
+  </section>
+
+  <!-- In-Class Activities -->
+  <section id="activities">
+    <h2>In-Class Activities</h2>
+    <ul>
+      <li>Work in pairs to sketch the technique flow on the whiteboard.</li>
+      <li>Use cards representing subproblems and arrange them.</li>
+    </ul>
+  </section>
+
+  <!-- Practice Problems -->
+  <section id="problems">
+    <h2>Homework Problems</h2>
+    <h3>Basic</h3>
+    <ul>
+      <li>Apply the technique to [Simple Problem A].</li>
+    </ul>
+    <h3>Advanced</h3>
+    <ul>
+      <li>Combine this technique with [Another Technique] to solve [Complex Problem].</li>
+    </ul>
+  </section>
+</body>
+</html>

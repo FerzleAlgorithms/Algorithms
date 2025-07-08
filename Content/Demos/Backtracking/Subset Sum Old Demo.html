@@ -6,29 +6,6 @@
   <link rel="stylesheet" href="/Algorithms/css/style.css">
   <link rel="stylesheet" href="/Algorithms/css/demo.css">
   <title>Subset Sum Backtracking Tree with Playback</title>
-  <style>
-  /* in demo.css — remove html,body {height:100%} entirely */
-
-#demo-wrapper {
-  display: flex;
-  flex-direction: column;
-  height: 100vh;       /* fill viewport height inside iframe */
-  margin: 0;           /* drop extra padding */
-}
-
-#controls1 {
-  flex: 0 0 auto;
-}
-
-#svg {
-  flex: 1 1 auto;
-  width: 100%;
-  height: auto;
-  max-height: 100vw;   /* enforce height ≤ width */
-  display: block;
-}
-  
-  </style>      
 </head>
 <body class = "no-tooltips">
   <h2>Subset Sum Backtracking Tree</h2>
@@ -41,7 +18,6 @@
     <!-- Original Prev/Next buttons (no change) -->
     <button id="prevBtn">Prev</button>
     <button id="nextBtn">Next</button>
-    <br>
 
     <!-- New Play/Pause button and Speed dropdown -->
     <button id="play">Play</button>
@@ -52,18 +28,8 @@
       <option value="4">4x</option>
     </select>
   </div>
-    
-<body>
-  <div id="demo-wrapper">
-    <div id="controls1">…</div>
-    <svg
-      id="svg"
-      viewBox="0 0 1600 1200"
-      preserveAspectRatio="xMidYMid meet">
-    </svg>
-  </div>
-</body>
 
+  <svg id="svg" width="1600" height="1200"></svg>
 
 <script>
   let events = [], step = -1;

@@ -28,6 +28,7 @@ const ALGORITHMS_ORDER = [
   'Decrease-and-Conquer',
   'Transform-and-Conquer',
   'Greedy',
+  'Greedy Algorithms',
   'Dynamic Programming',
   'Space-Time Tradeoff',
   'Backtracking'
