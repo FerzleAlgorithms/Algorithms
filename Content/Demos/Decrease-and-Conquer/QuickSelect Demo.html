@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <title>Quickselect  Demo </title>
-  <script src="/Algorithms/scripts/demoScripts.js"></script>
-  <link rel="stylesheet" href="/Algorithms/css/style.css">
-  <link rel="stylesheet" href="/Algorithms/css/demo.css">
+  <script src="../../../scripts/demoScripts.js"></script>
+  <link rel="stylesheet" href="../../../css/style.css">
+  <link rel="stylesheet" href="../../../css/demo.css">
   <style>
     .element-wrapper {
       display: flex;
@@ -46,14 +46,28 @@
     .array-container { display: flex; gap: 10px; margin-top: 10px; margin-bottom: 10px; }
     h3 { margin: 5px 0; }
 
+    .legend-box {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border: 1px solid black;
+  margin: 0 4px;
+  vertical-align: middle;
+}
+
 .element {
   border: 1px solid #000;
 }
 
-
+ #legend {
+     display: inline-block !important;  /* make it only as wide as its children */
+     width: auto !important;             /* ensure no forced full-width */
+     border: 1px solid #000 !important;  /* your black outline */
+     border-radius: 4px;                 /* match demo.css rounding */
+   }
   </style>
 </head>
-<body class="no-tooltips">
+<body>
   <h2>Quick Select Demo</h2>
 
   <div id="controls">
@@ -62,8 +76,9 @@
 </label>
 <button id="generate">Random Array</button>
 
-<label>K-th index:
-  <input type="number" id="kIndex" min="0" value="8" style="width: 40px;">
+<label>K-th element:
+   <input type="number" id="kIndex" min="1" max="20" value="8" style="width: 40px;">
+  <button id="setKVal">Set k-val</button>
 </label>
 
     <input type="text" id="customArray" placeholder="12,34,56,78" size="40">
@@ -86,16 +101,14 @@
 
   <div id="legend" class="legend">
   <b>Legend:</b>
-  <div class="legend-items">
   <span class="legend-box" style="background-color: lightgreen;"></span> Pivot
-  <span class="legend-box" style="background-color: orange;"></span> &le; pivot
+  <span class="legend-box" style="background-color: orange;"></span> ≤ pivot
   <span class="legend-box" style="background-color: #1e90ff;"></span> &gt; pivot
   <span class="legend-box" style="background-color: #ff7f7f;"></span> Comparing
-  <span class="legend-box" style="background-color: yellow;"></span> Swapping<br>
+  <span class="legend-box" style="background-color: yellow;"></span> Swapping
   <span class="legend-box" style="background-color: white;"></span> Unpartitioned
   <span class="legend-box" style="background-color: #b579ee;"></span> k-th element
   <span class="legend-box" style="background-color: white; outline: 2px solid gold; outline-offset: -1px;"></span> k-th position
-  </div>
 </div>
 
 
@@ -104,7 +117,7 @@
   <div class="array-container" id="boxes"></div>
 
   <!-- Header for recursive visualization -->
-  <h3>Recursive Steps (not real arrays&mdash;conceptual)</h3>
+  <h3>Recursive Steps (not real arrays--conceptual)</h3>
   <div class="subarray-container" id="subarrays"></div>
 
   <div id="step-desc" class="step-comment"></div>
@@ -113,6 +126,7 @@
 (function(){
   let A = [], cur = 0, steps = [];
   let kthIndex = null;
+  let userK = null; 
   const renderedSnapshots = new Set();
   const depthContainers = {};
   const pivotIndices   = {};
@@ -534,15 +548,17 @@ if (st.phase !== 'do-p' && st.phase !== 'base' && st.phase !== 'done') {
   if (low > high) return;
 
   // 1) only say “Quickselect [lo…hi] looking for k” on the very first (root) call
-  if (depth === 0) {
-    record({
-      A: [...A],
-      low, high, depth,
-      phase: 'call',
-      highlightK: true,
-      desc: `Quickselect [${low}…${high}] looking for k = ${k}`
-    });
-  }
+if (depth === 0) {
+  record({
+    A: [...A],
+    low, high, depth,
+    phase: 'call',
+    highlightK: true,
+    // show the pseudocode call, but still echo the 1-based k
+    desc: `quickselect(A, 0, len(A) - 1, k - 1) looking for k = ${userK}`
+  });
+}
+
 
   const pi = runPartition(A, low, high, depth);
 
@@ -552,7 +568,7 @@ if (st.phase !== 'do-p' && st.phase !== 'base' && st.phase !== 'done') {
       A:   [...A],
       low: pi, high: pi, depth,
       phase: 'base',
-      desc: `p == k: ${pi} == ${k} → return nums[k]; Found k-th element A[${pi}] = ${A[pi]}`
+      desc: `P == k: ${pi} == ${k} → return ${userK}-th smallest element; Found ${userK}-th smallest element = ${A[pi]}`
     });
 
   // 2a) left branch: pi > k
@@ -563,7 +579,7 @@ if (st.phase !== 'do-p' && st.phase !== 'base' && st.phase !== 'done') {
       depth: depth + 1,
       phase: 'call',
       highlightK: true,
-      desc: `k < p: (${k} < ${pi}), so recurse left: call Quickselect(${low},${pi - 1}) looking for k = ${k}`
+      desc: `P > k: ${pi} > ${k} → Quickselect(${low},${pi - 1}) looking for ${userK}-th smallest element`
     });
     quickSelect(A, low, pi - 1, k, depth + 1);
 
@@ -575,7 +591,7 @@ if (st.phase !== 'do-p' && st.phase !== 'base' && st.phase !== 'done') {
       depth: depth + 1,
       phase: 'call',
       highlightK: true,
-      desc: `k > p: (${k} > ${pi}), so recurse right: call Quickselect(${pi + 1},${high}) looking for k = ${k}`
+      desc: `P < k: ${pi} < ${k} → return Quickselect(p+1,hi): Quickselect(${pi + 1},${high}) looking for k = ${k}`
     });
     quickSelect(A, pi + 1, high, k, depth + 1);
   }
@@ -706,7 +722,9 @@ if (st.phase !== 'do-p' && st.phase !== 'base' && st.phase !== 'done') {
     renderedSnapshots.clear();
     Object.keys(depthContainers).forEach(k => delete depthContainers[k]);
     document.getElementById('subarrays').innerHTML = '';
-    const k = parseInt(document.getElementById("kIndex").value, 10);
+    userK = parseInt(document.getElementById("kIndex").value, 10);
+    // clamp to [1…A.length] then convert to 0-based index
+    const k = Math.max(1, Math.min(A.length, userK)) - 1;
     kthIndex = k;
 
     quickSelect(A, 0, A.length - 1, k);
@@ -752,16 +770,17 @@ if (st.phase !== 'do-p' && st.phase !== 'base' && st.phase !== 'done') {
   document.getElementById("step-desc").textContent = '';
 
   const copy = [...arr];
-  const k = Math.max(0, Math.min(copy.length - 1, parseInt(document.getElementById("kIndex").value, 10)));
+  userK = parseInt(document.getElementById("kIndex").value, 10);      // ← assign global
+  const k = Math.max(1, Math.min(copy.length, userK)) - 1;
   quickSelect(copy, 0, copy.length - 1, k);
 
   record({
     A: [...copy],
-    low: k,
+   low: k,
     high: k,
     depth: 0,
     phase: 'done',
-    desc: `Finished Quickselect — A[${k}] = ${copy[k]}`
+    desc: `Finished Quickselect — ${userK}-th smallest element = ${copy[k]}`
   });
 
   render();
@@ -832,6 +851,16 @@ document.getElementById("useCustom").addEventListener("click", () => {
 });
 
 
+// New — insert this (e.g. after your other .addEventListener calls, but before the end of the IIFE):
+document.getElementById("setKVal").addEventListener("click", () => {
+  // read the 1-based k from the input
+  userK = parseInt(document.getElementById("kIndex").value, 10);
+  // clamp to [1…A.length], convert to 0-based
+  const k = Math.max(1, Math.min(A.length, userK)) - 1;
+  kthIndex = k;
+  // (optionally give visual feedback:)
+  console.log(`Set k to ${userK} → index ${k}`);
+});
 
 let playInterval = null;
 let isPlaying = false;

@@ -7,42 +7,265 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github.min.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js"></script>
   <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-  <script src="/Algorithms/scripts/chapterScripts.js"></script>
-  <link rel="stylesheet" href="/Algorithms/css/style.css">
-  <link rel="stylesheet" href="/Algorithms/css/chapter.css">
+  <script src="../../../scripts/chapterScripts.js"></script>
+  <link rel="stylesheet" href="../../../css/style.css">
+  <link rel="stylesheet" href="../../../css/chapter.css">
 </head>
+<style>
+.shift-build {
+  list-style: none;
+  padding: 0;
+}
+.shift-build li {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 2em;
+  gap: 1em;
+}
+.shift-build li .details,
+.shift-build li .table-container {
+  flex: 1;
+}
+.shift-build li .details p {
+  margin: 0.5em 0;
+}
+</style>
 <body>
   <h1>Horspool's Algorithm</h1>
 
   <h2>Problem Statement</h2>
   <p>Horspool's algorithm solves the <a class="problem" href="?path=Problems%2FFoundational%2FStringMatching">String Matching</a>
-  problem by finding all occurrences of a pattern <em>P</em> of length <em>m</em> in a text <em>T</em> of length <em>n</em>.</p>
-
+  problem.
+  
   <h2>Design and Strategy</h2>
-  <p>Horspool's algorithm is a <strong>simplified Boyer-Moore</strong> 
-  string matching algorithm that uses the <em>bad-character heuristic</em>. 
-  It preprocesses the pattern to build a shift table that determines how far 
-  the pattern can slide when a mismatch occurs, based on the character in the 
-  text that aligns with the last character in the pattern at the time of a mismatch.</p>
+  
+  <p>Horspool's Algorithm is a an algorithm that takes advatage of a <strong>space-time tradeoff</strong> to find how many occurences of a pattern string <em>P</em> can be found in a text <em>T</em> 
+  as efficiently as possible by minimizing the number of comparisons.
+  In order to accomplish this, Horspool's Algorithm takes advantage of an idea 
+  known as the <em>Bad Character Heuristic</em>. Before searching <em>T</em> 
+  for occurences of <em>P</em>, the algorithm preprocesses <em>P</em> to build a table of values that map characters to integers.
+  This is known as the Shift Table, <em>S</em>.  The purpose of <em>S</em> is to skip over portions of <em>T</em> where we can deduce there will not
+  be any occurences of <em>P</em>. Thus, saving the number of comparisons being executed. By using <em>S</em> to shift along <em>P</em>, the number of comparisons is greatly reduced from the
+  Exhaustive Brute Force Algorithm, since we do not run comparisons on any segement we skip.
+  Similarly to the Brute Force Algorithm, the algorithm returns a list of starting index values, each one representing the beginning of an occurence of <em>P</em>.
+  If you are not familiar with the Brute Force Sting Matching Alogrithm, you should read that section before continuing.
+  <br><br>
+  
+	More formally, the algorithm works as follows.
+  <br><br>
+  During preprocessing, we build <em>S</em> by initializing every entry 
+  <code>S[c] = m</code> (the pattern length) and, for each index <code>j</code>
+  from <code>0</code> to <code>m−2</code>, setting <code>S[P[j]] = m−1−j</code>.
+  This table tells the algorithm how far to slide <em>P</em> when a mismatch occurs:
+  on a mismatch at <code>T[i+j]</code> aligned with <em>P</em>’s last character, we 
+  look up <code>S[T[i+m−1]]</code> to skip ahead over portions of <em>T</em> that cannot
+  contain the pattern. This dramatically reduces unnecessary comparisons compared to the
+  exhaustive brute-force approach, yet still returns all starting indices of matches.
+  <br><br>
+  After the preprocessing is finished, the searching begins just as the Brute Force algorithm,
+   but when there is a mismatch, instead of shifting over once every time, the character in 
+   <em>T</em> that aligns with the last character in <em>P</em> determines how far we shift via lookup to <em>S</em>.
+  
+   As each full pattern match is found, the first index of the current portion of <em>T</em> being compared is stored in a list,
+   which is then returned after all of <em>T</em> is searched.
+	
+  </p>
+	
+	
+<p>Below is an example pattern <code>"HORSPOOL"</code>. The process for building the shift table is as follows:</p>
 
-  <ol>
-    <li><strong>Preprocessing &ndash; Bad Character Shift Table:</strong><br>
-      Initialize a shift table <code>B</code> for the alphabet (e.g., size 256), setting each entry <code>B[c] = m</code> initially. For each index <code>j</code> from 0 to <code>m&minus;2</code>, set:
-      <pre><code>B[P[j]] = m &minus; 1 &minus; j</code></pre><br>
-	  This assignment ensures that when there is a mismatch, the character in <em>T</em> that is
-	  currently aligned with the last character of <em>P</em> is used to look up how much the pattern 
-	  needs to shift to in order to minimize comparisons.
-	  
+<p><strong>Shift formula:</strong> For each character at index <code>j</code> in <em>P</em> of length <code>m</code>,<br>
+<code>S[P[j]] = m – 1 – j</code><br>
+where <code>m</code> = pattern length and <code>j</code> = 0-based index in <em>P</em>.</p>
+<div style="text-align:center;">
+  <ol class="shift-build" style="display:inline-block; text-align:left;">
+    <li>
+      <div class="details">
+        <strong>Initialize shift table</strong>
+        <p style="text-align:center;">
+\[
+  \begin{aligned}
+    \texttt{int[] S = new int[256];}\\
+    \texttt{Arrays.fill(S, 8);}  
+  \end{aligned}
+\]
+        </p>
+        <p><em>All entries start at <code>m = 8</code>.</em></p>
+      </div>
+      <div class="table-container">
+        <table border="1" cellpadding="6" cellspacing="0">
+          <tr><th>Char</th><th>Shift</th></tr>
+          <tr><td>All characters</td><td>8</td></tr>
+        </table>
+      </div>
     </li>
-    <strong>Searching:</strong><br>
-      When a mismatch occurs, look to the character in the text that is aligned with the last character in the pattern.
-	  Find the value for that character in shift table, shift and begin comparing characters again. If a full match is found, 
-	  add the index of the start of that character to the list of results.
+    <li>
+      <div class="details">
+        <strong>j = 0 (<code>P[0] = 'H'</code>)</strong>
+        <p style="text-align:center;">
+\[
+  \texttt{S['H'] = 8 - 1 - 0; // = 7}  
+\]
+        </p>
+        <p><em>Set shift for 'H' to 7.</em></p>
+      </div>
+      <div class="table-container">
+        <table border="1" cellpadding="6" cellspacing="0">
+          <tr><th>Char</th><th>Shift</th></tr>
+          <tr><td>H</td><td>7</td></tr>
+          <tr><td>Others</td><td>8</td></tr>
+        </table>
+      </div>
+    </li>
+    <li>
+      <div class="details">
+        <strong>j = 1 (<code>P[1] = 'O'</code>)</strong>
+        <p style="text-align:center;">
+\[
+  \texttt{S['O'] = 8 - 1 - 1; // = 6}  
+\]
+        </p>
+        <p><em>Set shift for first 'O' to 6.</em></p>
+      </div>
+      <div class="table-container">
+        <table border="1" cellpadding="6" cellspacing="0">
+          <tr><th>Char</th><th>Shift</th></tr>
+          <tr><td>H</td><td>7</td></tr>
+          <tr><td>O</td><td>6</td></tr>
+          <tr><td>Others</td><td>8</td></tr>
+        </table>
+      </div>
+    </li>
+    <li>
+      <div class="details">
+        <strong>j = 2 (<code>P[2] = 'R'</code>)</strong>
+        <p style="text-align:center;">
+\[
+  \texttt{S['R'] = 8 - 1 - 2; // = 5}  
+\]
+        </p>
+        <p><em>Set shift for 'R' to 5.</em></p>
+      </div>
+      <div class="table-container">
+        <table border="1" cellpadding="6" cellspacing="0">
+          <tr><th>Char</th><th>Shift</th></tr>
+          <tr><td>H</td><td>7</td></tr>
+          <tr><td>O</td><td>6</td></tr>
+          <tr><td>R</td><td>5</td></tr>
+          <tr><td>Others</td><td>8</td></tr>
+        </table>
+      </div>
+    </li>
+    <li>
+      <div class="details">
+        <strong>j = 3 (<code>P[3] = 'S'</code>)</strong>
+        <p style="text-align:center;">
+\[
+  \texttt{S['S'] = 8 - 1 - 3; // = 4}  
+\]
+        </p>
+        <p><em>Set shift for 'S' to 4.</em></p>
+      </div>
+      <div class="table-container">
+        <table border="1" cellpadding="6" cellspacing="0">
+          <tr><th>Char</th><th>Shift</th></tr>
+          <tr><td>H</td><td>7</td></tr>
+          <tr><td>O</td><td>6</td></tr>
+          <tr><td>R</td><td>5</td></tr>
+          <tr><td>S</td><td>4</td></tr>
+          <tr><td>Others</td><td>8</td></tr>
+        </table>
+      </div>
+    </li>
+    <li>
+      <div class="details">
+        <strong>j = 4 (<code>P[4] = 'P'</code>)</strong>
+        <p style="text-align:center;">
+\[
+  \texttt{S['P'] = 8 - 1 - 4; // = 3}  
+\]
+        </p>
+        <p><em>Set shift for 'P' to 3.</em></p>
+      </div>
+      <div class="table-container">
+        <table border="1" cellpadding="6" cellspacing="0">
+          <tr><th>Char</th><th>Shift</th></tr>
+          <tr><td>H</td><td>7</td></tr>
+          <tr><td>O</td><td>6</td></tr>
+          <tr><td>R</td><td>5</td></tr>
+          <tr><td>S</td><td>4</td></tr>
+          <tr><td>P</td><td>3</td></tr>
+          <tr><td>Others</td><td>8</td></tr>
+        </table>
+      </div>
+    </li>
+    <li>
+      <div class="details">
+        <strong>j = 5 (<code>P[5] = 'O'</code>)</strong>
+        <p style="text-align:center;">
+\[
+  \texttt{S['O'] = 8 - 1 - 5; // = 2}  
+\]
+        </p>
+        <p><em>Overwrite shift for 'O' with 2.</em></p>
+      </div>
+      <div class="table-container">
+        <table border="1" cellpadding="6" cellspacing="0">
+          <tr><th>Char</th><th>Shift</th></tr>
+          <tr><td>H</td><td>7</td></tr>
+          <tr><td>O</td><td>2</td></tr>
+          <tr><td>R</td><td>5</td></tr>
+          <tr><td>S</td><td>4</td></tr>
+          <tr><td>P</td><td>3</td></tr>
+          <tr><td>Others</td><td>8</td></tr>
+        </table>
+      </div>
+    </li>
+    <li>
+      <div class="details">
+        <strong>j = 6 (<code>P[6] = 'O'</code>)</strong>
+        <p style="text-align:center;">
+\[
+  \texttt{S['O'] = 8 - 1 - 6; // = 1}  
+\]
+        </p>
+        <p><em>Overwrite shift for 'O' with 1.</em></p>
+      </div>
+      <div class="table-container">
+        <table border="1" cellpadding="6" cellspacing="0">
+          <tr><th>Char</th><th>Shift</th></tr>
+          <tr><td>H</td><td>7</td></tr>
+          <tr><td>O</td><td>1</td></tr>
+          <tr><td>R</td><td>5</td></tr>
+          <tr><td>S</td><td>4</td></tr>
+          <tr><td>P</td><td>3</td></tr>
+          <tr><td>Others</td><td>8</td></tr>
+        </table>
+      </div>
+    </li>
+    <li>
+      <div class="details">
+        <strong>Final shift table:</strong>
+      </div>
+      <div class="table-container">
+        <table border="1" cellpadding="6" cellspacing="0">
+          <tr><th>Character</th><th>Shift</th></tr>
+          <tr><td>H</td><td>7</td></tr>
+          <tr><td>O</td><td>1</td></tr>
+          <tr><td>R</td><td>5</td></tr>
+          <tr><td>S</td><td>4</td></tr>
+          <tr><td>P</td><td>3</td></tr>
+          <tr><td>L &amp; others</td><td>8</td></tr>
+        </table>
+      </div>
+    </li>
   </ol>
+</div>
+<p>Below is an example of the pattern "Horspool" being used in action with the shift table.</p>
 
-  <div class="embeddedDemoContainer">
+  <div class="embeddedDemoContainer" style= "height: 600px">
     <iframe class="embeddedDemo"
-            src="../../Content/Demos/Space-Time Tradeoff/Horspool Demo.html"
+            src="../../Demos/Space-Time Tradeoff/Horspool Demo.html"
             allow="fullscreen"
             name="horspool-demo">
     </iframe>

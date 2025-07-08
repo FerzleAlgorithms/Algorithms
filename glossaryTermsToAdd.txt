@@ -22,3 +22,9 @@ fractional knapsack (add to fractional knapsack problem)
 Coin row problem
 Bellman-Ford Algorithm, Bellman-Ford
 Robot Coin Collection 
+Horspool's Algorithm
+Hashing
+Space-Time Tradeoff
+Linear Probing
+Quadratic Probing
+Double Hashing

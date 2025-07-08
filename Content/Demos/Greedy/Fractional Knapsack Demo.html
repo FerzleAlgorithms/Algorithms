@@ -165,10 +165,11 @@
   <strong>Solution :</strong> <span id="solution">0.000</span>
   </div>
 
-    <!-- proportionsContainer starts hidden -->
+  <!-- reuse the same container but relabel it -->
   <div id="proportionsContainer" style="margin-top:4px; display:none;">
-    <strong>Proportions:</strong> <span id="proportions"></span>
+    <strong>Items:</strong> <span id="proportions"></span>
   </div>
+
 
   <script>
     // Initial data
@@ -187,6 +188,7 @@
     let playing = false;
     let intervalId = null;
     let solutionShown = false;
+    let originalCapacity; 
 
     // --- NEW CONTROLS SETUP ---
   const itemSizeInput    = document.getElementById('itemSizeInput');
@@ -214,11 +216,15 @@ function resetDemo() {
   current = 0;
   p = [];
   s = [];
-  solutionShown = false;  // 🟢 RESET FLAG HERE
+  solutionShown = false;
   document.getElementById('solutionContainer').style.display = 'none';
+
+  originalCapacity = W;      // ← ADD THIS
+
   buildSteps();
   renderStep();
 }
+
 
 
    // 1) randomize both v & w to same length:
@@ -566,23 +572,37 @@ else if (arr.id === 's') {
     document.getElementById('solution').textContent = totalSol.toFixed(3);
 
     // 2) compute & show proportions under the Solution
-    const propContainer = document.getElementById('proportionsContainer');
-    const propSpan      = document.getElementById('proportions');
+  // New
+// 2) compute & show proportions under the Solution
+const propContainer = document.getElementById('proportionsContainer');
+const propSpan      = document.getElementById('proportions');
 
-    if (step.s.some(wt => wt > 0)) {
-      // build array of wt/originalWeight for each selected slot
-      const props = step.s.map((wt, selIdx) => {
-        if (wt > 0) {
-          const origIdx = step.p[selIdx].index;
-          return (wt / step.w[origIdx]).toFixed(2);
-        }
-        return '0';
-      });
-      propSpan.textContent       = '[' + props.join(', ') + ']';
-      propContainer.style.display = '';
-    } else {
-      propContainer.style.display = 'none';
-    }
+if (step.s.some(wt => wt > 0)) {
+  // Build an array of selections with how much of each was taken
+  const selections = step.s
+    .map((wt, i) => wt > 0
+      ? { idx: step.p[i].index, taken: wt, full: w[step.p[i].index] }
+      : null
+    )
+    .filter(x => x);
+
+  // Format items: for the last one, if partially taken, show "taken/full"
+  const itemsText = selections
+    .map((sel, i) => {
+      if (i === selections.length - 1 && sel.taken < sel.full) {
+        return `${sel.idx} (${sel.taken}/${sel.full})`;
+      }
+      return `${sel.idx}`;
+    })
+    .join(', ');
+
+  propSpan.textContent = itemsText;
+  propContainer.style.display = '';
+} else {
+  propContainer.style.display = 'none';
+}
+
+
 
   document.getElementById('prevBtn').disabled = !current;
   document.getElementById('nextBtn').disabled = current === steps.length - 1;
@@ -670,9 +690,8 @@ function stopPlay() {
       if (playing) stopPlay(); else play();
     });
 
-    // Initialize demo
-    buildSteps();
-    renderStep();
+    // Initialize demo (now sets originalCapacity first)
+resetDemo();
   </script>
 </body>
 </html>

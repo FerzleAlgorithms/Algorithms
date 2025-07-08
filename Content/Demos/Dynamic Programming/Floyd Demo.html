@@ -1,0 +1,995 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Floyd's Algorithm Demo</title>
+  <script src="../../scripts/demoScripts.js"></script>
+  <link rel="stylesheet" href="../../css/style.css">
+  <link rel="stylesheet" href="../../css/demo.css">
+  <style>
+    /* Container wrapper (from Matrix Multiplication demo) */
+    .demo-container {
+      width: auto;
+      max-width: none;
+      margin: 2em 0 2em 2em;
+      background: transparent;
+      padding: 0;
+      border-radius: 0;
+      box-shadow: none;
+    }
+
+    /* Heading alignment */
+    h2 {
+      text-align: left;
+      margin-top: 0;
+      margin-bottom: 1em;
+    }
+
+    /* Controls styling (placed at top left) */
+    .controls {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      gap: 1.5em;
+      justify-content: flex-start;
+      margin-bottom: 1.25em;
+    }
+    .input-row, .step-controls {
+      display: flex;
+      align-items: center;
+      gap: 0.75em;
+      justify-content: flex-start;
+    }
+    /* Button/input defaults from demo.css */
+    button, input {
+      margin: 5px;
+      padding: 5px;
+    }
+
+    /* Demo panels layout */
+    .demo-content {
+      display: flex;
+      gap: 2em;
+      flex-wrap: nowrap;
+      align-items: flex-start;
+    }
+    .graph-panel, .matrix-panel {
+      flex-shrink: 0;
+    }
+
+    /* Graph styling (imported from demo.css where not overridden) */
+    .graph-panel svg {
+    background: #fff;
+    border: 1px solid #ccc;
+    margin-top: 3em;
+  }
+
+   .graph-panel svg marker#arrow path {
+      fill: #333;
+    }
+    .graph-panel svg marker#arrow-highlight path {
+      fill: #e74c3c;
+    }
+     .graphNode circle {
+    fill: var(--graph-fill);
+    stroke: black;
+  }
+    .graphNode text {
+      font-family: 'Segoe UI', sans-serif;
+      font-size: 0.75em;
+      text-anchor: middle;
+      dominant-baseline: central;
+    }
+
+    /* Matrix styling (match Matrix Multiplication & 0-1 Knapsack demos) */
+    .matrix-panel {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .matrix-panel .matrix-container {
+      display: grid;
+      gap: 4px;
+      padding: 6px;
+      border-radius: 6px;
+      background: transparent;
+    }
+    /* tint the whole DP matrix container light‐blue */
+   /* New */
+  #matrix-r.matrix-container {
+    position: relative;          /* establish stacking context */
+    background: transparent;     /* container itself is now clear */
+    margin-top: 0.5em;           /* keep your existing spacing */
+  }
+
+  /* draw the blue “sheet” only over the interior cell area */
+  #matrix-r.matrix-container::before {
+    content: '';
+    position: absolute;
+    /* offset by your original padding (6px) + index size (50px) */
+    top:    calc(6px + 50px);
+    left:   calc(6px + 50px);
+    /* preserve your original padding on the other edges */
+    right:  6px;
+    bottom: 6px;
+
+    background: rgba(79, 172, 248, 0.423);
+    border-radius: 6px;         /* match your container’s rounding */
+    pointer-events: none;       /* so it never blocks clicks */
+    z-index: 0;                 /* behind everything else */
+  }
+
+  /* make sure both data‐cells and index labels sit on top of that sheet */
+  .matrix-element,
+  .matrix-index {
+    position: relative;
+    z-index: 1;
+  }
+
+    .matrix-element {
+      width: 50px;
+      height: 50px;
+      border: 1px solid #333;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-family: monospace;
+      background: rgba(79, 172, 248, 0.423);
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+    .matrix-element.highlight {
+      box-shadow: 0 0 8px 2px rgba(255,215,0,0.8);
+    }
+
+    /* Comment box */
+    .comment {
+      margin-top: 1em;
+      font-style: italic;
+      min-height: 1.5em;
+      text-align: left;
+    }
+
+    :root {
+  --graph-fill: #d0e7ff;      /* default node fill */
+  --graph-stroke: #1875e6;    /* default edge/node stroke */
+  --matrix-bg: rgba(79,172,248,0.42); /* default cell bg */
+}
+
+.matrix-element {
+  position: relative;
+  z-index: 0;
+}
+
+/* translucent yellow for the k-th column */
+.matrix-element.col-highlight,
+.matrix-element.row-highlight {
+  background: rgba(249, 163, 3, 0.489);
+}
+
+/* the single cell being updated sits on top */
+.matrix-element.highlight {
+  z-index: 2;
+  transform: scale(1.1);
+  box-shadow: 0 0 8px 2px rgba(255, 215, 0, 0.8);
+  background: rgba(255, 215, 0, 0.6);
+  font-weight: bold;
+}
+
+/* New — add these blocks instead */
+.legend {
+  clear: both;
+  display: inline-block;
+  padding: 0.25em 1em;
+  font-family: sans-serif;
+  border: 1px solid #333;
+  border-radius: 6px;
+}
+
+.legend-box {
+  display: inline-block;
+  width: 1.2em;
+  height: 1.2em;
+  vertical-align: middle;
+  margin-right: 0.25em;
+  border: 1px solid #333;
+  border-radius: 3px;
+}
+
+.legend-label {
+  margin-right: 1em;
+}
+/* your color overrides stay the same */
+.legend-box.current-cell   { background: rgba(255,215,0,0.6); }
+.legend-box.col-highlight,
+.legend-box.row-highlight  { background: rgba(249,163,3,0.489); }
+
+  /* Base box shape */
+  .legend-box {
+    display: inline-block;
+    width: 1.2em;
+    height: 1.2em;
+    border: 1px solid #333;
+    vertical-align: middle;
+  }
+
+  /* Your color-coding overrides */
+  .legend-box.current-cell {
+    background: rgba(255, 215, 0, 0.6);
+  }
+  .legend-box.col-highlight,
+  .legend-box.row-highlight {
+    background: rgba(249, 163, 3, 0.489);
+  }
+  .legend-box.trans-edge {
+    background: #e74c3c;
+  }
+
+    .legend-arrow {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1em;          /* matches your legend‐box size */
+    font-weight: bold;
+    color: #e74c3c;          /* same red as your arrow‐highlight */
+    margin-right: 0.25em;
+    width: 1.2em;
+    height: 1.2em;
+  }
+
+  /* New: index labels around the matrix */
+.matrix-index {
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: monospace;
+  background: transparent; /* no border, no block */
+  border: none;
+  pointer-events: none;
+}
+
+  </style>
+</head>
+<body>
+  <div class="demo-container">
+    <h2>Floyd's Algorithm Demo</h2>
+
+    <!-- Controls -->
+    <div class="controls">
+      <div class="input-row">
+        <label>n:
+          <input id="dim-input" type="number" min="1" max="10" value="5">
+        </label>
+        <button id="gen-btn">Generate</button>
+      </div>
+      <div class="step-controls">
+        <button id="prev-btn" disabled>Previous</button>
+        <button id="next-btn" disabled>Next</button>
+        <label for="speed-select">Speed:
+          <select id="speed-select">
+            <option value="1">1×</option>
+            <option value="2">2×</option>
+            <option value="4">4×</option>
+            <option value="8">8×</option>
+            <option value="16">16×</option>
+            <option value="32">32×</option>
+          </select>
+        </label>
+        <button id="play-btn" disabled>Play</button>
+      </div>
+    </div>
+
+<!-- New legend markup (horizontal, inline like Fractional-Knapsack) -->
+<!-- force it below any floats -->
+<div class="legend">
+  <strong>Legend:</strong>
+  <span class="legend-box current-cell"></span><span class="legend-label">Current cell </span>
+  <span class="legend-box col-highlight"></span><span class="legend-label">Intermediate row and column</span>
+<!-- Legend entry for “Transitive edges”: -->
+<svg class="legend-arrow"
+     viewBox="0 -1 10 10"
+     width="1.2em"
+     height="1.2em"
+     aria-hidden="true">
+  <defs>
+    <marker id="legend-arrowhead"
+            markerUnits="strokeWidth"
+            markerWidth="4"
+            markerHeight="3"
+            refX="3"
+            refY="1.5"
+            orient="auto">
+      <path d="M0,0 L0,3 L4,1.5 Z" fill="#e74c3c"/>
+    </marker>
+  </defs>
+  <line
+  x1="5" y1="9"
+  x2="5" y2="0"
+  stroke="#e74c3c"
+  stroke-width="1.5"
+  marker-end="url(#legend-arrowhead)"
+/>
+
+
+
+</svg>
+<span class="legend-label">Shortest Path</span>
+
+</div>
+
+    <!-- Demo Panels -->
+    <div class="demo-content">
+      <!-- Graph View -->
+      <div class="graph-panel">
+      <h3>Graph</h3>
+      <svg id="graph-svg" width="400" height="400">
+       <defs>
+  <marker id="arrow" 
+          markerWidth="10" 
+          markerHeight="10" 
+          refX="8" 
+          refY="3" 
+          orient="auto">
+    <path d="M0,0 L0,6 L9,3 z" fill="#888"/>
+  </marker>
+
+  <marker id="arrow-highlight"
+          markerUnits="strokeWidth"
+          markerWidth="4"
+          markerHeight="3"
+          refX="3.25"
+          refY="1.5"
+          orient="auto">
+    <path d="M0,0 L0,3 L4,1.5 Z" fill="#e74c3c"/>
+  </marker>
+
+  <!-- add this: pure‐yellow arrow head for “considered” edges -->
+  <marker id="arrow-yellow"
+          markerUnits="strokeWidth"
+          markerWidth="4"
+          markerHeight="3"
+          refX="3"
+          refY="1.5"
+          orient="auto">
+    <path d="M0,0 L0,3 L4,1.5 Z" fill="rgba(255,215,0,0.8)"/>
+  </marker>
+</defs>
+
+        <!-- everything else will be drawn by JS -->
+      </svg>
+    </div>
+
+
+      <!-- DP Matrix View -->
+      <div class="matrix-panel">
+        <h3> D<sup id="current-k">0</sup></h3>
+        <div id="matrix-r" class="matrix-container"></div>
+      </div>
+    </div>
+
+    <!-- Comment Box -->
+    <div id="comment" class="comment">Initialize to begin...</div>
+  </div>
+
+  <script>
+  (function() {
+    const NS = 'http://www.w3.org/2000/svg';   // ← add this!
+    const dimInput   = document.getElementById('dim-input');
+    const genBtn     = document.getElementById('gen-btn');
+    const prevBtn    = document.getElementById('prev-btn');
+    const nextBtn    = document.getElementById('next-btn');
+    const playBtn    = document.getElementById('play-btn');
+    const speedSelect= document.getElementById('speed-select');
+    const graphSvg   = document.getElementById('graph-svg');
+    const matR       = document.getElementById('matrix-r');
+    const commentBox = document.getElementById('comment');
+    
+    let A = [], edges = [], events = [], ptr = 0, timer = null;
+    let playing = false, speed = 1;
+    let direction = 'forward';
+
+    // Utilities
+    const rand = () => Math.random();
+
+    // Generate random directed graph adjacency matrix + edges
+    function genRandomGraph(n) {
+  const M = Array.from({ length: n }, () => Array(n).fill(Infinity));
+  const ed = [];
+  for (let i = 0; i < n; i++) {
+    for (let j = 0; j < n; j++) {
+      if (i === j) {
+        M[i][j] = 0;
+      } else if (Math.random() < 0.3) {
+        const w = Math.floor(Math.random() * 9) + 1; // weight 1–9
+        M[i][j] = w;
+        ed.push({ from: i, to: j, weight: w });
+      }
+    }
+  }
+  return { M, ed };
+}
+
+
+    function updateTheme(graphFill, graphStroke, matrixBg, k) {
+    document.documentElement.style.setProperty('--graph-fill',    graphFill);
+    document.documentElement.style.setProperty('--graph-stroke',  graphStroke);
+    document.documentElement.style.setProperty('--matrix-bg',     matrixBg);
+    document.getElementById('current-k').textContent = k;
+  }
+
+
+  // add this just inside your (function() { … }) wrapper, before rebuild()
+  function fmt(v) {
+    return v === Infinity ? '\u221E' : v;
+  }
+
+
+    // Render graph nodes + edges
+function renderGraph(adj, edges, highlight = {}) {
+  const placedLabels = [];
+
+  const w = graphSvg.clientWidth;
+  const h = graphSvg.clientHeight;
+  const n = adj.length;
+
+  // 1) clear old elements (keep your <defs> in place)
+  graphSvg
+    .querySelectorAll(':scope > g, :scope > line, :scope > path, :scope > text')
+    .forEach(el => el.remove());
+
+  // ✅ instead do this:
+  const pos = getNodePositions(n);
+
+
+  // 3) draw each edge (curved), then place its weight label
+  edges.forEach((e, idx) => {
+  const isConsider = highlight.considerEdge
+               && highlight.considerEdge.from === e.from
+               && highlight.considerEdge.to   === e.to;
+  const isPath     = Array.isArray(highlight.pathEdges)
+                  && highlight.pathEdges.some(pe => pe.from === e.from && pe.to === e.to);
+
+  // 1) compute raw direction + unit perpendicular
+  const { x: x1, y: y1 } = pos[e.from];
+  const { x: x2, y: y2 } = pos[e.to];
+  const dx = x2 - x1, dy = y2 - y1;
+  const L  = Math.hypot(dx, dy), ux = dx / L, uy = dy / L;
+  const perpX = -uy, perpY = ux;
+
+  // 2) endpoints & control-point for a quadratic curve
+  const DEFAULT_MARKER_W   = 9;
+  const HIGHLIGHT_MARKER_W = 4 * 2;
+  const OFFSET             = (DEFAULT_MARKER_W + HIGHLIGHT_MARKER_W) / 2 + 2;
+  const sx = x1 + ux * 17 + perpX * OFFSET;
+  const sy = y1 + uy * 17 + perpY * OFFSET;
+  const ex = x2 - ux * 17 + perpX * OFFSET;
+  const ey = y2 - uy * 17 + perpY * OFFSET;
+  const curvature = 30;
+  const mx = (x1 + x2) / 2 + perpX * curvature;
+  const my = (y1 + y2) / 2 + perpY * curvature;
+  const d  = `M${sx},${sy} Q${mx},${my} ${ex},${ey}`;
+
+  // 3) draw the path
+  const path = document.createElementNS(NS, 'path');
+  path.setAttribute('d', d);
+  path.setAttribute('fill', 'none');
+
+  // 4) style based on highlight flags
+  let strokeColor, strokeW, markerId;
+  if (isConsider) {
+    strokeColor = "rgba(255,215,0,0.8)";
+    strokeW     = 3;
+    markerId    = 'arrow-yellow';
+  } else if (isPath) {
+    strokeColor = '#e74c3c';
+    strokeW     = 2;
+    markerId    = 'arrow-highlight';
+  } else {
+    strokeColor = '#333';
+    strokeW     = 1;
+    markerId    = 'arrow';
+  }
+  path.setAttribute('stroke', strokeColor);
+  path.setAttribute('stroke-width', strokeW.toString());
+  path.setAttribute('marker-end', `url(#${markerId})`);
+
+  graphSvg.appendChild(path);
+
+  // …after graphSvg.appendChild(path);
+
+  // 5) draw weight labels exactly as in Demo 22
+  if (e.weight != null) {
+    const lbl = document.createElementNS(NS, 'text');
+    lbl.setAttribute('x', e.lx);
+    lbl.setAttribute('y', e.ly);
+    lbl.setAttribute('text-anchor', 'middle');
+    lbl.setAttribute('dominant-baseline', 'central');
+    lbl.setAttribute('font-weight', 'bold');
+    lbl.setAttribute('fill', '#000');
+    lbl.style.userSelect = 'none';
+    lbl.textContent = e.weight;
+    graphSvg.appendChild(lbl);
+  }
+
+
+});
+
+
+  // 4) draw nodes on top
+  adj.forEach((_, i) => {
+    const { x, y } = pos[i];
+    const g = document.createElementNS('http://www.w3.org/2000/svg','g');
+    g.setAttribute('class', 'graphNode' + (highlight.node===i ? ' current' : ''));
+
+    const c = document.createElementNS('http://www.w3.org/2000/svg','circle');
+    c.setAttribute('cx', x); c.setAttribute('cy', y); c.setAttribute('r', 20);
+    g.appendChild(c);
+
+    const t = document.createElementNS('http://www.w3.org/2000/svg','text');
+    t.setAttribute('x', x); t.setAttribute('y', y); t.textContent = i;
+    g.appendChild(t);
+
+    graphSvg.appendChild(g);
+  });
+}
+
+    function renderMatrix(container, M, highlight = {}) {
+  container.innerHTML = '';
+  const n = M.length;
+
+  // make room for the extra index row/column
+  container.style.gridTemplateColumns = `50px repeat(${n},1fr)`;
+  container.style.gridTemplateRows    = `50px repeat(${n},1fr)`;
+
+  // (0,0) corner empty
+  const corner = document.createElement('div');
+  corner.className = 'matrix-index';
+  container.appendChild(corner);
+
+  // column headers
+  for (let j = 0; j < n; j++) {
+    const colLabel = document.createElement('div');
+    colLabel.className = 'matrix-index';
+    colLabel.textContent = j;
+    container.appendChild(colLabel);
+  }
+
+  // each row: first a row‐index cell, then the row’s data
+  for (let i = 0; i < n; i++) {
+    // row header
+    const rowLabel = document.createElement('div');
+    rowLabel.className = 'matrix-index';
+    rowLabel.textContent = i;
+    container.appendChild(rowLabel);
+
+    // the actual matrix cells
+    for (let j = 0; j < n; j++) {
+      const div = document.createElement('div');
+      div.className = 'matrix-element';
+
+      // highlight the k-th row/col or cell
+      if (highlight.k !== undefined && j === highlight.k) {
+        div.classList.add('col-highlight');
+      }
+      if (highlight.k !== undefined && i === highlight.k) {
+        div.classList.add('row-highlight');
+      }
+      if (highlight.i === i && highlight.j === j) {
+        div.classList.add('highlight');
+      }
+
+      div.textContent = (M[i][j] === Infinity
+      ? '\u221E'       // Unicode for ∞
+      : M[i][j]);
+      container.appendChild(div);
+    }
+  }
+    }
+
+
+    function cloneMatrix(M) { return M.map(row => row.slice()); }
+
+  // New (Floyd–Warshall)
+// ─── New buildEvents ─────────────────────────────────────────────────────
+function buildEvents(D) {
+  
+  const ev = [], n = D.length;
+  let Rprev = cloneMatrix(D);
+  // ── new ──
+  let nextHop  = Array.from({ length: n }, (_, i) =>
+    Array.from({ length: n }, (_, j) => (
+      i === j
+        ? j
+        : (Rprev[i][j] < Infinity ? j : null)
+    ))
+  );
+  // emit init with nextHop
+  ev.push({ type: 'init', R: cloneMatrix(Rprev), nextHop: cloneMatrix(nextHop) });
+  // emit R, not D
+  ev.push({ type: 'init', R: cloneMatrix(Rprev) });
+
+  for (let k = 0; k < n; k++) {
+    const changed = [];
+    for (let i = 0; i < n; i++) {
+      for (let j = 0; j < n; j++) {
+        const oldVal = Rprev[i][j];
+        const via    = Rprev[i][k] + Rprev[k][j];
+        const newVal = Math.min(oldVal, via);
+
+        // emit Rprev, not Dprev
+       // 1) snapshot the old matrix
+  const oldR = cloneMatrix(Rprev);
+
+  // 2) if we found a shorter path, update nextHop & Rprev
+  if (newVal < oldVal) {
+    changed.push({ i, j, oldVal, newVal });
+    // use the old nextHop[i][k] to seed the new i→j
+    nextHop[i][j] = nextHop[i][k];
+    Rprev[i][j]   = newVal;
+  }
+
+  // 3) now push one event with old‐matrix & updated nextHop
+  ev.push({
+    type:    'cell',
+    k, i, j,
+    oldVal, via, newVal,
+    Rprev:   oldR,
+    nextHop: cloneMatrix(nextHop)
+  });
+      }
+    }
+    // emit R, not D
+    ev.push({ type: 'afterK', k, R: cloneMatrix(Rprev), changed });
+  }
+
+  // final snapshot must also be R
+  ev.push({ type: 'done', R: cloneMatrix(Rprev) });
+  return ev;
+}
+
+
+    // Rebuild UI per event
+    function rebuild() {
+  const e = events[ptr];
+  if (!e) return;
+
+  if (e.type === 'init') {
+    renderGraph(A, edges);
+    renderMatrix(matR, e.R);
+    commentBox.innerHTML = 
+    `Computing D<sup>1</sup> using D<sup>0</sup>,considering intermediate vertices
+    involving 0`;
+    prevBtn.disabled = true;
+    nextBtn.disabled = false;
+    playBtn.disabled = false;
+  }
+  // rebuild()’s cell step:
+else if (e.type === 'cell') {
+   // highlight the direct edge i→j (if it exists) in yellow
+  const opts = {
+    node: e.k,
+    considerEdge: { from: e.i, to: e.j }
+  };
+
+  // ── NEW: pull the nextHop snapshot out of the event
+  const nh = e.nextHop;
+
+  // build the full shortest‐path i→j at *this* moment
+  const nodes = reconstructPath(e.i, e.j, nh);
+  opts.pathEdges = pathToEdges(nodes);
+
+  renderGraph(A, edges, opts);
+  // build a display‐matrix that already has the updated cell
+  const updatedR = e.Rprev.map(row => row.slice());
+  updatedR[e.i][e.j] = e.newVal;
+  renderMatrix(matR, updatedR, { i: e.i, j: e.j, k: e.k });
+
+   // right after you set opts.pathEdges…
+  const usedEdges = opts.pathEdges
+    .map(pe => `${pe.from}→${pe.to}`)
+    .join(', ');
+
+// New
+commentBox.innerHTML = `
+  k = ${e.k} (Intermediate node is ${e.k}): Considering path from ${e.i} to ${e.j} going through ${e.k}.<br>
+  D[${e.i}][${e.j}] = min(D[${e.i}][${e.j}], D[${e.i}][${e.k}] + D[${e.k}][${e.j}])<br>
+  = min(${fmt(e.oldVal)}, ${fmt(e.via)}) ⇒ ${fmt(e.newVal)}<br>
+  ${
+    e.newVal < e.oldVal
+      ? `Shortest path uses edge${opts.pathEdges.length>1?'s':''} ${usedEdges}.`
+      : `No shorter path found.`
+  }
+`;
+
+
+
+  prevBtn.disabled = nextBtn.disabled = false;
+}
+ else if (e.type === 'afterK') {
+  renderGraph(A, edges, { node: e.k });
+  renderMatrix(matR, e.R, { changed: e.changed });
+  const n = A.length;
+   if (e.k < n - 1) {
+  commentBox.innerHTML = 
+      `Computing D<sup>${e.k+2}</sup> using D<sup>${e.k+1}</sup>,considering intermediate vertices 
+    involving ${e.k+1}`;
+   }
+  // ← make sure you can always step forward again
+  prevBtn.disabled = false;
+  nextBtn.disabled = false;
+  playBtn.disabled = false;
+}
+// New
+else if (e.type === 'done') {
+  renderGraph(A, edges);
+  renderMatrix(matR, e.R);
+
+  // explicitly show R^n
+  updateTheme(
+    '#fde2e2',            // keep your pink fill
+    '#e63946',            // keep your red stroke
+    'rgba(198,219,239,0.7)', // keep your matrix bg
+    A.length              // ← n, not n-1
+  );
+
+  commentBox.textContent = 'Done! All-pairs shortest path computed.';
+  prevBtn.disabled = false;
+  nextBtn.disabled = true;
+  playBtn.disabled = true;
+}
+
+}
+
+function getNodePositions(n) {
+  const w   = graphSvg.clientWidth;
+  const h   = graphSvg.clientHeight;
+  const pad = 40;  // how far from the border you want your nodes
+
+  // compute the “walkable” width & height
+  const availW = w - 2*pad;
+  const availH = h - 2*pad;
+  const perim  = 2*(availW + availH);
+
+  return Array.from({ length: n }, (_, i) => {
+    // distance along perimeter for this node
+    const d = (i * perim) / n;
+
+    if (d < availW) {
+      // top edge, left→right
+      return { x: pad + d, y: pad };
+    } else if (d < availW + availH) {
+      // right edge, top→bottom
+      return { x: w - pad, y: pad + (d - availW) };
+    } else if (d < 2*availW + availH) {
+      // bottom edge, right→left
+      return {
+        x: w - pad - (d - (availW + availH)),
+        y: h - pad
+      };
+    } else {
+      // left edge, bottom→top
+      return {
+        x: pad,
+        y: h - pad - (d - (2*availW + availH))
+      };
+    }
+  });
+}
+
+
+function preprocessEdgeWeights(edges, pos) {
+  // ─── Configuration constants ───────────────────────────────────────────
+  const arrowMargin      = 12;   // px back from the end of the path to clear the arrowhead
+  const nodeRadius       = 20;   // px radius of each node
+  const nodeMargin       = 4;    // extra px around each node
+  const labelRadius      = 8;    // px approx half the text width of your weight labels
+  const maxTries         = 100;  // how many times to re-sample before giving up
+  // These must match the values you use in renderGraph for OFFSET & curvature:
+  const DEFAULT_MARKER_W   = 9;
+  const HIGHLIGHT_MARKER_W = 8;   // 4*2
+  const OFFSET             = (DEFAULT_MARKER_W + HIGHLIGHT_MARKER_W)/2 + 2;
+  const curvature          = 30;  // same “bend” you use when drawing your edges
+
+  edges.forEach(e => {
+    if (e.weight == null) return;
+
+    // 1) build the exact same quadratic‐curve path you use in renderGraph
+    const p1 = pos[e.from];
+    const p2 = pos[e.to];
+    const dx = p2.x - p1.x, dy = p2.y - p1.y;
+    const L  = Math.hypot(dx, dy);
+    const ux = dx / L, uy = dy / L;
+    const perpX = -uy, perpY = ux;
+
+    const sx = p1.x + ux*17 + perpX*OFFSET;
+    const sy = p1.y + uy*17 + perpY*OFFSET;
+    const ex = p2.x - ux*17 + perpX*OFFSET;
+    const ey = p2.y - uy*17 + perpY*OFFSET;
+    const mx = (p1.x + p2.x)/2 + perpX*curvature;
+    const my = (p1.y + p2.y)/2 + perpY*curvature;
+
+    const d = `M${sx},${sy} Q${mx},${my} ${ex},${ey}`;
+    const tempPath = document.createElementNS(NS, 'path');
+    tempPath.setAttribute('d', d);
+    graphSvg.appendChild(tempPath);
+
+    const totalLen = tempPath.getTotalLength();
+
+    // 2) sample a point along the curve with a triangular PDF,
+    //    avoiding arrowhead, nodes, and existing labels
+    let len, pt, tries = 0;
+    do {
+      const u   = (Math.random() + Math.random()) / 2; // triangular on [0,1]
+      len       = totalLen * u;
+      pt        = tempPath.getPointAtLength(len);
+      tries++;
+    } while (
+      tries < maxTries &&
+      (
+        // a) avoid arrowhead region
+        len > totalLen - arrowMargin ||
+        // b) avoid falling under any node
+        pos.some(n => Math.hypot(pt.x - n.x, pt.y - n.y) < nodeRadius + nodeMargin) ||
+        // c) avoid overlapping any already‐placed label
+        edges.some(other =>
+          other.lx != null &&
+          Math.hypot(pt.x - other.lx, pt.y - other.ly) < labelRadius*2
+        )
+      )
+    );
+
+    // 3) store the final coords right on the edge
+    e.lx = pt.x;
+    e.ly = pt.y;
+
+    // 4) clean up the temp path
+    graphSvg.removeChild(tempPath);
+  });
+}
+
+// walk i→j by following nextHop[i][j], building node‐list
+function reconstructPath(i, j, nextHop) {
+  const path = [];
+  if (nextHop[i][j] == null) return path;
+  let u = i;
+  while (u != null && u !== j) {
+    path.push(u);
+    u = nextHop[u][j];
+  }
+  if (u === j) path.push(j);
+  return path;
+}
+
+// convert [u0,u1,u2…] into [{from:u0,to:u1},{from:u1,to:u2},…]
+function pathToEdges(nodes) {
+  return nodes.slice(0, -1).map((u, idx) => ({
+    from: u,
+    to:   nodes[idx + 1]
+  }));
+}
+
+
+
+    // Generate Button Handler
+ genBtn.addEventListener('click', () => {
+  // 1) read & clamp n
+  let n = parseInt(dimInput.value, 10) || 0;
+  if (n < 1) n = 1;
+  if (n > 10) n = 10;
+  dimInput.value = n;
+
+  // 2) generate a fresh random graph
+  const g = genRandomGraph(n);
+  A     = g.M;
+  edges = g.ed;
+
+  // 3) PREPROCESS: compute node coords & weight‐label positions
+  const nodePos = getNodePositions(A.length);
+  preprocessEdgeWeights(edges, nodePos);
+
+  // 4) rebuild the event sequence & reset
+  events  = buildEvents(A);
+  ptr     = 0;
+  clearInterval(timer);
+  playing = false;
+  playBtn.textContent = 'Play';
+
+  // 5) style & render the very first frame
+  updateTheme(
+    '#fde2e2',              // graph fill
+    '#e63946',              // graph stroke
+    'rgba(198,219,239,0.7)',// matrix bg
+    0                       // initial k
+  );
+  rebuild();
+});
+
+
+
+  // ─── New nextBtn handler ─────────────────────────────────────────────────────
+nextBtn.addEventListener('click', () => {
+  direction = 'forward';
+    if (ptr < events.length - 1) {
+    // move forward one event...
+    ptr++;
+    // …but if that event is the final afterK (k === n-1) with no comment, skip it straight to done
+    const peek = events[ptr];
+    if (peek.type === 'afterK' && peek.k === A.length - 1) {
+      ptr++;
+    }
+  } else {
+    ptr = 0;
+  }
+  const e = events[ptr];
+  if (e.type !== 'done') {
+    const kVal = (e.k !== undefined)
+      ? (e.type === 'afterK' ? e.k + 1 : e.k)
+      : 0;
+    updateTheme('#fde2e2','#e63946','rgba(198,219,239,0.7)', kVal);
+  }
+  rebuild();
+});
+
+ // Prev button (skip the final “done” event)
+ prevBtn.addEventListener('click', () => {
+   direction = 'backward';
+
+   // if we're currently on the 'done' event, drop back one more immediately
+   if (events[ptr]?.type === 'done') {
+     ptr--;
+   }
+
+   if (ptr > 0) {
+     // undo exactly one real step
+     const evUndo = events[ptr];
+     ptr--;
+   } else {
+     return; // at the very start
+   }
+
+   // now update your theme and UI based on the new ptr
+   const e = events[ptr];
+   const kVal = (e.k !== undefined)
+     ? (e.type === 'afterK' ? e.k + 1 : e.k)
+     : 0;
+   updateTheme('#fde2e2', '#e63946', 'rgba(198,219,239,0.7)', kVal);
+   rebuild();
+ });
+
+    playBtn.addEventListener('click', () => {
+      if (!playing) {
+        playing = true;
+        playBtn.textContent = 'Pause';
+        timer = setInterval(() => {
+          if (ptr < events.length - 1) {
+            ptr++;
+            const e = events[ptr];
+            // ← only update current-k for non-done steps
+            if (e.type !== 'done') {
+              const kVal = (e.k !== undefined)
+                ? (e.type === 'afterK' ? e.k + 1 : e.k)
+                : 0;
+              updateTheme('#fde2e2', '#e63946', 'rgba(198,219,239,0.7)', kVal);
+            }
+            rebuild();
+          } else {
+            clearInterval(timer);
+            playing = false;
+            playBtn.textContent = 'Play';
+          }
+        }, 700 / speed);
+      } else {
+        clearInterval(timer);
+        playing = false;
+        playBtn.textContent = 'Play';
+      }
+    });
+    speedSelect.addEventListener('change', () => { speed = parseInt(speedSelect.value,10)||1; });
+
+    // Init
+    genBtn.click();
+  })();
+  </script>
+</body>
+</html>
