@@ -39,6 +39,12 @@ header h3 {
 header h3 {
   font-style: italic;
 }
+header h4 {
+  color: #DDDDDD;
+  margin: 0.2em 0;
+  padding: 0;
+  font-size: .8em;
+}
 
 /*-------------------------------------------------------------*/
 /* 1) Site layout (only on <body class="mainSite">) */
