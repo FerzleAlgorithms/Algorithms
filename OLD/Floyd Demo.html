@@ -3,10 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <title>Floyd's Algorithm Demo</title>
-  <script src="../../../scripts/demoScripts.js"></script>
-  <link rel="stylesheet" href="../../../css/style.css">
-  <link rel="stylesheet" href="../../../css/demo.css">
-
+  <script src="/Algorithms/scripts/demoScripts.js"></script>
+  <link rel="stylesheet" href="/Algorithms/css/style.css">
+  <link rel="stylesheet" href="/Algorithms/css/demo.css">
   <style>
     /* Container wrapper (from Matrix Multiplication demo) */
     .demo-container {
@@ -440,130 +439,81 @@ function renderGraph(adj, edges, highlight = {}) {
     .forEach(el => el.remove());
 
   // ✅ instead do this:
-// ─── NEW ──────────────────────────────────────────────────────────────
   const pos = getNodePositions(n);
 
-  // 1) draw phantom ∞-edges in yellow for any missing candidate link
-  // ── draw phantom ∞-edges ─────────────────────────────────────────────
-if (Array.isArray(highlight.phantomEdges)) {
-  highlight.phantomEdges.forEach(({ from, to }) => {
-    const p1 = pos[from], p2 = pos[to];
-    const dx = p2.x - p1.x, dy = p2.y - p1.y;
-    const L  = Math.hypot(dx, dy), ux = dx/L, uy = dy/L;
-    const perpX = -uy, perpY = ux;
-    const OFFSET   = (9 + 8)/2 + 2;
-    const curvature = 30;
-    const sx = p1.x + ux*17 + perpX*OFFSET;
-    const sy = p1.y + uy*17 + perpY*OFFSET;
-    const ex = p2.x - ux*17 + perpX*OFFSET;
-    const ey = p2.y - uy*17 + perpY*OFFSET;
-    const mx = (p1.x + p2.x)/2 + perpX*curvature;
-    const my = (p1.y + p2.y)/2 + perpY*curvature;
-    const d  = `M${sx},${sy} Q${mx},${my} ${ex},${ey}`;
 
-    const ph = document.createElementNS(NS,'path');
-    ph.setAttribute('d', d);
-    ph.setAttribute('fill','none');
-    ph.setAttribute('stroke','rgba(255,215,0,0.8)');
-    ph.setAttribute('stroke-width','3');
-    ph.setAttribute('marker-end','url(#arrow-yellow)');
-    graphSvg.appendChild(ph);
+  // 3) draw each edge (curved), then place its weight label
+  edges.forEach((e, idx) => {
+  const isConsider = highlight.considerEdge
+               && highlight.considerEdge.from === e.from
+               && highlight.considerEdge.to   === e.to;
+  const isPath     = Array.isArray(highlight.pathEdges)
+                  && highlight.pathEdges.some(pe => pe.from === e.from && pe.to === e.to);
 
-    const mid = ph.getPointAtLength(ph.getTotalLength()/2);
-    const lbl = document.createElementNS(NS,'text');
-    lbl.setAttribute('x', mid.x);
-    lbl.setAttribute('y', mid.y);
-    lbl.setAttribute('text-anchor','middle');
-    lbl.setAttribute('dominant-baseline','central');
-    lbl.textContent = '\u221E';
+  // 1) compute raw direction + unit perpendicular
+  const { x: x1, y: y1 } = pos[e.from];
+  const { x: x2, y: y2 } = pos[e.to];
+  const dx = x2 - x1, dy = y2 - y1;
+  const L  = Math.hypot(dx, dy), ux = dx / L, uy = dy / L;
+  const perpX = -uy, perpY = ux;
+
+  // 2) endpoints & control-point for a quadratic curve
+  const DEFAULT_MARKER_W   = 9;
+  const HIGHLIGHT_MARKER_W = 4 * 2;
+  const OFFSET             = (DEFAULT_MARKER_W + HIGHLIGHT_MARKER_W) / 2 + 2;
+  const sx = x1 + ux * 17 + perpX * OFFSET;
+  const sy = y1 + uy * 17 + perpY * OFFSET;
+  const ex = x2 - ux * 17 + perpX * OFFSET;
+  const ey = y2 - uy * 17 + perpY * OFFSET;
+  const curvature = 30;
+  const mx = (x1 + x2) / 2 + perpX * curvature;
+  const my = (y1 + y2) / 2 + perpY * curvature;
+  const d  = `M${sx},${sy} Q${mx},${my} ${ex},${ey}`;
+
+  // 3) draw the path
+  const path = document.createElementNS(NS, 'path');
+  path.setAttribute('d', d);
+  path.setAttribute('fill', 'none');
+
+  // 4) style based on highlight flags
+  let strokeColor, strokeW, markerId;
+  if (isConsider) {
+    strokeColor = "rgba(255,215,0,0.8)";
+    strokeW     = 3;
+    markerId    = 'arrow-yellow';
+  } else if (isPath) {
+    strokeColor = '#e74c3c';
+    strokeW     = 2;
+    markerId    = 'arrow-highlight';
+  } else {
+    strokeColor = '#333';
+    strokeW     = 1;
+    markerId    = 'arrow';
+  }
+  path.setAttribute('stroke', strokeColor);
+  path.setAttribute('stroke-width', strokeW.toString());
+  path.setAttribute('marker-end', `url(#${markerId})`);
+
+  graphSvg.appendChild(path);
+
+  // …after graphSvg.appendChild(path);
+
+  // 5) draw weight labels exactly as in Demo 22
+  if (e.weight != null) {
+    const lbl = document.createElementNS(NS, 'text');
+    lbl.setAttribute('x', e.lx);
+    lbl.setAttribute('y', e.ly);
+    lbl.setAttribute('text-anchor', 'middle');
+    lbl.setAttribute('dominant-baseline', 'central');
+    lbl.setAttribute('font-weight', 'bold');
+    lbl.setAttribute('fill', '#000');
+    lbl.style.userSelect = 'none';
+    lbl.textContent = e.weight;
     graphSvg.appendChild(lbl);
-  });
-}
+  }
 
 
- // ───── Real edges ─────────────────────────────────────
-   edges.forEach((e, idx) => {
-    // any leg we’re “considering” goes yellow
-    const isConsider = Array.isArray(highlight.considerEdges)
-                     && highlight.considerEdges.some(pe =>
-                          pe.from === e.from && pe.to === e.to
-                        );
-    const isPath     = Array.isArray(highlight.pathEdges)
-                     && highlight.pathEdges.some(pe =>
-                          pe.from === e.from && pe.to === e.to
-                        );
-
-												  
-    const { x: x1, y: y1 } = pos[e.from];
-    const { x: x2, y: y2 } = pos[e.to];
-    const dx = x2 - x1, dy = y2 - y1;
-    const L  = Math.hypot(dx, dy), ux = dx / L, uy = dy / L;
-    const perpX = -uy, perpY = ux;
-
-    // compute curve same as in preprocess…
-    const DEFAULT_MARKER_W   = 9;
-    const HIGHLIGHT_MARKER_W = 4 * 2;
-    const OFFSET             = (DEFAULT_MARKER_W + HIGHLIGHT_MARKER_W)/2 + 2;
-    const sx = x1 + ux*17 + perpX*OFFSET;
-    const sy = y1 + uy*17 + perpY*OFFSET;
-    const ex = x2 - ux*17 + perpX*OFFSET;
-    const ey = y2 - uy*17 + perpY*OFFSET;
-    const curvature = 30;
-    const mx = (x1 + x2)/2 + perpX*curvature;
-    const my = (y1 + y2)/2 + perpY*curvature;
-    const d = `M${sx},${sy} Q${mx},${my} ${ex},${ey}`;
-
-					 
-    const path = document.createElementNS(NS,'path');
-    path.setAttribute('d', d);
-    path.setAttribute('fill', 'none');
-
-    // pick color & marker
-    let strokeColor, strokeW, markerId;
-    // NEW (give red “path” top priority)
-										
-					
-								 
-    if (isPath) {
-      strokeColor = '#e74c3c';
-      strokeW     = 2;
-      markerId    = 'arrow-highlight';
-    } else if (isConsider) {
-      strokeColor = "rgba(255,215,0,0.8)";
-      strokeW     = 3;
-      markerId    = 'arrow-yellow';
-    } else {
-      strokeColor = '#333';
-      strokeW     = 1;
-      markerId    = 'arrow';
-    }
-
-
-    path.setAttribute('stroke', strokeColor);
-    path.setAttribute('stroke-width', strokeW);
-    path.setAttribute('marker-end', `url(#${markerId})`);
-
-    graphSvg.appendChild(path);
-
-										 
-
-    // draw the weight label at (e.lx,e.ly)
-    // New
-    if (e.weight != null) {
-      const lbl = document.createElementNS(NS, 'text');
-      lbl.setAttribute('x', e.lx);
-      lbl.setAttribute('y', e.ly);
-      lbl.setAttribute('text-anchor', 'middle');
-      lbl.setAttribute('dominant-baseline', 'central');
-      lbl.setAttribute('font-weight', 'bold');
-      lbl.setAttribute('fill', '#000');
-      lbl.style.userSelect = 'none';
-      lbl.textContent = e.weight;
-      graphSvg.appendChild(lbl);
-    }
-
-
-  });
+});
 
 
   // 4) draw nodes on top
@@ -643,66 +593,58 @@ if (Array.isArray(highlight.phantomEdges)) {
   // New (Floyd–Warshall)
 // ─── New buildEvents ─────────────────────────────────────────────────────
 function buildEvents(D) {
-  const ev = [];
-  const n = D.length;
+  
+  const ev = [], n = D.length;
   let Rprev = cloneMatrix(D);
-
-  // initialize nextHop table
-  let nextHop = Array.from({ length: n }, (_, i) =>
-    Array.from({ length: n }, (_, j) =>
+  // ── new ──
+  let nextHop  = Array.from({ length: n }, (_, i) =>
+    Array.from({ length: n }, (_, j) => (
       i === j
         ? j
         : (Rprev[i][j] < Infinity ? j : null)
-    )
+    ))
   );
+  // emit init with nextHop
+  ev.push({ type: 'init', R: cloneMatrix(Rprev), nextHop: cloneMatrix(nextHop) });
+  // emit R, not D
+  ev.push({ type: 'init', R: cloneMatrix(Rprev) });
 
-  // emit a single init event (with both R and nextHop)
-  ev.push({
-    type:    'init',
-    R:       cloneMatrix(Rprev),
-    nextHop: cloneMatrix(nextHop)
-  });
-												   
-
-  // for each intermediate vertex k
   for (let k = 0; k < n; k++) {
-					   
+    const changed = [];
     for (let i = 0; i < n; i++) {
       for (let j = 0; j < n; j++) {
         const oldVal = Rprev[i][j];
-        const left   = Rprev[i][k];
-        const right  = Rprev[k][j];
-        const via    = left + right;
+        const via    = Rprev[i][k] + Rprev[k][j];
         const newVal = Math.min(oldVal, via);
 
-								
-        // snapshot the matrix before any update
-        const oldR = cloneMatrix(Rprev);
+        // emit Rprev, not Dprev
+       // 1) snapshot the old matrix
+  const oldR = cloneMatrix(Rprev);
 
-        // if we found a shorter path, update Rprev & nextHop
-        if (newVal < oldVal) {
-										   
-													  
-          nextHop[i][j] = nextHop[i][k];
-          Rprev[i][j]   = newVal;
-        }
-
-        // emit exactly one 'cell' event per (i,j,k)
-        ev.push({
-          type:    'cell',
-          k, i, j,
-          oldVal, left, right, via, newVal,
-          Rprev:   oldR,
-          nextHop: cloneMatrix(nextHop)
-        });
-      }
-    }
-					
-																   
+  // 2) if we found a shorter path, update nextHop & Rprev
+  if (newVal < oldVal) {
+    changed.push({ i, j, oldVal, newVal });
+    // use the old nextHop[i][k] to seed the new i→j
+    nextHop[i][j] = nextHop[i][k];
+    Rprev[i][j]   = newVal;
   }
 
-								  
-												   
+  // 3) now push one event with old‐matrix & updated nextHop
+  ev.push({
+    type:    'cell',
+    k, i, j,
+    oldVal, via, newVal,
+    Rprev:   oldR,
+    nextHop: cloneMatrix(nextHop)
+  });
+      }
+    }
+    // emit R, not D
+    ev.push({ type: 'afterK', k, R: cloneMatrix(Rprev), changed });
+  }
+
+  // final snapshot must also be R
+  ev.push({ type: 'done', R: cloneMatrix(Rprev) });
   return ev;
 }
 
@@ -724,45 +666,24 @@ function buildEvents(D) {
   }
   // rebuild()’s cell step:
 else if (e.type === 'cell') {
-   // 1) the two legs we’re “considering” this step
- const candidateEdges = [
-   { from: e.i, to: e.k },
-   { from: e.k, to: e.j }
- ];
-
- // 2) phantom ∞-edges: the direct link i→j plus any missing legs
- const phantomEdges = [
-   { from: e.i, to: e.j },
-   ...candidateEdges
- ].filter(ep => A[ep.from][ep.to] === Infinity);
-
- // 3) highlight exactly those two legs in yellow
- const considerEdges = candidateEdges;
-
-  // 4) compute the usual via‐k path (if any)
-  const pathEdges = pathToEdges(reconstructPath(e.i, e.j, e.nextHop));
-
-  // 5) one draw call with all three arrays
+   // highlight the direct edge i→j (if it exists) in yellow
   const opts = {
-    node:           e.k,
-    phantomEdges,
-    considerEdges,
-    pathEdges
+    node: e.k,
+    considerEdge: { from: e.i, to: e.j }
   };
+
+  // ── NEW: pull the nextHop snapshot out of the event
+  const nh = e.nextHop;
+
+  // build the full shortest‐path i→j at *this* moment
+  const nodes = reconstructPath(e.i, e.j, nh);
+  opts.pathEdges = pathToEdges(nodes);
+
   renderGraph(A, edges, opts);
-														   
-					   
-
-														  
-											  
-									  
-
-  // 4) update the D-matrix and comment as before
-															   
-  const updatedR = e.Rprev.map(r => r.slice());
+  // build a display‐matrix that already has the updated cell
+  const updatedR = e.Rprev.map(row => row.slice());
   updatedR[e.i][e.j] = e.newVal;
   renderMatrix(matR, updatedR, { i: e.i, j: e.j, k: e.k });
-  // build a display‐matrix that already has the updated cell
 
    // right after you set opts.pathEdges…
   const usedEdges = opts.pathEdges
@@ -773,7 +694,7 @@ else if (e.type === 'cell') {
 commentBox.innerHTML = `
   k = ${e.k} (Intermediate node is ${e.k}): Considering path from ${e.i} to ${e.j} going through ${e.k}.<br>
   D[${e.i}][${e.j}] = min(D[${e.i}][${e.j}], D[${e.i}][${e.k}] + D[${e.k}][${e.j}])<br>
-   = min(${fmt(e.oldVal)}, ${fmt(e.left)} + ${fmt(e.right)}) = min(${fmt(e.oldVal)}, ${fmt(e.via)}) ⇒ ${fmt(e.newVal)}<br>
+  = min(${fmt(e.oldVal)}, ${fmt(e.via)}) ⇒ ${fmt(e.newVal)}<br>
   ${
     e.newVal < e.oldVal
       ? `Shortest path uses edge${opts.pathEdges.length>1?'s':''} ${usedEdges}.`
@@ -812,7 +733,7 @@ else if (e.type === 'done') {
     A.length              // ← n, not n-1
   );
 
-  commentBox.textContent = 'Done! Transitive closure computed.';
+  commentBox.textContent = 'Done! All-pairs shortest path computed.';
   prevBtn.disabled = false;
   nextBtn.disabled = true;
   playBtn.disabled = true;
@@ -857,29 +778,28 @@ function getNodePositions(n) {
 }
 
 
-// ─────────── NEW ───────────
 function preprocessEdgeWeights(edges, pos) {
-																					
-  const arrowMargin      = 12;                       // px back from arrowhead
-														  
-															 
-  const labelRadius      = 8;                        // half-text width
-																				
-																			   
-  const DEFAULT_MARKER_W = 9;
-  const HIGHLIGHT_MARKER_W = 8;                      // 4*2 
-  const OFFSET           = (DEFAULT_MARKER_W + HIGHLIGHT_MARKER_W)/2 + 2;
-  const curvature        = 30;
+  // ─── Configuration constants ───────────────────────────────────────────
+  const arrowMargin      = 12;   // px back from the end of the path to clear the arrowhead
+  const nodeRadius       = 20;   // px radius of each node
+  const nodeMargin       = 4;    // extra px around each node
+  const labelRadius      = 8;    // px approx half the text width of your weight labels
+  const maxTries         = 100;  // how many times to re-sample before giving up
+  // These must match the values you use in renderGraph for OFFSET & curvature:
+  const DEFAULT_MARKER_W   = 9;
+  const HIGHLIGHT_MARKER_W = 8;   // 4*2
+  const OFFSET             = (DEFAULT_MARKER_W + HIGHLIGHT_MARKER_W)/2 + 2;
+  const curvature          = 30;  // same “bend” you use when drawing your edges
 
   edges.forEach(e => {
     if (e.weight == null) return;
 
-    // compute the same bezier‐curve you draw in renderGraph:
-    const p1 = pos[e.from], p2 = pos[e.to];
-						 
+    // 1) build the exact same quadratic‐curve path you use in renderGraph
+    const p1 = pos[e.from];
+    const p2 = pos[e.to];
     const dx = p2.x - p1.x, dy = p2.y - p1.y;
-    const L  = Math.hypot(dx, dy), ux = dx/L, uy = dy/L;
-								   
+    const L  = Math.hypot(dx, dy);
+    const ux = dx / L, uy = dy / L;
     const perpX = -uy, perpY = ux;
 
     const sx = p1.x + ux*17 + perpX*OFFSET;
@@ -889,47 +809,44 @@ function preprocessEdgeWeights(edges, pos) {
     const mx = (p1.x + p2.x)/2 + perpX*curvature;
     const my = (p1.y + p2.y)/2 + perpY*curvature;
 
-    const d  = `M${sx},${sy} Q${mx},${my} ${ex},${ey}`;
-
-    // temporarily append, sample a point, then remove it:
+    const d = `M${sx},${sy} Q${mx},${my} ${ex},${ey}`;
     const tempPath = document.createElementNS(NS, 'path');
     tempPath.setAttribute('d', d);
     graphSvg.appendChild(tempPath);
 
     const totalLen = tempPath.getTotalLength();
 
-															   
-														
-						   
-		
-    const u = (Math.random() + Math.random())/2;  // triangular PDF
-    const len = arrowMargin + (totalLen - arrowMargin - labelRadius)*u;
-    const pt  = tempPath.getPointAtLength(len);
-			  
-			 
-						 
-	   
-									
-									   
-										  
-																												  
-														  
-						   
-							 
-																	  
-		 
-	   
-	  
+    // 2) sample a point along the curve with a triangular PDF,
+    //    avoiding arrowhead, nodes, and existing labels
+    let len, pt, tries = 0;
+    do {
+      const u   = (Math.random() + Math.random()) / 2; // triangular on [0,1]
+      len       = totalLen * u;
+      pt        = tempPath.getPointAtLength(len);
+      tries++;
+    } while (
+      tries < maxTries &&
+      (
+        // a) avoid arrowhead region
+        len > totalLen - arrowMargin ||
+        // b) avoid falling under any node
+        pos.some(n => Math.hypot(pt.x - n.x, pt.y - n.y) < nodeRadius + nodeMargin) ||
+        // c) avoid overlapping any already‐placed label
+        edges.some(other =>
+          other.lx != null &&
+          Math.hypot(pt.x - other.lx, pt.y - other.ly) < labelRadius*2
+        )
+      )
+    );
 
-												  
+    // 3) store the final coords right on the edge
     e.lx = pt.x;
     e.ly = pt.y;
 
-								
+    // 4) clean up the temp path
     graphSvg.removeChild(tempPath);
   });
 }
-
 
 // walk i→j by following nextHop[i][j], building node‐list
 function reconstructPath(i, j, nextHop) {
