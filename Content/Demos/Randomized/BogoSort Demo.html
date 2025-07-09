@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- You can keep or remove these if you have your own style sheets -->
+   <script src="../../scripts/demoScripts.js"></script>
+  <link rel="stylesheet" href="../../../css/style.css">
+  <link rel="stylesheet" href="../../../css/demo.css">
+  <title>Bogo Sort Demo</title>
+  <style>
+    /* make the legend container lay out its items nicely */
+
+
+/* each legend entry needs to be a flex box so icon+label align */
+.legend > span {
+  display: flex;
+  align-items: center;
+}
+
+/* size and space the little color-box */
+
+
+    /* Match Merge Demo styling */
+    .array-container { display: flex; gap: 12px; margin-bottom: 10px; }
+    .element-wrapper { display: flex; flex-direction: column; align-items: center; }
+    .element { 
+      width: 40px; height: 40px; 
+      display: flex; align-items: center; justify-content: center;
+      border: 1px solid #333; border-radius: 4px;
+      font-weight: bold;
+    }
+    .index-label { font-size: 0.8em; margin-top: 4px; }
+    .shuffle { background: #ff9; }
+    .sorted  { background: #9f9; }
+    #buttons, #controls { margin: 8px 0; }
+    #buttons button, #buttons select, #controls label, #controls button { margin-right: 8px; }
+    #description { margin-top: 12px; font-style: italic; }
+
+    /* add to your <style> */
+@keyframes bounce {
+  0%, 100%   { transform: translateY(0); }
+  50%        { transform: translateY(-12px); }
+}
+
+/* replace your existing .element.shuffle block with: */
+.element.shuffle {
+  background: #ff9;
+  animation: bounce var(--bounce-duration, 0.6s) ease;
+}
+
+
+  </style>
+</head>
+<body class="no-tooltips">
+  <h1>Bogo Sort Demo</h1>
+
+  <!-- Controls -->
+  <div id="controls">
+    <label>Size:
+      <input type="number" id="size" min="1" max="12" value="5" />
+    </label>
+    <button id="generate">Random Array</button>
+    <input type="text" id="arrayInput" placeholder="Custom (e.g. 3,1,4,1)" size="20" />
+    <button id="useCustom">Use Custom Array</button>
+  </div>
+
+  
+  <!-- Step navigation -->
+  <div id="buttons">
+    <button id="prev" disabled>Previous</button>
+    <button id="next" disabled>Next</button>
+    <button id="play">Play</button>
+    <label for="speed">Speed:</label>
+    <select id="speed">
+      <option value="1">1x</option>
+      <option value="2">2x</option>
+      <option value="4">4x</option>
+      <option value="8">8x</option>
+      <option value="16">16x</option>
+      <option value="32">32x</option>
+      <option value="64">64x</option>
+      <option value="128">128x</option>
+      <option value="256">256x</option>
+      <option value="512">512x</option>
+    </select>
+  </div>
+
+  <!-- Legend -->
+ <div id="legend" class="legend">
+  <strong>Legend:</strong>
+  <span><span class="legend-box shuffle"></span> Shuffle</span>
+  <span><span class="legend-box sorted"></span> Sorted!</span>
+</div>
+
+  <!-- Visualization -->
+  <div id="array-label"><strong>Array:</strong></div>
+  <div id="array-container" class="array-container"></div>
+  <div id="description">Press “Random Array” to begin.</div>
+
+  <script>
+    //
+    // — Demo logic hooks —
+    //
+    window.onGenerate = isCustom => {
+      if (!isCustom) {
+        let n = parseInt(size.value, 10);
+        if (isNaN(n) || n < 1 ) n = 5;
+        else if (n > 11) n =11;
+        const arr = Array.from({length:n},()=>Math.floor(Math.random()*100));
+        arrayInput.value = arr.join(',');
+        return arr;
+      } else {
+        return arrayInput.value
+          .split(',')
+          .map(x=>parseInt(x.trim(),10))
+          .filter(x=>!isNaN(x));
+      }
+    };
+
+    window.genSteps = arr => {
+      const steps = [], a = arr.slice();
+      const record = (type, meta={}) => steps.push(Object.assign({ a: a.slice(), type }, meta));
+      const isSorted = x => x.every((v,i)=>(i===0||x[i-1]<=v));
+
+      record('init');
+      let count = 0n;      // ← initialize as a BigInt
+      while (!isSorted(a)) {
+        // Fisher–Yates
+        for (let i=a.length-1; i>0; i--) {
+          const j = Math.floor(Math.random()*(i+1));
+          [a[i],a[j]] = [a[j],a[i]];
+        }
+        count += 1n;         // ← increment as a BigInt
+        record('shuffle', { shuffleCount: count });
+      }
+      record('done', { shuffleCount: count });
+      return steps;
+    };
+
+    window.renderStep = (steps, idx, original) => {
+      arrayContainer.innerHTML = '';
+      const st = steps[idx];
+
+      const draw = (arr, cls) => {
+        arr.forEach((v,i)=>{
+          const wrap = document.createElement('div');
+          wrap.className = 'element-wrapper';
+          const el = document.createElement('div');
+          el.className = 'element' + (cls||'');
+          el.textContent = v;
+          const lbl = document.createElement('div');
+          lbl.className = 'index-label';
+          lbl.textContent = i;
+          wrap.appendChild(el);
+          wrap.appendChild(lbl);
+          arrayContainer.appendChild(wrap);
+        });
+      };
+
+      if (st.type === 'init') {
+        draw(original);
+        description.textContent = 'Initialization complete.';
+      } else if (st.type === 'shuffle') {
+        // highlight entire row as "shuffled"
+        draw(st.a, ' shuffle');
+        description.textContent = `Shuffle #${st.shuffleCount}: [${st.a.join(', ')}]`;
+      } else { // done
+        draw(st.a, ' sorted');
+        description.textContent = `Sorted after ${st.shuffleCount} ${st.shuffleCount===1n? 'shuffle':'shuffles'}!`;
+      }
+    };
+
+    //
+    // — Demo harness (buttons / play / speed) —
+    //
+    let steps = [], original = [], current = 0, timer = null;
+    // ─── New ───
+    const size           = document.getElementById('size'),
+          arrayInput     = document.getElementById('arrayInput'),
+          generateBtn    = document.getElementById('generate'),
+          customBtn      = document.getElementById('useCustom'),
+          prevBtn        = document.getElementById('prev'),
+          nextBtn        = document.getElementById('next'),
+          playBtn        = document.getElementById('play'),
+          speedSelect    = document.getElementById('speed'),
+          arrayContainer = document.getElementById('array-container'),
+          description    = document.getElementById('description');
+
+
+          
+      // 1) Define helper to adjust CSS variable:
+      function updateBounceDuration() {
+        const spd = parseInt(speedSelect.value, 10) || 1;
+        const dur = Math.max(0.01, 0.6 / spd);
+        document.documentElement.style.setProperty('--bounce-duration', dur + 's');
+      }
+
+      // 2) Initialize on load:
+      updateBounceDuration();
+
+      // 3) Recompute on speed-change:
+      speedSelect.addEventListener('change', () => {
+        updateBounceDuration();
+        if (timer) {
+          clearInterval(timer);
+          playBtn.textContent = 'Play';
+        }
+      });
+
+    function updateControls() {
+      prevBtn.disabled = current <= 0;
+      nextBtn.disabled = current >= steps.length - 1;
+    }
+
+    function show(idx) {
+      renderStep(steps, idx, original);
+      updateControls();
+    }
+
+    function init(isCustom) {
+      original = onGenerate(isCustom);
+      steps    = genSteps(original);
+      current  = 0;
+      show(0);
+      if (timer) clearInterval(timer), timer = null, playBtn.textContent = 'Play';
+    }
+    
+    generateBtn.addEventListener('click', ()=> init(false));
+    customBtn.addEventListener('click',   ()=> init(true));
+
+    prevBtn.addEventListener('click', ()=> {
+      if (current>0) show(--current);
+    });
+    nextBtn.addEventListener('click', ()=> {
+      if (current<steps.length-1) show(++current);
+    });
+
+    playBtn.addEventListener('click', ()=> {
+      if (timer) {
+        clearInterval(timer);
+        timer = null;
+        playBtn.textContent = 'Play';
+      } else {
+        playBtn.textContent = 'Pause';
+        timer = setInterval(()=>{
+          if (current < steps.length-1) {
+            show(++current);
+          } else {
+            clearInterval(timer);
+            playBtn.textContent = 'Play';
+          }
+        }, 1000 / parseInt(speedSelect.value,10));
+      }
+    });
+
+    speedSelect.addEventListener('change', ()=>{
+      if (timer) {
+        clearInterval(timer);
+        playBtn.click();   // restart with new speed
+      }
+    });
+
+    // auto-start on load
+    window.addEventListener('DOMContentLoaded', ()=> generateBtn.click());
+  </script>
+</body>
+</html>

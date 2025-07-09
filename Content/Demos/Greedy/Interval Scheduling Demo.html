@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Interval Scheduling Demo</title>
+  <!-- Core demo scripts and styles -->
+ <script src="../../../scripts/demoScripts.js"></script>
+  <link rel="stylesheet" href="../../../css/style.css">
+  <link rel="stylesheet" href="../../../css/demo.css">
+  <style>
+    /* Container for bar chart */
+    #intervals {
+      position: relative;
+      width: 600px;
+      height: auto;
+      border-left: 1px solid #333;
+      padding-left: 0;
+      margin-bottom: 10px;
+    }
+    /* Bar styling */
+    .bar {
+      position: absolute;
+      height: 24px;
+      line-height: 24px;
+      color: white;
+      padding: 0 4px;
+      box-sizing: border-box;
+      font-size: 0.9em;
+      white-space: nowrap;
+    }
+    .bar.default { background-color: #888; }
+    .bar.comparing { background-color: yellow; color: black; }
+    .bar.finished  { background-color: green; }
+    /* Axis labels */
+    #timeAxis {
+      position: relative;
+      width: 600px;
+      height: 20px;
+      margin-bottom: 20px;
+    }
+    #timeAxis .tick {
+      position: absolute;
+      width: 1px;
+      height: 6px;
+      background: #333;
+    }
+    #timeAxis .label {
+      position: absolute;
+      top: 6px;
+      font-size: 0.8em;
+      transform: translateX(-50%);
+    }
+  </style>
+</head>
+<body class="no-tooltips">
+  <h2>Interval Scheduling Demo</h2>
+
+  <!-- Controls for generating intervals -->
+  <div id="controls">
+    <label for="size">Number of intervals:
+      <input type="number" id="size" min="1" max="20" value="5">
+    </label>
+    <button id="generate">Random Intervals</button>
+    <input type="text" id="customIntervals" placeholder="e.g. 1-4,3-5,0-6">
+    <button id="useCustom">Use Custom Intervals</button>
+  </div>
+
+  <!-- Playback controls -->
+  <div id="buttons">
+    <button id="prev" disabled>Previous</button>
+    <button id="next" disabled>Next</button>
+    <button id="play">Play</button>
+    <label for="speed">Speed:</label>
+    <select id="speed">
+      <option value="1">1×</option>
+      <option value="2">2×</option>
+      <option value="4">4×</option>
+    </select>
+  </div>
+
+  <!-- Legend -->
+  <div id="legend" class="legend">
+    <strong>Legend:</strong>
+    <span><span class="legend-box default"></span> Unprocessed</span>
+    <span><span class="legend-box comparing"></span> Current</span>
+    <span><span class="legend-box finished"></span> Selected</span>
+  </div>
+
+  <!-- Description -->
+  <div id="description" style="margin-bottom:10px; font-style: italic;">Press "Next" to begin.</div>
+
+  <!-- Time axis -->
+  <div id="timeAxis"></div>
+
+  <!-- Bar chart area -->
+  <div><strong>Intervals:</strong></div>
+  <div id="intervals"></div>
+
+  <script>
+    // Generate or parse intervals
+    window.onGenerate = function(isCustom) {
+      let arr = [];
+      if (isCustom) {
+        const text = document.getElementById('customIntervals').value.trim();
+        if (!text) return [];
+        arr = text.split(',').map(pair => {
+          const [s,e] = pair.split('-').map(x => parseInt(x.trim(),10));
+          return [isNaN(s)?0:s, isNaN(e)?0:e];
+        });
+      } else {
+        const n = parseInt(document.getElementById('size').value,10) || 5;
+        for (let i = 0; i < n; i++) {
+          // start between 0 and 80 to allow max length of 20
+          const s = Math.floor(Math.random() * 81);
+          // length between 10 and 20
+          const len = 10 + Math.floor(Math.random() * 11);
+          const e = Math.min(s + len, 100);
+          arr.push([s, e]);
+        }
+      }
+      return arr;
+    };
+
+    // No auxiliary setup needed
+    window.setupAux = function(original,n) {};
+
+    // Build steps with descriptive commentary for each decision
+    window.genSteps = function(intervals) {
+      const steps = [];
+      if (!intervals.length) return steps;
+
+      // Sort intervals by their finish times (earliest first)
+      const sorted = intervals.slice().sort((a,b) => a[1] - b[1]);
+      let lastFinish = -Infinity;
+      const selected = [];
+
+      // Record initial sorted list before scheduling
+      steps.push({ intervals: sorted.slice(), selected: [], current: null,
+        description: 'Sorted intervals by finish time: ready to schedule.'
+      });
+
+      // Greedy selection: for each interval, choose it if it doesn't overlap
+      sorted.forEach((iv, i) => {
+        const [s, e] = iv;
+        // Before decision, highlight current interval
+        steps.push({ intervals: sorted.slice(), selected: selected.slice(), current: i,
+          description: `Considering interval [${s}, ${e}]: start ≥ last finish (${s} ≥ ${lastFinish})?`
+        });
+
+        if (s >= lastFinish) {
+          // Interval is compatible: its start does not conflict with previously selected interval
+          selected.push(i);
+          lastFinish = e;
+          steps.push({ intervals: sorted.slice(), selected: selected.slice(), current: i,
+            description: `Selected interval [${s}, ${e}] since its start ≥ last finish (${s} ≥ ${lastFinish}).`
+          });
+        } else {
+          // Interval overlaps: skip it to maintain non-overlapping set
+          steps.push({ intervals: sorted.slice(), selected: selected.slice(), current: i,
+            description: `Skipped interval [${s}, ${e}] because its start < last finish ( ${s} < ${lastFinish}).`
+          });
+        }
+      });
+
+      // Final summary of selected intervals
+      steps.push({ intervals: sorted.slice(), selected: selected.slice(), current: null,
+        description: `Scheduling complete: selected ${selected.length} non-overlapping intervals.`
+      });
+
+      return steps;
+    };
+
+    // Render a specific step with bars
+    window.renderStep = function(steps, idx) {
+      const step = steps[idx];
+      const container = document.getElementById('intervals');
+      const axis = document.getElementById('timeAxis');
+      container.innerHTML = '';
+      axis.innerHTML = '';
+      if (!step) return;
+
+      const ivs = step.intervals;
+      const width = 600;
+      const unit = width / 100;
+
+      // Draw time axis ticks with labels every 10 units
+      for (let t = 0; t <= 100; t += 10) {
+        const x = t * unit;
+        const tick = document.createElement('div'); tick.className = 'tick'; tick.style.left = x + 'px'; axis.appendChild(tick);
+        const label = document.createElement('div'); label.className = 'label'; label.style.left = x + 'px'; label.textContent = t; axis.appendChild(label);
+      }
+
+      // Draw each interval as a horizontal bar
+      ivs.forEach((iv, i) => {
+        const [s, e] = iv;
+        const bar = document.createElement('div');
+        // Color: green for selected, yellow for current consideration, grey otherwise
+        bar.className = 'bar ' + (step.selected.includes(i) ? 'finished'
+                     : step.current === i ? 'comparing' : 'default');
+        bar.style.left = (s * unit) + 'px';
+        bar.style.width = ((e - s) * unit) + 'px';
+        bar.style.top = (i * 30) + 'px';
+        bar.textContent = `${s}-${e}`;
+        container.appendChild(bar);
+      });
+
+      // Update description with the current commentary
+      document.getElementById('description').textContent = step.description;
+    };
+
+    // Playback hooks
+    document.addEventListener('DOMContentLoaded', () => {
+      const prev = document.getElementById('prev');
+      const next = document.getElementById('next');
+      const play = document.getElementById('play');
+      const speed = document.getElementById('speed');
+      let steps = [];
+      let idx = 0;
+      let timer;
+
+      document.getElementById('generate').onclick = () => {
+        steps = genSteps(onGenerate(false));
+        idx = 0;
+        renderStep(steps, idx);
+        prev.disabled = false;
+        next.disabled = false;
+      };
+
+      document.getElementById('useCustom').onclick = () => {
+        steps = genSteps(onGenerate(true));
+        idx = 0;
+        renderStep(steps, idx);
+        prev.disabled = false;
+        next.disabled = false;
+      };
+
+      prev.onclick = () => { if (idx > 0) renderStep(steps, --idx); };
+      next.onclick = () => { if (idx < steps.length - 1) renderStep(steps, ++idx); };
+
+      play.onclick = () => {
+        if (timer) {
+          clearInterval(timer);
+          play.textContent = 'Play';
+        } else {
+          play.textContent = 'Pause';
+          timer = setInterval(() => {
+            if (idx < steps.length - 1) renderStep(steps, ++idx);
+            else { clearInterval(timer); play.textContent = 'Play'; }
+          }, 800 / parseInt(speed.value));
+        }
+      };
+
+      // Auto-generate initial intervals so demo is ready immediately
+      document.getElementById('generate').click();
+    });
+  </script>
+</body>
+</html>

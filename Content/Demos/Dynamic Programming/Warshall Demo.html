@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <title>Warshall’s Algorithm Demo</title>
-  <script src="../../scripts/demoScripts.js"></script>
-  <link rel="stylesheet" href="../../css/style.css">
-  <link rel="stylesheet" href="../../css/demo.css">
+ <script src="../../../scripts/demoScripts.js"></script>
+  <link rel="stylesheet" href="../../../css/style.css">
+  <link rel="stylesheet" href="../../../css/demo.css">
   <style>
     /* Container wrapper (from Matrix Multiplication demo) */
     .demo-container {
@@ -324,40 +324,46 @@
       <div class="graph-panel">
       <h3>Graph</h3>
       <svg id="graph-svg" width="400" height="400">
-       <defs>
-  <marker id="arrow" 
-          markerWidth="10" 
-          markerHeight="10" 
-          refX="8" 
-          refY="3" 
-          orient="auto">
-    <path d="M0,0 L0,6 L9,3 z" fill="#888"/>
-  </marker>
+  <defs>
+    <!-- base arrow marker -->
+    <marker id="arrow"
+            markerWidth="10"
+            markerHeight="10"
+            refX="8"
+            refY="3"
+            orient="auto">
+      <path d="M0,0 L0,6 L9,3 Z" fill="#888"/>
+    </marker>
 
-  <marker id="arrow-highlight"
-          markerUnits="strokeWidth"
-          markerWidth="4"
-          markerHeight="3"
-          refX="3.25"
-          refY="1.5"
-          orient="auto">
-    <path d="M0,0 L0,3 L4,1.5 Z" fill="#e74c3c"/>
-  </marker>
+    <!-- highlight arrow for transitive edges -->
+    <marker id="arrow-highlight"
+            markerUnits="strokeWidth"
+            markerWidth="4"
+            markerHeight="3"
+            refX="3.25"
+            refY="1.5"
+            orient="auto">
+      <path d="M0,0 L0,3 L4,1.5 Z" fill="#e74c3c"/>
+    </marker>
 
-  <!-- add this: pure‐yellow arrow head for “considered” edges -->
-  <marker id="arrow-yellow"
-          markerUnits="strokeWidth"
-          markerWidth="4"
-          markerHeight="3"
-          refX="3"
-          refY="1.5"
-          orient="auto">
-    <path d="M0,0 L0,3 L4,1.5 Z" fill="rgba(255,215,0,0.8)"/>
-  </marker>
-</defs>
+    <!-- yellow arrow marker for “considered” edges -->
+    <marker id="arrow-yellow"
+            markerUnits="strokeWidth"
+            markerWidth="4"
+            markerHeight="3"
+            refX="3"
+            refY="1.5"
+            orient="auto">
+      <path d="M0,0 L0,3 L4,1.5 Z" fill="rgba(255,215,0,0.8)"/>
+    </marker>
+  </defs>
 
-        <!-- everything else will be drawn by JS -->
-      </svg>
+  <!-- static layer: draw your nodes & base edges here once -->
+  <g id="static-graph"></g>
+
+  <!-- dynamic layer: only this gets cleared/redrawn each step -->
+  <g id="highlight-graph"></g>
+</svg>
     </div>
 
 
@@ -381,6 +387,7 @@
     const playBtn    = document.getElementById('play-btn');
     const speedSelect= document.getElementById('speed-select');
     const graphSvg   = document.getElementById('graph-svg');
+    const NS       = 'http://www.w3.org/2000/svg';
     const matR       = document.getElementById('matrix-r');
     const commentBox = document.getElementById('comment');
     
@@ -416,107 +423,170 @@
 
     // Render graph nodes + edges
   
-function renderGraph(adj, ed, highlight = {}) {
-  const w = graphSvg.clientWidth;
-  const h = graphSvg.clientHeight;
-  const n = adj.length;
+function renderGraph(adj, edges, highlight = {}) {
+  const staticG    = graphSvg.querySelector('#static-graph');
+  const highlightG = graphSvg.querySelector('#highlight-graph');
 
-  // 1) clear old nodes & lines (keep <defs>)
-  //graphSvg.querySelectorAll('g, line').forEach(el => el.remove());
-  //graphSvg.querySelectorAll('g, path').forEach(el => el.remove());
-  graphSvg
-  .querySelectorAll(':scope > g, :scope > line, :scope > path')
-  .forEach(el => el.remove());
-
-  // 2) compute circle‐layout positions
-  const cx = w/2, cy = h/2, r = Math.min(w,h)/2 - 50;
+  // ─── 1) Compute node positions (circle layout) ────────────────
+  const w  = graphSvg.clientWidth;
+  const h  = graphSvg.clientHeight;
+  const cx =  w/2, cy =  h/2;
+  const r  = Math.min(w, h)/2 - 50;
   const pos = adj.map((_, i) => {
-    const a = 2*Math.PI * i / n;
-    return { x: cx + r*Math.cos(a), y: cy + r*Math.sin(a) };
+    const θ = 2 * Math.PI * i / adj.length;
+    return { x: cx + r * Math.cos(θ), y: cy + r * Math.sin(θ) };
   });
 
-   // 4 & 5) unified: draw every edge in edges[], using the transitive flag
-  // ─── New ────────────────────────────────────────────────────────────
-// ─── New (with single-color yellow for “considered”) ───────────────────
-// ─── New ────────────────────────────────────────────────────────────
-// entirely yellow arrow‐tip when isConsider is true
-edges.forEach(e => {
-  const isTrans    = !!e.transitive;
-  // yellow arrow‐tip if this edge is in the considerEdges list
-  const isConsider = Array.isArray(highlight.considerEdges)
-                  && highlight.considerEdges.some(c =>
-                        c.from === e.from && c.to === e.to);
+  // ─── 2) Static layer: nodes + all permanent edges ──────────────
+  if (highlight.buildStatic) {
+    staticG.innerHTML = '';
 
+    // 2a) Draw every base or transitive edge once
+    edges.forEach(e => {
+      const { x: x1, y: y1 } = pos[e.from];
+      const { x: x2, y: y2 } = pos[e.to];
 
-  // 1) compute raw direction
-  const { x: x1, y: y1 } = pos[e.from];
-  const { x: x2, y: y2 } = pos[e.to];
-  const dx = x2 - x1, dy = y2 - y1;
-  const L  = Math.hypot(dx, dy), ux = dx/L, uy = dy/L;
+      // quad‐curve control math
+      const dx = x2 - x1, dy = y2 - y1;
+      const L  = Math.hypot(dx, dy), ux = dx / L, uy = dy / L;
+      const perpX = -uy, perpY = ux;
+      // adjust offsets so arrowheads don’t collide with circles
+      // match the Warshall demo’s marker offset for **all** edges
+      const headOffset         = 17;               // radius + stroke
+      const DEFAULT_MARKER_W   = 9;                // base arrow’s markerWidth
+      const HIGHLIGHT_MARKER_W = 4 * 2;            // highlight arrow’s markerUnits×strokeWidth
+      const MARKER_OFFSET      = (DEFAULT_MARKER_W + HIGHLIGHT_MARKER_W) / 2 + 2;
+      const markerOffset       = MARKER_OFFSET;    // uniform perp-offset for black & red arrows
 
-  // 2) perpendicular unit vector & offset
-  const perpX  = -uy, perpY = ux;
-  const DEFAULT_MARKER_W   = 9;
-  const HIGHLIGHT_MARKER_W = 4 * 2;
-  const OFFSET             = (DEFAULT_MARKER_W + HIGHLIGHT_MARKER_W) / 2 + 2;
-  const dxOff = perpX * OFFSET, dyOff = perpY * OFFSET;
+      const sx = x1 + ux * headOffset + perpX * markerOffset;
+      const sy = y1 + uy * headOffset + perpY * markerOffset;
+      const ex = x2 - ux * headOffset + perpX * markerOffset;
+      const ey = y2 - uy * headOffset + perpY * markerOffset;
+      // bend the curve outwards
+      const mx = (x1 + x2) / 2 + perpX * 30;
+      const my = (y1 + y2) / 2 + perpY * 30;
+      const d  = `M${sx},${sy} Q${mx},${my} ${ex},${ey}`;
 
-  // 3) start/end points
-  const sx = x1 + ux*17 + dxOff, sy = y1 + uy*17 + dyOff;
-  const ex = x2 - ux*17 + dxOff, ey = y2 - uy*17 + dyOff;
+      // create path
+      const path = document.createElementNS(NS,'path');
+      path.setAttribute('d',          d);
+      path.setAttribute('fill',       'none');
+      if (e.transitive) {
+        // permanent transitive edge
+        path.setAttribute('stroke',    '#e74c3c');
+        path.setAttribute('stroke-width','2');
+        path.setAttribute('marker-end','url(#arrow-highlight)');
+      } else {
+        // normal base edge
+        path.setAttribute('stroke','var(--graph-stroke)');
+        path.setAttribute('stroke-width','1');
+        path.setAttribute('marker-end','url(#arrow)');
+      }
+      staticG.appendChild(path);
+    });
 
-  // 4) curved path
-  const curvature = 30;
-  const mx = (x1 + x2)/2 + perpX * curvature;
-  const my = (y1 + y2)/2 + perpY * curvature;
-  const d = `M${sx},${sy} Q${mx},${my} ${ex},${ey}`;
-  const path = document.createElementNS('http://www.w3.org/2000/svg','path');
-  path.setAttribute('d', d);
-  path.setAttribute('fill', 'none');
+    // 2b) Draw every node once
+    adj.forEach((_, i) => {
+      const { x, y } = pos[i];
+      const g = document.createElementNS(NS,'g');
+      g.setAttribute('class','graphNode');
 
-  // choose marker based on state
-  let strokeColor, strokeW, markerId;
-  if (isConsider) {
-    strokeColor = "rgba(255,215,0,0.8)";
-    strokeW     = 3;
-    markerId    = 'arrow-yellow';// ← new yellow marker
-  } else if (isTrans) {
-    strokeColor = '#e74c3c';     // red for new transitive
-    strokeW     = 2;
-    markerId    = 'arrow-highlight';
-  } else {
-    strokeColor = '#333';
-    strokeW     = 1;
-    markerId    = 'arrow';
+      const c = document.createElementNS(NS,'circle');
+      c.setAttribute('cx', x);
+      c.setAttribute('cy', y);
+      c.setAttribute('r',  20);
+      g.appendChild(c);
+
+      const t = document.createElementNS(NS,'text');
+      t.setAttribute('x', x);
+      t.setAttribute('y', y);
+      t.textContent = i;
+      g.appendChild(t);
+
+      staticG.appendChild(g);
+    });
   }
-  
 
-  path.setAttribute('stroke',       strokeColor);
-  path.setAttribute('stroke-width', strokeW.toString());
-  path.setAttribute('marker-end',   `url(#${markerId})`);
-  graphSvg.appendChild(path);
-});
+  // ─── 3) Dynamic layer: clear & redraw only the highlights ───────
+  highlightG.innerHTML = '';
 
+  // 3a) Phantom ∞-edges (unreachable candidates)
+  if (Array.isArray(highlight.phantomEdges)) {
+    highlight.phantomEdges.forEach(({ from, to }) => {
+      const { x: x1, y: y1 } = pos[from];
+      const { x: x2, y: y2 } = pos[to];
+      const dx  = x2 - x1, dy = y2 - y1;
+      const L   = Math.hypot(dx, dy), ux = dx / L, uy = dy / L;
+      const perpX = -uy, perpY = ux;
+      const headOffset   = 17;
+      const markerOffset = (9 + 8) / 2 + 2; // base arrow + highlight marker
+      const sx = x1 + ux * headOffset + perpX * markerOffset;
+      const sy = y1 + uy * headOffset + perpY * markerOffset;
+      const ex = x2 - ux * headOffset + perpX * markerOffset;
+      const ey = y2 - uy * headOffset + perpY * markerOffset;
+      const mx = (x1 + x2) / 2 + perpX * 30;
+      const my = (y1 + y2) / 2 + perpY * 30;
+      const d  = `M${sx},${sy} Q${mx},${my} ${ex},${ey}`;
 
-  // 3) draw each node
-  adj.forEach((_, i) => {
-    const { x, y } = pos[i];
-    const g = document.createElementNS('http://www.w3.org/2000/svg','g');
-    g.setAttribute('class','graphNode' + (highlight.node===i ? ' current':''))
+      // ∞ path
+      const ph = document.createElementNS(NS,'path');
+      ph.setAttribute('d',          d);
+      ph.setAttribute('fill',       'none');
+      ph.setAttribute('stroke',     'rgba(255,215,0,0.8)');
+      ph.setAttribute('stroke-width','3');
+      ph.setAttribute('marker-end','url(#arrow-yellow)');
+      highlightG.appendChild(ph);
 
-    const c = document.createElementNS('http://www.w3.org/2000/svg','circle');
-    c.setAttribute('cx', x); c.setAttribute('cy', y); c.setAttribute('r', 20);
-    g.appendChild(c);
+      // ∞ label at midpoint
+      const mid = ph.getPointAtLength(ph.getTotalLength() / 2);
+      const lbl = document.createElementNS(NS,'text');
+      lbl.setAttribute('x', mid.x);
+      lbl.setAttribute('y', mid.y);
+      lbl.setAttribute('text-anchor','middle');
+      lbl.setAttribute('dominant-baseline','central');
+      lbl.textContent = '\u221E';
+      highlightG.appendChild(lbl);
+    });
+  }
 
-    const t = document.createElementNS('http://www.w3.org/2000/svg','text');
-    t.setAttribute('x', x); t.setAttribute('y', y); t.textContent = i;
-    g.appendChild(t);
+  // 3b) Considered edges (yellow)
+  if (Array.isArray(highlight.considerEdges)) {
+    highlight.considerEdges.forEach(({ from, to }) => {
+      const { x: x1, y: y1 } = pos[from];
+      const { x: x2, y: y2 } = pos[to];
+      const dx  = x2 - x1, dy = y2 - y1;
+      const L   = Math.hypot(dx, dy), ux = dx / L, uy = dy / L;
+      const perpX = -uy, perpY = ux;
+      const headOffset   = 17;
+      const markerOffset = (9 + 8) / 2 + 2;
+      const sx = x1 + ux * headOffset + perpX * markerOffset;
+      const sy = y1 + uy * headOffset + perpY * markerOffset;
+      const ex = x2 - ux * headOffset + perpX * markerOffset;
+      const ey = y2 - uy * headOffset + perpY * markerOffset;
+      const mx = (x1 + x2) / 2 + perpX * 30;
+      const my = (y1 + y2) / 2 + perpY * 30;
+      const d  = `M${sx},${sy} Q${mx},${my} ${ex},${ey}`;
 
-    graphSvg.appendChild(g);
-  });
+      const path = document.createElementNS(NS,'path');
+      path.setAttribute('d',          d);
+      path.setAttribute('fill',       'none');
+      path.setAttribute('stroke',     'rgba(255,215,0,0.8)');
+      path.setAttribute('stroke-width','3');
+      path.setAttribute('marker-end','url(#arrow-yellow)');
+      highlightG.appendChild(path);
+    });
+  }
 
+    // 3c) Highlight the k-th node exactly like Demo 47
+  staticG
+    .querySelectorAll('g.graphNode')
+    .forEach((nodeG, i) => {
+      nodeG.classList.toggle('current', highlight.node === i);
+    });
 
 }
+
+
 
     function renderMatrix(container, M, highlight = {}) {
   container.innerHTML = '';
@@ -568,36 +638,6 @@ edges.forEach(e => {
     }
   }
 
-        // 5) draw any newly discovered transitive edges
-        if (highlight.newEdges) {
-          highlight.newEdges.forEach(({from, to}) => {
-            const { x: x1, y: y1 } = pos[from];
-            const { x: x2, y: y2 } = pos[to];
-            const dx  = x2 - x1, dy = y2 - y1;
-            const len = Math.hypot(dx, dy), ux = dx/len, uy = dy/len;
-            let sx = x1 + ux*20, sy = y1 + uy*20;
-             let ex = x2 - ux*20, ey = y2 - uy*20;
-            
-             // shift off the center
-             sx += dxOff;  
-             sy += dyOff;
-             ex += dxOff;
-             ey += dyOff;
-
-            const line = document.createElementNS(
-              'http://www.w3.org/2000/svg','line'
-            );
-            line.setAttribute('x1', sx);
-            line.setAttribute('y1', sy);
-            line.setAttribute('x2', ex);
-            line.setAttribute('y2', ey);
-            line.setAttribute('stroke', '#e74c3c');               // red line
-            line.setAttribute('stroke-width', '3');
-            // force this marker via inline style with !important
-            line.style.setProperty('marker-end', 'url(#arrow-highlight)', 'important');
-            graphSvg.appendChild(line);
-          });
-        }
 
     }
 
@@ -638,85 +678,96 @@ edges.forEach(e => {
   const e = events[ptr];
   if (!e) return;
 
-  if (e.type === 'init') {
-    renderGraph(A, edges);
-    renderMatrix(matR, e.R);
-    commentBox.innerHTML = 
-    `Computing R<sup>1</sup> using R<sup>0</sup>,considering intermediate vertices
-    involving 0`;
-    prevBtn.disabled = true;
-    nextBtn.disabled = false;
-    playBtn.disabled = false;
-  }
+  // ─── New init (highlight k=0 exactly like Demo 47) ──────────────────
+if (e.type === 'init') {
+  // build the static graph *and* ring node 0 in black
+  renderGraph(A, edges, {
+    buildStatic: true,
+    node:        0
+  });
+
+  // draw R⁰ and tint row 0 + column 0
+  renderMatrix(matR, e.R, { k: 0 });
+
+  commentBox.innerHTML = 
+    `Computing R<sup>1</sup> using R<sup>0</sup>, considering intermediate vertices involving 0`;
+  prevBtn.disabled = true;
+  nextBtn.disabled = false;
+  playBtn.disabled = false;
+}
+
   // rebuild()’s cell step:
 else if (e.type === 'cell') {
-  // initialize with an empty array of edges to consider
-  const opts = { node: e.k, considerEdges: [] };
+  // 1) always highlight all three legs for (i,j,k)
+  const opts = {
+    node: e.k,
+    considerEdges: [
+      { from: e.i, to: e.j },
+      { from: e.i, to: e.k },
+      { from: e.k, to: e.j }
+    ]
+  };
 
-  // highlight R[i][j], R[i][k] and R[k][j] if they exist
-  if (edges.some(ed => ed.from === e.i && ed.to === e.j)) {
-    opts.considerEdges.push({ from: e.i, to: e.j });
-  }
-  if (edges.some(ed => ed.from === e.i && ed.to === e.k)) {
-    opts.considerEdges.push({ from: e.i, to: e.k });
-  }
-  if (edges.some(ed => ed.from === e.k && ed.to === e.j)) {
-    opts.considerEdges.push({ from: e.k, to: e.j });
-  }
-
+  // 2) if this step just discovered a new transitive edge, freeze it
   if (e.newVal !== e.oldVal && direction === 'forward') {
     edges.push({ from: e.i, to: e.j, transitive: true });
-    opts.newEdges = [{ from: e.i, to: e.j }];
+    opts.buildStatic = true;
   }
 
+  // 3) draw the graph + highlight the three edges
   renderGraph(A, edges, opts);
+
+  // 4) draw the matrix cell + row/col highlight
   renderMatrix(matR, e.Rprev, { i: e.i, j: e.j, k: e.k });
 
-   // New
-// New
-commentBox.innerHTML = `
-  k = ${e.k} (Intermediate node is ${e.k}): Considering path from ${e.i} to ${e.j} going through ${e.k}.<br>
-  R[${e.i}][${e.j}] ∨ (R[${e.i}][${e.k}] ∧ R[${e.k}][${e.j}])<br>
-  ${e.oldVal} ∨ (${e.Rprev[e.i][e.k]} ∧ ${e.Rprev[e.k][e.j]}) ⇒ ${e.newVal}<br>
-  ${
-    e.oldVal === 0 && e.newVal === 0
-      ? `edge not found in R^${e.k}.`
-    : e.oldVal === 1 && e.newVal === 1
-      ? `edge already exists in R<sup>${e.k}</sup>.`
-    : `transitive edge added to R<sup>${e.k}</sup>.`
-  }
-`;
+  // 5) update your cell-comment exactly as before
+  commentBox.innerHTML = `
+      k=${e.k} (Intermediate node is ${e.k}): Considering path from ${e.i} to ${e.j} via ${e.k}.<br>
+   R[${e.i}][${e.j}] ∨ (R[${e.i}][${e.k}] ∧ R[${e.k}][${e.j}]) =
+    ${e.Rprev[e.i][e.j]} ∨  (${e.Rprev[e.i][e.k]} ∧ ${e.Rprev[e.k][e.j]}) = ${e.newVal}<br>
+         ${ e.newVal === 1
+         ? (e.oldVal === 1
+             ? 'Path already existed.'
+             : 'Transitive path was found.')
+         : 'No path exists.'}
+  `;
 
-
-
-    prevBtn.disabled = false;
-    nextBtn.disabled = false;
-  }
- else if (e.type === 'afterK') {
-  renderGraph(A, edges, { node: e.k });
-  renderMatrix(matR, e.R, { changed: e.changed });
-  const n = A.length;
-   if (e.k < n - 1) {
-  commentBox.innerHTML = 
-      `Computing R<sup>${e.k+2}</sup> using R<sup>${e.k+1}</sup>,considering intermediate vertices 
-    involving ${e.k+1}`;
-   }
-  // ← make sure you can always step forward again
   prevBtn.disabled = false;
   nextBtn.disabled = false;
   playBtn.disabled = false;
 }
+
+else if (e.type === 'afterK') {
+  // 1) highlight this node
+  renderGraph(A, edges, { node: e.k });
+
+  // 2) show the batch of changed cells
+  renderMatrix(matR, e.R, { changed: e.changed });
+
+  // 3) prepare the comment for the *next* k, if any
+  if (e.k < A.length - 1) {
+    commentBox.innerHTML =
+      `Computing R<sup>${e.k + 2}</sup> using R<sup>${e.k + 1}</sup>, `
+      + `considering intermediate vertices involving ${e.k + 1}`;
+  }
+
+  prevBtn.disabled = false;
+  nextBtn.disabled = false;
+  playBtn.disabled = false;
+}
+
+
+
 // New
 else if (e.type === 'done') {
   renderGraph(A, edges);
   renderMatrix(matR, e.R);
 
-  // explicitly show R^n
   updateTheme(
-    '#fde2e2',            // keep your pink fill
-    '#e63946',            // keep your red stroke
-    'rgba(198,219,239,0.7)', // keep your matrix bg
-    A.length              // ← n, not n-1
+    '#fde2e2',            // fill
+    'black',              // ← remain black
+    'rgba(198,219,239,0.7)', 
+    A.length              
   );
 
   commentBox.textContent = 'Done! Transitive closure computed.';
@@ -724,6 +775,7 @@ else if (e.type === 'done') {
   nextBtn.disabled = true;
   playBtn.disabled = true;
 }
+
 
 }
 
@@ -743,38 +795,43 @@ else if (e.type === 'done') {
     playBtn.textContent = 'Play';
     // ← apply red theme immediately
     updateTheme(
-      '#fde2e2',            // graph fill (light-pink)
-      '#e63946',            // graph stroke (dark-red)
-      'rgba(198,219,239,0.7)', // matrix bg (soft-blue)
-      0                     // initial k value
-    );
+    '#fde2e2',    // graph fill
+    'black',      // graph stroke ← now your base edges will be black
+    'rgba(198,219,239,0.7)',
+    0
+  );
     rebuild();
   });
 
 
   // ─── New nextBtn handler ─────────────────────────────────────────────────────
+// New nextBtn handler – show every cell step exactly like Warshall Demo
 nextBtn.addEventListener('click', () => {
   direction = 'forward';
-    if (ptr < events.length - 1) {
-    // move forward one event...
+
+  if (ptr < events.length - 1) {
     ptr++;
-    // …but if that event is the final afterK (k === n-1) with no comment, skip it straight to done
     const peek = events[ptr];
+    // only skip the final afterK ⟶ done transition
     if (peek.type === 'afterK' && peek.k === A.length - 1) {
       ptr++;
     }
   } else {
-    ptr = 0;
+    ptr = 0;  // wrap back to start
   }
+
   const e = events[ptr];
   if (e.type !== 'done') {
     const kVal = (e.k !== undefined)
       ? (e.type === 'afterK' ? e.k + 1 : e.k)
       : 0;
-    updateTheme('#fde2e2','#e63946','rgba(198,219,239,0.7)', kVal);
+    // keep your black stroke here
+    updateTheme('#fde2e2', 'black', 'rgba(198,219,239,0.7)', kVal);
   }
+
   rebuild();
 });
+
 
  // Prev button (skip the final “done” event)
  prevBtn.addEventListener('click', () => {
@@ -801,7 +858,14 @@ nextBtn.addEventListener('click', () => {
    const kVal = (e.k !== undefined)
      ? (e.type === 'afterK' ? e.k + 1 : e.k)
      : 0;
-   updateTheme('#fde2e2', '#e63946', 'rgba(198,219,239,0.7)', kVal);
+   // NEW: base edges will now draw in black
+    updateTheme(
+      '#fde2e2',
+      'black',
+      'rgba(198,219,239,0.7)',
+      kVal
+    );
+
    rebuild();
  });
 
@@ -818,7 +882,7 @@ nextBtn.addEventListener('click', () => {
               const kVal = (e.k !== undefined)
                 ? (e.type === 'afterK' ? e.k + 1 : e.k)
                 : 0;
-              updateTheme('#fde2e2', '#e63946', 'rgba(198,219,239,0.7)', kVal);
+              updateTheme('#fde2e2', 'black', 'rgba(198,219,239,0.7)', kVal);
             }
             rebuild();
           } else {

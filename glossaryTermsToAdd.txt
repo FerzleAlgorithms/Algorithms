@@ -28,3 +28,6 @@ Space-Time Tradeoff
 Linear Probing
 Quadratic Probing
 Double Hashing
+N-Queens Problem
+Subset-Sum 
+Hamiltonian Path, Hamiltonian Paths
