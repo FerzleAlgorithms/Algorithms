@@ -4,48 +4,12 @@
 <head>
   <meta charset="UTF-8">
   <title>Matrix Multiplication Demo</title>
-  <script src="../../../scripts/demoScripts.js"></script>
-  <link rel="stylesheet" href="../../../css/style.css">
-  <link rel="stylesheet" href="../../../css/demo.css">
+  <script src="/Algorithms/scripts/demoScripts.js"></script>
+  <link rel="stylesheet" href="/Algorithms/css/style.css">
+  <link rel="stylesheet" href="/Algorithms/css/demo.css">
 
 
 <style>
-  /* style.css (≈150 lines) */
-body {
-  background: #f5f5f5;
-  font-family: 'Segoe UI', sans-serif;
-  margin: 0;
-  padding: 0;
-}
-.demo-container {
-  /* remove fixed width / centering */
-  width: auto;        /* let it size to its contents */
-  max-width: none;
-  
-
-  /* shove it to the left instead of centering */
- margin: 2em 0 2em 2em;  /* top 0 bottom 2em, left 2em, right 0 */
-
-  /* completely remove the white “card” look */
-  background: transparent;
-  padding: 0;
-  border-radius: 0;
-  box-shadow: none;
-}
-
-h2 {
-  text-align: left;
-  margin-bottom: 1em;
-}
-
-/* New */
-.controls {
-  display: flex;
-  flex-direction: row;       /* ← put them side by side */
-  align-items: center;       /* ← vertically center all buttons/labels */
-  gap: 1.5em;                /* ← a bit more breathing room */
-  margin-bottom: 1.25em;
-}
 .input-row, .step-controls {
   display: flex;
   align-items: center;
@@ -56,26 +20,11 @@ h2 {
   font-size: 0.9em;
   color: #666;
 }
-.step-controls button, .input-row button, .step-controls select {
-  padding: 0.4em 0.8em;
-  border: 1px solid #888;
-  background: #eee;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-.step-controls button:disabled, .input-row button:disabled {
-  opacity: 0.5;
-  cursor: default;
-}
-.step-controls button:hover:not(:disabled), .input-row button:hover:not(:disabled) {
-  background: #ddd;
-}
-
 
 .legend-box.a { background: #d0e7ff; }
 .legend-box.b { background: #ffd0d0; }
 .legend-box.res { background: #d0ffd0; }
+
 .matrix-panel {
   display: flex;
   flex-direction: column;
@@ -198,27 +147,30 @@ h2 {
           <input id="dim-input" type="number" min="1" max="8" value="4">
           <span>(1–8)</span>
         </label>
-        <button id="gen-btn">Generate</button>
+        <button id="generate">Generate</button>
       </div>
-      <div class="step-controls">
-      <button id="prev-btn" disabled>Previous</button>
-      <button id="next-btn" disabled>Next</button>
-      <label for="speed-select">Speed:
-        <select id="speed-select">
+      <br>
+      
+     <div id="buttons" style="margin:10px 0;">
+      <button id="prev" disabled>Previous</button>
+      <button id="next" disabled>Next</button>
+      <button id="play" disabled>Play</button>
+      <label for="speed">Speed:
+        <select id="speed">
           <option value="1">1×</option>
           <option value="2">2×</option>
           <option value="4">4×</option>
-        </select
+        </select>
       </label>
-      <button id="play-btn" disabled>Play</button>
     </div>
     </div>
 
     <!-- Legend -->
-    <div class="legend">
-      <div class="legend-item"><span class="legend-box a"></span>Matrix A</div>
-      <div class="legend-item"><span class="legend-box b"></span>Matrix B</div>
-      <div class="legend-item"><span class="legend-box res"></span>Result</div>
+    <div class="legend" id="legend">
+    <strong>Legend:</strong>
+    <span class="legend-box a"></span> Matrix A
+      <span class="legend-box b"></span> Matrix B
+      <span class="legend-box res"></span> Result
     </div>
 
 
@@ -270,11 +222,11 @@ let lastDirection = 'next';
 
 
   const dimInput    = document.getElementById('dim-input');
-  const genBtn      = document.getElementById('gen-btn');
-  const prevBtn     = document.getElementById('prev-btn');
-  const nextBtn     = document.getElementById('next-btn');
-  const playBtn     = document.getElementById('play-btn');
-  const speedSelect = document.getElementById('speed-select');
+  const genBtn      = document.getElementById('generate');
+  const prevBtn     = document.getElementById('prev');
+  const nextBtn     = document.getElementById('next');
+  const playBtn     = document.getElementById('play');
+  const speedSelect = document.getElementById('speed');
   const matA        = document.getElementById('matrix-a');
   const matB        = document.getElementById('matrix-b');
   const matR        = document.getElementById('matrix-res');

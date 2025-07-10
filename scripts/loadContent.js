@@ -31,7 +31,8 @@ const ALGORITHMS_ORDER = [
   'Greedy Algorithms',
   'Dynamic Programming',
   'Space-Time Tradeoff',
-  'Backtracking'
+  'Backtracking',
+  'Randomized'
 ];
 // For "Demos", we just mirror the same order as the algorithm names:
 const DEMOS_ORDER = [...ALGORITHMS_ORDER];

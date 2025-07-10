@@ -120,9 +120,15 @@
       "Greedy": [
         "Fractional Knapsack Demo.html",
         "Huffman Encoding Demo.html",
+        "Interval Scheduling Demo.html",
         "Kruskals Algorithm Demo.html",
         "Merge Demo.html",
         "Prims Algorithm Demo.html"
+      ]
+    },
+    {
+      "Randomized": [
+        "BogoSort Demo.html"
       ]
     },
     {
