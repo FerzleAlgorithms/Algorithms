@@ -22,15 +22,13 @@
       position: absolute;
       height: 24px;
       line-height: 24px;
-      color: white;
+      color: black;
       padding: 0 4px;
       box-sizing: border-box;
       font-size: 0.9em;
       white-space: nowrap;
     }
-    .bar.default { background-color: #888; }
-    .bar.comparing { background-color: yellow; color: black; }
-    .bar.finished  { background-color: green; }
+    
     /* Axis labels */
     #timeAxis {
       position: relative;
@@ -128,6 +126,15 @@
     window.genSteps = function(intervals) {
       const steps = [];
       if (!intervals.length) return steps;
+	  
+	  
+  // Step 0: record the original, unsorted intervals
+  steps.push({
+    intervals: intervals.slice(),
+    selected: [],
+    current: null,
+    description: 'Initial list of intervals before sorting.'
+  });
 
       // Sort intervals by their finish times (earliest first)
       const sorted = intervals.slice().sort((a,b) => a[1] - b[1]);
@@ -170,43 +177,66 @@
       return steps;
     };
 
-    // Render a specific step with bars
     window.renderStep = function(steps, idx) {
-      const step = steps[idx];
-      const container = document.getElementById('intervals');
-      const axis = document.getElementById('timeAxis');
-      container.innerHTML = '';
-      axis.innerHTML = '';
-      if (!step) return;
+  const step      = steps[idx];
+  const container = document.getElementById('intervals');
+  const axis      = document.getElementById('timeAxis');
+  container.innerHTML = '';
+  axis.innerHTML      = '';
+  if (!step) return;
 
-      const ivs = step.intervals;
-      const width = 600;
-      const unit = width / 100;
+  const ivs   = step.intervals;
+  const width = 600;
 
-      // Draw time axis ticks with labels every 10 units
-      for (let t = 0; t <= 100; t += 10) {
-        const x = t * unit;
-        const tick = document.createElement('div'); tick.className = 'tick'; tick.style.left = x + 'px'; axis.appendChild(tick);
-        const label = document.createElement('div'); label.className = 'label'; label.style.left = x + 'px'; label.textContent = t; axis.appendChild(label);
-      }
+  // Compute min/max from your data:
+  const starts = ivs.map(iv => iv[0]);
+  const ends   = ivs.map(iv => iv[1]);
+  const minTime = Math.min(...starts);
+  const maxTime = Math.max(...ends);
+  const isDefault = (minTime === 0 && maxTime === 100);
 
-      // Draw each interval as a horizontal bar
-      ivs.forEach((iv, i) => {
-        const [s, e] = iv;
-        const bar = document.createElement('div');
-        // Color: green for selected, yellow for current consideration, grey otherwise
-        bar.className = 'bar ' + (step.selected.includes(i) ? 'finished'
-                     : step.current === i ? 'comparing' : 'default');
-        bar.style.left = (s * unit) + 'px';
-        bar.style.width = ((e - s) * unit) + 'px';
-        bar.style.top = (i * 30) + 'px';
-        bar.textContent = `${s}-${e}`;
-        container.appendChild(bar);
-      });
+  // Choose scale: custom if data != [0,100], else default
+  const range = isDefault ? 100 : (maxTime - minTime || 1);
+  const unit  = width / range;
 
-      // Update description with the current commentary
-      document.getElementById('description').textContent = step.description;
-    };
+  // Ticks every ~range/10 units
+  const rawStep = range / 10;
+  const stepSize = Math.max(1, Math.ceil(rawStep));
+  const tickStart = isDefault ? 0 : minTime;
+  const tickEnd   = isDefault ? 100 : maxTime;
+  for (let t = tickStart; t <= tickEnd; t += stepSize) {
+    const x = (t - tickStart) * unit;
+    const tick = document.createElement('div');
+    tick.className  = 'tick';
+    tick.style.left = x + 'px';
+    axis.appendChild(tick);
+
+    const label = document.createElement('div');
+    label.className  = 'label';
+    label.style.left = x + 'px';
+    label.textContent = t;
+    axis.appendChild(label);
+  }
+
+  ivs.forEach((iv, i) => {
+    const [s, e] = iv;
+    const bar = document.createElement('div');
+    bar.className = 'bar ' + (
+      step.selected.includes(i) ? 'finished' :
+      step.current === i          ? 'comparing' :
+                                     'default'
+    );
+    // If custom, offset by minTime; else, offset by 0
+    bar.style.left  = ((s - (isDefault ? 0 : minTime)) * unit) + 'px';
+    bar.style.width = ((e - s) * unit) + 'px';
+    bar.style.top   = (i * 30) + 'px';
+    bar.textContent = `${s}-${e}`;
+    container.appendChild(bar);
+  });
+
+  document.getElementById('description').textContent = step.description;
+};
+
 
     // Playback hooks
     document.addEventListener('DOMContentLoaded', () => {

@@ -4,9 +4,9 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <!-- You can keep or remove these if you have your own style sheets -->
-   <script src="../../scripts/demoScripts.js"></script>
-  <link rel="stylesheet" href="../../../css/style.css">
-  <link rel="stylesheet" href="../../../css/demo.css">
+ <script src="/Algorithms/scripts/demoScripts.js"></script>
+  <link rel="stylesheet" href="/Algorithms/css/style.css">
+  <link rel="stylesheet" href="/Algorithms/css/demo.css">
   <title>Bogo Sort Demo</title>
   <style>
     /* make the legend container lay out its items nicely */
@@ -58,10 +58,10 @@
   <!-- Controls -->
   <div id="controls">
     <label>Size:
-      <input type="number" id="size" min="1" max="12" value="5" />
+      <input type="number" id="size" min="1" max="10" value="5" />
     </label>
     <button id="generate">Random Array</button>
-    <input type="text" id="arrayInput" placeholder="Custom (e.g. 3,1,4,1)" size="20" />
+    <input type="text" id="arrayInput" placeholder="Custom (e.g. 3,1,4,1)" size="20" max="10" />
     <button id="useCustom">Use Custom Array</button>
   </div>
 
@@ -103,20 +103,38 @@
     // — Demo logic hooks —
     //
     window.onGenerate = isCustom => {
-      if (!isCustom) {
-        let n = parseInt(size.value, 10);
-        if (isNaN(n) || n < 1 ) n = 5;
-        else if (n > 11) n =11;
-        const arr = Array.from({length:n},()=>Math.floor(Math.random()*100));
-        arrayInput.value = arr.join(',');
-        return arr;
-      } else {
-        return arrayInput.value
-          .split(',')
-          .map(x=>parseInt(x.trim(),10))
-          .filter(x=>!isNaN(x));
-      }
-    };
+  // 1) Declare `arr` in the outer scope so it’s available everywhere:
+  let arr;
+
+  if (!isCustom) {
+    // 2) Parse and clamp the requested size to [1…10]
+    let n = parseInt(size.value, 10);
+    if (isNaN(n) || n < 1)      n = 5;
+    else if (n > 10)            n = 10;
+
+    // 3) Generate `n` random integers [0…99]
+    arr = Array.from({ length: n }, () => Math.floor(Math.random() * 100));
+
+    // 4) Update the input for the user
+    arrayInput.value = arr.join(',');
+  } else {
+    // 5) Parse the custom CSV, filtering out non-numbers
+    arr = arrayInput.value
+      .split(',')
+      .map(x => parseInt(x.trim(), 10))
+      .filter(x => !isNaN(x));
+  }
+
+  // 6) Enforce a hard cap of 10 elements, slicing if needed
+  if (arr.length > 10) {
+    arr = arr.slice(0, 10);
+    arrayInput.value = arr.join(',');
+  }
+
+  // 7) Return the final array
+  return arr;
+};
+
 
     window.genSteps = arr => {
       const steps = [], a = arr.slice();
