@@ -1,0 +1,846 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>BFS Demo</title>
+  <!-- Reuse your existing CSS -->
+  <script src="../../scripts/demoScripts.js"></script>
+  <link rel="stylesheet" href="../../css/style.css">
+  <link rel="stylesheet" href="../../css/demo.css">
+
+
+  <style>
+
+    
+    /* ── BFS Demo Custom Styles ── */
+    .graphNode circle {
+      fill: lightblue;
+      stroke: #444;
+      stroke-width: 1px;
+    }
+    .graphNode text {
+      font-size: 14px;
+      text-anchor: middle;
+      dominant-baseline: middle;
+      fill: #202020;
+    }
+    .graphNode.visited circle {
+      fill: lightgreen;
+    }
+    .graphNode.current circle {
+      fill: orange;
+      stroke-width: 2.5px;
+    }
+    
+  
+    /* Queue & Visited display */
+   #structures {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 10px 0;
+  font-family: sans-serif;
+
+  /* reserve enough room so #commentary never shifts */
+  min-height: 60px;    /* or whatever total height (px) you want to lock in */
+}
+
+
+    #structures div {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    /* add into your <style> or demo.css */
+
+.legend-box.default { background: lightblue; }
+.legend-box.current { background: orange; }
+.legend-box.visited { background: lightgreen; }
+.legend-label { margin-right: 12px; font-size: 14px; }
+
+/* ── Queue as linked list of SVG nodes ── */
+/* 1) Let each <svg class="queueNode"> size itself by its width/height attrs */
+.queueNode {
+  margin: 0 4px;       /* just give a little breathing room */
+  flex: 0 0 auto;      /* never shrink or grow */
+}
+
+/* arrows are inline text, keep them from flexing */
+.queue-arrow {
+  margin: 0 4px;
+  flex: 0 0 auto;
+}
+
+/* 2) Wrap only the queue items in a scrollable box */
+#queue {
+  display: inline-flex;    /* make the <span id="queue"> a flex container */
+  align-items: center;
+  overflow-x: auto;        /* scroll if too wide */
+  white-space: nowrap;
+  max-width: 550px;        /* ← adjust to your SVG width (600px) minus label/margins */
+}
+
+/* ── Visi
+ted set container ── */
+.set-container {
+  display: inline-flex;
+  align-items: center;
+  background: #16c1b8;
+  padding: 5px 8px;
+  border-radius: 4px;
+  /* remove the left‐margin that was indenting it */
+  /* margin-left: 12px; */
+  /* and prevent it from stretching full-width: */
+  align-self: flex-start;
+}
+
+.set-brace {
+  font-size: 24px;
+  margin: 0 4px;
+}
+/* Visited elements styled like nodes */
+.setNode {
+  width: 40px;
+  height: 40px;
+  line-height: 40px;
+  text-align: center;
+  background: lightgreen;
+  border: 1px solid #444;
+  border-radius: 50%;
+  margin: 0 4px;
+  font-size: 16px;
+  display: inline-block;
+}
+
+
+#queue-container {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  align-items: center;
+  column-gap: 8px;
+
+  /* reserve the full slot height so “Queue:” never moves */
+  height: 60px; 
+}
+
+
+
+/* New CSS additions */
+
+/* ── Prims-style vertex table ── */
+#state-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: sans-serif;
+}
+#state-table th,
+#state-table td {
+  border: 1px solid #ddd;
+  padding: 0.5em;
+  text-align: center;
+}
+#state-table th {
+  background: #f0f0f0;
+}
+
+.color-cell {
+  font-weight: bold;
+}
+/* match the graph’s lightblue, orange, lightgreen: */
+.color-cell.white { background: lightblue; color: #000; }
+.color-cell.gray  { background: orange;    color: #000; }
+.color-cell.black { background: lightgreen; color: #000; }
+
+/* wrap each panel and center its contents if needed */
+.panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* label styling over both graph and table */
+.panel h3 {
+  font-family: sans-serif;
+  font-size: 1.1em;
+  margin: 0 0 0.5em;
+  text-align: center;
+}
+
+/* Option A: target only the direct-child SVG */
+.graph-panel > svg {
+  background: #fff;
+  border: 1px solid #ccc;
+}
+
+/* Option B: target by the SVG’s ID */
+#svg {
+  background: #fff;
+  border: 1px solid #ccc;
+}
+
+.queueNode {
+  background: none;
+  border: none;
+}
+
+/* leave your .panel { align-items: center } alone, but make these two left-align */
+
+/* force the queue‐wrapper and commentary to align to the left edge */
+#structures,
+#commentary {
+  align-self: flex-start;
+  text-align: left;
+  width: 100%;                 /* fill the 600px container */
+  overflow-wrap: break-word;   /* wrap commentary text if it’s long */
+}
+
+
+
+/* after your .graphNode.visited and .graphNode.current rules */
+.graphNode.gray circle {
+  fill: orange;
+}
+
+
+/* ───────────────────────────────────────────────────────────────────── */
+/* 3. EDGES (ALL TYPES) */
+/* ───────────────────────────────────────────────────────────────────── */
+
+/* Any <line> under #svg is an edge—same styling for tree and graph */
+#svg line {
+  stroke: #888;
+  stroke-width: 1px;
+}
+
+/* ───────────────────────────────────────────────────────────────────── */
+/* HIGHLIGHTED BFS EDGES (only the dashed ones) */
+/* ───────────────────────────────────────────────────────────────────── */
+/* New */
+#svg line[stroke-dasharray] {
+  stroke: rgb(238, 232, 170) !important;
+  stroke-width: 4px !important;
+  stroke-dasharray: none !important;  /* force a solid line */
+}
+
+/* Clamp the graph‐side to exactly 600px so it never grows when the queue widens */
+.graph-panel {
+  width: 340px;        /* match your SVG */
+  box-sizing: border-box;
+}
+
+
+/* Make the queue‐container span the full panel width, so its grid
+   second column (your scrollable #queue) will simply scroll instead of
+   pushing the panel wider */
+#queue-container {
+  width: 100%;
+}
+
+/* outline the single table row being updated */
+.highlighted-row {
+  outline: 2px solid black;
+  /* or use border: 2px solid black; if you prefer */
+}
+
+.table-panel {
+  margin-left: 40px;  /* instead of using flex-gap */
+}
+
+
+  </style>
+</head>
+
+<body class="no-tooltips">
+  <h2>Breadth-First Search Demo</h2>
+
+  <!-- Step controls -->
+  <div id="controls">
+  <!-- 1) Graph size + generate graph immediately after -->
+  <label>
+    Graph Size:
+    <input id="graphSize" type="number" min="1" max="15" value="6" style="width:4em">
+  </label>
+  <button id="generateBtn">Generate Graph</button>
+
+  <!-- 2) Source node + its own button -->
+  <label>
+    Source Node:
+    <input id="sourceNode" type="number" min="0" max="14" value="0" style="width:4em">
+  </label>
+  <button id="generateSourceBtn">Generate Source</button>
+
+  <!-- 3) break before the traversal controls -->
+  <br>
+
+  <button id="prevBtn" disabled>Previous</button>
+  <button id="nextBtn" disabled>Next</button>
+  <button id="playBtn">Play</button>
+  <label for="speedSelect">Speed:</label>
+  <select id="speedSelect">
+    <option value="1">1×</option>
+    <option value="2">2×</option>
+    <option value="4">4×</option>
+  </select>
+</div>
+
+
+<script>
+  // after initializeDemo is defined, add:
+ // generate graph (as before)
+document.getElementById('generateBtn').addEventListener('click', () => {
+  const rawSize = parseInt(document.getElementById('graphSize').value, 10) || 6;
+  const n       = Math.min(15, Math.max(1, rawSize));
+  adjList = generateGraph(n);
+
+  // update source-input max
+  const srcInput = document.getElementById('sourceNode');
+  srcInput.max   = n - 1;
+
+  // build BFS from current source
+  const rawSrc = parseInt(srcInput.value, 10);
+  const start  = Math.min(n - 1, Math.max(0, isNaN(rawSrc) ? 0 : rawSrc));
+
+  srcInput.value = start;               // ← add this
+
+  steps = buildBfsSteps(adjList, start);
+  stepIndex = 0;
+  renderStep();
+});
+
+
+// new: regenerate BFS from an existing graph when source changes
+document.getElementById('generateSourceBtn').addEventListener('click', () => {
+  const srcInput = document.getElementById('sourceNode');
+  const rawSrc   = parseInt(srcInput.value, 10);
+  const start    = Math.min(adjList.length - 1, Math.max(0, isNaN(rawSrc) ? 0 : rawSrc));
+
+  srcInput.value = start;               // ← add this
+
+  // rebuild BFS without regenerating the graph
+  steps = buildBfsSteps(adjList, start);
+  stepIndex = 0;
+  renderStep();
+});
+
+
+
+</script>
+
+  <!-- Legend -->
+ <div class="legend">
+  <strong>Legend:</strong>
+  <span class="legend-box default"></span><span class="legend-label">Unvisited</span>
+  <span class="legend-box current"></span><span class="legend-label">Visited</span>
+  <span class="legend-box visited"></span><span class="legend-label">All Neighbors Visted</span>
+</div>
+
+  <!-- Graph drawing area -->
+    <!-- remove the standalone SVG and the old #structures div entirely -->
+
+<!-- New -->
+<div id="main-container" style="display:flex; align-items:flex-start; gap:20px;">
+
+  <!-- Graph Panel -->
+  <div class="panel graph-panel">
+    <h3>Graph</h3>
+    <!-- wrap the <g> layers _inside_ the svg -->
+    <svg id="svg" width="400" height="400" preserveAspectRatio="xMinYMin meet">
+      <g id="linkLayer"></g>
+      <g id="nodeLayer"></g>
+    </svg>
+
+
+    <!-- Queue + Commentary inside Graph panel -->
+    <div id="structures">
+      <div id="queue-container">
+        <strong>Queue:</strong> <span id="queue"></span>
+      </div>
+    </div>
+
+    <div id="commentary"></div>
+  </div>  <!-- end .graph-panel -->
+
+  <!-- State Table Panel stays where it is -->
+  <div class="panel table-panel">
+    <h3>Vertex Table</h3>
+    <table id="state-table">
+      <thead>
+        <tr>
+          <th>v</th>
+          <th>neighbors</th>
+          <th>d</th>
+          <th>p</th>
+          <th>color</th>
+        </tr>
+      </thead>
+      <tbody id="state-table-body"></tbody>
+    </table>
+  </div>
+
+</div> <!-- end #main-container -->
+
+
+  <script>
+    // ── JavaScript for BFS Demo ──
+    // ── JavaScript for BFS Demo ──
+const width  = 400,
+      height = 400,
+      radius = 20;
+const centerX = width  / 2,
+      centerY = height / 2,
+      circleR = 150;   // you can leave this if you still want 150px node‐orbit radius
+
+    let adjList, steps, stepIndex = 0;
+
+    // Generate a random connected graph of n nodes
+    function generateGraph(n) {
+      const adj = Array.from({ length: n }, () => []);
+      // 1) Ensure a spanning tree (chain)
+      for (let i = 0; i < n - 1; i++) {
+        adj[i].push(i+1);
+        adj[i+1].push(i);
+      }
+      // 2) Add extra random edges
+      for (let i = 0; i < n; i++) {
+        for (let j = i + 2; j < n; j++) {
+          if (Math.random() < 0.3) {
+            adj[i].push(j);
+            adj[j].push(i);
+          }
+        }
+      }
+      return adj;
+    }
+
+    // Build the step-by-step event list for BFS from start=0
+    // New buildBfsSteps
+// ── 1) buildBfsSteps ──
+function buildBfsSteps(adj, start) {
+  const events = [];
+  const n = adj.length;
+
+  // initialize
+  const color = Array(n).fill('white');
+  const d     = Array(n).fill(Infinity);
+  const p     = Array(n).fill(null);
+
+  color[start] = 'gray';
+  d[start]     = 0;
+
+  const queue = [ start ];
+  events.push({
+    desc: `Initialize BFS with source = ${start}`,
+    color: color.slice(),
+    d:     d.slice(),
+    p:     p.slice(),
+    queue: queue.slice(),
+    current: null
+  });
+
+  while (queue.length > 0) {
+    const u = queue.shift();
+
+    // prepare a mutable list of u’s edges
+    let pendingEdges = adj[u].map(v => ({ from: u, to: v }));
+
+    // ① Dequeue step: highlight *all* of u’s edges
+    events.push({
+      desc: `Dequeue node ${u}; traversing all of ${u}’s neighbors…`,
+      color: color.slice(),
+      d:     d.slice(),
+      p:     p.slice(),
+      queue: queue.slice(),
+      current: u,
+      highlightEdges: pendingEdges.slice()
+    });
+
+    // ② For each neighbor...
+    for (const v of adj[u]) {
+  // 1) remove the u→v edge so it disappears in *every* event
+  pendingEdges = pendingEdges.filter(e => !(e.from === u && e.to === v));
+
+  // 2) decide what to do & how to describe it
+  let desc;
+  if (color[v] === 'white') {
+  color[v] = 'gray';
+  d[v]     = d[u] + 1;
+  p[v]     = u;
+  queue.push(v);
+  desc = `Checked neighbor ${v} of node ${u}: said node was unvisted (blue), so we visit it (orange), enqueue, and 
+ update the Vertex Table.`;
+  
+  events.push({
+    desc,
+    color:          color.slice(),
+    d:              d.slice(),
+    p:              p.slice(),
+    queue:          queue.slice(),
+    current:        u,
+    highlightEdges: pendingEdges.slice(),
+    updatedVertex:  v    // ← tag which row to outline
+  });
+  continue;  // skip the generic push below
+}
+  else if (color[v] === 'gray') {
+    // → ALREADY DISCOVERED
+    desc = `Checked neighbor ${v} of node ${u}: it’s already visited (orange), so skip.`;
+  }
+  else {
+    // color[v] === 'black'
+    // → ALREADY FINISHED
+    desc = `Checked neighbor ${v} of node ${u}: it’s already finished (green), so skip.`;
+  }
+
+  // 3) emit one event per edge, highlighting only the *remaining* edges
+  events.push({
+    desc,
+    color:          color.slice(),
+    d:              d.slice(),
+    p:              p.slice(),
+    queue:          queue.slice(),
+    current:        u,
+    highlightEdges: pendingEdges.slice()
+  });
+}
+
+
+    // ③ After all neighbors, finish u (clears all highlights)
+    color[u] = 'black';
+    events.push({
+      desc: `Traversed all of ${u}’s neighbors, node is colored green`,
+      color:    color.slice(),
+      d:        d.slice(),
+      p:        p.slice(),
+      queue:    queue.slice(),
+      current:  null
+      // no highlightEdges ⇒ linkLayer.innerHTML='' clears highlights
+    });
+  }
+
+  events.push({
+    desc: 'BFS complete',
+    color: color.slice(),
+    d:     d.slice(),
+    p:     p.slice(),
+    queue: queue.slice(),
+    current: null
+  });
+
+  return events;
+}
+
+
+
+    // Position nodes evenly around a circle
+    function computeNodePosition(i, n) {
+      const angle = 2 * Math.PI * i / n - Math.PI / 2;
+      return {
+        x: centerX + circleR * Math.cos(angle),
+        y: centerY + circleR * Math.sin(angle)
+      };
+    }
+
+    // Render the current step
+   function renderStep() {
+  const ev = steps[stepIndex];
+
+  // 1) update the commentary text
+  document.getElementById('commentary').textContent = ev.desc;
+
+  // 2) redraw graph
+  renderGraph(ev);
+
+  // 3) redraw queue right under the graph
+  renderQueue(ev);
+
+  // 4) rebuild the state table
+  renderTable(ev);
+
+  // 5) update Prev/Next buttons
+  updateButtons();
+}
+
+
+
+    // Draw nodes & edges, coloring by visited/current status
+  function renderGraph(ev) {
+  const svgNS     = 'http://www.w3.org/2000/svg';
+  const linkLayer = document.getElementById('linkLayer');
+  const nodeLayer = document.getElementById('nodeLayer');
+
+  // 1) clear out previous content
+  linkLayer.innerHTML = '';
+  nodeLayer.innerHTML = '';
+
+  // 2) draw the base edges in black
+  adjList.forEach((nbrs, i) => {
+    nbrs.forEach(j => {
+      const p1   = computeNodePosition(i, adjList.length);
+      const p2   = computeNodePosition(j, adjList.length);
+      const edge = document.createElementNS(svgNS, 'line');
+      edge.setAttribute('x1', p1.x);
+      edge.setAttribute('y1', p1.y);
+      edge.setAttribute('x2', p2.x);
+      edge.setAttribute('y2', p2.y);
+      edge.setAttribute('stroke', '#000');
+      edge.setAttribute('stroke-width', '2');
+      linkLayer.appendChild(edge);
+    });
+  });
+
+  // 3) overlay highlightEdges in yellow dashed
+  if (ev.highlightEdges) {
+    ev.highlightEdges.forEach(({ from, to }) => {
+      const p1 = computeNodePosition(from, adjList.length);
+      const p2 = computeNodePosition(to,   adjList.length);
+      const hl = document.createElementNS(svgNS, 'line');
+      hl.setAttribute('x1', p1.x);
+      hl.setAttribute('y1', p1.y);
+      hl.setAttribute('x2', p2.x);
+      hl.setAttribute('y2', p2.y);
+      hl.setAttribute('stroke', 'yellow');       // ← yellow highlight
+      hl.setAttribute('stroke-width', '4');
+      hl.setAttribute('stroke-dasharray', '6 4');
+      linkLayer.appendChild(hl);
+    });
+  }
+
+  // 4) draw the nodes
+  ev.color.forEach((col, i) => {
+    const pos    = computeNodePosition(i, adjList.length);
+    const g      = document.createElementNS(svgNS, 'g');
+    g.classList.add('graphNode', col);
+    if (ev.current === i)    g.classList.add('current');
+    else if (col === 'black') g.classList.add('visited');
+
+    // circle fill based on col
+    const circle = document.createElementNS(svgNS, 'circle');
+    circle.setAttribute('cx', pos.x);
+    circle.setAttribute('cy', pos.y);
+    circle.setAttribute('r', 20);
+    circle.setAttribute('fill', col === 'white' ? 'lightblue'
+                             : col === 'gray'  ? 'orange'
+                             :                   'lightgreen');
+    circle.setAttribute('stroke', '#444');
+    circle.setAttribute('stroke-width', '2');
+    g.appendChild(circle);
+
+    // label
+    const text = document.createElementNS(svgNS, 'text');
+    text.setAttribute('x', pos.x);
+    text.setAttribute('y', pos.y + 4);
+    text.setAttribute('text-anchor', 'middle');
+    text.setAttribute('dominant-baseline', 'middle');
+    text.setAttribute('font-size', '16');
+    text.textContent = i;
+    g.appendChild(text);
+
+    nodeLayer.appendChild(g);
+  });
+}
+
+
+    // New helper (place anywhere in your <script> block)
+// ── 2) renderGraph ──
+function renderGraph(ev) {
+  const svgNS     = 'http://www.w3.org/2000/svg';
+  const linkLayer = document.getElementById('linkLayer');
+  const nodeLayer = document.getElementById('nodeLayer');
+
+  // clear out everything
+  linkLayer.innerHTML = '';
+  nodeLayer.innerHTML = '';
+
+  // draw the static base edges first
+  adjList.forEach((nbrs, i) => {
+    nbrs.forEach(j => {
+      const p1 = computeNodePosition(i, adjList.length);
+      const p2 = computeNodePosition(j, adjList.length);
+      const L  = document.createElementNS(svgNS, 'line');
+      L.setAttribute('x1', p1.x);
+      L.setAttribute('y1', p1.y);
+      L.setAttribute('x2', p2.x);
+      L.setAttribute('y2', p2.y);
+      L.setAttribute('stroke', '#000');
+      L.setAttribute('stroke-width', '2');
+      linkLayer.appendChild(L);
+    });
+  });
+
+  // draw only this event’s highlightEdges (over the top)
+  if (ev.highlightEdges) {
+    ev.highlightEdges.forEach(({ from, to }) => {
+      const p1 = computeNodePosition(from, adjList.length);
+      const p2 = computeNodePosition(to,   adjList.length);
+      const H  = document.createElementNS(svgNS, 'line');
+      H.setAttribute('x1', p1.x);
+      H.setAttribute('y1', p1.y);
+      H.setAttribute('x2', p2.x);
+      H.setAttribute('y2', p2.y);
+      H.setAttribute('stroke', 'yellow');
+      H.setAttribute('stroke-width', '4');
+      H.setAttribute('stroke-dasharray', '6 4');
+      linkLayer.appendChild(H);
+    });
+  }
+
+  // draw nodes as before
+  ev.color.forEach((col, i) => {
+    const pos = computeNodePosition(i, adjList.length);
+    const g   = document.createElementNS(svgNS, 'g');
+    g.classList.add('graphNode', col);
+    if (ev.current === i)    g.classList.add('current');
+    else if (col === 'black') g.classList.add('visited');
+
+    // circle
+    const circ = document.createElementNS(svgNS, 'circle');
+    circ.setAttribute('cx', pos.x);
+    circ.setAttribute('cy', pos.y);
+    circ.setAttribute('r', 20);
+    const fill = col === 'white'
+               ? 'lightblue'
+               : col === 'gray'
+                 ? 'orange'
+                 : 'lightgreen';
+    circ.setAttribute('fill', fill);
+    circ.setAttribute('stroke', '#444');
+    circ.setAttribute('stroke-width', '2');
+    g.appendChild(circ);
+
+    // label
+    const txt = document.createElementNS(svgNS, 'text');
+    txt.setAttribute('x', pos.x);
+    txt.setAttribute('y', pos.y + 4);
+    txt.setAttribute('text-anchor', 'middle');
+    txt.setAttribute('dominant-baseline', 'middle');
+    txt.setAttribute('font-size', '16');
+    txt.textContent = i;
+    g.appendChild(txt);
+
+    nodeLayer.appendChild(g);
+  });
+}
+
+
+function renderQueue(ev) {
+  const queueEl = document.getElementById('queue');
+  queueEl.innerHTML = '';
+  ev.queue.forEach((node, i) => {
+    queueEl.insertAdjacentHTML('beforeend', `
+      <svg class="queueNode" width="40" height="40" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="20" cy="20" r="18" fill="lightblue" stroke="#444" stroke-width="2"/>
+        <text x="20" y="24" text-anchor="middle" dominant-baseline="middle" font-size="16">${node}</text>
+      </svg>
+    `);
+    if (i < ev.queue.length - 1) {
+      queueEl.insertAdjacentHTML('beforeend', '<span class="queue-arrow">→</span>');
+    }
+  });
+}
+
+// ── Render the right‐hand state table ──
+function renderTable(ev) {
+  const tbody = document.getElementById('state-table-body');
+  tbody.innerHTML = '';
+  const displayMap = { white:'blue', gray:'orange', black:'green' };
+  
+  ev.color.forEach((col, i) => {
+    const tr = document.createElement('tr');
+    // highlight if this was the updated vertex
+    if (ev.updatedVertex === i) {
+      tr.classList.add('highlighted-row');
+    }
+    
+    const displayText = displayMap[col] || col;
+    tr.innerHTML = `
+      <td>${i}</td>
+      <td>${adjList[i].join(', ')}</td>
+      <td>${ev.d[i] === Infinity ? '∞' : ev.d[i]}</td>
+      <td>${ev.p[i] === null ? 'NIL' : ev.p[i]}</td>
+      <td class="color-cell ${col}">${displayText}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+
+
+    // Step controls
+    function nextStep() {
+      if (stepIndex < steps.length - 1) {
+        stepIndex++;
+        renderStep();
+      }
+    }
+    function prevStep() {
+      if (stepIndex > 0) {
+        stepIndex--;
+        renderStep();
+      }
+    }
+    function updateButtons() {
+      document.getElementById('prevBtn').disabled = stepIndex === 0;
+      document.getElementById('nextBtn').disabled = stepIndex === steps.length - 1;
+    }
+
+    // Initialize on page load
+    function initializeDemo() {
+        adjList = generateGraph(6);                // graph size = 6
+
+        // initialize source-input to valid range [0,5]
+        const srcInput = document.getElementById('sourceNode');
+        srcInput.max = adjList.length - 1;
+        const rawSrc = parseInt(srcInput.value, 10);
+        const start  = Math.min(adjList.length - 1,
+                        Math.max(0, isNaN(rawSrc) ? 0 : rawSrc));
+  steps   = buildBfsSteps(adjList, start);
+      stepIndex = 0;
+      document.getElementById('prevBtn').addEventListener('click', prevStep);
+      document.getElementById('nextBtn').addEventListener('click', nextStep);
+      renderStep();
+    }
+
+    // — Playback controls for BFS demo —
+
+let timer = null;
+const playBtn      = document.getElementById('playBtn');
+const speedSelect  = document.getElementById('speedSelect');
+
+// toggle Play/Pause
+playBtn.addEventListener('click', () => {
+  if (timer) {
+    clearInterval(timer);
+    timer = null;
+    playBtn.textContent = 'Play';
+  } else {
+    playBtn.textContent = 'Pause';
+    timer = setInterval(() => {
+      if (stepIndex < steps.length - 1) nextStep();
+      else {
+        clearInterval(timer);
+        playBtn.textContent = 'Play';
+      }
+    }, 1000 / parseInt(speedSelect.value, 10));
+  }
+});
+
+// if you change speed while playing, restart at new rate
+speedSelect.addEventListener('change', () => {
+  if (timer) {
+    clearInterval(timer);
+    playBtn.textContent = 'Pause'; // still playing
+    timer = setInterval(() => {
+      if (stepIndex < steps.length - 1) nextStep();
+      else {
+        clearInterval(timer);
+        playBtn.textContent = 'Play';
+      }
+    }, 1000 / parseInt(speedSelect.value, 10));
+  }
+});
+
+
+    window.onload = initializeDemo;
+  </script>
+</body>
+</html>
