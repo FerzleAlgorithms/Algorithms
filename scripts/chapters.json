@@ -47,8 +47,7 @@
   "Demos": [
     {
       "Backtracking": [
-        "Subset Sum Demo.html",
-        "Subset Sum Old Demo.html"
+        "Subset Sum Demo.html"
       ]
     },
     {
@@ -112,6 +111,7 @@
     },
     {
       "Exhaustive Search": [
+        "BFS demo.html",
         "N-Queens Demo.html",
         "Subset Sum Demo.html"
       ]
@@ -199,6 +199,7 @@
       "Other": [
         "Fibonacci.html",
         "Interval Scheduling.html",
+        "N-Queens.html",
         "Optimal Character Encoding.html",
         "String Matching.html",
         "Subset Sum.html",

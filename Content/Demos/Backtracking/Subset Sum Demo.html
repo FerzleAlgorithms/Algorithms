@@ -4,15 +4,13 @@
   <meta charset="UTF-8"/>
   <script src="/Algorithms/scripts/demoScripts.js"></script>
   <link rel="stylesheet" href="/Algorithms/css/style.css">
-  <link rel="stylesheet" href="/Algorithms/css/demo.css">
+  <link rel="stylesheet" href="/Algorithms/css/demo.css?f=f">
   <title>Subset Sum Backtracking Tree with Playback</title>
   <style>
-  /* in demo.css — remove html,body {height:100%} entirely */
-
 #demo-wrapper {
   display: flex;
   flex-direction: column;
-  height: 100vh;       /* fill viewport height inside iframe */
+  min-height: 100vh;       /* fill viewport height inside iframe */
   margin: 0;           /* drop extra padding */
 }
 
@@ -21,12 +19,21 @@
 }
 
 #svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+/*
+#svg {
   flex: 1 1 auto;
   width: 100%;
   height: auto;
-  max-height: 100vw;   /* enforce height ≤ width */
+  max-height: 100vw;
   display: block;
 }
+*/
+
   
   </style>      
 </head>
@@ -37,11 +44,11 @@
     <label>Values: <input id="values" value="3,5,10,13,17"/></label>
     <label>Target: <input id="target" type="number" value="26"/></label>
     <button id="buildBtn">Build</button>
-
+    <br>
+    
     <!-- Original Prev/Next buttons (no change) -->
     <button id="prevBtn">Prev</button>
     <button id="nextBtn">Next</button>
-    <br>
 
     <!-- New Play/Pause button and Speed dropdown -->
     <button id="play">Play</button>
@@ -50,15 +57,18 @@
       <option value="1">1x</option>
       <option value="2">2x</option>
       <option value="4">4x</option>
+      <option value="87">8x</option>
     </select>
   </div>
-    
+
+    <div id="step-message"></div>
+
 <body>
   <div id="demo-wrapper">
-    <div id="controls1">…</div>
+    <div id="controls1"></div>
     <svg
       id="svg"
-      viewBox="0 0 1600 1200"
+      viewBox="0 0 1600 800"
       preserveAspectRatio="xMidYMid meet">
     </svg>
   </div>
@@ -67,11 +77,81 @@
 
 <script>
   let events = [], step = -1;
-  const settings = { hSpread:700, nodeFont:16, edgeFont:16, circleR:24 };
+  const settings = { hSpread:700, nodeFont:16, edgeFont:16, circleR:18 };
 
   // Copies of the tree at each event
   let nodes = [], edges = [], stateVals = [];
+function record(current, parent, message = '') {
+  events.push({
+    nodes: JSON.parse(JSON.stringify(nodes)),
+    edges: JSON.parse(JSON.stringify(edges)),
+    current,
+    vals: stateVals.slice(),
+    message
+  });
+}
+function dfs(i, sum, parent, x, y) {
+  const id = nodes.length;
+  const dead = sum > target;
+  const ok   = sum === target;
+  nodes.push({ id, sum, x, y, dead, ok, parent });
 
+  const action = parent === null
+    ? 'Start with empty set and sum 0'
+    : '';
+
+  if (parent != null) {
+    edges.push({
+      from: parent,
+      to:   id,
+      label: '+' + (sum - nodes[parent].sum)
+    });
+  }
+
+  let msg = '';
+  if (ok) {
+    msg = `Take ${stateVals[i-1]} → new sum: ${sum}. Found valid subset summing to target (${target})`;
+  } else if (dead) {
+    msg = `Take ${stateVals[i-1]} → new sum: ${sum}. Dead end (${sum} > ${target}). Backtrack.`;
+  } else if (parent === null) {
+    msg = action;
+  } else {
+    const val = stateVals[i - 1];
+    const included = sum !== nodes[parent].sum;
+    msg = included
+      ? `Take ${val} → new sum: ${sum}`
+      : `Skip  ${val} → sum remains ${sum}`;
+      /*: `Skip item ${stateVals[i]} → sum remains ${sum}`;*/
+      if(i===stateVals.length) {
+         msg += ". No more items. Backtrack.";
+      }
+  }
+
+  record(id, parent, msg);
+  if (dead || i >= stateVals.length || ok) return;
+
+  // Include current item
+  dfs(
+    i + 1,
+    sum + stateVals[i],
+    id,
+    x - settings.hSpread / Math.pow(2, y + 1),
+    y + 1
+  );
+  record(id, parent, `Backtrack (Done with ${stateVals[i]})`);
+
+  // Exclude current item
+  dfs(
+    i + 1,
+    sum,
+    id,
+    x + settings.hSpread / Math.pow(2, y + 1),
+    y + 1
+  );
+  record(id, parent, `Backtrack after skipping ${stateVals[i]}`);
+}
+
+/*
   function record(current, parent) {
     events.push({
       nodes: JSON.parse(JSON.stringify(nodes)),
@@ -79,8 +159,8 @@
       current,
       vals: stateVals.slice()
     });
-  }
-
+  }*/
+/*
   function dfs(i, sum, parent, x, y) {
     const id = nodes.length;
     const dead = sum > target;
@@ -116,7 +196,7 @@
       y + 1
     );
     record(id, parent);
-  }
+  }*/
 
   function build(preserve = false) {
     const oldStep = step;
@@ -133,7 +213,7 @@
     // Reset nodes/edges
     nodes = [];
     edges = [];
-    dfs(0, 0, null, 800, 0);
+    dfs(0, 0, null, 850, 0);
 
     if (preserve && oldStep >= 0) {
       step = Math.min(oldStep, events.length - 1);
@@ -156,8 +236,6 @@
       const t = document.createElementNS(svg.namespaceURI, 'text');
       t.setAttribute('x', 10);
       t.setAttribute('y', (i + 1) * 120 + 40);
-      // CSS now comes from demo.css:
-      //     .level-label { font-size: 14px; fill: #222; text-anchor: start; }
       t.setAttribute('class', 'level-label');
       t.textContent = 'val[' + i + '] = ' + v;
       svg.appendChild(t);
@@ -174,19 +252,45 @@
       L.setAttribute('y1', a.y * 120 + 40);
       L.setAttribute('x2', b.x);
       L.setAttribute('y2', b.y * 120 + 40);
-      // Edge stroke & label styling come from demo.css:
-      //     #svg line { stroke: #888; stroke-width: 1px; }
       svg.appendChild(L);
 
-      const t = document.createElementNS(svg.namespaceURI, 'text');
-      t.setAttribute('x', (a.x + b.x) / 2);
-      t.setAttribute('y', ((a.y + b.y) / 2) * 120 + 35);
-      // Font-size, text-anchor, fill, etc., now in demo.css
-      t.setAttribute('font-size', settings.edgeFont);
-      t.setAttribute('text-anchor', 'middle');
-      t.setAttribute('dominant-baseline', 'middle');
-      t.textContent = e.label;
-      svg.appendChild(t);
+
+      // Determine if left or right child
+      const isLeft = b.x < a.x;
+      
+      if(isLeft) {
+          const label = document.createElementNS(svg.namespaceURI, 'text');
+    
+          // Compute vector from a → b
+          const dx = b.x - a.x;
+          const dy = (b.y - a.y) * 120;
+          
+          // Midpoint of the line
+          let midX = (a.x + b.x) / 2;
+          let midY = ((a.y + b.y) / 2) * 120 + 40;
+          
+          // Normalize direction vector
+          const len = Math.hypot(dx, dy);
+          const normX = dx / len;
+          const normY = dy / len;
+          
+          // Perpendicular unit vector (90° CCW)
+          let offsetX = -normY;
+          let offsetY = normX;
+          
+          // Apply offset
+          const offsetAmount = 30;  // tweak this to adjust spacing
+          const finalX = midX + offsetX * offsetAmount;
+          const finalY = midY + offsetY * offsetAmount;
+          
+          label.setAttribute('x', finalX);
+          label.setAttribute('y', finalY);
+          label.setAttribute('font-size', settings.edgeFont);
+          label.setAttribute('text-anchor', 'middle');
+          label.setAttribute('dominant-baseline', 'middle');
+          label.textContent = e.label;
+          svg.appendChild(label);
+      }
     });
 
     // 3) Draw nodes
@@ -218,6 +322,10 @@
 
       svg.appendChild(g);
     });
+    // 4) Display step message
+    const messageBox = document.getElementById('step-message');
+    messageBox.textContent = state.message || '';
+
   }
 
   function next() {

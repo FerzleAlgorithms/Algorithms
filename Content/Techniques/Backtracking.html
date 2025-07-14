@@ -9,6 +9,38 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github.min.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js"></script>
   <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <style>
+ <style>
+  .chessboard-wrapper {
+    display: inline-block;
+    border: 1px solid #888;
+    margin-top: 0.5em;
+  }
+
+  .chessboard {
+    border-collapse: collapse;
+    table-layout: fixed;
+  }
+
+  .chessboard td {
+    width: 2em;
+    height: 2em;
+    aspect-ratio: 1 / 1;
+    text-align: center;
+    vertical-align: middle;
+    font-weight: bold;
+    font-size: 1.2em;
+    font-color: 
+  }
+
+  .light {
+    background-color: #f8f4e6;
+  }
+
+  .dark {
+    background-color: #8b5a2b;
+  }
+</style>
 </head>
 <body>
   <h1>Backtracking</h1>
@@ -77,8 +109,9 @@
       src="/Algorithms/Content/Demos/Backtracking/Subset Sum Demo.html">
     </iframe>
   </div>
-   <p>In the following pseudocode, we assume for simplicity that the array \(S\) of values and the
-  target \(T\) are global variable (or fields). In the code the sum of the current subset is maintained
+   <p>Now that you have a better idea of how it works, let us dive into the pseudocode.
+   In the following pseudocode, we assume for simplicity that the array \(S\) of values and the
+  target \(T\) are global variable (or fields). The sum of the current subset is maintained
   and passed to recursive calls so it does not need to be recomputed from scratch.</p>
   <pre><code>backtrackSubsetSum(i, currentSubset, currentSum):
     if currentSum == T:
@@ -96,29 +129,121 @@
     backtrackSubsetSum(i + 1, currentSubset, currentSum)
 </code></pre>
 
-  <p><strong>Time complexity:</strong> Worst-case \(O(2^n)\), though pruning often reduces the search space.</p>
-  <p><strong>Space complexity:</strong> \(O(n)\) for the recursion stack and current subset.</p>
-  <p><strong>Summary:</strong> Systematically enumerates all subsets, abandoning any
-     with partial sums exceeding \(T\), and outputs each valid solution.</p>
+<p><strong>Time complexity:</strong> In the worst case, backtracking explores all possible subsets of the input array, leading to a time complexity of \(O(2^n)\). This occurs when no pruning is possible and every branch must be evaluated. However, in practice, pruning can significantly reduce the effective search space&mdash;especially when sums exceed the target early. Despite this, analyzing the exact time complexity of backtracking algorithms is often difficult, because the number of recursive calls depends heavily on the input data and the effectiveness of pruning. In such cases, probabilistic techniques like <em>Monte Carlo simulation</em> can be used to estimate average-case performance empirically by running the algorithm on many random inputs and observing trends.</p>
+
+<p>Although this algorithm has an exponential worst-case complexity, it is still a lot better than 
+the <a class="problem" href="?path=Techniques/Exhaustive%20Search">Exhuastive Search</a> algorithm
+since the backtracking algorithm has the potential to skip lots of invalid solutions. 
+</p>
+
+<p><strong>Space complexity:</strong> The algorithm requires \(O(n)\) space for the recursion stack and to store the current subset of values being considered. This assumes no memoization or additional data structures are used to avoid recomputation.</p>
+
+  <p><strong>Summary:</strong> The subset-sum problem is a classic and instructive example of the backtracking technique. It clearly demonstrates the recursive "take or don't take" paradigm, where each recursive call represents a binary decision: whether to include the current item in the subset. This naturally leads to a binary tree structure, where each level corresponds to a choice about one item, and each path from root to leaf represents a candidate subset. The algorithm explores these paths, pruning any that exceed the target early, which significantly reduces the number of recursive calls in many practical cases. This example highlights how backtracking can systematically explore the solution space using simple decisions, and how pruning and problem structure can make seemingly exponential problems tractable in many cases.</p>
 </div>
 
 
    <div class="example-box">
-  <strong class="example-title">Example 2: [Toy Problem Name2]</strong>
-      <p>Describe the problem being solved. 
-	  For more details about this problem, see the <a href="?path=Problems/TYPE2/NAME2">PROBLEM2</a> page.
-	  </p>
-	  <p>Talk through the idea of the algorithm. Discuss how it applies the technique.</p>
-	  <p>Here is a more formal version of the algorithm:</p>
-      <pre><code>// More formal pseudocode of the algorithm
-      </code></pre>
-	  <p>Here is a demonstration of the algorithm</p>
-	  <div class="embeddedDemoContainer">
-         <iframe class="embeddedDemo" src="/Algorithms/Content/Demos/TECHNIQUE/ALGORITHM2 Demo.html"></iframe>
-      </div>
-	  <p>Time and space complexity</p>
-	  <p>Summary</p>
-   </div>
+  <strong class="example-title">Example 2: N-Queens Problem</strong>
+  <p>
+    In the <em>N-Queens</em> problem, the goal is to place \(N\) queens on an \(N \times N\) chessboard
+    so that no two queens threaten each other. That means no two queens can be in the same row, column, or diagonal.
+    For example, when \(N=4\), one solution is to place queens in columns 2, 4, 1, and 3 of rows 1 through 4, respectively:
+    </p>
+<div class="chessboard-wrapper">
+  <table class="chessboard">
+    <tbody>
+      <tr>
+        <td class="light"></td>
+        <td class="dark">Q</td>
+        <td class="light"></td>
+        <td class="dark"></td>
+      </tr>
+      <tr>
+        <td class="dark"></td>
+        <td class="light"></td>
+        <td class="dark"></td>
+        <td class="light">Q</td>
+      </tr>
+      <tr>
+        <td class="light">Q</td>
+        <td class="dark"></td>
+        <td class="light"></td>
+        <td class="dark"></td>
+      </tr>
+      <tr>
+        <td class="dark"></td>
+        <td class="light"></td>
+        <td class="dark">Q</td>
+        <td class="light"></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+    <p>
+    For more details about this problem, see the
+    <a class="problem" href="?path=Problems/Other/N-Queens">N-Queens</a> problem page.
+  </p>
+  <p>
+    The backtracking algorithm for the N-Queens problem tries to place a queen in each row, one at a time,
+    moving left to right across columns. At each step, we check whether the current queen can be placed
+    without being attacked by any previously placed queen. If it is safe, we proceed to the next row.
+    If we reach a row where no valid placement is possible, we backtrack to the previous row and try
+    the next available column there.
+    <br/>
+    If this is a bit confusing, do not worry. The following example should help you visualize
+    what is happening.
+  </p>
+  <div class="embeddedDemoContainer">
+    <iframe class="embeddedDemo"
+      src="/Algorithms/Content/Demos/Backtracking/N Queens Demo.html">
+    </iframe>
+  </div>
+  <p>
+    Now that you have a better idea of how it works, let us dive into the pseudocode.
+    In the following version, we assume we are placing queens row by row from top to bottom,
+    and use an array <code>cols</code> where <code>cols[r]</code> is the column where the queen is placed in row \(r\).
+  </p>
+  <pre><code>backtrackNQueens(row):
+    if row == N:
+        output(cols)   // All queens placed safely
+        return
+
+    for col in 0 to N - 1:
+        if isSafe(row, col, cols):
+            cols[row] = col
+            backtrackNQueens(row + 1)
+</code></pre>
+<p>In some backtracking algorithms, it is necessary to undo changes made to partial solutions.
+But with this algorithm there is no needs since each choice is overwritten on each step.
+</p>
+  <p>
+    The helper function <code>isSafe(row, col, cols)</code> checks whether placing a queen at the given
+    row and column is safe with respect to previously placed queens. That is, for all previous rows \(i\), it must be the case that:
+  </p>
+  <ul>
+    <li>\( \text{cols}[i] \ne \text{col} \) (same column)</li>
+    <li>\( |\text{cols}[i] - \text{col}| \ne |i - \text{row}| \) (same diagonal)</li>
+  </ul>
+
+  <p><strong>Time complexity:</strong> In the worst case, the algorithm considers all \(N^N\) ways of placing queens in each row,
+    though most configurations are pruned early due to invalid placements.
+    A tighter upper bound is \(O(N!)\), since there can be at most one queen per column, but
+    pruning makes actual performance much better for many values of \(N\).
+    As with many backtracking problems, the complexity is hard to pin down precisely, since it depends
+    heavily on pruning and problem structure.</p>
+
+  <p><strong>Space complexity:</strong> The algorithm uses \(O(N)\) space for the <code>cols</code> array and
+    \(O(N)\) space for the recursion stack, since we place one queen per row.</p>
+
+  <p><strong>Summary:</strong> The N-Queens problem is a classic example of backtracking where each step involves
+    choosing among a small set of valid options. It demonstrates how constraints (like attacking positions)
+    can be used to prune large parts of the search space early. The recursive structure of trying placements
+    row by row and backtracking when necessary gives rise to a tree of decisions,
+    with each level representing a queen's placement in a new row. The problem elegantly illustrates how
+    backtracking can navigate large combinatorial spaces effectively by ruling out invalid options early.</p>
+</div>
+
   </section>
   
   

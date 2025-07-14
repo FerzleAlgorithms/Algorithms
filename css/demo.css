@@ -122,7 +122,7 @@ html, body {
   stroke-width: 1.5px;
 }
 .treeNode text {
-  font-size: 16px;
+  font-size: 20px;
   text-anchor: middle;
   dominant-baseline: middle;
   fill: #0a0a0a;
@@ -177,12 +177,12 @@ html, body {
 /* Any <line> under #svg is an edge—same styling for tree and graph */
 #svg line {
   stroke: #888;
-  stroke-width: 1px;
+  stroke-width: 2px;
 }
 
 /* The “+x” label on each edge */
 #svg line + text {
-  font-size: 16px;
+  font-size: 24px;
   text-anchor: middle;
   dominant-baseline: middle;
   fill: #333;
@@ -199,7 +199,7 @@ html, body {
 /* ───────────────────────────────────────────────────────────────────── */
 
 .level-label {
-  font-size: 14px;
+  font-size: 24px;
   fill: #222;
   text-anchor: start;
 }
