@@ -47,6 +47,7 @@
   "Demos": [
     {
       "Backtracking": [
+        "N-Queens Demo.html",
         "Subset Sum Demo.html"
       ]
     },

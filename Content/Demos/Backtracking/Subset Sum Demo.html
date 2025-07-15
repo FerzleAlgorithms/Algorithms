@@ -2,45 +2,29 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8"/>
+  <title>Subset Sum Backtracking Tree with Playback</title>
   <script src="/Algorithms/scripts/demoScripts.js"></script>
   <link rel="stylesheet" href="/Algorithms/css/style.css">
-  <link rel="stylesheet" href="/Algorithms/css/demo.css?f=f">
-  <title>Subset Sum Backtracking Tree with Playback</title>
+  <link rel="stylesheet" href="/Algorithms/css/demo.css">
   <style>
-#demo-wrapper {
-  display: flex;
-  flex-direction: column;
-  min-height: 100vh;       /* fill viewport height inside iframe */
-  margin: 0;           /* drop extra padding */
-}
-
-#controls1 {
-  flex: 0 0 auto;
-}
-
-#svg {
-  width: 100%;
-  height: auto;
-  display: block;
-}
-
-/*
-#svg {
-  flex: 1 1 auto;
-  width: 100%;
-  height: auto;
-  max-height: 100vw;
-  display: block;
-}
-*/
-
+  #demo-wrapper {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;       /* fill viewport height inside iframe */
+    margin: 0;           /* drop extra padding */
+  }
   
+  #svg {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
   </style>      
 </head>
 <body class = "no-tooltips">
   <h2>Subset Sum Backtracking Tree</h2>
 
-  <div id="controls1">
+  <div id="controls">
     <label>Values: <input id="values" value="3,5,10,13,17"/></label>
     <label>Target: <input id="target" type="number" value="26"/></label>
     <button id="buildBtn">Build</button>
@@ -57,7 +41,7 @@
       <option value="1">1x</option>
       <option value="2">2x</option>
       <option value="4">4x</option>
-      <option value="87">8x</option>
+      <option value="8">8x</option>
     </select>
   </div>
 
@@ -354,7 +338,7 @@ function dfs(i, sum, parent, x, y) {
       playing = true;
       document.getElementById('play').textContent = 'Pause';
       const speed = parseInt(document.getElementById('speed').value, 10);
-      const delay = 1000 / speed;
+      const delay = 500 / speed;
       intervalId = setInterval(() => {
         if (step < events.length - 1) {
           next();

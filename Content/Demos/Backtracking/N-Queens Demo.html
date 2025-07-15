@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <script src="/Algorithms/scripts/demoScripts.js"></script>
+  <link rel="stylesheet" href="/Algorithms/css/style.css">
+  <link rel="stylesheet" href="/Algorithms/css/demo.css">
+  <title>N-Queens Backtracking Demo</title>
+  <style>
+    #mainDemo { display: flex; gap: 20px; margin-bottom: 10px; }
+    svg#boardSvg {
+      width: 300px;
+      height: 300px;
+      border: 1px solid #ccc;
+      background: #fff;
+    }
+    #solutions {
+       /* allow the solutions panel to grow and shrink with the screen */
+       flex: 1 1 auto;
+       width: auto;
+       min-width: 200px; /* optional: ensure a reasonable minimum width */
+       max-height: 300px;
+       border: 1px solid #ccc;
+       padding: 5px;
+       overflow-y: auto;
+    }
+    #solutions h3 { margin-top: 0; margin-bottom: 0px; }
+    svg#treeSvg {
+      /* make tree SVG responsive to its container */
+      display: block;
+      width: 100%;
+      height: auto;
+      border: 1px solid #ccc;
+      background: #fff;
+    }
+    #comment { margin-bottom: 10px; font-style: italic; }
+    circle.node { fill: #fff; stroke: #333; }
+    circle.current { stroke: #f00; stroke-width: 3; }
+    line.edge { stroke: #666; }
+    line.attack { stroke: #FF3333; stroke-width: 2; stroke-dasharray: 4 2; }
+    text.edgeLabel { font-size: 12px; text-anchor: middle; fill: #000; }
+    text.queen { font-size: 32px; text-anchor: middle; dominant-baseline: central; }
+    #solList {
+      column-width: 160px;
+      column-gap: 5px;
+      column-fill: auto;
+      max-height: 300px;
+      /*overflow-y: auto;*/
+    }
+    #solList li {
+      /* prevent splitting items */
+      break-inside: avoid-column;
+    }
+    /* start a new column every 13 items */
+    #solList li:nth-child(12n+1) {
+      break-before: column;
+    }
+  </style>
+</head>
+<body class="no-tooltips">
+  <h2 id="title">N-Queens Backtracking Demo</h2>
+  <div id="controls">
+    <label for="nSelect">Select N:</label>
+    <select id="nSelect">
+      <option>4</option><option selected="selected">5</option><option>6</option><option>7</option><option>8</option>
+    </select>
+    <button id="prevBtn">Prev</button>
+    <button id="nextBtn">Next</button>
+    <button id="playBtn">Play</button>
+    <label for="speed">Speed:</label>
+    <select id="speed">
+      <option value="1">1x</option>
+      <option value="2">2x</option>
+      <option value="4">4x</option>
+      <option value="8">8x</option>
+      <option value="100">100x</option>
+    </select>
+  </div>
+
+  <div id="mainDemo">
+    <svg id="boardSvg" preserveAspectRatio="xMidYMid meet"></svg>
+    <div id="solutions"><h3>Solutions</h3><ul id="solList"></ul></div>
+  </div>
+  <div id="comment" class="comment-box"></div>
+  <svg id="treeSvg" preserveAspectRatio="xMidYMid meet"></svg>
+
+<script>
+let N, nodes, edges, events, solutions, step, timeoutId;
+let playing = false;
+let revealedIds = new Set();
+const treeSettings = { vSpacing: 100, circleR: 8, margin: 50 };
+const boardSettings = { cell: 50 }; // size of board cell
+
+// Compute node positions based on current treeSvg width
+function layoutTree() {
+  const svgTree = document.getElementById('treeSvg');
+  const width = svgTree.clientWidth;
+  const depthMap = {};
+  nodes.forEach(n => (depthMap[n.depth] ||= []).push(n.id));
+  const xMap = {};
+  for (const d in depthMap) {
+    const ids = depthMap[d], M = ids.length;
+    ids.forEach((id, i) => {
+      xMap[id] = M === 1
+        ? width / 2
+        : treeSettings.margin + i * (width - 2 * treeSettings.margin) / (M - 1);
+    });
+  }
+  nodes.forEach(n => {
+    n.x = xMap[n.id];
+    n.y = n.depth * treeSettings.vSpacing + treeSettings.circleR * 2;
+  });
+}
+
+function record(current, message, Qstate, skips = [], skipRow = -1) {
+  events.push({ current, message, Q: Qstate.slice(), skips, skipRow });
+}
+
+function dfs(row, Q, parent, depth) {
+  const id = nodes.length;
+  nodes.push({ id, depth, row, col: Q[row] });
+  edges.push({ from: parent, to: id, col: Q[row] });
+
+  if (row === N - 1) {
+    const sol = Q.slice(); solutions.push(sol);
+    record(id, `Solution found: [${sol.map(c => c+1).join(', ')}]`, Q);
+    record(id, `No more possibilities; backtracking from row ${row+1}.`, Q);
+    return;
+  }
+
+  record(id, `Placed queen at row ${row+1}, col ${Q[row]+1}.`, Q);
+  const attacked = new Set();
+  for (let r = 0; r <= row; r++) {
+    const c = Q[r];
+    attacked.add(c);
+    attacked.add(c + (row + 1 - r));
+    attacked.add(c - (row + 1 - r));
+  }
+  const skip = [], tryCols = [];
+  for (let c = 0; c < N; c++) (attacked.has(c) ? skip : tryCols).push(c);
+
+  if (tryCols.length) {
+    record(id,
+      `Row ${row+2}: Skipping columns ${skip.map(c=>c+1).join(', ')}. ` +
+      `Trying columns ${tryCols.map(c=>c+1).join(', ')}.`,
+      Q, skip, row+1
+    );
+  } else {
+    record(id,
+      `Row ${row+2}: Skipping all attacked columns ${skip.map(c=>c+1).join(', ')}. ` +
+      `No valid positions; backtracking.`,
+      Q, skip, row+1
+    );
+    record(id, `No more possibilities; backtracking from row ${row+2}.`, Q);
+    return;
+  }
+
+  for (const c of tryCols) {
+    const newQ = Q.slice(); newQ[row+1] = c;
+    dfs(row+1, newQ, id, depth+1);
+  }
+  record(id, `No more possibilities; backtracking from row ${row+1}.`, Q);
+}
+
+function build() {
+  revealedIds.clear();
+  N = parseInt(document.getElementById('nSelect').value, 10);
+  nodes = [{ id: 0, depth: 0 }]; edges = []; events = []; solutions = []; step = 0; playing = false;
+
+  record(0, `Starting backtracking for N=${N}.`, Array(N).fill(-1));
+  for (let c = 0; c < N; c++) {
+    const Q = Array(N).fill(-1); Q[0] = c;
+    dfs(0, Q, 0, 1);
+  }
+
+  // compute layout once
+  layoutTree();
+
+  document.getElementById('solList').innerHTML = '';
+  draw();
+}
+
+function drawSolutions() {
+  const ul = document.getElementById('solList'); ul.innerHTML = '';
+  events.slice(0, step+1).forEach(e => {
+    if (e.message.startsWith('Solution found')) {
+      const m = e.message.match(/\[(.*)\]/);
+      if (m) { const li = document.createElement('li'); li.textContent = `[${m[1]}]`; ul.appendChild(li); }
+    }
+  });
+}
+
+function draw() {
+  // reveal current
+  revealedIds.add(events[step].current);
+
+  drawBoard(); drawSolutions();
+  document.getElementById('comment').textContent = events[step].message;
+  drawTree();
+  document.getElementById('prevBtn').disabled = step===0;
+  document.getElementById('nextBtn').disabled = step>=events.length-1;
+}
+
+function drawBoard() {
+  const svg = document.getElementById('boardSvg'); svg.innerHTML = '';
+  const state = events[step]; const cell = boardSettings.cell;
+  svg.setAttribute('viewBox', `0 0 ${N*cell} ${N*cell}`);
+
+  // grid
+  for (let r=0;r<N;r++) for (let c=0;c<N;c++) {
+    const rect = document.createElementNS(svg.namespaceURI,'rect');
+    rect.setAttribute('x',c*cell); rect.setAttribute('y',r*cell);
+    rect.setAttribute('width',cell); rect.setAttribute('height',cell);
+    rect.setAttribute('fill',(r+c)%2?'#999':'#f0f0f0'); rect.setAttribute('stroke','#333');
+    svg.appendChild(rect);
+  }
+
+  // attack lines
+  state.Q.forEach((c, r) => {
+    if (c>=0) {
+      const x0=c*cell+cell/2, y0=r*cell+cell/2;
+      [[0,1],[1,1],[-1,1]].forEach(([dx,dy])=>{
+        const l=document.createElementNS(svg.namespaceURI,'line');
+        l.setAttribute('class','attack');
+        l.setAttribute('x1',x0); l.setAttribute('y1',y0);
+        l.setAttribute('x2',x0+dx*(N*cell)); l.setAttribute('y2',y0+dy*(N*cell));
+        svg.appendChild(l);
+      });
+    }
+  });
+
+  // highlight valid next
+  if (state.skipRow>=0) {
+    const valid=[];
+    for (let c=0;c<N;c++) if (!state.skips.includes(c)) valid.push(c);
+    valid.forEach(c=>{
+      const r=state.skipRow;
+      const h=document.createElementNS(svg.namespaceURI,'rect');
+      h.setAttribute('x',c*cell); h.setAttribute('y',r*cell);
+      h.setAttribute('width',cell); h.setAttribute('height',cell);
+      h.setAttribute('fill','none'); h.setAttribute('stroke','lightgreen'); h.setAttribute('stroke-width','4');
+      svg.appendChild(h);
+    });
+  }
+
+  // highlight current cell
+  const curr = nodes.find(n=>n.id===state.current);
+  if (curr && curr.row>=0) {
+    const h=document.createElementNS(svg.namespaceURI,'rect');
+    h.setAttribute('x',curr.col*cell); h.setAttribute('y',curr.row*cell);
+    h.setAttribute('width',cell); h.setAttribute('height',cell);
+    h.setAttribute('fill','yellow'); h.setAttribute('fill-opacity','0.3'); svg.appendChild(h);
+  }
+
+  // queens
+  state.Q.forEach((c,r)=>{ if(c>=0){
+    const t=document.createElementNS(svg.namespaceURI,'text');
+    t.setAttribute('x',c*cell+cell/2); t.setAttribute('y',r*cell+cell/2);
+    t.setAttribute('class','queen'); t.textContent='Q'; svg.appendChild(t);
+  }});
+}
+
+function drawTree() {
+  const svg = document.getElementById('treeSvg');
+  const maxDepth = Math.max(...nodes.map(n=>n.depth));
+  svg.setAttribute('height',`${maxDepth*treeSettings.vSpacing+treeSettings.circleR*4}`);
+  svg.innerHTML = '';
+  const currId = events[step].current;
+
+  edges.forEach(e => {
+    if (revealedIds.has(e.to)) {
+      const a=nodes[e.from], b=nodes[e.to];
+      const line=document.createElementNS(svg.namespaceURI,'line');
+      line.setAttribute('class','edge'); line.setAttribute('x1',a.x); line.setAttribute('y1',a.y);
+      line.setAttribute('x2',b.x); line.setAttribute('y2',b.y); svg.appendChild(line);
+      const lbl=document.createElementNS(svg.namespaceURI,'text');
+      lbl.setAttribute('class','edgeLabel'); lbl.setAttribute('x',5+(a.x+b.x)/2);
+      lbl.setAttribute('y',(a.y+b.y)/2+5); lbl.textContent=(e.col+1); svg.appendChild(lbl);
+    }
+  });
+
+  nodes.forEach(n => {
+    if (revealedIds.has(n.id)) {
+      const c=document.createElementNS(svg.namespaceURI,'circle');
+      c.setAttribute('class',n.id===currId?'node current':'node');
+      c.setAttribute('cx',n.x); c.setAttribute('cy',n.y); c.setAttribute('r',treeSettings.circleR);
+      svg.appendChild(c);
+    }
+  });
+}
+
+// controls
+const prevBtn=document.getElementById('prevBtn'), nextBtn=document.getElementById('nextBtn');
+prevBtn.addEventListener('click',()=>{if(step>0){step--;draw();}});
+nextBtn.addEventListener('click',()=>{if(step<events.length-1){step++;draw();}});
+
+document.getElementById('playBtn').addEventListener('click',()=>{
+function playNext() {
+  if (!playing) return;                  // don’t schedule more if we’ve paused
+      if (step < events.length - 1) {
+        const nextMsg = events[step + 1].message;
+        const base = 1000 / parseInt(speed.value, 10);
+        const delay = /backtracking/.test(nextMsg) ? base * 4 : base;
+        step++;
+        draw();
+        timeoutId = setTimeout(playNext, delay);
+      } else {
+        playing = false;
+        playBtn.textContent = 'Play';
+      }
+    }
+/*
+  function playNext(){
+    if(step<events.length-1){
+      const nextMsg=events[step+1].message;
+      const delay=250/parseInt(document.getElementById('speed').value,10);
+      step++; draw(); timeoutId=setTimeout(playNext,delay);
+    } else { playing=false; document.getElementById('playBtn').textContent='Play'; }
+  }
+  */
+  if(!playing){ playing=true; document.getElementById('playBtn').textContent='Pause'; playNext(); }
+  else { clearTimeout(timeoutId); playing=false; document.getElementById('playBtn').textContent='Play'; }
+});
+
+document.getElementById('nSelect').addEventListener('change', build);
+
+// Re-layout tree on window resize to fill full width
+window.addEventListener('resize', () => {
+  if (nodes && nodes.length) {
+    layoutTree();
+    draw();
+  }
+});
+window.addEventListener('load',build);
+</script>
+</body>
+</html>
