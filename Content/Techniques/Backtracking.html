@@ -23,13 +23,13 @@
   }
 
   .chessboard td {
-    width: 2em;
-    height: 2em;
+    width: 1.5em;
+    height: 1.5em;
     aspect-ratio: 1 / 1;
     text-align: center;
     vertical-align: middle;
     font-weight: bold;
-    font-size: 1.2em;
+    font-size: 1em;
     font-color: 
   }
 
@@ -189,7 +189,8 @@ since the backtracking algorithm has the potential to skip lots of invalid solut
     moving left to right across columns. At each step, we check whether the current queen can be placed
     without being attacked by any previously placed queen. If it is safe, we proceed to the next row.
     If we reach a row where no valid placement is possible, we backtrack to the previous row and try
-    the next available column there.
+    the next available column there. On ther other hand, if we place a queen on the final row, we have
+    a valid solution.
     <br/>
     If this is a bit confusing, do not worry. The following example should help you visualize
     what is happening.
@@ -199,21 +200,82 @@ since the backtracking algorithm has the potential to skip lots of invalid solut
       src="/Algorithms/Content/Demos/Backtracking/N-Queens Demo.html">
     </iframe>
   </div>
+  
   <p>
     Now that you have a better idea of how it works, let us dive into the pseudocode.
-    In the following version, we assume we are placing queens row by row from top to bottom,
-    and use an array <code>cols</code> where <code>cols[r]</code> is the column where the queen is placed in row \(r\).
+    In the following version, we place queens row by row from top to bottom,
+    and we use an array <code>board</code> where <code>board[r]</code> specifies the column where the queen 
+    is placed in row \(r\). For instance, if \(N=4\) and <code>board=[1, 3, 2]</code>, that means
+    that we place a queen in the first column of the first row, the third column of the second row,
+    the second column of the third row, and the fourth row is unplaced. In other
+    words, this:</p>
+    <div class="chessboard-wrapper">
+  <table class="chessboard">
+    <tbody>
+      <tr>
+        <td class="light">Q</td>
+        <td class="dark"></td>
+        <td class="light"></td>
+        <td class="dark"></td>
+      </tr>
+      <tr>
+        <td class="dark"></td>
+        <td class="light"></td>
+        <td class="dark">Q</td>
+        <td class="light"></td>
+      </tr>
+      <tr>
+        <td class="light"></td>
+        <td class="dark">Q</td>
+        <td class="light"></td>
+        <td class="dark"></td>
+      </tr>
+      <tr>
+        <td class="dark"></td>
+        <td class="light"></td>
+        <td class="dark"></td>
+        <td class="light"></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+    
+    <p>Hopefully you can see that that array is not a valid partial solution since the two queens in the
+    center are attacking each other.
+    </p>
+    <p>
+    This version finds <em>all</em> solutions, 
+    so we also use a list <code>solutions</code> to store all of the solutions. 
+    For simplicity, we assume <code>solutions</code> and <code>board</code> are both global variables.
   </p>
-  <pre><code>backtrackNQueens(row):
-    if row == N:
-        output(cols)   // All queens placed safely
-        return
+  <p>
+  The algorithm tries to place the queen in each of the \(N\) possible columns of the first row, and then
+  recursively tries all valid solutions of filling in the rest of the board. Notice that if it gets to
+  the \(N\)-th row, the board must be filled (since we use 0-indexing). Given this background, we are
+  ready for the pseudocode.
+  </p>
+  <pre><code>solveNQueens(N):
+    solutions = empty list   // global list of solutions 
+    board = array of size N  // gloabl array of current partial solution  
+    backtrack(0)             // Get the backtracking started
+    return solutions         // Obviously we need to return the solutions
 
-    for col in 0 to N - 1:
-        if isSafe(row, col, cols):
-            cols[row] = col
-            backtrackNQueens(row + 1)
+backtrackQueens(row): 
+    if row == N:                     // All queens have been placed!
+        solutions.add(board.copy())  // Add current configuration to solution list
+        return                       // No more rows to go, so no recursive call
+            
+    for col from 0 to N - 1:          // Try every column on this row
+        if isValid(row, col):         // If no other queens are attacking this cell
+            board[row] = col          // place new queen and
+            backtrackQueens(row + 1)  //     move on to the next row
+    
+isValid(row, col):
+    // Return true if none of the current queens are attacking this spot
+    //     or false if at least one queen is attacking this spot.
+    // Details left to the activities/exercises.
 </code></pre>
+
 <p>In some backtracking algorithms, it is necessary to undo changes made to partial solutions.
 But with this algorithm there is no needs since each choice is overwritten on each step.
 </p>
