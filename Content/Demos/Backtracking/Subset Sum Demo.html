@@ -65,16 +65,18 @@
 
   // Copies of the tree at each event
   let nodes = [], edges = [], stateVals = [];
-function record(current, parent, message = '') {
-  events.push({
-    nodes: JSON.parse(JSON.stringify(nodes)),
-    edges: JSON.parse(JSON.stringify(edges)),
-    current,
-    vals: stateVals.slice(),
-    message
-  });
+  
+function record(current, parent, message = '',subset=[]) {
+ const subsetStr = `<br>Current subset: [${subset.join(', ')}]`;
+    events.push({
+        nodes: JSON.parse(JSON.stringify(nodes)),
+        edges: JSON.parse(JSON.stringify(edges)),
+        current,
+        vals: stateVals.slice(),
+        message: message + subsetStr
+    });
 }
-function dfs(i, sum, parent, x, y) {
+function dfs(i, sum, parent, x, y,subset) {
   const id = nodes.length;
   const dead = sum > target;
   const ok   = sum === target;
@@ -111,7 +113,7 @@ function dfs(i, sum, parent, x, y) {
       }
   }
 
-  record(id, parent, msg);
+  record(id, parent, msg,subset);
   if (dead || i >= stateVals.length || ok) return;
 
   // Include current item
@@ -120,9 +122,10 @@ function dfs(i, sum, parent, x, y) {
     sum + stateVals[i],
     id,
     x - settings.hSpread / Math.pow(2, y + 1),
-    y + 1
+    y + 1,
+    subset.concat([stateVals[i]])
   );
-  record(id, parent, `Backtrack (Done with ${stateVals[i]})`);
+  record(id, parent, `Backtrack (Done with ${stateVals[i]})`,subset);
 
   // Exclude current item
   dfs(
@@ -130,57 +133,12 @@ function dfs(i, sum, parent, x, y) {
     sum,
     id,
     x + settings.hSpread / Math.pow(2, y + 1),
-    y + 1
+    y + 1,
+    subset
   );
-  record(id, parent, `Backtrack after skipping ${stateVals[i]}`);
+  record(id, parent, `Backtrack after skipping ${stateVals[i]}`,subset);
 }
 
-/*
-  function record(current, parent) {
-    events.push({
-      nodes: JSON.parse(JSON.stringify(nodes)),
-      edges: JSON.parse(JSON.stringify(edges)),
-      current,
-      vals: stateVals.slice()
-    });
-  }*/
-/*
-  function dfs(i, sum, parent, x, y) {
-    const id = nodes.length;
-    const dead = sum > target;
-    const ok   = sum === target;
-    nodes.push({ id, sum, x, y, dead, ok, parent });
-
-    if (parent != null) {
-      edges.push({
-        from: parent,
-        to:   id,
-        label: '+' + (sum - nodes[parent].sum)
-      });
-    }
-    record(id, parent);
-    if (dead || i >= stateVals.length || ok) return;
-
-    // “Include stateVals[i]”
-    dfs(
-      i + 1,
-      sum + stateVals[i],
-      id,
-      x - settings.hSpread / Math.pow(2, y + 1),
-      y + 1
-    );
-    record(id, parent);
-
-    // “Exclude stateVals[i]”
-    dfs(
-      i + 1,
-      sum,
-      id,
-      x + settings.hSpread / Math.pow(2, y + 1),
-      y + 1
-    );
-    record(id, parent);
-  }*/
 
   function build(preserve = false) {
     const oldStep = step;
@@ -197,7 +155,7 @@ function dfs(i, sum, parent, x, y) {
     // Reset nodes/edges
     nodes = [];
     edges = [];
-    dfs(0, 0, null, 850, 0);
+    dfs(0, 0, null, 850, 0,[]);
 
     if (preserve && oldStep >= 0) {
       step = Math.min(oldStep, events.length - 1);
@@ -308,7 +266,7 @@ function dfs(i, sum, parent, x, y) {
     });
     // 4) Display step message
     const messageBox = document.getElementById('step-message');
-    messageBox.textContent = state.message || '';
+    messageBox.innerHTML = state.message || '';
 
   }
 

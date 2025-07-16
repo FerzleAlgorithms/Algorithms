@@ -235,9 +235,8 @@ function dfs(row, Q, parent, depth) {
   edges.push({ from: parent, to: id, col: Q[row] });
   if (row === N-1) {
     const sol = Q.slice(); solutions.push(sol);
-    record(id, `Placed queen at row ${row+1}, col ${Q[row]+1}. Solution found: [${sol.map(c=>c+1).join(', ')}]`, Q);
+    record(id, `Placed queen at row ${row+1}, col ${Q[row]+1}. Solution found: [${sol.map(c=>c+1).join(', ')}].`, Q);
     const Q2 = Q.slice(); Q2[row] = -1;
-    record(id, `No more possibilities; backtracking from row ${row+1}.`, Q2,[],row,[]);
     return;
   }
   record(id, `Placed queen at row ${row+1}, col ${Q[row]+1}.`, Q);
@@ -256,21 +255,17 @@ function dfs(row, Q, parent, depth) {
       Q, skip, row+1, tryColsArr
     );
   } else {
-      record(
-          id,
-          `Row ${row+2}: Skipping all attacked columns ${skip.map(c=>c+1).join(', ')}. No valid positions; backtracking.`,
-          Q,        // ? correct Qstate
-          skip,     // ? which columns were attacked
-          row+1,    // ? the row whose highlights we’re clearing
-          []        // ? empty tryCols to wipe green
-        );
+      record(id,
+          `Row ${row+2}: Skipping all attacked columns ${skip.map(c=>c+1).join(', ')}. No valid positions.`,
+          Q, skip, row+1,[]);
       return;
   }
   for (const c of tryColsArr) {
-    const newQ = Q.slice(); newQ[row+1] = c;
+    const newQ = Q.slice(); 
+    newQ[row+1] = c;
     dfs(row+1, newQ, id, depth+1);
+    record(id, `Backtracked from row ${row+2}.`, Q,[],row+2,[]);
   }
-  record(id, `No more possibilities; backtracking from row ${row+1}.`, Q,[],row+1,[]);
 }
 
 const fullTreePositions = {};
@@ -284,7 +279,12 @@ function build() {
   record(0, `Starting backtracking for N=${N}.`, Array(N).fill(-1));
   const allCols = Array.from({length:N},(_,i)=>i);
   record(0, `Trying columns ${allCols.map(c=>c+1).join(', ')}.`, Array(N).fill(-1), [], 0, allCols);
-  for (let c=0;c<N;c++) { const Q=Array(N).fill(-1); Q[0]=c; dfs(0,Q,0,1);}
+  for (let c=0;c<N;c++) { 
+      const Q=Array(N).fill(-1); 
+      Q[0]=c; 
+      dfs(0,Q,0,1);
+      record(0, `Backtracked from row 1.`, Q,[],1,[]);
+  }
   layoutTree(); 
   nodes.forEach(n => {
     fullTreePositions[n.id] = { x: n.x, y: n.y };
@@ -554,6 +554,75 @@ function drawTree() {
     }
   });
 
+
+// Tentative edges Before the nodes so the lines are hidden
+// --- Draw preview ("upcoming") branches for ALL revealed nodes that have unexplored children ---
+// --- Draw preview ("upcoming") branches for ALL revealed nodes that have unexplored children ---
+// For each revealed node, only show dashes if we've reached the event where we are about to try children (i.e., the event with non-empty tryCols)
+for (const n of nodes) {
+  if (!revealedIds.has(n.id)) continue;
+  // Find the latest event (up to current step) where this node is current and tryCols is set
+  // (prevents showing the dashed edges "too early")
+  let foundEvent = null;
+  for (let s = 0; s <= step; ++s) {
+    const ev = events[s];
+    if (ev.current === n.id && Array.isArray(ev.tryCols) && ev.tryCols.length > 0) {
+      foundEvent = ev;
+    }
+  }
+  if (!foundEvent) continue;
+  const numUpcoming = foundEvent.tryCols.length;
+  if (numUpcoming === 0) continue;
+  for (let i = 0; i < numUpcoming; ++i) {
+    const colVal = foundEvent.tryCols[i];
+    // Look for an edge for this move
+    const realEdge = edges.find(e => e.from === n.id && e.col === colVal);
+    const realChildNode = realEdge ? nodes.find(node => node.id === realEdge.to) : null;
+    const realNodeRevealed = realChildNode && revealedIds.has(realChildNode.id);
+
+    if (!realNodeRevealed) {
+      // Use the real child node's position if it exists, else guess
+      let x2, y2;
+      if (realChildNode) {
+        x2 = realChildNode.x;
+        y2 = realChildNode.y;
+      } else {
+        // Fallback guess (should rarely happen in your demo)
+        const minGap = 40;
+        const previewWidth = (numUpcoming - 1) * minGap;
+        const startX = n.x - previewWidth / 2;
+        x2 =
+          numUpcoming === 1
+            ? n.x
+            : startX + i * (previewWidth / (numUpcoming - 1));
+        y2 = n.y + treeSettings.vSpacing;
+      }
+
+      // Draw preview dashed edge
+      const previewEdge = document.createElementNS(svg.namespaceURI, 'line');
+      previewEdge.setAttribute('x1', n.x);
+      previewEdge.setAttribute('y1', n.y);
+      previewEdge.setAttribute('x2', x2);
+      previewEdge.setAttribute('y2', y2);
+      previewEdge.setAttribute('stroke', '#BBB');
+      previewEdge.setAttribute('stroke-dasharray', '6,3');
+      previewEdge.setAttribute('stroke-width', '2');
+      svg.appendChild(previewEdge);
+
+      // Draw edge label
+      const lbl = document.createElementNS(svg.namespaceURI, 'text');
+      lbl.setAttribute('class', 'edgeLabel');
+      lbl.setAttribute('x', (n.x + x2) / 2);
+      lbl.setAttribute('y', (n.y + y2) / 2 - 12);
+      lbl.setAttribute('fill', '#888');
+      lbl.textContent = colVal + 1;
+      svg.appendChild(lbl);
+    }
+  }
+}
+//------------------------------
+
+
   nodes.forEach(n => {
     if (!revealedIds.has(n.id)) return;
     const isInSubtree = highlightSubtree && subtreeSet.has(n.id);
@@ -593,6 +662,10 @@ function drawTree() {
     svg.appendChild(c);
   });
 
+
+
+
+// Overlay tree (if being displayed
   if (!subtreeSet) return;
   edges.forEach(e => {
     if (!subtreeSet.has(e.from) || !subtreeSet.has(e.to)) return;
@@ -631,16 +704,6 @@ function drawTree() {
     lbl2.setAttribute('y', tY2);
     lbl2.textContent = e.col + 1;
     svg.appendChild(lbl2);
-    
-    /*
-    const lbl = document.createElementNS(svg.namespaceURI, 'text');
-    lbl.setAttribute('class', 'edgeLabel');
-    lbl.setAttribute('x', ((a.subtreeX + b.subtreeX) / 2) + 5);
-    lbl.setAttribute('y', ((a.subtreeY + b.subtreeY) / 2) + 5);
-    lbl.textContent = e.col + 1;
-    lbl.setAttribute('fill', '#000');
-    svg.appendChild(lbl);
-    */
   });
 
   nodes.filter(n => subtreeSet.has(n.id)).forEach(n => {
