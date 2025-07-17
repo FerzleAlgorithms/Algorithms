@@ -18,7 +18,7 @@ Nondeterministic Algorithm
 DAGs (add to DAG)
 String Matching
 Interval scheduling
-fractional knapsack (add to fractional knapsack problem)
+Fractional Knapsack (add to fractional knapsack problem)
 Coin row problem
 Bellman-Ford Algorithm, Bellman-Ford
 Robot Coin Collection 
@@ -31,3 +31,11 @@ Double Hashing
 N-Queens Problem
 Subset-Sum 
 Hamiltonian Path, Hamiltonian Paths
+Deep Copy
+Shallow Copy
+Monte Carlo Estimation
+Constraint, Constraints, Constraint Satisfaction
+AI
+ChatGPT
+Uniformly at Random
+
