@@ -58,7 +58,7 @@ function initTabGroups() {
     // 2) Lock dimensions as before…
     panels.forEach(p => {
       p.style.minHeight = maxH + 'px';
-      p.style.width     = maxW + 'px';
+      //p.style.width     = maxW + 'px';
     });
 
     // wire up all .tablink buttons by data-lang

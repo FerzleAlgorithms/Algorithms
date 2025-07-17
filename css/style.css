@@ -13,8 +13,9 @@ html {
   box-sizing: inherit;
 }
 body {
-  font-family: Arial, sans-serif;
-  /*font-family: 'Inter', sans-serif; */
+  font-family: Verdana, sans-serif;
+  /*font-family: Arial, sans-serif; */ /* Pretty good */
+  /*font-family: 'Inter', sans-serif;*/  /* Pretty good */
   /*font-family: 'Times New Roman', Times, serif;*/
   background-color: #f7f9fc;
   margin: 0;
