@@ -575,13 +575,6 @@
   },
   {
     "variants": [
-      "Greedy Algorithm",
-      "Greedy Algorithms"
-    ],
-    "definition": "A paradigm where a solution is built piece by piece by always choosing the locally optimal choice at each step, hoping to find a global optimum. Examples include Prim's and Kruskal's algorithms for minimum spanning trees."
-  },
-  {
-    "variants": [
       "Greedy-Choice Property"
     ],
     "definition": "A property that ensures a globally optimal solution can be arrived at by making a sequence of locally optimal (greedy) choices."
@@ -1377,5 +1370,257 @@
       "Worst-Case Analysis"
     ],
     "definition": "An evaluation of an algorithm's performance under the worst possible input of a given size, often giving an upper bound on running time or space usage. It ensures algorithm reliability by considering the most expensive scenario."
+  },
+  {
+    "variants": [
+      "Transform-and-Conquer"
+    ],
+    "definition": "An algorithm design paradigm that solves problems by first transforming them into a different representation or structure. This transformation often simplifies the problem or makes it more efficient to solve. It includes techniques such as preconditioning, encoding, or restructuring data."
+  },
+  {
+    "variants": [
+      "Presorting",
+      "Presort"
+    ],
+    "definition": "A strategy that involves sorting the input data as a preprocessing step to simplify solving the main problem. This can reduce complexity or enable faster searching or grouping later. It is often used in problems like closest pair and finding duplicates."
+  },
+  {
+    "variants": [
+      "Pre-Computation",
+      "Precompute"
+    ],
+    "definition": "A technique where computational results are generated and stored ahead of time to avoid redundant work. This allows for quicker lookups during the main algorithm's execution. It is especially useful in dynamic programming, table lookups, and memoization."
+  },
+  {
+    "variants": [
+      "Complete Binary Tree",
+      "Complete Binary Trees"
+    ],
+    "definition": "A binary tree in which every level, except possibly the last, is fully filled, and all nodes are as far left as possible. This structure ensures minimal height and efficient use of array-based representations. It is commonly used in heaps."
+  },
+  {
+    "variants": [
+      "Full Binary Tree",
+      "Full Binary Trees"
+    ],
+    "definition": "A binary tree where each node has either zero or exactly two children. This restriction makes the tree structurally predictable and is useful in proofs and certain recursive algorithms. It is often contrasted with complete or perfect binary trees."
+  },
+  {
+    "variants": [
+      "Perfect Binary Tree",
+      "Perfect Binary Trees"
+    ],
+    "definition": "A binary tree in which all interior nodes have exactly two children and all leaf nodes are at the same depth. This structure is completely filled at every level, making it highly regular and balanced. Perfect binary trees are used in theoretical analysis due to their predictable shape and properties."
+  },
+  {
+    "variants": [
+      "Matroid Structure",
+      "Matroid Structures",
+      "Matroid",
+      "Matroids"
+    ],
+    "definition": "A mathematical structure that generalizes the concept of linear independence from vector spaces to arbitrary sets. Matroids provide a framework in which greedy algorithms can produce optimal solutions. They appear in problems like spanning tree selection and optimization over independent sets."
+  },
+  {
+    "variants": [
+      "Exchange Argument",
+      "Exchange Arguments"
+    ],
+    "definition": "A proof technique used to show that a greedy algorithm yields an optimal solution. It typically involves replacing elements in a suboptimal solution with those in the greedy one without reducing quality. This demonstrates that the greedy solution can be transformed into an optimal one step by step."
+  },
+  {
+    "variants": [
+      "Approximation Algorithm",
+      "Approximation Algorithms"
+    ],
+    "definition": "An algorithm that returns a solution close to the optimal for optimization problems that are hard or impossible to solve exactly in reasonable time. It provides performance guarantees by bounding how far the output can deviate from the optimal. These algorithms are crucial in NP-hard problems like TSP, vertex cover, and set cover."
+  },
+  {
+    "variants": [
+      "Approximate"
+    ],
+    "definition": "(verb) To compute or estimate a solution that is close to the correct or optimal one, often to save time or resources. (noun) An estimate or near-solution that is not exact but sufficient for practical purposes. Approximations are widely used when precision is less critical or exact computation is infeasible."
+  },
+  {
+    "variants": [
+      "Approximation ratio"
+    ],
+    "definition": "A measure of how close the solution produced by an approximation algorithm is to the optimal solution. It is usually expressed as a ratio between the value of the algorithm's output and the value of the optimal solution. Lower ratios (closer to 1) indicate higher-quality approximations."
+  },
+  {
+    "variants": [
+      "Feasible Solution",
+      "Feasible Solutions"
+    ],
+    "definition": "A solution that satisfies all the problem's constraints or requirements. It may or may not be the best (optimal) solution but is considered valid within the problem's context. Feasibility is often the first condition checked before optimization."
+  },
+  {
+    "variants": [
+      "Optimal Solution",
+      "Optimal Solutions"
+    ],
+    "definition": "The best possible solution according to the problem's objective function, such as minimizing cost or maximizing profit. It is one that cannot be improved upon without violating constraints. Finding the optimal solution is the main goal of most optimization algorithms."
+  },
+  {
+    "variants": [
+      "Global Optimum",
+      "Global Optima"
+    ],
+    "definition": "A solution that is better than or equal to all other feasible solutions in the entire search space. It is the absolute best solution among all candidates. Finding global optima is especially challenging in non-convex or combinatorial spaces."
+  },
+  {
+    "variants": [
+      "Local Optimum",
+      "Local Optima"
+    ],
+    "definition": "A solution that is better than all nearby solutions but may not be the best overall. Algorithms can get trapped in local optima during optimization. Heuristic and metaheuristic techniques are often used to escape such traps."
+  },
+  {
+    "variants": [
+      "Nondeterministic"
+    ],
+    "definition": "A property of a process or algorithm where multiple outcomes are possible from the same input. In theoretical computer science, nondeterminism models decision points that can explore many branches simultaneously. It is central to the definition of complexity classes like NP."
+  },
+  {
+    "variants": [
+      "Nondeterministic Algorithm"
+    ],
+    "definition": "An algorithm that can explore multiple computational paths at once, often used in theoretical models. These algorithms can 'guess' solutions and are evaluated based on the existence of at least one correct computation path. They are commonly associated with problems in NP. Equivalently, is is an algorithm that might return a different output and/or follow a different execution path when run multiple times, even on the same input."
+  },
+  {
+    "variants": [
+      "String Matching"
+    ],
+    "definition": "The problem of finding one or more occurrences of a pattern string within a larger text. It is fundamental in search engines, text editing, and computational biology. Efficient algorithms include Knuth-Morris-Pratt, Rabin-Karp, and Boyer-Moore."
+  },
+  {
+    "variants": [
+      "Interval scheduling"
+    ],
+    "definition": "The problem of selecting the maximum number of non-overlapping intervals from a set of intervals. It is often solved using a greedy algorithm based on earliest finish time. Applications include job scheduling, resource allocation, and bandwidth management."
+  },
+  {
+    "variants": [
+      "Fractional Knapsack"
+    ],
+    "definition": "A variation of the knapsack problem where fractions of items can be taken rather than whole items. It can be solved greedily by taking items with the highest value-to-weight ratio. This version of the problem is solvable in linear time after sorting."
+  },
+  {
+    "variants": [
+      "Coin row problem"
+    ],
+    "definition": "A problem where coins are placed in a row and you must choose a subset with maximum value such that no two adjacent coins are chosen. It is typically solved using dynamic programming. This models scenarios where choices have spatial constraints."
+  },
+  {
+    "variants": [
+      "Bellman-Ford Algorithm",
+      "Bellman-Ford"
+    ],
+    "definition": "An algorithm that computes shortest paths from a single source in a graph with possibly negative edge weights. It works by relaxing edges repeatedly and can detect negative cycles. It is slower than Dijkstra's algorithm, but more general."
+  },
+  {
+    "variants": [
+      "Robot Coin Collection"
+    ],
+    "definition": "A grid-based dynamic programming problem where a robot collects coins while moving from the top-left to the bottom-right cell. The robot can typically move only right or down, and the goal is to maximize the number of coins collected. It illustrates optimal substructure and overlapping subproblems."
+  },
+  {
+    "variants": [
+      "Horspool's Algorithm"
+    ],
+    "definition": "A simplified version of the Boyer-Moore string matching algorithm. It uses a bad character heuristic to skip sections of the text and achieve faster average-case performance. It is efficient for long patterns in large texts."
+  },
+  {
+    "variants": [
+      "Hashing"
+    ],
+    "definition": "A technique that maps data to fixed-size values, called hash codes, to enable fast data retrieval. It is used in hash tables for constant-time average-case lookup, insertion, and deletion. A good hash function distributes data uniformly to minimize collisions."
+  },
+  {
+    "variants": [
+      "Space-Time Tradeoff"
+    ],
+    "definition": "A principle where an algorithm can use more memory to run faster or vice versa. It is common in lookup tables, caching, and dynamic programming. Understanding this tradeoff helps optimize algorithm performance based on available resources."
+  },
+  {
+    "variants": [
+      "Linear Probing"
+    ],
+    "definition": "A collision resolution technique in open-addressing hash tables. When a collision occurs, the algorithm checks subsequent slots sequentially until an empty one is found. It is simple but can lead to clustering issues."
+  },
+  {
+    "variants": [
+      "Quadratic Probing"
+    ],
+    "definition": "A collision resolution method in hash tables where the interval between probes increases quadratically. It reduces clustering compared to linear probing. However, it requires careful tuning to ensure all slots can be probed."
+  },
+  {
+    "variants": [
+      "Double Hashing"
+    ],
+    "definition": "A collision resolution strategy in hash tables using a second hash function to determine the step size for probing. It provides better distribution and avoids clustering. It is often considered the best method among open addressing techniques."
+  },
+  {
+    "variants": [
+      "N-Queens Problem"
+    ],
+    "definition": "A classic backtracking problem that asks how to place <em>N</em> queens on an <em>N\times N</em> chessboard so that no two queens attack each other. It requires careful placement such that no two queens share the same row, column, or diagonal. It illustrates recursive search and constraint satisfaction."
+  },
+  {
+    "variants": [
+      "Subset-Sum"
+    ],
+    "definition": "The problem of determining if there exists a subset of a given set of integers that adds up to a target value. It is a classic NP-complete problem and serves as a basis for studying complexity and dynamic programming. Variations include bounded and unbounded versions."
+  },
+  {
+    "variants": [
+      "Hamiltonian Path",
+      "Hamiltonian Paths"
+    ],
+    "definition": "A path in a graph that visits each vertex exactly once without repetition. Determining whether such a path exists is an NP-complete problem. It has applications in routing, scheduling, and puzzle solving."
+  },
+  {
+    "variants": [
+      "Deep Copy"
+    ],
+    "definition": "A copy operation that duplicates an object along with all objects it references, recursively. This results in a completely independent clone of the original. It avoids unintended side effects due to shared references."
+  },
+  {
+    "variants": [
+      "Shallow Copy"
+    ],
+    "definition": "A copy of an object where only the top-level structure is duplicated, while references to nested objects are shared. Changes to nested objects affect both the original and the copy. Shallow copies are faster but less isolated."
+  },
+  {
+    "variants": [
+      "Monte Carlo Estimation"
+    ],
+    "definition": "A statistical technique that uses random sampling to estimate mathematical quantities. It is often used when deterministic solutions are infeasible or complex. Applications include numerical integration, risk analysis, and simulation."
+  },
+  {
+    "variants": [
+      "Constraint",
+      "Constraints",
+      "Constraint Satisfaction"
+    ],
+    "definition": "A condition that must be satisfied for a solution to be considered valid. Constraints can limit the values of variables, enforce relationships, or restrict behavior. They are central to problems in constraint satisfaction, scheduling, and optimization."
+  },
+  {
+    "variants": [
+      "AI"
+    ],
+    "definition": "Artificial Intelligence, the field of creating systems that can perform tasks that typically require human intelligence. These include learning, reasoning, perception, and language understanding. Modern AI often involves machine learning and deep neural networks."
+  },
+  {
+    "variants": [
+      "ChatGPT"
+    ],
+    "definition": "A conversational AI developed by OpenAI, based on the GPT (Generative Pre-trained Transformer) architecture. It can understand and generate human-like text in a wide range of domains. It is used for tutoring, writing assistance, coding help, and more. It wrote this definition, except for this sentence."
+  },
+  {
+    "variants": [
+      "Uniformly at Random"
+    ],
+    "definition": "A selection method where each outcome in the sample space has an equal probability of being chosen. It is fundamental to probability theory and randomized algorithms. Uniform randomness ensures fairness and unpredictability in simulations and tests."
   }
 ]
