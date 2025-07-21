@@ -9,13 +9,6 @@
   },
   {
     "variants": [
-      "AVL Tree",
-      "AVL Trees"
-    ],
-    "definition": "An AVL tree is a self-balancing binary search tree in which, for every node, the heights of its left and right subtrees differ by at most one. Guarantees the height of the BST with <em>n</em> nodes is no larger than about <em>1.44 log<sub>2</sub>n</em>."
-  },
-  {
-    "variants": [
       "Abstract Data Type",
       "ADT",
       "Abstract Data Types",
@@ -82,6 +75,13 @@
       "Average-Case Analysis"
     ],
     "definition": "Evaluates an algorithm's expected performance over all inputs of size <em>n</em>, assuming a specified probability distribution on those inputs. It yields the expected time (or space) complexity by taking the weighted average of the cost across every possible input."
+  },
+  {
+    "variants": [
+      "AVL Tree",
+      "AVL Trees"
+    ],
+    "definition": "An AVL tree is a self-balancing binary search tree in which, for every node, the heights of its left and right subtrees differ by at most one. Guarantees the height of the BST with <em>n</em> nodes is no larger than about <em>1.44 log<sub>2</sub>n</em>."
   },
   {
     "variants": [
@@ -179,11 +179,11 @@
     "definition": "A brute-force algorithm is a straightforward, unoptimized method that solves a problem by directly performing all the basic steps dictated by the problem statement. While simple to implement, it often has very high time complexity and is used mainly when no better algorithm is known."
   },
   {
-  "variants": [
-    "Bubble sort"
-  ],
-  "definition": "Bubble sort is a simple comparison-based sorting algorithm that repeatedly steps through the list, compares adjacent elements, and swaps them if they are in the wrong order. This'bubbling' continues until no more swaps are needed. It runs in <em>O(n<sup>2</sup>>)</em> time on average and in the worst case, has a best-case of <em>O(n)</em> when the list is already sorted (with an optimized flag), and is both in-place and stable."
-},
+    "variants": [
+      "Bubble sort"
+    ],
+    "definition": "Bubble sort is a simple comparison-based sorting algorithm that repeatedly steps through the list, compares adjacent elements, and swaps them if they are in the wrong order. This'bubbling' continues until no more swaps are needed. It runs in <em>O(n<sup>2</sup>>)</em> time on average and in the worst case, has a best-case of <em>O(n)</em> when the list is already sorted (with an optimized flag), and is both in-place and stable."
+  },
   {
     "variants": [
       "Bucket Sort"
@@ -303,6 +303,7 @@
   {
     "variants": [
       "DAG",
+      "DAGs",
       "Directed Acyclic Graph"
     ],
     "definition": "A directed graph with no directed cycles, meaning it is impossible to start at a node and follow a consistently-directed sequence of edges that eventually loops back to the starting node."
@@ -385,13 +386,6 @@
   },
   {
     "variants": [
-      "EXPTIME (Complexity Class)",
-      "EXPTIME"
-    ],
-    "definition": "The class of decision problems that can be solved by a deterministic algorithm in exponential time, i.e., <em>O(2<sup>p(n)</sup>)</em> for some polynomial <em>p</em>."
-  },
-  {
-    "variants": [
       "Edge Relaxation",
       "Edge Relaxations"
     ],
@@ -437,12 +431,12 @@
     "definition": "The act of listing all possible candidates or configurations, often used in exhaustive search algorithms."
   },
   {
-  "variants": [
-    "Euclidean Algorithm",
-    "Euclid's Algorithm"
-  ],
-  "definition": "The Euclidean Algorithm computes <em>gcd(a, b)</em> based on the formula <em>gcd(a, b) = gcd(b, a mod b)</em> by repeatedly replacing <em>(a, b)</em> with <em>(b, a mod b)</em> until <em>b = 0</em>; the remaining nonzero value <em>a</em> is the greatest common divisor."
-},
+    "variants": [
+      "Euclidean Algorithm",
+      "Euclid's Algorithm"
+    ],
+    "definition": "The Euclidean Algorithm computes <em>gcd(a, b)</em> based on the formula <em>gcd(a, b) = gcd(b, a mod b)</em> by repeatedly replacing <em>(a, b)</em> with <em>(b, a mod b)</em> until <em>b = 0</em>; the remaining nonzero value <em>a</em> is the greatest common divisor."
+  },
   {
     "variants": [
       "Euclidean Distance",
@@ -494,6 +488,13 @@
       "Exponentiation"
     ],
     "definition": "The process of raising a base to a power, often implemented recursively or via fast exponentiation to achieve <en>O(log n)</em> time instead of <em>O(n)</em>."
+  },
+  {
+    "variants": [
+      "EXPTIME (Complexity Class)",
+      "EXPTIME"
+    ],
+    "definition": "The class of decision problems that can be solved by a deterministic algorithm in exponential time, i.e., <em>O(2<sup>p(n)</sup>)</em> for some polynomial <em>p</em>."
   },
   {
     "variants": [
@@ -671,14 +672,15 @@
       "Insertion Sort"
     ],
     "definition": "A simple sorting algorithm that builds the final sorted array one element at a time by inserting each element into its correct position among the previously sorted elements. It runs in <em>O(n<sup>2</sup>)</em> time in the worst case, but <em>O(n)</em> time for nearly sorted input."
-  },{
-  "variants": [
-    "Integer",
-    "Integers",
-    "Whole number"
-  ],
-  "definition": "An integer is a whole number (positive, negative, or zero) with no fractional or decimal part. The set of all integers is denoted &integers;."
-},
+  },
+  {
+    "variants": [
+      "Integer",
+      "Integers",
+      "Whole number"
+    ],
+    "definition": "An integer is a whole number (positive, negative, or zero) with no fractional or decimal part. The set of all integers is denoted &integers;."
+  },
   {
     "variants": [
       "Interpolation Search"
@@ -700,12 +702,12 @@
       "iterative",
       "iterating"
     ],
-      "definition": "(1) Repetition of a process or set of instructions in a loop until a termination condition is met. (2) Also used for the technique of solving recurrences by repeatedly expanding the recursive formula until reaching the base case and then simplifying."
+    "definition": "(1) Repetition of a process or set of instructions in a loop until a termination condition is met. (2) Also used for the technique of solving recurrences by repeatedly expanding the recursive formula until reaching the base case and then simplifying."
   },
   {
     "variants": [
-    "Iterative Algorithm",
-    "Iterative Algorithms"
+      "Iterative Algorithm",
+      "Iterative Algorithms"
     ],
     "definition": "An iterative algorithm solves a problem by explicitly repeating a set of steps using loops (e.g., for or while loops) until a termination condition is met."
   },
@@ -865,6 +867,13 @@
   },
   {
     "variants": [
+      "Network",
+      "Networks"
+    ],
+    "definition": "A graph in which vertices represent entities and edges represent connections, possibly with weights or directions. Networks model systems like computer networks, transportation systems, and social networks."
+  },
+  {
+    "variants": [
       "Non-Comparison-Based",
       "Non-Comparison-Based Algorithm",
       "Non-Comparison-Based Sorting"
@@ -895,13 +904,6 @@
   },
   {
     "variants": [
-      "Network",
-      "Networks"
-    ],
-    "definition": "A graph in which vertices represent entities and edges represent connections, possibly with weights or directions. Networks model systems like computer networks, transportation systems, and social networks."
-  },
-  {
-    "variants": [
       "Optimal Substructure"
     ],
     "definition": "A property indicating that an optimal solution to a problem can be constructed from optimal solutions to its subproblems."
@@ -924,17 +926,17 @@
   },
   {
     "variants": [
+      "Order of Growth"
+    ],
+    "definition": "A characterization of how a function's value changes as its input grows, often expressed using Big-O notation. It captures the dominant term that determines resource usage for large inputs."
+  },
+  {
+    "variants": [
       "Order Statistic",
       "Order Statistics",
       "kth Order Statistic"
     ],
     "definition": "The <em>k</em>-th smallest (or largest) element in an ordered list. sSelection algorithms like Quickselect find order statistics in expected <em>O(n)</em> time."
-  },
-  {
-    "variants": [
-      "Order of Growth"
-    ],
-    "definition": "A characterization of how a function's value changes as its input grows, often expressed using Big-O notation. It captures the dominant term that determines resource usage for large inputs."
   },
   {
     "variants": [
@@ -948,17 +950,17 @@
       "P (Complexity Class)"
     ],
     "definition": "The class of decision problems that can be solved by a deterministic algorithm in polynomial time."
-  },{
-  "variants": [
-    "Parallel Algorithm",
-    "Parallel Algorithms",
-    "Concurrent Algorithm",
-    "Concurrent Algorithms",
-    "Parallel"
-  ],
-  "definition": "A parallel algorithm divides a problem into subtasks that run simultaneously across multiple processors or cores. By overlapping work, it can achieve speedup over its sequential counterpart&mdash;though it must manage communication and synchronization overhead between tasks."
-},
- 
+  },
+  {
+    "variants": [
+      "Parallel Algorithm",
+      "Parallel Algorithms",
+      "Concurrent Algorithm",
+      "Concurrent Algorithms",
+      "Parallel"
+    ],
+    "definition": "A parallel algorithm divides a problem into subtasks that run simultaneously across multiple processors or cores. By overlapping work, it can achieve speedup over its sequential counterpart&mdash;though it must manage communication and synchronization overhead between tasks."
+  },
   {
     "variants": [
       "Path Compression"
@@ -1028,13 +1030,6 @@
       "pruning"
     ],
     "definition": "The act of eliminating branches in a search tree or recursive algorithm that cannot lead to a valid or better solution with the goal of improving algorithm performance."
-  }, 
-  {
-    "variants": [
-      "PSPACE (Complexity Class)",
-      "PSPACE"
-    ],
-    "definition": "The class of decision problems that can be solved by a deterministic algorithm using a polynomial amount of memory space."
   },
   {
     "variants": [
@@ -1048,6 +1043,13 @@
       "Pseudopolynomial"
     ],
     "definition": "A running time that is polynomial in the numeric value of the input (e.g. the target sum) rather than its encoding length, common in dynamic-programming solutions to problems like subset-sum or knapsack."
+  },
+  {
+    "variants": [
+      "PSPACE (Complexity Class)",
+      "PSPACE"
+    ],
+    "definition": "The class of decision problems that can be solved by a deterministic algorithm using a polynomial amount of memory space."
   },
   {
     "variants": [
@@ -1082,22 +1084,22 @@
     ],
     "definition": "An algorithm that uses randomness as part of its logic, potentially giving different outcomes on different runs. Examples include randomized Quicksort and Monte Carlo algorithms. Often used to improve performance."
   },
-{
-  "variants": [
-    "Rational Number",
-    "Rational Numbers",
-    "Rational"
-  ],
-  "definition": "A rational number is any number expressible as a ratio <em>p/q</em>, where <em>p</em> and <em>q</em> are integers and <em>q &ne; 0</em>. The set of rational number is denoted &rationals;."
-},
   {
-  "variants": [
-    "Real Number",
-    "Real Numbers",
-    "Real"
-  ],
-  "definition": "A real number is any value on the continuous number line, including both rational and irrational values; it can be represented by a (potentially infinite) decimal expansions. The set of real number is denoted &reals;."
-},
+    "variants": [
+      "Rational Number",
+      "Rational Numbers",
+      "Rational"
+    ],
+    "definition": "A rational number is any number expressible as a ratio <em>p/q</em>, where <em>p</em> and <em>q</em> are integers and <em>q &ne; 0</em>. The set of rational number is denoted &rationals;."
+  },
+  {
+    "variants": [
+      "Real Number",
+      "Real Numbers",
+      "Real"
+    ],
+    "definition": "A real number is any value on the continuous number line, including both rational and irrational values; it can be represented by a (potentially infinite) decimal expansions. The set of real number is denoted &reals;."
+  },
   {
     "variants": [
       "Recurrence Relation",
@@ -1115,25 +1117,24 @@
     "definition": "A programming technique where a function calls itself with smaller inputs until reaching a base case. It is used to solve divide-and-conquer and combinatorial problems."
   },
   {
-  "variants": [
-    "Recursion Stack",
-    "Call Stack",
-    "Function Call Stack",
-    "Activation Record Stack"
-  ],
-  "definition": "The portion of the call stack used to store activation records for each active recursive invocation, including parameters, local variables, and return addresses. It grows with each recursive call and unwinds as calls return, enabling proper nesting and backtracking of recursive operations."
-},
+    "variants": [
+      "Recursion Stack",
+      "Call Stack",
+      "Function Call Stack",
+      "Activation Record Stack"
+    ],
+    "definition": "The portion of the call stack used to store activation records for each active recursive invocation, including parameters, local variables, and return addresses. It grows with each recursive call and unwinds as calls return, enabling proper nesting and backtracking of recursive operations."
+  },
   {
     "variants": [
       "Recursion Tree"
     ],
     "definition": "A tree diagram representing the recursive calls of an algorithm, often used to solve and visualize recurrence relations."
   },
-   {
+  {
     "variants": [
-    "Recursive Algorithm",
-    "Recursive Algorithms"
-    
+      "Recursive Algorithm",
+      "Recursive Algorithms"
     ],
     "definition": "A recursive algorithm solves a problem by calling itself on one or more smaller instances of the same problem. It must include at least one base case that can be solved directly, ensuring that the recursion terminates."
   },
@@ -1172,21 +1173,21 @@
     "definition": "A simple sorting algorithm that repeatedly selects the maximum element from the unsorted portion and swaps it with the last unsorted element. Alternatively, it can do so with the minimum/first unsorted element. It has <em>O(n<sup>2</sup>)</em> time complexity and <em>O(1)</em> space usage."
   },
   {
-  "variants": [
-    "Sequential Algorithm",
-    "Sequential Algorithms",
-    "Serial Algorithm",
-    "Serial Algorithms"
-  ],
-  "definition": "A sequential algorithm executes its steps one after another on a single processor, with each operation completing before the next begins. Because it performs only one action at a time, its overall running time is simply the sum of its individual step times."
-},
+    "variants": [
+      "Sequential Algorithm",
+      "Sequential Algorithms",
+      "Serial Algorithm",
+      "Serial Algorithms"
+    ],
+    "definition": "A sequential algorithm executes its steps one after another on a single processor, with each operation completing before the next begins. Because it performs only one action at a time, its overall running time is simply the sum of its individual step times."
+  },
   {
-  "variants": [
-    "Sequential Search",
-    "Linear Search"
-  ],
-  "definition": "Sequential search, also called linear search, examines each element of a list in order until it finds the target value or reaches the end of the list. Its worst-case time complexity is <em>O(n)</em>, its best-case is <em>O(1)</em>."
-},
+    "variants": [
+      "Sequential Search",
+      "Linear Search"
+    ],
+    "definition": "Sequential search, also called linear search, examines each element of a list in order until it finds the target value or reaches the end of the list. Its worst-case time complexity is <em>O(n)</em>, its best-case is <em>O(1)</em>."
+  },
   {
     "variants": [
       "Shell Sort"
@@ -1294,15 +1295,15 @@
   },
   {
     "variants": [
-      "TimSort"
-    ],
-    "definition": "A hybrid stable sorting algorithm derived from Merge Sort and Insertion Sort, optimized for real-world data by exploiting runs and achieving <em>O(n log n)</em> worst-case time."
-  },
-  {
-    "variants": [
       "Time Complexity"
     ],
     "definition": "A measure of the amount of time an algorithm takes as a function of input size, often expressed using asymptotic notation. It helps compare the efficiency of algorithms."
+  },
+  {
+    "variants": [
+      "TimSort"
+    ],
+    "definition": "A hybrid stable sorting algorithm derived from Merge Sort and Insertion Sort, optimized for real-world data by exploiting runs and achieving <em>O(n log n)</em> worst-case time."
   },
   {
     "variants": [
