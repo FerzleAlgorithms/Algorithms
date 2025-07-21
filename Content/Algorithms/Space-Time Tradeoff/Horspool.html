@@ -7,9 +7,9 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github.min.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js"></script>
   <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-  <script src="../../../scripts/chapterScripts.js"></script>
-  <link rel="stylesheet" href="../../../css/style.css">
-  <link rel="stylesheet" href="../../../css/chapter.css">
+  <script src="/Algorithms/scripts/chapterScripts.js"></script>
+  <link rel="stylesheet" href="/Algorithms/css/style.css">
+  <link rel="stylesheet" href="/Algorithms/css/chapter.css">
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-DQ5LVZVFDC"></script>
 <script>
@@ -38,53 +38,316 @@
   margin: 0.5em 0;
 }
 </style>
+  <style>
+    .shift-table {
+      border-collapse: collapse;
+      margin: 10px auto;
+    }
+    .shift-table th, .shift-table td {
+      border: 1px solid #ccc;
+      padding: 6px;
+      text-align: center;
+    }
+    .mini-demo-btn {
+      cursor: pointer;
+      padding: 4px 8px;
+      margin-top: 10px;
+    }
+  </style>
+  <style>
+  .example-alignment {
+    font-family: monospace;
+    line-height: 1.4;
+    white-space: pre;
+  }
+  .highlight {
+    color: #00f;
+    font-weight: bold;
+  }
+  .highlight2 {
+    color: #f00;
+    font-weight: bold;
+  }
+  .example-table td {
+     text-align: left !important;
+     vertical-align: top !important;
+  }
+</style>
 <body>
   <h1>Horspool's Algorithm</h1>
+  <h3><font color="red">UNDER CONSTRUCTION!</font><h3>
 
   <h2>Problem Statement</h2>
-  <p>Horspool's algorithm solves the <a class="problem" href="?path=Problems%2FFoundational%2FStringMatching">String Matching</a>
+  <p>Horspool's algorithm solves the <a class="problem" href="?path=Problems/Other/String Matching">String Matching</a>
   problem.
   
   <h2>Design and Strategy</h2>
   
-  <p>Horspool's Algorithm is a an algorithm that takes advatage of a <strong>space-time tradeoff</strong> to find how many occurences of a pattern string <em>P</em> can be found in a text <em>T</em> 
+<p>
+  Horspool's algorithm is a <strong>space-time tradeoff</strong> algorithm designed to efficiently find occurrences of a 
+  pattern \(P\) of length \(m\) within a larger text \(T\) of length \(n\). Unlike simpler algorithms that compare each character repeatedly, Horspool minimizes the total number of character comparisons by intelligently skipping portions of the text where matches cannot possibly occur. 
+</p>
+
+<p>
+  Horspool compares characters starting from the rightmost character of the pattern moving leftward. This end-to-start comparison is strategic: mismatches near the end of the pattern are more informative, as they often justify larger shifts that skip irrelevant text. The shift distance depends only on the character aligned with the last position of the pattern in the current alignment, regardless of whether any earlier characters matched.
+</p>
+
+<p>
+  To illustrate, suppose we want to find the pattern "RODEO" in the text "NOW WE RODE ON HORSES". 
+  Here we have \(m=5\) and \(n=21\).
+  We explore three scenarios based on the character <em>in the text</em> aligned with the last character of the pattern:
+</p>
+
+
+<ul>
+  <li><strong>Case 1:</strong> The aligned character does not appear in the pattern.<br>
+    Suppose the alignment places the last character of "RODEO" over a <B>W</B> character of the text: <br>
+        <table>
+          <tr><td>
+        <div class="example-alignment">    <span class="highlight">NOW </span><span class="highlight2">W</span>E RODE ON HORSES
+    RODEO</div>
+      </td></tr>
+      </table>
+      Since <B>W</B> does not appear in "RODEO", shifting fewer than \(m\) (in this case, 5) 
+    ensures that the <B>W</B> will not match any character in the pattern. Thus, we might as well shift by \(m\).
+    In this case, we store \(m\) in  the shift table for <B>W</B>.
+    This is also the case for any other character not appearing in the pattern. 
+    </li>
+  <li><strong>Case 2:</strong> The aligned character appears somewhere in the pattern before the last position
+  (and may or may not appear in the last position).<br>
+    Suppose the alignment places the last character of "RODEO" over an <B>R</B> character of the text: <br>
+    <table>
+          <tr><td>
+      <div class="example-alignment">   NOW<span class="highlight"> WE </span><span class="highlight2">R</span>ODE ON
+      RODEO</div>
+      </td></tr>
+      </table>
+    The <b>R</b> appears at index 0 of the pattern. Notice that if we shift the pattern any fewer than 4 spots,
+    the <B>R</B> of the text cannot possible match anything in the pattern.  
+    In this case we store 4 in the shift table for the letter <b>R</b>.
+    In general, for characters whose <em>last</em> appearance in the pattern is at index \(i\), where \(i \lt m-1\),
+    the shift table value is \(m - 1 - i\). 
+    This ensures that the given occurrence of the letter in the text is aligned with its last appearance in the pattern.</li>
+  <li><strong>Case 3:</strong> The aligned character only occurs as the final character of the pattern.<br>
+  (Notice that if it also occurs elsewhere, it is in Case 2). For instance, if we replace the pattern "RODEO" with "RADEO", 
+  and have a situation such as the following:
+  <table>
+          <tr><td>
+      <div class="example-alignment">   NOW <span class="highlight">WE R</span><span class="highlight2">O</span>DE ON
+       RADEO</div>
+      </td></tr>
+      </table>
+    It is not hard to see that this is identical to Case 1. So we store \(m\) in the shift table for <b>O</b>
+    in this case. Luckily, this is not actually a special case because, as we will see, the algorithm automatically handles it.</li>
+</ul>
+
+<p>
+In summary:
+<table class="example-table" style="margin: 1em auto; border-collapse: collapse;">
+  <thead>
+    <tr>
+      <th style="border: 1px solid #ccc; padding: 6px;">Case</th>
+      <th style="border: 1px solid #ccc; padding: 6px;">Text character aligned with last pattern character...</th>
+      <th style="border: 1px solid #ccc; padding: 6px;">Example</th>
+      <th style="border: 1px solid #ccc; padding: 6px;">Action</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="border: 1px solid #ccc; padding: 6px;"><strong>1</strong></td>
+      <td style="border: 1px solid #ccc; padding: 6px;">is not in the pattern</td>
+      <td style="border: 1px solid #ccc; padding: 6px;">
+        <div class="example-alignment"><span class="highlight">NOW </span><span class="highlight2">W</span>E RODE ON HORSES
+RODEO
+        </div>
+      </td>
+      <td style="border: 1px solid #ccc; padding: 6px;">Shift the pattern by \(m\).</td>
+    </tr>
+    <tr>
+      <td style="border: 1px solid #ccc; padding: 6px;"><strong>2</strong></td>
+      <td style="border: 1px solid #ccc; padding: 6px;">appears earlier in the pattern<br>(last occurrence at index \(i\))</td>
+      <td style="border: 1px solid #ccc; padding: 6px;">
+        <div class="example-alignment">NOW<span class="highlight"> WE </span><span class="highlight2">R</span>ODE ON HORSES
+   RODEO
+        </div>
+      </td>
+      <td style="border: 1px solid #ccc; padding: 6px;">Shift the pattern by \(m - 1 - i\).</td>
+    </tr>
+    <tr>
+      <td style="border: 1px solid #ccc; padding: 6px;"><strong>3</strong></td>
+      <td style="border: 1px solid #ccc; padding: 6px;">appears only at final position in pattern</td>
+      <td style="border: 1px solid #ccc; padding: 6px;">
+        <div class="example-alignment">NOW <span class="highlight">WE R</span><span class="highlight2">O</span>DE ON HORSES
+    RADEO
+        </div>
+      </td>
+      <td style="border: 1px solid #ccc; padding: 6px;">Shift the pattern by \(m\).</td>
+    </tr>
+  </tbody>
+</table>
+</p>
+
+<p>
+These examples/observations are the idea behind the <em>Bad Character Heuristic</em>. 
+The heuristic builds a <strong>shift table</strong> that precomputes optimal shifts for each character, 
+leading to significant reductions in unnecessary comparisons.
+</p>
+
+<p>
+More concretely, given a pattern \(P\) of length \(m\),
+the preprocessing step to compute the shift table (also know as the <em>bad character table</em>)
+  is as follows.
+</p>
+    <ol>
+      <li>Create a shift table \(S\) that stores a shift value for each character in the alphabet.</li>
+      <li>Set \(S[c] = m\) for all characters \(c\) that occur in the text. 
+      This default value corresponds to shifting past the entire pattern length, 
+      assuming the character does not appear in the pattern or only appears as the final character.</li>
+      <li>
+        Next, refine the shift table:
+        For each character in the pattern from first to second-to-last (left to right), set 
+        \[S[P[j]] = m - 1 - j.\]
+        The order is crucial; processing from left to right ensures that if a character appears multiple times, 
+        the shift value from its rightmost occurrence is retained, 
+        which guarantees the correct number of positions to shift when a mismatch occurs.
+      </li>
+    </ol>
+<p>
+
+For simplicity, we will assume the characters are ASCII so we can treat the integers 0 through 255 as characters.
+Then we will need a shift table with 256 entries. 
+We will also assume that the pattern \(P\) is stored in an array of integers
+representing the ASCII values of the characters. 
+(Many languages, including Java and C++ make this easy to do.)
+Given that, we can write the preprocessing step of the algorithm in formal pseudocode as follows:
+
+<pre><code>int [] computeShiftTable(P)
+    m=P.length
+    int[] S = new int[256];            // Create an array of size 256
+    for (int i = 0; i < 256 ; i++) {   // Initialize all entries to m
+        S[i] = m;
+    }
+    for (int j = 0; j < m - 1 ; j++) { // Update entries based on the pattern
+        S[P[j]] = m - 1 - j;
+    }
+    return S
+</code></pre>
+ </p>
+
+Let's see a few examples of constructing the table. Run the following demo with strings like 
+"horspool", "shoelaces", and "CGTAATAAGTC".
+<h2>Interactive Shift Table Construction Demo</h2>
+  <p>Enter a pattern to dynamically construct the shift table.</p>
+  <input id="patternInput" type="text" placeholder="Enter pattern" style="margin-bottom:10px; padding:5px;">
+  <button class="mini-demo-btn" onclick="buildShiftTable()">Build Shift Table</button>
+  <div id="shiftTableContainer"></div>
+
+  <script>
+    function buildShiftTable() {
+      const pattern = document.getElementById('patternInput').value;
+      const m = pattern.length;
+      let table = {};
+
+      for (let i = 0; i < 256; i++) {
+        table[String.fromCharCode(i)] = m;
+      }
+
+      for (let j = 0; j < m - 1; j++) {
+        table[pattern[j]] = m - 1 - j;
+      }
+
+      let tableHTML = '<table class="shift-table"><tr><th>Character</th><th>Shift</th></tr>';
+      let chars = Array.from(new Set(pattern.split('')));
+
+      chars.forEach(c => {
+        tableHTML += `<tr><td>${c}</td><td>${table[c]}</td></tr>`;
+      });
+
+      tableHTML += `<tr><td>Others</td><td>${m}</td></tr>`;
+      tableHTML += '</table>';
+
+      document.getElementById('shiftTableContainer').innerHTML = tableHTML;
+    }
+  </script>
+
+Now that we have a shift table, we can get into the main part of the algorithm. 
+  
+<ol>
+  <li><strong>Searching (Using the Shift Table):</strong>
+    <ol type='a'>
+      <li>Begin by aligning the pattern \(P\) with the start of the text \(T\). Character comparisons are performed from right to left, meaning the algorithm first compares the last character of the pattern to the corresponding aligned character in the text. This backward comparison approach helps detect mismatches quickly.</li>
+      <li>If all characters match, record the starting index of this occurrence. If a mismatch occurs, note the character in the text aligned with the last character of \(P\). Use this mismatched character to look up its shift value in the table \(S\).</li>
+      <li>Shift the pattern to the right according to the shift value found. This shift is justified because the shift table value represents the maximum distance we can safely move the pattern forward without missing any potential matches. Continue the matching process from the new alignment. Repeat until the entire text has been searched.</li>
+    </ol>
+  </li>
+</ol>
+
+
+FOOFJIGERUYFERKJHFR
+
+    <p>
+    Horspool's algorithm is a <strong>space-time tradeoff</strong> algorithm that efficiently finds occurrences of a 
+    pattern \(P\) within a text \(T\) by minimizing character comparisons. 
+    It utilizes the <em>Bad Character Heuristic</em>, 
+    preprocessing the pattern into a <strong>shift table</strong> to skip unnecessary comparisons.
+    At a high level, the algorithm works as follows.
+  </p>
+  <ol>
+    <li><strong>Preprocessing:</strong>
+      <ol type='a'>
+        <li>Create a shift table \(S\) to store a shift value for each character in the alphabet.</li>
+        <li>Initialize all entries in shift table \(S\) to the pattern length \(m\).</li>
+        <li>For each character in the pattern (except the last), set <code>S[P[j]] = m - 1 - j</code>.</li>
+      </ol>
+    </li>
+    <li><strong>Searching:</strong>
+      <ol type='a'>
+        <li>Align \(P\) with the start of \(T\) and compare from right to left.</li>
+        <li>Upon mismatch, shift \(P\) by looking up the shift value of the character aligned with \(P\)'s last character.</li>
+        <li>Record indices of matches found.</li>
+      </ol>
+    </li>
+  </ol>
+  
+  <p>Horspool's Algorithm is a an algorithm that takes advatage of a <strong>space-time tradeoff</strong> to find how many occurrences of a pattern string \(P\) can be found in a text \(T\) 
   as efficiently as possible by minimizing the number of comparisons.
   In order to accomplish this, Horspool's Algorithm takes advantage of an idea 
-  known as the <em>Bad Character Heuristic</em>. Before searching <em>T</em> 
-  for occurences of <em>P</em>, the algorithm preprocesses <em>P</em> to build a table of values that map characters to integers.
-  This is known as the Shift Table, <em>S</em>.  The purpose of <em>S</em> is to skip over portions of <em>T</em> where we can deduce there will not
-  be any occurences of <em>P</em>. Thus, saving the number of comparisons being executed. By using <em>S</em> to shift along <em>P</em>, the number of comparisons is greatly reduced from the
+  known as the \(Bad Character Heuristic\). Before searching \(T\) 
+  for occurences of \(P\), the algorithm preprocesses \(P\) to build a table of values that map characters to integers.
+  This is known as the Shift Table, \(S\).  The purpose of \(S\) is to skip over portions of \(T\) where we can deduce there will not
+  be any occurences of \(P\). Thus, saving the number of comparisons being executed. By using \(S\) to shift along \(P\), the number of comparisons is greatly reduced from the
   Exhaustive Brute Force Algorithm, since we do not run comparisons on any segement we skip.
-  Similarly to the Brute Force Algorithm, the algorithm returns a list of starting index values, each one representing the beginning of an occurence of <em>P</em>.
+  Similarly to the Brute Force Algorithm, the algorithm returns a list of starting index values, each one representing the beginning of an occurence of \(P\).
   If you are not familiar with the Brute Force Sting Matching Alogrithm, you should read that section before continuing.
   <br><br>
   
 	More formally, the algorithm works as follows.
   <br><br>
-  During preprocessing, we build <em>S</em> by initializing every entry 
+  During preprocessing, we build \(S\) by initializing every entry 
   <code>S[c] = m</code> (the pattern length) and, for each index <code>j</code>
   from <code>0</code> to <code>m−2</code>, setting <code>S[P[j]] = m−1−j</code>.
-  This table tells the algorithm how far to slide <em>P</em> when a mismatch occurs:
-  on a mismatch at <code>T[i+j]</code> aligned with <em>P</em>’s last character, we 
-  look up <code>S[T[i+m−1]]</code> to skip ahead over portions of <em>T</em> that cannot
+  This table tells the algorithm how far to slide \(P\) when a mismatch occurs:
+  on a mismatch at <code>T[i+j]</code> aligned with \(P\)’s last character, we 
+  look up <code>S[T[i+m−1]]</code> to skip ahead over portions of \(T\) that cannot
   contain the pattern. This dramatically reduces unnecessary comparisons compared to the
   exhaustive brute-force approach, yet still returns all starting indices of matches.
   <br><br>
   After the preprocessing is finished, the searching begins just as the Brute Force algorithm,
    but when there is a mismatch, instead of shifting over once every time, the character in 
-   <em>T</em> that aligns with the last character in <em>P</em> determines how far we shift via lookup to <em>S</em>.
+   \(T\) that aligns with the last character in \(P\) determines how far we shift via lookup to \(S\).
   
-   As each full pattern match is found, the first index of the current portion of <em>T</em> being compared is stored in a list,
-   which is then returned after all of <em>T</em> is searched.
+   As each full pattern match is found, the first index of the current portion of \(T\) being compared is stored in a list,
+   which is then returned after all of \(T\) is searched.
 	
   </p>
 	
+  
 	
 <p>Below is an example pattern <code>"HORSPOOL"</code>. The process for building the shift table is as follows:</p>
 
-<p><strong>Shift formula:</strong> For each character at index <code>j</code> in <em>P</em> of length <code>m</code>,<br>
+<p><strong>Shift formula:</strong> For each character at index <code>j</code> in \(P\) of length <code>m</code>,<br>
 <code>S[P[j]] = m – 1 – j</code><br>
-where <code>m</code> = pattern length and <code>j</code> = 0-based index in <em>P</em>.</p>
+where <code>m</code> = pattern length and <code>j</code> = 0-based index in \(P\).</p>
 <div style="text-align:center;">
   <ol class="shift-build" style="display:inline-block; text-align:left;">
     <li>
@@ -98,7 +361,7 @@ where <code>m</code> = pattern length and <code>j</code> = 0-based index in <em>
   \end{aligned}
 \]
         </p>
-        <p><em>All entries start at <code>m = 8</code>.</em></p>
+        <p>\(All entries start at <code>m = 8</code>.\)</p>
       </div>
       <div class="table-container">
         <table border="1" cellpadding="6" cellspacing="0">
@@ -115,7 +378,7 @@ where <code>m</code> = pattern length and <code>j</code> = 0-based index in <em>
   \texttt{S['H'] = 8 - 1 - 0; // = 7}  
 \]
         </p>
-        <p><em>Set shift for 'H' to 7.</em></p>
+        <p>\(Set shift for 'H' to 7.\)</p>
       </div>
       <div class="table-container">
         <table border="1" cellpadding="6" cellspacing="0">
@@ -133,7 +396,7 @@ where <code>m</code> = pattern length and <code>j</code> = 0-based index in <em>
   \texttt{S['O'] = 8 - 1 - 1; // = 6}  
 \]
         </p>
-        <p><em>Set shift for first 'O' to 6.</em></p>
+        <p>\(Set shift for first 'O' to 6.\)</p>
       </div>
       <div class="table-container">
         <table border="1" cellpadding="6" cellspacing="0">
@@ -152,7 +415,7 @@ where <code>m</code> = pattern length and <code>j</code> = 0-based index in <em>
   \texttt{S['R'] = 8 - 1 - 2; // = 5}  
 \]
         </p>
-        <p><em>Set shift for 'R' to 5.</em></p>
+        <p>\(Set shift for 'R' to 5.\)</p>
       </div>
       <div class="table-container">
         <table border="1" cellpadding="6" cellspacing="0">
@@ -172,7 +435,7 @@ where <code>m</code> = pattern length and <code>j</code> = 0-based index in <em>
   \texttt{S['S'] = 8 - 1 - 3; // = 4}  
 \]
         </p>
-        <p><em>Set shift for 'S' to 4.</em></p>
+        <p>\(Set shift for 'S' to 4.\)</p>
       </div>
       <div class="table-container">
         <table border="1" cellpadding="6" cellspacing="0">
@@ -193,7 +456,7 @@ where <code>m</code> = pattern length and <code>j</code> = 0-based index in <em>
   \texttt{S['P'] = 8 - 1 - 4; // = 3}  
 \]
         </p>
-        <p><em>Set shift for 'P' to 3.</em></p>
+        <p>\(Set shift for 'P' to 3.\)</p>
       </div>
       <div class="table-container">
         <table border="1" cellpadding="6" cellspacing="0">
@@ -215,7 +478,7 @@ where <code>m</code> = pattern length and <code>j</code> = 0-based index in <em>
   \texttt{S['O'] = 8 - 1 - 5; // = 2}  
 \]
         </p>
-        <p><em>Overwrite shift for 'O' with 2.</em></p>
+        <p>\(Overwrite shift for 'O' with 2.\)</p>
       </div>
       <div class="table-container">
         <table border="1" cellpadding="6" cellspacing="0">
@@ -237,7 +500,7 @@ where <code>m</code> = pattern length and <code>j</code> = 0-based index in <em>
   \texttt{S['O'] = 8 - 1 - 6; // = 1}  
 \]
         </p>
-        <p><em>Overwrite shift for 'O' with 1.</em></p>
+        <p>\(Overwrite shift for 'O' with 1.\)</p>
       </div>
       <div class="table-container">
         <table border="1" cellpadding="6" cellspacing="0">
@@ -373,12 +636,13 @@ where <code>m</code> = pattern length and <code>j</code> = 0-based index in <em>
   </div>
 
   <h2>Time/Space Analysis</h2>
-  <p>Preprocessing time is <em>O(m + σ)</em>, where <em>σ</em> is the alphabet size. Each search shift requires up to <em>m</em> character comparisons, resulting in a worst-case time of <em>O(mn)</em> (for pathological texts) and an average-case time of <em>O(n)</em>. Space complexity is <em>O(σ)</em> for the shift table.</p>
+  <p>Preprocessing time is \(O(m + σ)\), where \(σ\) is the alphabet size. Each search shift requires up to \(m\) character comparisons, resulting in a worst-case time of \(O(mn)\) (for pathological texts) and an average-case time of \(O(n)\). Space complexity is \(O(σ)\) for the shift table.</p>
 
   <div class="section">
     <h2>Reading Comprehension Questions</h2>
     <ol>
       <li>What is the purpose of the bad-character shift table in Horspool's algorithm?</li>
+      <li>Why does the loop in the preprocessing step only go up to \(m-2\)? What would happen if it went to \(m-1\)?</li>
       <li>How is the shift value for each character computed during preprocessing?</li>
       <li>Why does the algorithm compare pattern and text characters from right to left?</li>
       <li>What are the worst-case and average-case time complexities?</li>
@@ -395,6 +659,7 @@ where <code>m</code> = pattern length and <code>j</code> = 0-based index in <em>
       <li>Modify the algorithm to include the good-suffix heuristic and discuss changes.</li>
       <li>Experiment with different alphabets (e.g., Unicode) and measure preprocessing time.</li>
       <li>Implement a benchmark harness to test average-case runtime on random texts.</li>
+      <li>Something about using dictionaries/maps to implement this for non-ASCII strings...</li>
     </ol>
   </div>
 
