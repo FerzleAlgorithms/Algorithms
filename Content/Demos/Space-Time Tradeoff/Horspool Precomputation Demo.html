@@ -13,13 +13,12 @@
       background-color: #f9f9f9;
     }
     .shift-table th {
-      background-color: #333;
-      color: white;
+      background-color: #eeee;
       font-weight: bold;
     }
     .shift-table td, .shift-table th {
       border: 1px solid #999;
-      padding: 4px 8px;
+      padding: 2px 4px;
       text-align: center;
       font-family: monospace;
     }
@@ -38,12 +37,18 @@
       flex: 1 1 420px;
       max-width: 100%;
     }
+    #patternDisplay {
+      margin-top: 10px;
+      font-family: monospace;
+      font-size: 1.5em;
+    }
+
   </style>
 </head>
 <body>
 <h2>Horspool Shift Table Construction</h2>
 <div>
-  <label>Pattern: <input type="text" id="patternInput" value="RODEO" oninput="sanitizeInput(this)"></label>
+  <label>Pattern: <input type="text" id="patternInput" value="HORSPOOL" oninput="sanitizeInput(this)"></label>
   <button onclick="generateShiftSteps()">Build Table</button>
 </div>
 <div>
@@ -51,6 +56,8 @@
   <button onclick="nextStep()">Next</button>
 </div>
 <div id="stepInfo"></div>
+<div id="patternDisplay" style="margin-top: 10px; font-family: monospace;"></div>
+
 <div id="shiftTableContainer"></div>
 
 <script>
@@ -58,20 +65,18 @@ let shiftSteps = [];
 let shiftCurrentStep = -1;
 
 function sanitizeInput(input) {
-  input.value = input.value.replace(/[^a-zA-Z]/g, '');
+  input.value = input.value.replace(/[^a-zA-Z]/g, '').toUpperCase();
 }
 
 function generateShiftSteps() {
-  const pattern = document.getElementById('patternInput').value;
+  const pattern = document.getElementById('patternInput').value.toUpperCase();
   const m = pattern.length;
   const table = {};
 
-  // Step 1: initialize all to m
-  for (let i = 0; i < 256; i++) {
+  // Step 1: initialize A-Z to m
+  for (let i = 65; i <= 90; i++) {
     const c = String.fromCharCode(i);
-    if (/[a-zA-Z]/.test(c)) {
-      table[c] = m;
-    }
+    table[c] = m;
   }
   shiftSteps = [{ table: { ...table }, note: `Initial table: all entries set to m = ${m}` }];
 
@@ -81,20 +86,53 @@ function generateShiftSteps() {
     const shift = m - 1 - j;
     table[char] = shift;
     const detail = `m - 1 - ${j} = ${m} - 1 - ${j} = ${shift}`;
-    shiftSteps.push({ table: { ...table }, note: `Set shift for '${char}' to ${shift} (${detail})`, highlight: char });
+    shiftSteps.push({ table: { ...table }, note: `Set shift for '${char}' to ${shift} (${detail})`, highlight: char, index: j });
   }
+  shiftSteps.push({
+    table: { ...table },
+    note: `All entries set. Table construction complete.`,
+    final: true
+  });
 
   shiftCurrentStep = 0;
   renderShiftStep(0);
 }
 
+
 function renderShiftStep(index) {
   if (index < 0 || index >= shiftSteps.length) return;
   shiftCurrentStep = index;
+
   const { table, note, highlight } = shiftSteps[index];
   document.getElementById('stepInfo').innerHTML = `<strong>Step ${index + 1}:</strong> ${note}`;
   document.getElementById('shiftTableContainer').innerHTML = generateWideTable(table, highlight);
+
+   const pattern = document.getElementById('patternInput').value.toUpperCase();
+
+  if (shiftSteps[index].final) {
+    document.getElementById('patternDisplay').innerHTML = '';
+  } else {
+    // Always show pattern unless final step
+    let patternHTML = '';
+    const currentIndex = shiftSteps[index].index ?? -1;
+  
+    for (let i = 0; i < pattern.length; i++) {
+      const ch = pattern[i];
+      if (i === currentIndex) {
+        patternHTML += `<span style="padding: 0 4px; background-color: #ffff99; font-weight: bold;">${ch}</span>`;
+      } else {
+        patternHTML += `<span style="padding: 0 4px;">${ch}</span>`;
+      }
+    }
+  
+    document.getElementById('patternDisplay').innerHTML =
+      `<strong>Pattern:</strong> ${patternHTML}`;
+  }
+
+
 }
+
+
 
 function previousStep() {
   if (shiftCurrentStep > 0) renderShiftStep(shiftCurrentStep - 1);
@@ -106,27 +144,36 @@ function nextStep() {
 
 function generateWideTable(table, highlightChar = null) {
   const sections = [
-    { title: 'A–Z', codes: [65, 90] },
-    { title: 'a–z', codes: [97, 122] }
+    { title: 'Shift Table', codes: [65, 90] }
   ];
   const m = document.getElementById('patternInput').value.length;
 
   const tablesHTML = sections.map(section => {
-    let rows = `<tr><th colspan="${section.codes[1] - section.codes[0] + 1}">${section.title}</th></tr><tr>`;
+    let headerRow = `<tr><th colspan="${section.codes[1] - section.codes[0] + 1}">${section.title}</th></tr>`;
+    let charRow = '<tr>';
+    let valRow = '<tr>';
+
     for (let code = section.codes[0]; code <= section.codes[1]; code++) {
       const char = String.fromCharCode(code);
       const val = table[char];
       let cls = '';
       if (char === highlightChar) cls = 'highlight';
       else if (val !== m) cls = 'non-default';
-      rows += `<td class="${cls}">${char}<br>${val}</td>`;
+
+      charRow += `<td class="${cls}">${char}</td>`;
+      valRow += `<td class="${cls}">${val}</td>`;
     }
-    rows += '</tr>';
-    return `<table class="shift-table">${rows}</table>`;
+
+    charRow += '</tr>';
+    valRow += '</tr>';
+
+    return `<table class="shift-table">${headerRow}${charRow}${valRow}</table>`;
   });
 
   return `<div class="step-table-wrapper">${tablesHTML.join('')}</div>`;
 }
+
+
 </script>
 </body>
 </html>

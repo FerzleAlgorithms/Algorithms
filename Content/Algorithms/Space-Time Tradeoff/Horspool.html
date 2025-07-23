@@ -75,7 +75,6 @@
 </style>
 <body>
   <h1>Horspool's Algorithm</h1>
-  <h3><font color="red">UNDER CONSTRUCTION!</font><h3>
 
   <h2>Problem Statement</h2>
   <p>Horspool's algorithm solves the <a class="problem" href="?path=Problems/Other/String Matching">String Matching</a>
@@ -89,18 +88,18 @@
 </p>
 
 <p>
-  Horspool compares characters starting from the rightmost character of the pattern moving leftward. This end-to-start comparison is strategic: mismatches near the end of the pattern are more informative, as they often justify larger shifts that skip irrelevant text. The shift distance depends only on the character aligned with the last position of the pattern in the current alignment, regardless of whether any earlier characters matched.
+  Horspool compares characters starting from the rightmost character of the pattern moving leftward. This end-to-start comparison is strategic: mismatches near the end of the pattern are more informative, as they often justify larger shifts that skip irrelevant text. The shift distance depends only on the character aligned with the <em>last</em> position of the pattern in the current alignment, regardless of whether any earlier characters matched.
 </p>
 
 <p>
   To illustrate, suppose we want to find the pattern "RODEO" in the text "NOW WE RODE ON HORSES". 
   Here we have \(m=5\) and \(n=21\).
-  We explore three scenarios based on the character <em>in the text</em> aligned with the last character of the pattern:
+  We explore three scenarios based on the character <em>in the text</em> aligned with the <em>last character</em> of the pattern:
 </p>
 
 
 <ul>
-  <li><strong>Case 1:</strong> The aligned character does not appear in the pattern.<br>
+  <li><strong>Case 1:</strong> <em>The aligned character does not appear in the pattern.</em><br>
     Suppose the alignment places the last character of "RODEO" over a <B>W</B> character of the text: <br>
         <table>
           <tr><td>
@@ -111,9 +110,9 @@
       Since <B>W</B> does not appear in "RODEO", shifting fewer than \(m\) (in this case, 5) 
     ensures that the <B>W</B> will not match any character in the pattern. Thus, we might as well shift by \(m\).
     In this case, we store \(m\) in  the shift table for <B>W</B>.
-    This is also the case for any other character not appearing in the pattern. 
+    This is the case for any character not appearing in the pattern. 
     </li>
-  <li><strong>Case 2:</strong> The aligned character appears somewhere in the pattern before the last position
+  <li><strong>Case 2:</strong> <em>The aligned character appears somewhere in the pattern before the last position</em>
   (and may or may not appear in the last position).<br>
     Suppose the alignment places the last character of "RODEO" over an <B>R</B> character of the text: <br>
     <table>
@@ -128,7 +127,7 @@
     In general, for characters whose <em>last</em> appearance in the pattern is at index \(i\), where \(i \lt m-1\),
     the shift table value is \(m - 1 - i\). 
     This ensures that the given occurrence of the letter in the text is aligned with its last appearance in the pattern.</li>
-  <li><strong>Case 3:</strong> The aligned character only occurs as the final character of the pattern.<br>
+  <li><strong>Case 3:</strong> <em>The aligned character only occurs as the final character of the pattern.</em><br>
   (Notice that if it also occurs elsewhere, it is in Case 2). For instance, if we replace the pattern "RODEO" with "RADEO", 
   and have a situation such as the following:
   <table>
@@ -158,8 +157,7 @@ In summary:
       <td style="border: 1px solid #ccc; padding: 6px;">is not in the pattern</td>
       <td style="border: 1px solid #ccc; padding: 6px;">
         <div class="example-alignment"><span class="highlight">NOW </span><span class="highlight2">W</span>E RODE ON HORSES
-RODEO
-        </div>
+RODEO</div>
       </td>
       <td style="border: 1px solid #ccc; padding: 6px;">Shift the pattern by \(m\).</td>
     </tr>
@@ -168,8 +166,7 @@ RODEO
       <td style="border: 1px solid #ccc; padding: 6px;">appears earlier in the pattern<br>(last occurrence at index \(i\))</td>
       <td style="border: 1px solid #ccc; padding: 6px;">
         <div class="example-alignment">NOW<span class="highlight"> WE </span><span class="highlight2">R</span>ODE ON HORSES
-   RODEO
-        </div>
+   RODEO</div>
       </td>
       <td style="border: 1px solid #ccc; padding: 6px;">Shift the pattern by \(m - 1 - i\).</td>
     </tr>
@@ -178,15 +175,20 @@ RODEO
       <td style="border: 1px solid #ccc; padding: 6px;">appears only at final position in pattern</td>
       <td style="border: 1px solid #ccc; padding: 6px;">
         <div class="example-alignment">NOW <span class="highlight">WE R</span><span class="highlight2">O</span>DE ON HORSES
-    RADEO
-        </div>
+    RADEO</div>
       </td>
       <td style="border: 1px solid #ccc; padding: 6px;">Shift the pattern by \(m\).</td>
     </tr>
   </tbody>
 </table>
 </p>
-
+<p>
+Two important points to re-emphasize: 
+First, we look at the character in the text, not the pattern.
+Second, we look at the character in the text that is aligned with the last character of the pattern regardless of
+whether or not any characters matched. 
+So it is always the character <em>in the text</em> that is lined up with the <em>last character in the pattern</em>. 
+</p>
 <p>
 These examples/observations are the idea behind the <em>Bad Character Heuristic</em>. 
 The heuristic builds a <strong>shift table</strong> that precomputes optimal shifts for each character, 
@@ -214,14 +216,14 @@ the preprocessing step to compute the shift table (also know as the <em>bad char
     </ol>
 <p>
 
-For simplicity, we will assume the characters are ASCII so we can treat the integers 0 through 255 as characters.
-Then we will need a shift table with 256 entries. 
-We will also assume that the pattern \(P\) is stored in an array of integers
-representing the ASCII values of the characters. 
-(Many languages, including Java and C++ make this easy to do.)
+For simplicity, in most the remainder of our discussion 
+we will assume the characters are ASCII so we can treat them as integers 0 through 255, 
+making it easy to implement a lookup table.
+Many languages, including Java and C++, make this easy to do.
+This means we will need a shift table with 256 entries. 
 Given that, we can write the preprocessing step of the algorithm in formal pseudocode as follows:
 
-<pre><code>int [] computeShiftTable(P)
+<pre><code>int [] computeShiftTable(int P[])
     m=P.length
     int[] S = new int[256];            // Create an array of size 256
     for (int i = 0; i < 256 ; i++) {   // Initialize all entries to m
@@ -234,307 +236,70 @@ Given that, we can write the preprocessing step of the algorithm in formal pseud
 </code></pre>
  </p>
 
-Let's see a few examples of constructing the table. Run the following demo with strings like 
-"horspool", "shoelaces", and "CGTAATAAGTC".
-<h2>Interactive Shift Table Construction Demo</h2>
-  <p>Enter a pattern to dynamically construct the shift table.</p>
-  <input id="patternInput" type="text" placeholder="Enter pattern" style="margin-bottom:10px; padding:5px;">
-  <button class="mini-demo-btn" onclick="buildShiftTable()">Build Shift Table</button>
-  <div id="shiftTableContainer"></div>
+<p>
+Let's see a few examples of constructing the table. 
+For simplicity, the following demo restricts the characters to upper case alphabetic characters
+and only shows that portion of the shift table.
+Run it with strings like "HORSPOOL", "SHOELACES", and "CGTAATAAGTC".</p>
 
-  <script>
-    function buildShiftTable() {
-      const pattern = document.getElementById('patternInput').value;
-      const m = pattern.length;
-      let table = {};
-
-      for (let i = 0; i < 256; i++) {
-        table[String.fromCharCode(i)] = m;
-      }
-
-      for (let j = 0; j < m - 1; j++) {
-        table[pattern[j]] = m - 1 - j;
-      }
-
-      let tableHTML = '<table class="shift-table"><tr><th>Character</th><th>Shift</th></tr>';
-      let chars = Array.from(new Set(pattern.split('')));
-
-      chars.forEach(c => {
-        tableHTML += `<tr><td>${c}</td><td>${table[c]}</td></tr>`;
-      });
-
-      tableHTML += `<tr><td>Others</td><td>${m}</td></tr>`;
-      tableHTML += '</table>';
-
-      document.getElementById('shiftTableContainer').innerHTML = tableHTML;
-    }
-  </script>
-
-Now that we have a shift table, we can get into the main part of the algorithm. 
-  
-<ol>
-  <li><strong>Searching (Using the Shift Table):</strong>
-    <ol type='a'>
-      <li>Begin by aligning the pattern \(P\) with the start of the text \(T\). Character comparisons are performed from right to left, meaning the algorithm first compares the last character of the pattern to the corresponding aligned character in the text. This backward comparison approach helps detect mismatches quickly.</li>
-      <li>If all characters match, record the starting index of this occurrence. If a mismatch occurs, note the character in the text aligned with the last character of \(P\). Use this mismatched character to look up its shift value in the table \(S\).</li>
-      <li>Shift the pattern to the right according to the shift value found. This shift is justified because the shift table value represents the maximum distance we can safely move the pattern forward without missing any potential matches. Continue the matching process from the new alignment. Repeat until the entire text has been searched.</li>
-    </ol>
-  </li>
-</ol>
-
-
-FOOFJIGERUYFERKJHFR
-
-    <p>
-    Horspool's algorithm is a <strong>space-time tradeoff</strong> algorithm that efficiently finds occurrences of a 
-    pattern \(P\) within a text \(T\) by minimizing character comparisons. 
-    It utilizes the <em>Bad Character Heuristic</em>, 
-    preprocessing the pattern into a <strong>shift table</strong> to skip unnecessary comparisons.
-    At a high level, the algorithm works as follows.
-  </p>
-  <ol>
-    <li><strong>Preprocessing:</strong>
-      <ol type='a'>
-        <li>Create a shift table \(S\) to store a shift value for each character in the alphabet.</li>
-        <li>Initialize all entries in shift table \(S\) to the pattern length \(m\).</li>
-        <li>For each character in the pattern (except the last), set <code>S[P[j]] = m - 1 - j</code>.</li>
-      </ol>
-    </li>
-    <li><strong>Searching:</strong>
-      <ol type='a'>
-        <li>Align \(P\) with the start of \(T\) and compare from right to left.</li>
-        <li>Upon mismatch, shift \(P\) by looking up the shift value of the character aligned with \(P\)'s last character.</li>
-        <li>Record indices of matches found.</li>
-      </ol>
-    </li>
-  </ol>
-  
-  <p>Horspool's Algorithm is a an algorithm that takes advatage of a <strong>space-time tradeoff</strong> to find how many occurrences of a pattern string \(P\) can be found in a text \(T\) 
-  as efficiently as possible by minimizing the number of comparisons.
-  In order to accomplish this, Horspool's Algorithm takes advantage of an idea 
-  known as the \(Bad Character Heuristic\). Before searching \(T\) 
-  for occurences of \(P\), the algorithm preprocesses \(P\) to build a table of values that map characters to integers.
-  This is known as the Shift Table, \(S\).  The purpose of \(S\) is to skip over portions of \(T\) where we can deduce there will not
-  be any occurences of \(P\). Thus, saving the number of comparisons being executed. By using \(S\) to shift along \(P\), the number of comparisons is greatly reduced from the
-  Exhaustive Brute Force Algorithm, since we do not run comparisons on any segement we skip.
-  Similarly to the Brute Force Algorithm, the algorithm returns a list of starting index values, each one representing the beginning of an occurence of \(P\).
-  If you are not familiar with the Brute Force Sting Matching Alogrithm, you should read that section before continuing.
-  <br><br>
-  
-	More formally, the algorithm works as follows.
-  <br><br>
-  During preprocessing, we build \(S\) by initializing every entry 
-  <code>S[c] = m</code> (the pattern length) and, for each index <code>j</code>
-  from <code>0</code> to <code>m−2</code>, setting <code>S[P[j]] = m−1−j</code>.
-  This table tells the algorithm how far to slide \(P\) when a mismatch occurs:
-  on a mismatch at <code>T[i+j]</code> aligned with \(P\)’s last character, we 
-  look up <code>S[T[i+m−1]]</code> to skip ahead over portions of \(T\) that cannot
-  contain the pattern. This dramatically reduces unnecessary comparisons compared to the
-  exhaustive brute-force approach, yet still returns all starting indices of matches.
-  <br><br>
-  After the preprocessing is finished, the searching begins just as the Brute Force algorithm,
-   but when there is a mismatch, instead of shifting over once every time, the character in 
-   \(T\) that aligns with the last character in \(P\) determines how far we shift via lookup to \(S\).
-  
-   As each full pattern match is found, the first index of the current portion of \(T\) being compared is stored in a list,
-   which is then returned after all of \(T\) is searched.
-	
-  </p>
-	
-  
-	
-<p>Below is an example pattern <code>"HORSPOOL"</code>. The process for building the shift table is as follows:</p>
-
-<p><strong>Shift formula:</strong> For each character at index <code>j</code> in \(P\) of length <code>m</code>,<br>
-<code>S[P[j]] = m – 1 – j</code><br>
-where <code>m</code> = pattern length and <code>j</code> = 0-based index in \(P\).</p>
-<div style="text-align:center;">
-  <ol class="shift-build" style="display:inline-block; text-align:left;">
-    <li>
-      <div class="details">
-        <strong>Initialize shift table</strong>
-        <p style="text-align:center;">
-\[
-  \begin{aligned}
-    \texttt{int[] S = new int[256];}\\
-    \texttt{Arrays.fill(S, 8);}  
-  \end{aligned}
-\]
-        </p>
-        <p>\(All entries start at <code>m = 8</code>.\)</p>
-      </div>
-      <div class="table-container">
-        <table border="1" cellpadding="6" cellspacing="0">
-          <tr><th>Char</th><th>Shift</th></tr>
-          <tr><td>All characters</td><td>8</td></tr>
-        </table>
-      </div>
-    </li>
-    <li>
-      <div class="details">
-        <strong>j = 0 (<code>P[0] = 'H'</code>)</strong>
-        <p style="text-align:center;">
-\[
-  \texttt{S['H'] = 8 - 1 - 0; // = 7}  
-\]
-        </p>
-        <p>\(Set shift for 'H' to 7.\)</p>
-      </div>
-      <div class="table-container">
-        <table border="1" cellpadding="6" cellspacing="0">
-          <tr><th>Char</th><th>Shift</th></tr>
-          <tr><td>H</td><td>7</td></tr>
-          <tr><td>Others</td><td>8</td></tr>
-        </table>
-      </div>
-    </li>
-    <li>
-      <div class="details">
-        <strong>j = 1 (<code>P[1] = 'O'</code>)</strong>
-        <p style="text-align:center;">
-\[
-  \texttt{S['O'] = 8 - 1 - 1; // = 6}  
-\]
-        </p>
-        <p>\(Set shift for first 'O' to 6.\)</p>
-      </div>
-      <div class="table-container">
-        <table border="1" cellpadding="6" cellspacing="0">
-          <tr><th>Char</th><th>Shift</th></tr>
-          <tr><td>H</td><td>7</td></tr>
-          <tr><td>O</td><td>6</td></tr>
-          <tr><td>Others</td><td>8</td></tr>
-        </table>
-      </div>
-    </li>
-    <li>
-      <div class="details">
-        <strong>j = 2 (<code>P[2] = 'R'</code>)</strong>
-        <p style="text-align:center;">
-\[
-  \texttt{S['R'] = 8 - 1 - 2; // = 5}  
-\]
-        </p>
-        <p>\(Set shift for 'R' to 5.\)</p>
-      </div>
-      <div class="table-container">
-        <table border="1" cellpadding="6" cellspacing="0">
-          <tr><th>Char</th><th>Shift</th></tr>
-          <tr><td>H</td><td>7</td></tr>
-          <tr><td>O</td><td>6</td></tr>
-          <tr><td>R</td><td>5</td></tr>
-          <tr><td>Others</td><td>8</td></tr>
-        </table>
-      </div>
-    </li>
-    <li>
-      <div class="details">
-        <strong>j = 3 (<code>P[3] = 'S'</code>)</strong>
-        <p style="text-align:center;">
-\[
-  \texttt{S['S'] = 8 - 1 - 3; // = 4}  
-\]
-        </p>
-        <p>\(Set shift for 'S' to 4.\)</p>
-      </div>
-      <div class="table-container">
-        <table border="1" cellpadding="6" cellspacing="0">
-          <tr><th>Char</th><th>Shift</th></tr>
-          <tr><td>H</td><td>7</td></tr>
-          <tr><td>O</td><td>6</td></tr>
-          <tr><td>R</td><td>5</td></tr>
-          <tr><td>S</td><td>4</td></tr>
-          <tr><td>Others</td><td>8</td></tr>
-        </table>
-      </div>
-    </li>
-    <li>
-      <div class="details">
-        <strong>j = 4 (<code>P[4] = 'P'</code>)</strong>
-        <p style="text-align:center;">
-\[
-  \texttt{S['P'] = 8 - 1 - 4; // = 3}  
-\]
-        </p>
-        <p>\(Set shift for 'P' to 3.\)</p>
-      </div>
-      <div class="table-container">
-        <table border="1" cellpadding="6" cellspacing="0">
-          <tr><th>Char</th><th>Shift</th></tr>
-          <tr><td>H</td><td>7</td></tr>
-          <tr><td>O</td><td>6</td></tr>
-          <tr><td>R</td><td>5</td></tr>
-          <tr><td>S</td><td>4</td></tr>
-          <tr><td>P</td><td>3</td></tr>
-          <tr><td>Others</td><td>8</td></tr>
-        </table>
-      </div>
-    </li>
-    <li>
-      <div class="details">
-        <strong>j = 5 (<code>P[5] = 'O'</code>)</strong>
-        <p style="text-align:center;">
-\[
-  \texttt{S['O'] = 8 - 1 - 5; // = 2}  
-\]
-        </p>
-        <p>\(Overwrite shift for 'O' with 2.\)</p>
-      </div>
-      <div class="table-container">
-        <table border="1" cellpadding="6" cellspacing="0">
-          <tr><th>Char</th><th>Shift</th></tr>
-          <tr><td>H</td><td>7</td></tr>
-          <tr><td>O</td><td>2</td></tr>
-          <tr><td>R</td><td>5</td></tr>
-          <tr><td>S</td><td>4</td></tr>
-          <tr><td>P</td><td>3</td></tr>
-          <tr><td>Others</td><td>8</td></tr>
-        </table>
-      </div>
-    </li>
-    <li>
-      <div class="details">
-        <strong>j = 6 (<code>P[6] = 'O'</code>)</strong>
-        <p style="text-align:center;">
-\[
-  \texttt{S['O'] = 8 - 1 - 6; // = 1}  
-\]
-        </p>
-        <p>\(Overwrite shift for 'O' with 1.\)</p>
-      </div>
-      <div class="table-container">
-        <table border="1" cellpadding="6" cellspacing="0">
-          <tr><th>Char</th><th>Shift</th></tr>
-          <tr><td>H</td><td>7</td></tr>
-          <tr><td>O</td><td>1</td></tr>
-          <tr><td>R</td><td>5</td></tr>
-          <tr><td>S</td><td>4</td></tr>
-          <tr><td>P</td><td>3</td></tr>
-          <tr><td>Others</td><td>8</td></tr>
-        </table>
-      </div>
-    </li>
-    <li>
-      <div class="details">
-        <strong>Final shift table:</strong>
-      </div>
-      <div class="table-container">
-        <table border="1" cellpadding="6" cellspacing="0">
-          <tr><th>Character</th><th>Shift</th></tr>
-          <tr><td>H</td><td>7</td></tr>
-          <tr><td>O</td><td>1</td></tr>
-          <tr><td>R</td><td>5</td></tr>
-          <tr><td>S</td><td>4</td></tr>
-          <tr><td>P</td><td>3</td></tr>
-          <tr><td>L &amp; others</td><td>8</td></tr>
-        </table>
-      </div>
-    </li>
-  </ol>
+<div class="embeddedDemoContainer">
+  <iframe class="embeddedDemo"
+          src="/Algorithms/Content/Demos/Space-Time Tradeoff/Horspool Precomputation Demo.html"
+          allow="fullscreen"
+          name="counting-sort-demo">
+  </iframe>
 </div>
-<p>Below is an example of the pattern "Horspool" being used in action with the shift table.</p>
+<p>
+If the characters in question are not ASCII, we can simply replace an array with a dictionary,
+which languages like Python make very easy, can be done with a <code>HashMap</code> 
+in Java, or with a <code>std::map</code> in C++. In this case, the dictionary only needs to store entries
+whose values are not the full length of the pattern (\(m\)), and if a character is not in the dictionary
+the value is assumed to be \(m\). 
+This means no initialization is required, and less space is used most of the time.
+</p>
+<p>
+Now that we have a shift table, we can get into the main part of the algorithm. 
+</p>
+    <ol>
+      <li>Begin by aligning the pattern \(P\) with the start of the text \(T\).</li>
+      <li>Character comparisons are performed from right to left, meaning the algorithm first compares the last character of the pattern to the corresponding aligned character in the text.</li>
+      <ol type='a'>
+      <li>If all characters match, record or return the starting index of this occurrence.</li>
+      <li>If a mismatch occurs anywhere within the pattern, lookup \(k=S[c]\), 
+      where \(c\) is the character in the text aligned with the last character of \(P\).</li>
+      </ol>
+      </li>
+      <li>Shift the pattern to the right by \(k\) places.</li>
+      <li>As long as the pattern does no go past the end of the text, go back to step 2. Otherwise quit.</li>
+    </ol>
 
-  <div class="embeddedDemoContainer" style= "height: 600px">
+
+If more formal pseudocode, it looks something like this
+(where this version simply outputs all matches): 
+
+<pre><code>horspoolSearch(int[]P, int[] T, int[] S) 
+    int n=T.length
+    int m=P.length
+    int i = 0;          // Line up P at the start of T
+    while (i &le; n - m)   // As long as pattern does not go past the end of text
+        int j = m - 1;                        // Start at the end of the pattern
+        while (j &ge; 0 && P[j] == T[i + j])     // As long as the characters match
+            j--;                              // go to the previous character
+        
+        if (j &lt; 0)               // If we made it through the whole pattern
+            print(i)             // print the starting index of the match location
+            
+        int next = T[i + m - 1];  // Get character of text lined up with the last 
+                                  // character of pattern (treated like an integer)
+        i += S[next];             // Shift according to the bad character table        
+        </pre></code>
+
+<p>Use this demo with several patterns and texts until you are comfortable with how the algorithm works.
+This demo only shows the portion of the table with characters from the pattern. The <code>*</code> entry 
+indicates all other characters, which is why its value is \(m\).
+Do not make the text too long unless you have a wide enough monitor!</p>
+
+  <div class="embeddedDemoContainer">
     <iframe class="embeddedDemo"
             src="../../Demos/Space-Time Tradeoff/Horspool Demo.html"
             allow="fullscreen"
@@ -543,56 +308,39 @@ where <code>m</code> = pattern length and <code>j</code> = 0-based index in \(P\
   </div>
 
   <h2>Code Implementations</h2>
+  <p>In the following implementations, we assume the characters in the <code>char</code> arrays are ASCII characters.
+  If they are not, the algorithms will crash (index-out-of-bounds errors). Note that for C++ we need to cast 
+  the <code>char</code> into <code>unsigned char</code> since wether or not a <code>char</code> is signed or unsigned
+  is implementation dependent, and negative values would definitly cause problems.
+  This complication can be avoided by using a dictionary/map instead of an array
+  (but depending on your background, you may or may not know how to do that in C++, so we do not assume). 
+  Also notice that, as usual, we need to pass in the sizes of the array in C++.
+  In the first Python implementation, we try to keep the implementation as similar to Java and C++ as possible. 
+  In it we use the <code>ord</code> method to convert a character to its ASCII value.
+  We give a second version that takes advantage of the fact that dictionaries are very simple to use in Python,
+  as well as a few other Python-shortcuts.
+  </p>
   <div class="tab-group">
     <div class="tabs" role="tablist">
       <button id="tab-java" class="tablink active" data-lang="java" role="tab" aria-controls="java" aria-selected="true">Java</button>
       <button id="tab-cpp" class="tablink" data-lang="cpp" role="tab" aria-controls="c++" aria-selected="false">C++</button>
-      <button id="tab-python" class="tablink" data-lang="python" role="tab" aria-controls="python" aria-selected="false">Python</button>
+      <button id="tab-python" class="tablink" data-lang="python" role="tab" aria-controls="python" aria-selected="false">Python</button>     
+      <button id="tab-python-v2" class="tablink" data-lang="python2" role="tab" aria-controls="python-v2" aria-selected="false">More Pythonic Version</button>
     </div>
 
     <div id="java" class="code-container active" role="tabpanel" aria-labelledby="tab-java">
-<pre><code class="language-java">public List<Integer> horspoolSearch(String T, String P) {
-    int n = T.length(), m = P.length();
-    List<Integer> result = new ArrayList<>();
-    if (m == 0 || n < m) return result;
+<pre><code class="language-java">void horspoolSearch(char[] P, char[] T) {
+    int m = P.length;
+    int n = T.length;
 
-    // Preprocessing
-    int[] B = new int[256];
-    Arrays.fill(B, m);
+    int[] S = new int[256];
+    for (int i = 0; i < 256; i++) {
+        S[i] = m;
+    }
     for (int j = 0; j < m - 1; j++) {
-        B[P.charAt(j)] = m - 1 - j;
+        S[P[j]] = m - 1 - j;  // Implicit cast from char to int
     }
 
-    // Searching
-    int i = 0;
-    while (i <= n - m) {
-        int j = m - 1;
-        while (j >= 0 && P.charAt(j) == T.charAt(i + j)) {
-            j--;
-        }
-        if (j < 0) {
-            result.add(i);
-        }
-        char next = T.charAt(i + m - 1);
-        i += B[next & 0xFF];
-    }
-    return result;
-}</code></pre>
-    </div>
-
-    <div id="cpp" class="code-container" role="tabpanel" aria-labelledby="tab-cpp">
-<pre><code class="language-cpp">vector<int> horspoolSearch(const string &T, const string &P) {
-    int n = T.size(), m = P.size();
-    vector<int> result;
-    if (m == 0 || n < m) return result;
-
-    // Preprocessing
-    vector<int> B(256, m);
-    for (int j = 0; j < m - 1; j++) {
-        B[(unsigned char)P[j]] = m - 1 - j;
-    }
-
-    // Searching
     int i = 0;
     while (i <= n - m) {
         int j = m - 1;
@@ -600,79 +348,266 @@ where <code>m</code> = pattern length and <code>j</code> = 0-based index in \(P\
             j--;
         }
         if (j < 0) {
-            result.push_back(i);
+            System.out.println(i);
         }
-        unsigned char next = T[i + m - 1];
-        i += B[next];
+        char next = T[i + m - 1];
+        i += S[next];  // next implicitly cast to int
     }
-    return result;
+}</code></pre>
+    </div>
+
+    <div id="cpp" class="code-container" role="tabpanel" aria-labelledby="tab-cpp">
+<pre><code class="language-cpp">void horspoolSearch(char P[], int m, char T[], int n) {
+    int S[256];
+    for (int i = 0; i < 256; i++)
+        S[i] = m;
+
+    for (int j = 0; j < m - 1; j++)
+        S[(unsigned char)P[j]] = m - 1 - j;
+
+    int i = 0;
+    while (i <= n - m) {
+        int j = m - 1;
+        while (j >= 0 && P[j] == T[i + j])
+            j--;
+
+        if (j < 0)
+            std::cout << i << std::endl;
+
+        char next = T[i + m - 1];
+        i += S[(unsigned char)next];
+    }
 }</code></pre>
     </div>
 
     <div id="python" class="code-container" role="tabpanel" aria-labelledby="tab-python">
-<pre><code class="language-python">def horspool_search(text: str, pattern: str) -> List[int]:
-    n, m = len(text), len(pattern)
-    result = []
-    if m == 0 or n < m:
-        return result
+<pre><code class="language-python">def horspool_search(P, T):
+    m = len(P)
+    n = len(T)
 
-    # Preprocessing
-    B = {chr(c): m for c in range(256)}
+    # Step 1: Build the shift table
+    S = [m] * 256
     for j in range(m - 1):
-        B[pattern[j]] = m - 1 - j
+        S[ord(P[j])] = m - 1 - j
 
-    # Searching
+    # Step 2: Search
     i = 0
     while i <= n - m:
         j = m - 1
-        while j >= 0 and pattern[j] == text[i + j]:
+        while j >= 0 and P[j] == T[i + j]:
             j -= 1
         if j < 0:
-            result.append(i)
-        next_char = text[i + m - 1]
-        i += B.get(next_char, m)
-    return result</code></pre>
+            print(i)
+        i += S[ord(T[i + m - 1])]</code></pre>
+    </div>
+        <div id="python2" class="code-container" role="tabpanel" aria-labelledby="tab-python-v2">
+<pre><code class="language-python">def horspool_search(P, T):
+    m = len(P)
+    n = len(T)
+
+    # Step 1: Build the shift table using a dict
+    shift = {c: m for c in set(T)}  # default to m for all seen text chars
+    for j in range(m - 1):
+        shift[P[j]] = m - 1 - j
+
+    # Step 2: Search
+    i = 0
+    while i <= n - m:
+        j = m - 1
+        while j >= 0 and P[j] == T[i + j]:
+            j -= 1
+        if j < 0:
+            print(i)
+        c = T[i + m - 1]
+        i += shift.get(c, m)  # default to m if char not in shift table</code></pre>
     </div>
   </div>
 
-  <h2>Time/Space Analysis</h2>
-  <p>Preprocessing time is \(O(m + σ)\), where \(σ\) is the alphabet size. Each search shift requires up to \(m\) character comparisons, resulting in a worst-case time of \(O(mn)\) (for pathological texts) and an average-case time of \(O(n)\). Space complexity is \(O(σ)\) for the shift table.</p>
+<h2>Time/Space Analysis</h2>
 
-  <div class="section">
-    <h2>Reading Comprehension Questions</h2>
+<p><strong>Time Complexity:</strong>
+The preprocessing phase takes \(O(m + \sigma)\) time, where \(m\) is the length of the pattern and \(\sigma\) is the size of the alphabet. 
+The \(O(\sigma)\) term accounts for initializing the shift table, and the \(O(m)\) term comes from updating the table entries based on the pattern.</p>
+
+<p>
+In the worst case, each shift results in only a single-character shift with up to \(m\) comparisons, leading to a total time of \(O(mn)\). 
+This can occur in contrived inputs where mismatches happen only at the end of each alignment (e.g., text is a repeated prefix of the pattern).
+</p>
+
+<p>
+However, the <strong>average-case complexity is \(O(n)\)</strong> for typical inputs, especially when the alphabet is reasonably large and the pattern is not highly repetitive. 
+This is because most mismatches are detected quickly (often near the end of the pattern), and the algorithm often shifts by several characters at once.
+On average, the number of character comparisons per alignment is small and independent of the pattern length, resulting in linear-time behavior for most inputs.
+This behavior makes Horspool’s algorithm significantly faster in practice than brute-force search, especially when the pattern is long or the character distribution is uniform.
+</p>
+
+<p><strong>Space Complexity:</strong> The shift table requires \(O(\sigma)\) space, which is constant for fixed-size alphabets such as ASCII (256 characters).</p>
+
+<h2>Variations/Improvements</h2>
+<p>
+Horspool's algorithm is a simplified version of the more general <em>Boyer-Moore algorithm</em>, which uses both the bad character rule (as in Horspool) and an additional <em>good suffix rule</em> to determine shift distances. 
+While Horspool is easier to implement and performs well in practice, especially for longer patterns and larger alphabets, Boyer-Moore typically achieves better performance by using more information from partial matches. 
+Further refinements, such as the <em>Boyer-Moore-Horspool-Sunday</em> algorithm, adjust the shift logic to examine characters beyond the current window, often improving average-case behavior. 
+Other extensions and hybrid approaches balance preprocessing time and shift table complexity to optimize for specific contexts, such as small alphabets or frequent partial matches in the text.
+</p>
+
+
+<h2>Links to Resources</h2>
+<ul>
+  <li>
+    <a href="https://en.wikipedia.org/wiki/Boyer%E2%80%93Moore%E2%80%93Horspool_algorithm" target="_blank">
+      Boyer–Moore-Horspool algorithm (Wikipedia)</a>  
+    Overview of Horspool's algorithm.
+  </li>
+</ul>
+
+
+<!-- Reading Comprehension Questions -->
+<section id="reading-questions">
+  <h2>Reading Comprehension Questions</h2>
+  <ol>
+    <li><strong>Shift Table Purpose</strong> What is the purpose of the bad character table (the shift table) in Horspool’s algorithm?</li>
+    <li><strong>Preprocessing Range</strong> Why does the preprocessing loop update the shift table only for the first \(m-1\) characters of the pattern? What would happen if the last character were included?</li>
+
+    <li><strong>Shift Formula</strong> How is the shift value for a character in the pattern computed?</li>
+    <li><strong>Right-to-Left Comparison</strong> Why does Horspool’s algorithm compare characters from right to left during the search?</li>
+    <li><strong>Time Complexity</strong> What are the worst-case and average-case time complexities of Horspool’s algorithm? </li>
+    <li><strong>Large Alphabet</strong> What effect does a large alphabet size have on the performance of the algorithm?</li>
+    <li><strong>Shift Character</strong> What character in the text determines how far the pattern shifts after a mismatch?</li>
+    <li><strong>Default Shift</strong> What value is assigned in the shift table for characters that do not appear in the pattern, and why?</li>
+    <li><strong>Improvement Over Brute Force</strong> In what ways does Horspool's algorithm improve over the brute-force approach?</li>
+    <li><strong>Repeated Characters</strong> How does having repeated characters in the pattern affect the entries in the shift table?</li>
+  </ol>
+
+  <button id="toggleAnswers" class="show-answer" aria-expanded="false">
+    Show Answers
+  </button>
+  <div id="answers" class="answer" hidden>
     <ol>
-      <li>What is the purpose of the bad-character shift table in Horspool's algorithm?</li>
-      <li>Why does the loop in the preprocessing step only go up to \(m-2\)? What would happen if it went to \(m-1\)?</li>
-      <li>How is the shift value for each character computed during preprocessing?</li>
-      <li>Why does the algorithm compare pattern and text characters from right to left?</li>
-      <li>What are the worst-case and average-case time complexities?</li>
-      <li>How would the algorithm behave if the alphabet size σ is very large?</li>
+      <li>
+        <strong>Answer:</strong><br>
+        The shift table tells the algorithm how far to shift the pattern when a mismatch occurs, based on the character in the text that caused the mismatch. It allows the algorithm to skip over sections of the text instead of checking every position.
+      </li>
+      <li>
+        <strong>Answer:</strong><br>
+        The shift table is used when a mismatch occurs at the last character of the pattern, so there is no need to define a shift for that character based on itself — it is the one being compared. If the last character were included in the preprocessing, it would receive a shift value of 0, which would prevent any progress in the search when mismatches occur on that character. This could cause infinite loops or redundant comparisons.
+</li>
+      <li>
+        <strong>Answer:</strong><br>
+        For a character \(c\) at position \(j\) in the pattern (where \(j < m - 1\)), the shift value is computed as \(m - 1 - j\). This tells the algorithm how far to shift the pattern when a mismatch occurs on character \(c\).
+      </li>
+      <li>
+        <strong>Answer:</strong><br>
+        Horspool's algorithm compares characters from right to left so that a mismatch at the end of the pattern can immediately trigger a shift based on the “bad character” rule. This approach allows the algorithm to use a precomputed shift table indexed by the mismatched character in the text, which is aligned with the last character of the pattern. The direction of comparison does not affect how quickly mismatches are found or how large the shift is&mdash;it simply enables efficient table-based shifting.
+      </li>
+      <li>
+        <strong>Answer:</strong><br>
+        The worst-case time complexity is \(O(mn)\), which occurs in cases where shifts are small and many comparisons are needed. The average-case time is \(O(n)\) because mismatches often allow large shifts and most comparisons fail quickly.
+      </li>
+      <li>
+        <strong>Answer:</strong><br>
+        A large alphabet affects both the preprocessing and search phases. In preprocessing, it increases the time and space needed to initialize the shift table, since an entry must be created for each character in the alphabet. During the search, a larger alphabet improves average-case performance by increasing the likelihood that a mismatched character does not appear in the pattern, allowing the pattern to shift farther.
+      </li>
+
+      <li>
+        <strong>Answer:</strong><br>
+        The character in the text that aligns with the last character of the pattern determines the shift value. This is the “bad character” used to look up the shift amount in the table.
+      </li>
+      <li>
+        <strong>Answer:</strong><br>
+        Characters not in the pattern are assigned a shift value equal to the pattern length. This ensures the pattern moves past them entirely, since no match is possible.
+      </li>
+      <li>
+        <strong>Answer:</strong><br>
+        Horspool avoids rechecking characters that have already been compared by starting from the right end of the pattern. It also uses the shift table to skip ahead by several characters on mismatches, often reducing the number of comparisons significantly.
+      </li>
+      <li>
+        <strong>Answer:</strong><br>
+        Repeated characters in the pattern result in multiple updates to the shift table for the same character. The last occurrence closest to the end of the pattern determines the final shift value.
+      </li>
     </ol>
   </div>
+</section>
 
-  <div class="section">
-    <h2>In-Class Activities</h2>
-    <ol>
-      <li>Manually build the shift table for a given pattern and alphabet.</li>
-      <li>Simulate text-pattern matching on paper to observe shifts and comparisons.</li>
-      <li>Compare Horspool's performance with naive string search on various texts.</li>
-      <li>Modify the algorithm to include the good-suffix heuristic and discuss changes.</li>
-      <li>Experiment with different alphabets (e.g., Unicode) and measure preprocessing time.</li>
-      <li>Implement a benchmark harness to test average-case runtime on random texts.</li>
-      <li>Something about using dictionaries/maps to implement this for non-ASCII strings...</li>
-    </ol>
-  </div>
+<div class="section">
+  <h2>In-Class Activities</h2>
+  <ol>
+    <li><strong>Build a Shift Table</strong>  
+      Given a pattern and an alphabet (e.g., ASCII a–z), manually construct the bad-character shift table by computing \( m - 1 - j \) for each relevant character. Compare answers with a partner.
+    </li>
+    <li><strong>Simulate the Algorithm</strong>  
+      Use pencil and paper to walk through Horspool’s algorithm on a short pattern and text. Mark character comparisons, mismatches, matches, and record each shift. Tally the total number of comparisons.
+    </li>
+    <li><strong>Compare with Naive Search</strong>  
+      For the same pattern and text, simulate both Horspool and the brute-force (naive) approach. Compare total comparisons and shifts. Which one performs better and why?
+    </li>
+    <li><strong>Shift Table with Larger Alphabets</strong>  
+      Change the alphabet to something larger (e.g., extended ASCII or Unicode emoji) and investigate how this affects preprocessing time and shift table size. What data structure would work best?
+    </li>
+    <li><strong>Map-Based Shift Table</strong>  
+      Implement a shift table using a dictionary (or map) instead of a fixed-size array to support non-ASCII or dynamic alphabets.
+      Give full code in your chosen language. Test it on several inputs. Discuss this implementation versus the array-based 
+      implementation presented here. Is one more/less efficient? Easier to implement? Other advantages/disadvantages?
+    </li>
+    <li><strong>Benchmarking Horspool</strong>  
+      Write code to generate random text and patterns, and time the average number of comparisons Horspool makes over many trials. Vary pattern length and alphabet size. Plot and analyze the results.
+    </li>
+    <li><strong>Worst-Case Generator</strong>  
+      Try to construct a pattern of length \(m\) and text of length \(n\) 
+      that result in the worst-case behavior for Horspool. How often does this happen in practice? Discuss in small groups.
+    </li>
+    <li><strong>Data Type Considerations</strong>
+    How might the performance or usefulness of Horspool's algorithm differ when searching natural language text (e.g. English)
+    versus binary data (e.g., image files) or biological data (e.g., DNA)? In case you are unaware, 
+    DNA data uses a very small alphabet of only four characters: A, C, G, and T.
+    </li>
+  </ol>
+</div>
 
-  <div class="section">
-    <h2>Problems</h2>
-    <ol>
-      <li>Prove the correctness of Horspool's algorithm based on the bad-character heuristic.</li>
-      <li>Generalize the algorithm to support wildcard characters in the pattern.</li>
-      <li>Analyze the algorithm's performance on periodic texts (e.g., "aaaaaa...").</li>
-      <li>Design a parallel version of Horspool's algorithm and discuss its scalability.</li>
-      <li>Optimize the algorithm for large Unicode alphabets and analyze space-time trade-offs.</li>
-    </ol>
-  </div>
+<div class="section">
+  <h2>Problems</h2>
+  <ol>
+    <li><strong>Simulate Horspool by Hand</strong>  
+      Given the text "abracadabraabracadabra" and pattern "abra", simulate Horspool's algorithm by hand
+      (finding all matches!). At each step, list the comparisons made and total them at the end.
+    </li>
+    <li><strong>Compare with Naive Algorithm</strong>  
+      For the same input as above, simulate the brute-force (naive) string search algorithm. Count and compare the number of character comparisons with Horspool's.
+    </li>
+    <li><strong>Another Simulation/Comparison</strong>  
+      By hand, go through both Horspool's and the exhaustive search algorithm on the text "thethemethatmattersmostistheme"
+      and pattern "theme". Make sure you show every step!
+      Count the number of shifts and total number of comparisons each algorithm makes.
+    </li>
+    <li><strong>Prove Correctness</strong>  
+      Prove the correctness of Horspool's algorithm based on the bad-character heuristic. In particular, show that the algorithm never skips a possible match and always reports correct positions.
+    </li>
+    <li><strong>Support Wildcards</strong>  
+      Modify the algorithm to support wildcard characters in the pattern (e.g., `?` matches any single character). Describe the necessary changes to the shift table and the matching loop.
+    </li>
+    <li><strong>Shifts on Repetitive Patterns</strong>  
+    Consider the text "abababbabab" and the pattern "abab". Simulate Horspool’s algorithm by hand. For each alignment, indicate whether a match occurs and how far the pattern is shifted. Count the total number of character comparisons. How does this behavior compare to the naive algorithm on the same input? What conclusions, if any, can you draw about how well Horspool's algorithm 
+    works on small alphabets and/or strings with repeated patterns?
+    </li>
+    <li><strong>Parallelization</strong>  
+      Design a parallel version of Horspool's algorithm. How could different processors search different parts of the text safely? What limits parallel scalability?
+    </li>
+    <li><strong>Unicode Optimization</strong>  
+      Suppose the text contains characters from a Unicode alphabet with up to 100,000 possible characters, but the pattern only uses about 40 unique characters. Discuss how to represent the shift table efficiently (e.g., fixed-size array vs. dictionary/map), and analyze the trade-offs in terms of time and space for both preprocessing and lookup during search.
+    </li>
+
+    <li><strong>Pattern with Repeats</strong>  
+      How do repeated characters in the pattern affect the shift table? Give an example and explain how the shift values are computed when a character appears multiple times.
+    </li>
+    <li><strong>Simple Improvement Heuristic</strong>  
+      Suggest and justify a simple heuristic improvement to Horspool's algorithm. For example, could the shift table be updated dynamically as the search proceeds?
+    </li>
+    <li><strong>Multiple Pattern Matching</strong>  
+  Horspool's algorithm is designed for a single pattern. How might you adapt it to search for multiple patterns simultaneously within the same text (e.g., for virus scanning or spam detection)? Could you reuse portions of shift tables, merge preprocessing data, or restructure the patterns to share common information? What are the limitations of running the algorithm separately on each pattern?
+</li>
+  </ol>
+</div>
+
 
 </body>
 </html>
