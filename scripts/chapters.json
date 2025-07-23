@@ -27,7 +27,6 @@
     },
     {
       "Space-Time Tradeoff": [
-        "Boyer-Moore.html",
         "Bucket Sort.html",
         "Counting Sort.html",
         "Horspool.html",
@@ -140,6 +139,7 @@
         "Counting Sort Demo.html",
         "Hashing-Chaining Demo.html",
         "Horspool Demo.html",
+        "Horspool Precomputation Demo.html",
         "Radix Sort Demo.html"
       ]
     },

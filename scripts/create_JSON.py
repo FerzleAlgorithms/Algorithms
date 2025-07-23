@@ -10,18 +10,18 @@ def scan_dir(current_path):
         entry_path = os.path.join(current_path, entry)
         if os.path.isdir(entry_path):
             items.append({entry: scan_dir(entry_path)})
-        elif entry.endswith('.html'):
+        elif entry.endswith('.html') and "DRAFT" not in entry.upper():
             items.append(entry)
     return items
 
-def build_chapters_json(base_dir='../Content'):
+def build_chapters_json(base_dir='/home/cusack/public_html/Algorithms/Content'):
     chapters = {}
     for chapter_dir in sorted(os.listdir(base_dir)):
         chapter_path = os.path.join(base_dir, chapter_dir)
         if os.path.isdir(chapter_path):
             chapters[chapter_dir] = scan_dir(chapter_path)
 
-    with open('chapters.json', 'w') as f:
+    with open('/home/cusack/public_html/Algorithms/scripts/chapters.json', 'w') as f:
         json.dump(chapters, f, indent=2)
 
     return chapters
@@ -59,10 +59,10 @@ def write_sitemap(paths):
         # This matches your menu link logic: ?path=...
         loc.text = f"{SITE_ROOT}?path={urllib.parse.quote(path, safe='')}"
     tree = ET.ElementTree(urlset)
-    tree.write("sitemap.xml", encoding="utf-8", xml_declaration=True)
+    tree.write("/home/cusack/public_html/Algorithms/scripts/sitemap.xml", encoding="utf-8", xml_declaration=True)
 
 if __name__ == "__main__":
     chapters = build_chapters_json()
     menu_paths = build_menu_paths(chapters)
     write_sitemap(menu_paths)
-    print(f"Created chapters.json and sitemap.xml with {len(menu_paths)} entries.")
+    # print(f"Created chapters.json and sitemap.xml with {len(menu_paths)} entries.")

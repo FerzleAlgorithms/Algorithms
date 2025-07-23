@@ -6,12 +6,17 @@
   <script src="/Algorithms/scripts/demoScripts.js"></script>
   <link rel="stylesheet" href="/Algorithms/css/style.css">
   <link rel="stylesheet" href="/Algorithms/css/demo.css">
-  <title>String Matching (Horspool) Demo</title>
+  <title>Horspool's Algorithm Demo</title>
   <style>
     /* Core layout */
     .array-container { display: flex; gap: 0 !important; margin: 2px 0; padding: 0; }
     .element { width: 20px; height: 20px; font-size: 16px; line-height: 20px; text-align: center; padding: 0; margin: 0; }
-    .element.empty { border: none; background: none; }
+    /*.element.empty { border: none; background: none; }*/
+    .element.empty {
+        visibility: hidden;
+        border: 1px solid transparent;
+      }
+
     .legend { font-size: 0.9em; }
     #failure-rows .array-container { opacity: 0.8; }
     .hidden { display: none; }
@@ -96,7 +101,7 @@ body.scrabble-theme .element.mismatch {
 </script>
 </head>
 <body class = "no-tooltips">
-  <h1>String Matching (Horspool) Demo</h1>
+  <h1>Horspool's Algorithm Demo</h1>
 
   <div id="controls">
     <div><label for="patternInput">Pattern:</label> <input type="text" id="patternInput" size="10" value="scrabble">
@@ -141,587 +146,680 @@ body.scrabble-theme .element.mismatch {
   <div id="pattern-row" class="array-container"></div>
   <div id="failure-rows"></div>
 
-  <script>
-    // Globals
-    let failureRowByStep = {};
-    let highlightClassesByStep = {};
-	
-	let compareCount = 0;
+<script>
+ // Globals
+                let failureRowByStep = {};
+        let highlightClassesByStep = {};
+
+let compareCount = 0;
 function updateCompareDisplay() {
-  document.getElementById('compareCount').textContent = compareCount;
+    document.getElementById('compareCount').textContent = compareCount;
 }
 
-    const defaultText = 'thegamesofscrableisnotafungamescrabbleing';
-    let vizElems = [], patElems = [], currentPattern = [], lastWindow = -1, lastIdx = -1;
+const defaultText = 'thegamesofscrableisnotafungamescrabbleing';
+let vizElems = [], patElems = [], currentPattern = [], lastWindow = -1, lastIdx = -1;
 
-    // Theme toggle
-    document.getElementById('themeToggle').addEventListener('change', function() {
-      document.body.classList.toggle('scrabble-theme', this.checked);
+// Theme toggle
+document.getElementById('themeToggle').addEventListener('change', function () {
+    document.body.classList.toggle('scrabble-theme', this.checked);
+});
+
+// Build bad-character shift table mapping
+function buildShiftTable(pattern) {
+    const m = pattern.length;
+    const table = {};
+    for (let i = 0; i < m - 1; i++)
+        table[pattern[i]] = m - 1 - i;
+    return table;
+}
+
+let text = defaultText;
+// Called on generate/useCustom
+window.onGenerate = function (isCustom) {
+    // 1. Grab inputs & reset UI/state
+    text = isCustom ? document.getElementById('customArray').value : defaultText;
+    const shiftContainer = document.getElementById('shift-table');
+    const headerContainer = document.getElementById('shift-table-header');
+    const failureContainer = document.getElementById('failure-rows');
+    compareCount = 0;
+    updateCompareDisplay();
+
+    // Clear old content
+    shiftContainer.innerHTML = '';
+    headerContainer.innerHTML = '';
+    failureContainer.innerHTML = '';
+
+    // Reset stepping state
+    failureRowByStep = {};
+    highlightClassesByStep = {};
+    vizElems = [];
+    patElems = [];
+    lastWindow = -1;
+    lastIdx = -1;
+
+    // Current pattern as array of chars
+    currentPattern = document
+        .getElementById('patternInput')
+        .value.split('');
+
+    // 2. Render the text visualization
+    const viz = document.getElementById('visualization');
+    viz.innerHTML = '';
+    text.split('').forEach(ch => {
+        const el = document.createElement('div');
+        el.className = 'element';
+        el.textContent = ch;
+        viz.appendChild(el);
+        vizElems.push(el);
     });
 
-    // Build bad-character shift table mapping
-    function buildShiftTable(pattern) {
-      const m = pattern.length;
-      const table = {};
-      for (let i = 0; i < m - 1; i++) table[pattern[i]] = m - 1 - i;
-      return table;
+    // 3. Build shift-table data
+    const m = currentPattern.length;
+    const shiftTable = buildShiftTable(currentPattern);
+    // Unique pattern chars except the last, then wildcard '*' last
+    const uniqueChars = Array.from(new Set(
+                currentPattern.slice(0, -1)));
+    uniqueChars.push('*');
+
+    // 4. Render the shift-table header (letters then '*')
+    uniqueChars.forEach(char => {
+        const cell = document.createElement('div');
+        cell.className = 'element';
+        cell.textContent = char;
+        cell.dataset.char = char;
+        headerContainer.appendChild(cell);
+    });
+
+    // 5. Render the shift values (hidden initially)
+    uniqueChars.forEach(char => {
+        const shift = (char === '*')
+         ? m
+         : (shiftTable[char] || m);
+
+        const cell = document.createElement('div');
+        cell.className = 'element hidden';
+        cell.dataset.char = char;
+        cell.dataset.shift = shift;
+        cell.dataset.pos = (char === '*')
+         ? -1
+         : currentPattern.lastIndexOf(char);
+        cell.textContent = shift;
+        shiftContainer.appendChild(cell);
+    });
+
+    // 6. Render the text-index row
+    const idxRow = document.getElementById('indexRow');
+    idxRow.innerHTML = '';
+    text.split('').forEach((_, i) => {
+        const el = document.createElement('div');
+        el.className = 'element empty';
+        el.textContent = i;
+        idxRow.appendChild(el);
+    });
+
+    // 7. Render the pattern row (for highlighting during shifts)
+    const patRow = document.getElementById('pattern-row');
+    patRow.innerHTML = '';
+    currentPattern.forEach(ch => {
+        const el = document.createElement('div');
+        el.className = 'element';
+        el.textContent = ch;
+        patRow.appendChild(el);
+        patElems.push(el);
+    });
+    // After rendering the pattern characters...
+    for (let k = currentPattern.length ; k < text.length; k++) {
+      const em = document.createElement('div');
+      em.className = 'element empty';
+      patRow.appendChild(em);
     }
 
-    // Called on generate/useCustom
-    window.onGenerate = function(isCustom) {
-  // 1. Grab inputs & reset UI/state
-  const text = isCustom
-    ? document.getElementById('customArray').value
-    : defaultText;
-  const shiftContainer   = document.getElementById('shift-table');
-  const headerContainer  = document.getElementById('shift-table-header');
-  const failureContainer = document.getElementById('failure-rows');
-  compareCount = 0;
-updateCompareDisplay();
-  
-  // Clear old content
-  shiftContainer.innerHTML   = '';
-  headerContainer.innerHTML  = '';
-  failureContainer.innerHTML = '';
-  
-  // Reset stepping state
-  failureRowByStep       = {};
-  highlightClassesByStep = {};
-  vizElems = [];
-  patElems = [];
-  lastWindow = -1;
-  lastIdx    = -1;
-  
-  // Current pattern as array of chars
-  currentPattern = document
-    .getElementById('patternInput')
-    .value.split('');
-  
-  // 2. Render the text visualization
-  const viz = document.getElementById('visualization');
-  viz.innerHTML = '';
-  text.split('').forEach(ch => {
-    const el = document.createElement('div');
-    el.className   = 'element';
-    el.textContent = ch;
-    viz.appendChild(el);
-    vizElems.push(el);
-  });
-  
-  // 3. Build shift-table data
-  const m = currentPattern.length;
-  const shiftTable = buildShiftTable(currentPattern);
-  // Unique pattern chars except the last, then wildcard '*' last
-  const uniqueChars = Array.from(new Set(
-    currentPattern.slice(0, -1)
-  ));
-  uniqueChars.push('*');
-  
-  // 4. Render the shift-table header (letters then '*')
-  uniqueChars.forEach(char => {
-    const cell = document.createElement('div');
-    cell.className   = 'element';
-    cell.textContent = char;
-	cell.dataset.char  = char;  
-    headerContainer.appendChild(cell);
-  });
-  
-  // 5. Render the shift values (hidden initially)
-  uniqueChars.forEach(char => {
-    const shift = (char === '*')
-      ? m
-      : (shiftTable[char] || m);
-    
-    const cell = document.createElement('div');
-    cell.className   = 'element hidden';
-    cell.dataset.char  = char;
-    cell.dataset.shift = shift;
-    cell.dataset.pos   = (char === '*')
-      ? -1
-      : currentPattern.lastIndexOf(char);
-    cell.textContent = shift;
-    shiftContainer.appendChild(cell);
-  });
-  
-  // 6. Render the text-index row
-  const idxRow = document.getElementById('indexRow');
-  idxRow.innerHTML = '';
-  text.split('').forEach((_, i) => {
-    const el = document.createElement('div');
-    el.className   = 'element empty';
-    el.textContent = i;
-    idxRow.appendChild(el);
-  });
-  
-  // 7. Render the pattern row (for highlighting during shifts)
-  const patRow = document.getElementById('pattern-row');
-  patRow.innerHTML = '';
-  currentPattern.forEach(ch => {
-    const el = document.createElement('div');
-    el.className   = 'element';
-    el.textContent = ch;
-    patRow.appendChild(el);
-    patElems.push(el);
-  });
-  
-  // Return the text array for stepping logic
-  return text;
+
+    // Return the text array for stepping logic
+    return text;
 };
 
+// Generate step records
+window.genSteps = function (text) {
 
-    // Generate step records
-    window.genSteps = function(text) {
-	
-      const records = [];
-	  let localCompareCount = 0;
-      const record = (type, meta = {}) => {
-    // increment on compare
-    if (type === 'compare') localCompareCount++;
-    // attach both compareCount and a snapshot of the pattern
-    records.push({
-      type,
-      meta: {
-        ...meta,
-        compareCount: localCompareCount,
-        pattern: currentPattern.slice()      // freeze the pattern array
-      }
+    const records = [];
+    let localCompareCount = 0;
+    const record = (type, meta = {}) => {
+        // increment on compare
+        if (type === 'compare')
+            localCompareCount++;
+        // attach both compareCount and a snapshot of the pattern
+        records.push({
+            type,
+            meta: {
+                ...meta,
+                compareCount: localCompareCount,
+                pattern: currentPattern.slice() // freeze the pattern array
+            }
+        });
+    };
+    records.originalText = text;
+    record('init');
+    const shiftTable = buildShiftTable(currentPattern);
+    const vizShift = {};
+
+    const n = text.length,
+    m = currentPattern.length;
+    let i = m - 1;
+    // 2️⃣ For each position j in the pattern (except the last), record its shift:
+    //    this shows j=0,1,…,m−2 in order, including any overwrites.
+    const counts = {};
+    currentPattern.forEach(ch => counts[ch] = (counts[ch] || 0) + 1);
+    const duplicates = new Set(
+            Object.keys(counts).filter(ch => counts[ch] > 1));
+
+    // 2) Init visualization
+    record('shift_init');
+
+    // 3) For each j from 0 to m-2
+    // tracks what’s currently shown
+    for (let j = 0; j < m - 1; j++) {
+        const ch = currentPattern[j];
+        const newShift = m - 1 - j;
+        const oldShift = vizShift[ch] !== undefined ? vizShift[ch] : m;
+
+        // always emit the new value
+        record('shift_entry', {
+            char: ch,
+            shift: newShift,
+            pos: j,
+            phase: 'after'
+        });
+
+        vizShift[ch] = newShift;
+    }
+
+    // wildcard at the end
+    record('shift_entry', {
+        char: '*',
+        shift: m,
+        pos: -1,
+        phase: 'after'
     });
-   };
-      records.originalText = text;
-      record('init');
-      const shiftTable = buildShiftTable(currentPattern);
-	  const vizShift = {};  
-  
- const n = text.length, m = currentPattern.length; let i = m - 1;
-// 2️⃣ For each position j in the pattern (except the last), record its shift:
-//    this shows j=0,1,…,m−2 in order, including any overwrites.
-const counts = {};
-  currentPattern.forEach(ch => counts[ch] = (counts[ch]||0) + 1);
-  const duplicates = new Set(
-    Object.keys(counts).filter(ch => counts[ch] > 1)
-  );
-
-  // 2) Init visualization
-  record('shift_init');
-
-  // 3) For each j from 0 to m-2
-   // tracks what’s currently shown
-  for (let j = 0; j < m - 1; j++) {
-  const ch       = currentPattern[j];
-  const newShift = m - 1 - j;
-  const oldShift = vizShift[ch] !== undefined ? vizShift[ch] : m;
-
-  
-
-  // always emit the new value
-  record('shift_entry', {
-    char:  ch,
-    shift: newShift,
-    pos:   j,
-    phase: 'after'
-  });
-
-  vizShift[ch] = newShift;
-}
-
-// wildcard at the end
-record('shift_entry', { char: '*', shift: m, pos: -1, phase: 'after' });
-record('shift_end');
-
-      while (i < n) {
-        const start = i - (m - 1); record('start', { i: start }); let j = m - 1;
+    record('shift_end');
+    while (i < n) {
+        const start = i - (m - 1);
+        record('start', {
+            i: start
+        });
+        let j = m - 1;
         while (j >= 0) {
-          record('compare', { i: start, j });
-          if (text[start + j] !== currentPattern[j]) {
-  record('mismatch', {
-    i:    start,
-    j,
-    // capture exactly which characters were under the pattern
-    snapshot: text.substr(start, currentPattern.length)
-  });
-  const badChar = text[i];
-           const shift    = shiftTable[badChar] || m;
-           record('shiftAction', {i: start, badChar, shift });
-  break;
-}
-          else { record('match', { i: start, j }); j--; }
+            record('compare', {
+                i: start,
+                j
+            });
+            if (text[start + j] !== currentPattern[j]) {
+                record('mismatch', {
+                    i: start,
+                    j,
+                    // capture exactly which characters were under the pattern
+                    snapshot: text.substr(start, currentPattern.length)
+                });
+                const badChar = text[i];
+                const shift = shiftTable[badChar] || m;
+                record('shiftAction', {
+                    i: start,
+                    badChar,
+                    shift
+                });
+                break;
+            } else {
+                record('match', {
+                    i: start,
+                    j
+                });
+                j--;
+            }
         }
-        if (j < 0) record('completeMatch', { i: start });
-        const badChar = text[i]; 
-		const shift = shiftTable[badChar] || m; i += shift;
-      }const lastMeta = records[records.length - 1].meta;
-  record('done', { ...lastMeta });
-  return records;
+        if (j < 0)
+            record('completeMatch', {
+                i: start
+            });
+            const badChar = text[i];
+            const shift = shiftTable[badChar] || m;
+            i += shift;
+        }
+        const lastMeta = records[records.length - 1].meta;
+        record('done', {
+            ...lastMeta
+        });
+        return records;
     };
 
     // Render each step
-    window.renderStep = function(steps, idx) {
-      const desc = document.getElementById('description');
-      const failureContainer = document.getElementById('failure-rows');
-      const shiftContainer = document.getElementById('shift-table');
-	  const headerContainer = document.getElementById('shift-table-header');
-const rec = steps[idx] || {};
-  const { type, meta = {} } = rec;
-  const original   = steps.originalText;
-  const { compareCount: recCount, pattern: recPattern } = meta;
- // sync the global counter
- compareCount = recCount || 0;
-  // override globals for this frame:
-  currentPattern = recPattern;
-  updateCompareDisplay();
-  const steppingForward = idx >= lastIdx;
-lastIdx = idx + 1;
+    window.renderStep = function (steps, idx) {
+        const desc = document.getElementById('description');
+        const failureContainer = document.getElementById('failure-rows');
+        const shiftContainer = document.getElementById('shift-table');
+        const headerContainer = document.getElementById('shift-table-header');
+        const rec = steps[idx] || {};
+        const {
+            type,
+            meta = {}
+        } = rec;
+        const original = steps.originalText;
+        const {
+            compareCount: recCount,
+            pattern: recPattern
+        } = meta;
+        // sync the global counter
+        compareCount = recCount || 0;
+        // override globals for this frame:
+        currentPattern = recPattern;
+        updateCompareDisplay();
+        const steppingForward = idx >= lastIdx;
+        lastIdx = idx + 1;
 
         headerContainer
-    .querySelectorAll('.element.header-highlight')
-    .forEach(el => el.classList.remove('header-highlight'));
-  vizElems.forEach(v => v.classList.remove('header-highlight'));
-      // Undo logic for shifts and highlights
-    if (idx < lastIdx) {
-  const prev = steps[lastIdx - 1] || {};
-  const ptype = prev.type;
-  const pmeta = prev.meta || {};
+        .querySelectorAll('.element.header-highlight')
+        .forEach(el => el.classList.remove('header-highlight'));
+        vizElems.forEach(v => v.classList.remove('header-highlight'));
+        // Undo logic for shifts and highlights
+        if (idx < lastIdx) {
+            const prev = steps[lastIdx - 1] || {};
+            const ptype = prev.type;
+            const pmeta = prev.meta || {};
 
-  if (ptype === 'shift_entry') {
-  // hide the shift‐table cell again
-  const el = shiftContainer.querySelector(`[data-char="${pmeta.char}"]`);
-  if (el) {
-    el.classList.add('hidden');
-    el.classList.remove('header-highlight');
-  }
+            if (ptype === 'shift_entry') {
+                // hide the shift‐table cell again
+                const el = shiftContainer.querySelector(`[data-char="${pmeta.char}"]`);
+                if (el) {
+                    el.classList.add('hidden');
+                    el.classList.remove('header-highlight');
+                }
 
-  // **also** un-highlight the pattern char
-  if (pmeta.pos >= 0) {
-    const pe = patElems[pmeta.pos];
-    pe.classList.remove('header-highlight');
-  }
-} else if (ptype === 'shift_init') {
-    shiftContainer
-      .querySelectorAll('.element')
-      .forEach(el => el.classList.add('hidden'));
+                // **also** un-highlight the pattern char
+                if (pmeta.pos >= 0) {
+                    const pe = patElems[pmeta.pos];
+                    pe.classList.remove('header-highlight');
+                }
+            } else if (ptype === 'shift_init') {
+                shiftContainer
+                .querySelectorAll('.element')
+                .forEach(el => el.classList.add('hidden'));
 
-  } else if (ptype === 'compare') {
-  const lastRow = failureContainer.lastElementChild;
-  if (lastRow?.classList.contains('full-match-row')) {
-    failureContainer.removeChild(lastRow);}
-	else{
-    // only when stepping backward do we remove the old failure row
-    const fr = failureRowByStep[lastIdx] || failureRowByStep[lastIdx - 1];
-    if (fr) {
-      failureContainer.removeChild(fr);
-      delete failureRowByStep[lastIdx];
-      delete failureRowByStep[lastIdx - 1];
-    }}
-    // undo the compare highlight
-    const pos = pmeta.i + pmeta.j;
-    vizElems[pos].classList.remove('comparing');
-    patElems[pos].classList.remove('comparing');
-	
-	 const start = pmeta.i;
-    const j     = pmeta.j;
-    
+            } else if (ptype === 'compare') {
+                const lastRow = failureContainer.lastElementChild;
+                if (lastRow?.classList.contains('full-match-row')) {
+                    failureContainer.removeChild(lastRow);
+                } else {
+                    // only when stepping backward do we remove the old failure row
+                    const fr = failureRowByStep[lastIdx] || failureRowByStep[lastIdx - 1];
+                    if (fr) {
+                        failureContainer.removeChild(fr);
+                        delete failureRowByStep[lastIdx];
+                        delete failureRowByStep[lastIdx - 1];
+                    }
+                }
+                // undo the compare highlight
+                const pos = pmeta.i + pmeta.j;
+                vizElems[pos].classList.remove('comparing');
+                patElems[pos].classList.remove('comparing');
 
-for (let k = j + 1; k < currentPattern.length; k++) {
-    vizElems[start + k].classList.add('finished');
-    patElems[k].classList.add('finished');
-  }
-  } else if (ptype === 'match') {
-    // undo the match highlight
-    const pos = pmeta.i + pmeta.j;
-    vizElems[pos].classList.remove('finished');
-    patElems[pos].classList.remove('finished');
+                const start = pmeta.i;
+                const j = pmeta.j;
 
-  } else if (ptype === 'completeMatch') {
-  // remove the full-match failure row when stepping backward
-  const fr = failureRowByStep[lastIdx - 1];
-  if (fr) {
-    failureContainer.removeChild(fr);
-   delete failureRowByStep[lastIdx - 1];
-   // 2) recolor the entire window green so that compare-undo can peel it off
-   const start = pmeta.i;
-   for (let k = 0; k < currentPattern.length; k++) {
-     vizElems[start + k].classList.add('finished');
-     patElems[start + k].classList.add('finished');
-   }
-  }
-    // restore the full snapshot of highlight classes
-    const snap = highlightClassesByStep[lastIdx] || [];
-    snap.forEach((clsArr, i) => {
-      vizElems[i].className = 'element';
-      patElems[i].className = 'element';
-      clsArr.forEach(c => {
-        vizElems[i].classList.add(c);
-        patElems[i].classList.add(c);
-      });
-    });
-  }
-}
-lastIdx = idx + 1;
+                for (let k = j + 1; k < currentPattern.length; k++) {
+                    vizElems[start + k].classList.add('finished');
+                    patElems[k].classList.add('finished');
+                }
+            } else if (ptype === 'match') {
+                // undo the match highlight
+                const pos = pmeta.i + pmeta.j;
+                vizElems[pos].classList.remove('finished');
+                patElems[pos].classList.remove('finished');
 
+            } else if (ptype === 'completeMatch') {
+                // remove the full-match failure row when stepping backward
+                const fr = failureRowByStep[lastIdx - 1];
+                if (fr) {
+                    failureContainer.removeChild(fr);
+                    delete failureRowByStep[lastIdx - 1];
+                    // 2) recolor the entire window green so that compare-undo can peel it off
+                    const start = pmeta.i;
+                    for (let k = 0; k < currentPattern.length; k++) {
+                        vizElems[start + k].classList.add('finished');
+                        patElems[start + k].classList.add('finished');
+                    }
+                }
+                // restore the full snapshot of highlight classes
+                const snap = highlightClassesByStep[lastIdx] || [];
+                snap.forEach((clsArr, i) => {
+                    vizElems[i].className = 'element';
+                    patElems[i].className = 'element';
+                    clsArr.forEach(c => {
+                        vizElems[i].classList.add(c);
+                        patElems[i].classList.add(c);
+                    });
+                });
+            }
+        }
+        lastIdx = idx + 1;
 
-            // Shift-table phases
-      // Clear previous mismatch highlight in shift table
-      shiftContainer.querySelectorAll('.element.mismatch').forEach(el => el.classList.remove('mismatch'));
-      if (type === 'shift_init') { desc.textContent = 'Building shift table...'; return; }
-      if (type === 'shift_entry') {
-  // 1) clear any old orange highlights
-  document
-    .querySelectorAll('.element.header-highlight, .pattern .char.header-highlight')
-    .forEach(el => el.classList.remove('header-highlight','header-highlight'));
+        // Shift-table phases
+        // Clear previous mismatch highlight in shift table
+        shiftContainer.querySelectorAll('.element.mismatch').forEach(el => el.classList.remove('mismatch'));
+        if (type === 'shift_init') {
+            desc.textContent = 'Building shift table...';
+            return;
+        }
+        if (type === 'shift_entry') {
+            // 1) clear any old orange highlights
+            document
+            .querySelectorAll('.element.header-highlight, .pattern .char.header-highlight')
+            .forEach(el => el.classList.remove('header-highlight', 'header-highlight'));
 
-  // 2) reveal & update the shift‐table cell
-  const shiftEl = shiftContainer.querySelector(`[data-char="${meta.char}"]`);
-  if (shiftEl) {
-    shiftEl.classList.remove('hidden');
-    shiftEl.textContent = meta.shift;
-    shiftEl.classList.add('header-highlight');
-document
-  .querySelectorAll('.pattern .char.highlight-orange')
-  .forEach(el => el.classList.remove('highlight-orange'));
+            // 2) reveal & update the shift‐table cell
+            const shiftEl = shiftContainer.querySelector(`[data-char="${meta.char}"]`);
+            if (shiftEl) {
+                shiftEl.classList.remove('hidden');
+                shiftEl.textContent = meta.shift;
+                shiftEl.classList.add('header-highlight');
+                document
+                .querySelectorAll('.pattern .char.highlight-orange')
+                .forEach(el => el.classList.remove('highlight-orange'));
 
-// 2) highlight the pattern character at this index
-if (meta.pos >= 0) {
-  const patEl = document.querySelector(`.pattern .char[data-pos="${meta.pos}"]`);
-  if (patEl) patEl.classList.add('highlight-orange');
-}	// this makes the shift cell orange
-  }
+                // 2) highlight the pattern character at this index
+                if (meta.pos >= 0) {
+                    const patEl = document.querySelector(`.pattern .char[data-pos="${meta.pos}"]`);
+                    if (patEl)
+                        patEl.classList.add('highlight-orange');
+                    } // this makes the shift cell orange
+                }
 
-  // 3) highlight the corresponding pattern element
-  if (meta.pos >= 0) {
-    const patEl = patElems[meta.pos];
-    patEl.classList.add('header-highlight');     // also turn that pattern char orange
-  } if (meta.char === '*') {
-    desc.innerHTML =
-      `If it is the last character in the pattern with no previous occurrences<br> or the character is not in the pattern → shift by full pattern length (${meta.shift}).`;
-  } else {
-    // note: use the ASCII minus "-" here, not a unicode “−”
-    desc.textContent =
-      `Shift value for '${meta.char}': patternLength - 1 - lastIndex = `
-      + `${currentPattern.length} - 1 - ${meta.pos} = ${meta.shift}`;
-  }
+                // 3) highlight the corresponding pattern element
+                if (meta.pos >= 0) {
+                    const patEl = patElems[meta.pos];
+                    patEl.classList.add('header-highlight'); // also turn that pattern char orange
+                }
+                if (meta.char === '*') {
+                    desc.innerHTML = `If it is the last character in the pattern with no previous occurrences<br> or `+
+                    `the character is not in the pattern → shift by full pattern length (${meta.shift}).`;
+                } else {
+                    // note: use the ASCII minus "-" here, not a unicode “−”
+                    desc.textContent = `Shift value for '${meta.char}': patternLength - 1 - lastIndex = `
+                         + `${currentPattern.length} - 1 - ${meta.pos} = ${meta.shift}`;
+                }
 
-  return;
-}
-	  
-      if (type === 'shift_end') {
-  desc.textContent = 'Shift table complete. Starting search.';
-  
-  vizElems.forEach(el => el.classList.remove('key', 'finished', 'header-highlight'));
-  patElems.forEach(el => el.classList.remove('key', 'finished', 'header-highlight'));
-  const starCell = shiftContainer.querySelector('[data-char="*"]');
-  if (starCell) starCell.classList.remove('header-highlight');
+                return;
+            }
 
-  return;
-}
+            if (type === 'shift_end') {
+                desc.textContent = 'Shift table complete. Starting search.';
 
-      // Clear comparing/key/mismatch highlights
+                vizElems.forEach(el => el.classList.remove('key', 'finished', 'header-highlight'));
+                patElems.forEach(el => el.classList.remove('key', 'finished', 'header-highlight'));
+                const starCell = shiftContainer.querySelector('[data-char="*"]');
+                if (starCell)
+                    starCell.classList.remove('header-highlight');
 
-      vizElems.forEach(el=>el.classList.remove('comparing','key','mismatch')); patElems.forEach(el=>el.classList.remove('comparing','key','mismatch'));
+                    return;
+                }
 
-      // Rebuild pattern row
-      const patRow = document.getElementById('pattern-row'); patRow.innerHTML=''; patElems=[];
-      const winPos = typeof meta.i==='number'?meta.i:0;
-      for(let k=0;k<winPos;k++){ const em=document.createElement('div'); em.className='element empty'; patRow.appendChild(em); patElems.push(em);}      
-      currentPattern.forEach(ch=>{ const el=document.createElement('div'); el.className='element'; el.textContent=ch; patRow.appendChild(el); patElems.push(el); });
+                // Clear comparing/key/mismatch highlights
 
-      if(idx<0||idx>=steps.length)return;
-      switch(type){
-        case 'init': desc.textContent='Press "Next" to begin.'; break;
-        case 'start':// every new start, clear out all old highlights (key, finished, mismatch)
-    vizElems.forEach(el => el.classList.remove('key','finished','mismatch'));
-    patElems.forEach(el => el.classList.remove('key','finished','mismatch'));
-    lastWindow = meta.i;
-          for(let k=0;k<currentPattern.length;k++){ vizElems[meta.i+k].classList.add('key'); patElems[meta.i+k].classList.add('key'); }
-          desc.textContent=`Window at position ${meta.i}`; break;
-        case 'compare': {
-    const p = meta.i + meta.j;
+                vizElems.forEach(el => el.classList.remove('comparing', 'key', 'mismatch'));
+                patElems.forEach(el => el.classList.remove('comparing', 'key', 'mismatch'));
 
-
-    // add or remove the “comparing” highlight
-	 vizElems[p].classList.add('comparing');
-      patElems[p].classList.add('comparing');
-    if (steppingForward) {
-     
-    } else {
-      
-      // **also** clear any finished from this slot in case
-      vizElems[p].classList.remove('finished');
-      patElems[p].classList.remove('finished');
-    }
-
-    desc.textContent =
-      `Comparing text[${p}]='${original[p]}' to ` +
-      `pattern[${meta.j}]='${currentPattern[meta.j]}'`;
-    break;
-  }
-
-  case 'match': {
-    const p = meta.i + meta.j;
-
-   
-      vizElems[p].classList.add('finished');
-      patElems[p].classList.add('finished');
-    
-
-    desc.textContent =
-      `Match at text[${p}] and pattern[${meta.j}]`;
-    break;
-  }
+                // Rebuild pattern row
+                const patRow = document.getElementById('pattern-row');
+                patRow.innerHTML = '';
+                patElems = [];
+                const winPos = typeof meta.i === 'number' ? meta.i : 0;
+                for (let k = 0; k < winPos; k++) {
+                    const em = document.createElement('div');
+                    em.className = 'element empty';
+                    patRow.appendChild(em);
+                    patElems.push(em);
+                }
+                currentPattern.forEach(ch => {
+                    const el = document.createElement('div');
+                    el.className = 'element';
+                    el.textContent = ch;
+                    patRow.appendChild(el);
+                    patElems.push(el);
+                });
+                // After rendering the pattern characters...
+                for (let k = currentPattern.length + winPos; k < text.length; k++) {
+                  const em = document.createElement('div');
+                  em.className = 'element empty';
+                  patRow.appendChild(em);
+                }
 
 
-  case 'mismatch': {
-    const { i: start, j } = rec.meta;
-    const m = currentPattern.length;
+                if (idx < 0 || idx >= steps.length)
+                    return;
+                switch (type) {
+                case 'init':
+                    desc.textContent = 'Press "Next" to begin.';
+                    break;
+                case 'start': // every new start, clear out all old highlights (key, finished, mismatch)
+                    vizElems.forEach(el => el.classList.remove('key', 'finished', 'mismatch'));
+                    patElems.forEach(el => el.classList.remove('key', 'finished', 'mismatch'));
+                    lastWindow = meta.i;
+                    for (let k = 0; k < currentPattern.length; k++) {
+                        vizElems[meta.i + k].classList.add('key');
+                        patElems[meta.i + k].classList.add('key');
+                    }
+                    desc.textContent = `Window at position ${meta.i}`;
+                    break;
+                case 'compare': {
+                        const p = meta.i + meta.j;
 
-    // 1️⃣ Highlight the single mismatch in red
-    vizElems[start + j].classList.add('mismatch');
-    patElems[start + j].classList.add('mismatch');
+                        // add or remove the “comparing” highlight
+                        vizElems[p].classList.add('comparing');
+                        patElems[p].classList.add('comparing');
+                        if (steppingForward) {}
+                        else {
 
-    // 2️⃣ Push the “failed pattern” row exactly as before
-    if (steppingForward && !failureRowByStep[idx]) {
-      const f = document.createElement('div');
-      f.className = 'array-container';
-      // empty slots before the window
-      for (let x = 0; x < start; x++) {
-        const e = document.createElement('div');
-        e.className = 'element empty';
-        f.appendChild(e);
-      }
-      // pattern: finished beyond j, mismatch at j
-      currentPattern.forEach((ch, k) => {
-        const e = document.createElement('div');
-        e.className   = 'element';
-        e.textContent = ch;
-        if (k > j)        e.classList.add('finished');
-        else if (k === j) e.classList.add('mismatch');
-        f.appendChild(e);
-      });
-      failureContainer.appendChild(f);
-      failureRowByStep[idx] = f;
-    }
+                            // **also** clear any finished from this slot in case
+                            vizElems[p].classList.remove('finished');
+                            patElems[p].classList.remove('finished');
+                        }
 
-    // 3️⃣ Description for the student
-    desc.textContent = `Mismatch at text[${start + j}] vs pattern[${j}].`;
+                        desc.textContent =
+                            `Comparing text[${p}]='${original[p]}' to pattern[${meta.j}]='${currentPattern[meta.j]}'`;
+                        break;
+                    }
 
-    break;
-  }
+                case 'match': {
+                        const p = meta.i + meta.j;
 
-case 'shiftAction': {
-  const { i: start, badChar, shift } = rec.meta;
-  const m = currentPattern.length;
-  const endIdx = start + m - 1;
+                        vizElems[p].classList.add('finished');
+                        patElems[p].classList.add('finished');
 
-  // ─── 0) Redisplay the sliding window ───
-  vizElems.forEach(e => e.classList.remove('key'));
-  patElems.forEach(e => e.classList.remove('key'));
+                        desc.textContent = `Match at text[${p}] and pattern[${meta.j}]`;
+                        break;
+                    }
 
-  // ─── 1) Clear old orange highlights ───
-  headerContainer
-    .querySelectorAll('.element.header-highlight')
-    .forEach(h => h.classList.remove('header-highlight'));
-  vizElems.forEach(e => e.classList.remove('header-highlight'));
+                case 'mismatch': {
+                        const {
+                            i: start,
+                            j
+                        } = rec.meta;
+                        const m = currentPattern.length;
 
-  // ─── 2) Highlight the shift-table header cell ───
-  // ↓ replace badChar lookup with a wildcard fallback ↓
-  const hdrChar = (shift === m) ? '*' : badChar;
-  const hdr     = headerContainer.querySelector(`[data-char="${hdrChar}"]`);
-  if (hdr) hdr.classList.add('header-highlight');
+                        // 1️⃣ Highlight the single mismatch in red
+                        vizElems[start + j].classList.add('mismatch');
+                        patElems[start + j].classList.add('mismatch');
 
-  // ─── 3) Highlight the text-array cell at end of window ───
-  vizElems[endIdx].classList.add('header-highlight');
+                        // 2️⃣ Push the “failed pattern” row exactly as before
+                        if (steppingForward && !failureRowByStep[idx]) {
+                            const f = document.createElement('div');
+                            f.className = 'array-container';
+                            // empty slots before the window
+                            for (let x = 0; x < start; x++) {
+                                const e = document.createElement('div');
+                                e.className = 'element empty';
+                                f.appendChild(e);
+                            }
+                            // pattern: finished beyond j, mismatch at j
+                            currentPattern.forEach((ch, k) => {
+                                const e = document.createElement('div');
+                                e.className = 'element';
+                                e.textContent = ch;
+                                if (k > j)
+                                    e.classList.add('finished');
+                                else if (k === j)
+                                    e.classList.add('mismatch');
+                                f.appendChild(e);
+                            });
+                            // After appending pattern characters:
+                            for (let k = start + currentPattern.length; k < text.length; k++) {
+                              const e = document.createElement('div');
+                              e.className = 'element empty';
+                              f.appendChild(e);
+                            }
 
-  // ─── 4) Student-friendly description ───
-  let comment;
-  if (shift < m) {
-    // found earlier in the pattern
-    const pos = m - shift - 1;
-    comment = 
-      `Shift = ${shift}: character '${badChar}' occurs in the pattern at index ${pos}, ` +
-      `so we slide to align with that occurrence.`;
-  } else if (currentPattern.includes(badChar)) {
-    // only at the very end of the pattern
-    comment = 
-      `Shift = ${shift}: character '${badChar}' only appears at the end of the pattern ` +
-      `(no earlier occurrences), so we shift by the full pattern length.`;
-  } else {
-    // not in the pattern at all
-    comment = 
-      `Shift = ${shift}: character '${badChar}' is not found in the pattern, ` +
-      `so we shift by the full pattern length.`;
-  }
-  desc.textContent = comment;
-  break;
-}
+                            
+                            
+                            failureContainer.appendChild(f);
+                            failureRowByStep[idx] = f;
+                        }
 
+                        // 3️⃣ Description for the student
+                        desc.textContent = `Mismatch at text[${start + j}] vs pattern[${j}].`;
 
-case 'completeMatch': {
-  const { i: start } = meta;
-  const m = currentPattern.length;
+                        break;
+                    }
 
-  // 1) redraw the window and mark every slot finished
-  vizElems.forEach(e => e.classList.remove('key','finished','mismatch'));
-  patElems.forEach(e => e.classList.remove('key','finished','mismatch'));
-  for (let k = 0; k < m; k++) {
-    vizElems[start + k].classList.add('key','finished');
-    patElems[start + k].classList.add('key','finished');
-  }
+                case 'shiftAction': {
+                        const {
+                            i: start,
+                            badChar,
+                            shift
+                        } = rec.meta;
+                        const m = currentPattern.length;
+                        const endIdx = start + m - 1;
 
-  // 2) push a full-match row
-  if (steppingForward && !failureRowByStep[idx]) {
-    const f = document.createElement('div');
-    f.className = 'array-container full-match-row';
-    for (let x = 0; x < start; x++) {
-      const e = document.createElement('div');
-      e.className = 'element empty';
-      f.appendChild(e);
-    }
-    currentPattern.forEach(ch => {
-      const e = document.createElement('div');
-      e.className   = 'element finished';
-      e.textContent = ch;
-      f.appendChild(e);
-    });
-    failureContainer.appendChild(f);
-    failureRowByStep[idx] = f;
-  }
+                        // ─── 0) Redisplay the sliding window ───
+                        vizElems.forEach(e => e.classList.remove('key'));
+                        patElems.forEach(e => e.classList.remove('key'));
 
-  // 3) same shift logic as mismatch
-  const endIdx    = start + m - 1;
-  const shiftChar = original[endIdx];
-  let shiftEl = shiftContainer.querySelector(`[data-char="${shiftChar}"]`);
-  let usedWildcard = false;
-  if (!shiftEl) {
-    shiftEl = shiftContainer.querySelector(`[data-char="*"]`);
-    usedWildcard = true;
-  }
-  shiftEl.classList.remove('hidden');
-  if (pmeta.pos >= 0) {
-  const patEl = document.querySelector(`.pattern .char[data-pos="${pmeta.pos}"]`);
-  if (patEl) patEl.classList.remove('highlight-orange');
-}
-  shiftEl.classList.add('mismatch');
+                        // ─── 1) Clear old orange highlights ───
+                        headerContainer
+                        .querySelectorAll('.element.header-highlight')
+                        .forEach(h => h.classList.remove('header-highlight'));
+                        vizElems.forEach(e => e.classList.remove('header-highlight'));
 
-  headerContainer
-    .querySelectorAll('.element.header-highlight')
-    .forEach(h => h.classList.remove('header-highlight'));
-  const hdrChar = usedWildcard ? '*' : shiftChar;
-  const hdr = headerContainer.querySelector(`[data-char="${hdrChar}"]`);
-  if (hdr) hdr.classList.add('header-highlight');
-  vizElems[endIdx].classList.add('header-highlight');
+                        // ─── 2) Highlight the shift-table header cell ───
+                        // ↓ replace badChar lookup with a wildcard fallback ↓
+                        const hdrChar = (shift === m) ? '*' : badChar;
+                        const hdr = headerContainer.querySelector(`[data-char="${hdrChar}"]`);
+                        if (hdr)
+                            hdr.classList.add('header-highlight');
 
-  const shiftVal = shiftEl.dataset.shift;
-  // 4) complete‐match description
-  desc.textContent =
-    `Complete match at ${start} → shifting on end-of-window char ` +
-    `'${shiftChar}' = ${shiftVal}.`;
-  break;
-}
+                        // ─── 3) Highlight the text-array cell at end of window ───
+                        vizElems[endIdx].classList.add('header-highlight');
 
+                        // ─── 4) Student-friendly description ───
+                        let comment;
+                        if (shift < m) {
+                            // found earlier in the pattern
+                            const pos = m - shift - 1;
+                            comment =
+                                `Shift = ${shift}: character '${badChar}' occurs in the pattern at index ${pos}, ` + 
+                                        `so we slide to align with that occurrence.`;
+                        } else if (currentPattern.includes(badChar)) {
+                            // only at the very end of the pattern
+                            comment =
+                                `Shift = ${shift}: character '${badChar}' only appears at the end of the pattern ` + 
+                                `(no earlier occurrences), so we shift by the full pattern length.`;
+                        } else {
+                            // not in the pattern at all
+                            comment =
+                                `Shift = ${shift}: character '${badChar}' is not found in the pattern, ` + 
+                                `so we shift by the full pattern length.`;
+                        }
+                        desc.textContent = comment;
+                        break;
+                    }
 
-      
-        case 'done': desc.textContent='Next shift would exceed array length. Search complete.'; break;
-      }
-    };
-  </script>
+                case 'completeMatch': {
+                        const {
+                            i: start
+                        } = meta;
+                        const m = currentPattern.length;
+                        
+                        const pmeta = steps[idx - 1]?.meta || {};
+
+                        // 1) redraw the window and mark every slot finished
+                        vizElems.forEach(e => e.classList.remove('key', 'finished', 'mismatch'));
+                        patElems.forEach(e => e.classList.remove('key', 'finished', 'mismatch'));
+                        for (let k = 0; k < m; k++) {
+                            vizElems[start + k].classList.add('key', 'finished');
+                            patElems[start + k].classList.add('key', 'finished');
+                        }
+
+                        // 2) push a full-match row
+                        if (steppingForward && !failureRowByStep[idx]) {
+                            const f = document.createElement('div');
+                            f.className = 'array-container full-match-row';
+                            for (let x = 0; x < start; x++) {
+                                const e = document.createElement('div');
+                                e.className = 'element empty';
+                                f.appendChild(e);
+                            }
+                            currentPattern.forEach(ch => {
+                                const e = document.createElement('div');
+                                e.className = 'element finished';
+                                e.textContent = ch;
+                                f.appendChild(e);
+                            });
+                            // After appending pattern characters:
+                            for (let k = start + currentPattern.length; k < text.length; k++) {
+                              const e = document.createElement('div');
+                              e.className = 'element empty';
+                              f.appendChild(e);
+                            }
+
+                            failureContainer.appendChild(f);
+                            failureRowByStep[idx] = f;
+                        }
+
+                        // 3) same shift logic as mismatch
+                        const endIdx = start + m - 1;
+                        const shiftChar = original[endIdx];
+                        let shiftEl = shiftContainer.querySelector(`[data-char="${shiftChar}"]`);
+                        let usedWildcard = false;
+                        if (!shiftEl) {
+                            shiftEl = shiftContainer.querySelector(`[data-char="*"]`);
+                            usedWildcard = true;
+                        }
+                        shiftEl.classList.remove('hidden');
+                        if (pmeta.pos >= 0) {
+                            const patEl = document.querySelector(`.pattern .char[data-pos="${pmeta.pos}"]`);
+                            if (patEl)
+                                patEl.classList.remove('highlight-orange');
+                        }
+                        shiftEl.classList.add('mismatch');
+
+                        headerContainer
+                        .querySelectorAll('.element.header-highlight')
+                        .forEach(h => h.classList.remove('header-highlight'));
+                        const hdrChar = usedWildcard ? '*' : shiftChar;
+                        const hdr = headerContainer.querySelector(`[data-char="${hdrChar}"]`);
+                        if (hdr)
+                            hdr.classList.add('header-highlight');
+                        vizElems[endIdx].classList.add('header-highlight');
+
+                        const shiftVal = shiftEl.dataset.shift;
+                        // 4) complete‐match description
+                        desc.textContent =
+                            `Complete match at ${start} → shifting on end-of-window char '${shiftChar}' = ${shiftVal}.`;
+                        break;
+                    }
+
+                case 'done':
+                    desc.textContent = 'Next shift would exceed array length. Search complete.';
+                    break;
+                }
+            };
+</script>
 </body>
 </html>
