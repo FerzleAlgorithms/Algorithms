@@ -621,7 +621,7 @@ with \(b=2\). Here is a demonstration of the algorithm in action.
             <li><strong>Decrease-by-a-constant-factor</strong>: 
             Shrink by a fixed fraction each time (e.g. \(n\to\lfloor n/2\rfloor\)).</li>
             <li><strong>Variable-size decrease</strong>: 
-            Reduce by an input-dependent amount (e.g. Quickselect’s pivot split or Euclid’s remainder).</li>
+            Reduce by an input-dependent amount (e.g. Quickselect's pivot split or Euclid's remainder).</li>
           </ul>
       </li>
       <li><strong>Complexities:</strong>
@@ -650,11 +650,11 @@ Ideal when you can “peel off” a single subproblem—by a fixed amount, a fix
   <li><strong>Implementation considerations:</strong>
       <ul>
         <li>Define and test a clear base case (e.g. stop when \(n\le1\) or at a small threshold) to prevent infinite recursion or loops.</li>
-        <li>Use a straightforward loop instead of recursion when you’re just decrementing by a fixed amount 
+        <li>Use a straightforward loop instead of recursion when you're just decrementing by a fixed amount 
         to eliminate the overhead of repeated function calls.</li>
         <li>Enable tail-call elimination to avoid deep call stacks and reduce overhead.</li>
         <li>In variable-size methods, choose robust pivots (e.g. randomized or median-of-medians) to guard against unbalanced splits that lead to bad worst-case behavior.</li>
-    <li>When a subproblem’s size falls below a tuned cutoff (e.g. \(n \le 16\)), switch to a direct iterative or closed-form method—such as a simple loop, lookup, or formula—instead of another recursive or factor-based step, to eliminate extra call and partitioning overhead on very small inputs.</li>
+    <li>When a subproblem's size falls below a tuned cutoff (e.g. \(n \le 16\)), switch to a direct iterative or closed-form method—such as a simple loop, lookup, or formula—instead of another recursive or factor-based step, to eliminate extra call and partitioning overhead on very small inputs.</li>
         <li>Watch your stack usage: unoptimized recursion can consume \(O(n)\) or \(O(\log n)\) frames; prefer iterative forms when \(O(1)\) extra space is needed.</li>
       </ul>
   </li>
@@ -664,7 +664,7 @@ Ideal when you can “peel off” a single subproblem—by a fixed amount, a fix
 <h2>Related Links and Resources</h2>
 <ul>
   <li><a href="https://www.geeksforgeeks.org/dsa/decrease-and-conquer/" target="_blank">Decrease and Conquer Algorithm (GeeksforGeeks)</a> A clear tutorial covering the three main flavors (decrease-by-a-constant, decrease-by-a-constant-factor, and variable-size-decrease) with pseudocode and examples.</li>
-  <li><a href="https://www.tutorialspoint.com/decrease-and-conquer" target="_blank">Decrease and Conquer Technique (Tutorialspoint)</a> Concise explanation of the paradigm’s principles, applications such as insertion sort and binary search, and its advantages and disadvantages.</li>
+  <li><a href="https://www.tutorialspoint.com/decrease-and-conquer" target="_blank">Decrease and Conquer Technique (Tutorialspoint)</a> Concise explanation of the paradigm's principles, applications such as insertion sort and binary search, and its advantages and disadvantages.</li>
   <li><a href="https://www.educative.io/blog/decrease-and-conquer" target="_blank">Problem-solving using the Decrease-and-Conquer Technique (Educative)</a> In-depth blog post contrasting decrease-and-conquer with divide-and-conquer and illustrating all three reduction strategies with exercises.</li>
   <li><a href="https://www.cs.csustan.edu/~xliang/Courses2/CS4440-25S-S1/LectureSlides/PDF/ch04.pdf" target="_blank">Decrease-and-Conquer Lecture Notes</a> Slides covering decrease-by-factor approaches (e.g. fake-coin problem) and variable-size reductions with recurrence analysis. Based on Levitin's book.</li>
 </ul>
@@ -699,7 +699,7 @@ Ideal when you can “peel off” a single subproblem—by a fixed amount, a fix
     </li>
     <li>
       <strong>Binary Search Recurrence</strong><br>
-      Write the recurrence for binary search’s running time and state its solution.
+      Write the recurrence for binary search's running time and state its solution.
     </li>
     <li>
       <strong>Euclidean Algorithm Type</strong><br>

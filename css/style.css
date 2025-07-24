@@ -29,6 +29,11 @@ pre {
   font-family: 'Fira Code', 'Source Code Pro', Menlo, Consolas, monospace;
 }
 
+strong {
+  color: #003366;           /* dark navy blue */
+  font-weight: 600;         /* medium weight */
+}
+
 
 /*-------------- header -----------------*/
 header h1,
@@ -122,7 +127,7 @@ body.mainSite nav#menu li.open > ul {
 
 body.mainSite nav#menu li span {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 0.4em;
   width: 100%;
   cursor: pointer;
@@ -142,6 +147,7 @@ body.mainSite nav#menu li span::before {
   line-height: 1;
   transition: transform 0.15s ease;
   transform-origin: center;
+  margin-top: 0.15em; /* ⬅️ Add this line */
 }
 
 /* smaller arrows for deeper levels */
@@ -195,6 +201,14 @@ nav#menu .menu-controls button:hover {
   color: #024f9a; /* old color? #a8b7cc; */
   background-color: #dbeafe;   /* subtle hover background */
 }
+/* Highlight the displayed menu item */
+body.mainSite nav#menu a.active {
+  color: #0366d6;       /* Accent blue */
+  background-color: #cbd5e1;  /* Subtle slate background */
+  border-radius: 2px;
+  padding: 2px 2px;
+}
+
 /*-------------------------------------------------------------*/
 /* 5) Error message below iframe (if shown) */
 body.mainSite #errorMessage {

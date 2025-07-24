@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Decrease-by-a-Constant</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js"></script>
+  <script type="text/x-mathjax-config">
+    MathJax.Hub.Config({ TeX: { extensions: ["color.js"] } });
+  </script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <script src="/Algorithms/scripts/chapterScripts.js"></script>
+  <link rel="stylesheet" href="/Algorithms/css/style.css">
+  <link rel="stylesheet" href="/Algorithms/css/chapter.css">
+    <!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-DQ5LVZVFDC"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-DQ5LVZVFDC');
+</script>
+</head>
+<body>
+  <h1>Decrease-by-a-Constant</h1>
+
+ <!-- Decrease by a Constant -->
+  <section id="decrease-by-constant">
+    <h2>Introduction</h2>
+    <p>
+      In this variant, each recursive call handles an input of size \(n-1\) (or \(n-c\) for some constant \(c\)), and the extra work per step is usually \(O(1)\). This simple shrinkage usually yields very direct, easy-to-understand code, though it incurs about \(n/c\) recursive calls (which is still \(\Theta(n)\)) and hence \(O(n)\) stack space. We will see how these traits manifest in the Factorial and Insertion Sort examples.
+    </p>
+    
+    
+    <h2>Examples</h2>
+    <div class="example-box">
+      <strong class="example-title">Example 1: Factorial (Decrease-by-a-Constant)</strong>
+      <p>
+        The factorial of a nonnegative integer \(n\) is defined by
+        \[
+          n! = 
+          \begin{cases}
+            1, & n = 0,\\
+            n \times (n-1)!, & n > 0.
+          \end{cases}
+        \]
+        For example, 
+        \[
+        \begin{array}{rcl}
+        5! &=& 5 \times 4! \\
+           &=& 5 \times 4 \times 3! \\
+           &=& 5 \times 4 \times 3 \times 2! \\
+           &=& 5 \times 4 \times 3 \times 2 \times 1! \\
+           &=& 5 \times 4 \times 3 \times 2 \times 1 \\
+           &=& 120
+        \end{array}
+        \]
+        The obvious algorithm to compute \(n!\) is a recursive algorithm based
+        directly on the definition.
+      </p>
+      <pre><code>factorial(n):
+    if n <= 1:
+      return 1
+    else:
+      return n * factorial(n - 1)</code></pre>
+      <p>
+       Here is a simple demo demostrating how the algorithm works.
+      </p>
+      <!-- If a demo is available, embed it here; otherwise, remove this container. -->
+      <div class="embeddedDemoContainer">
+        <iframe
+          class="embeddedDemo"
+          src="/Algorithms/Content/Demos/Decrease-and-Conquer/Factorial Demo.html"
+          allow="fullscreen"
+          name="Factorial-DecrConst-demo"
+        ></iframe>
+      </div>
+        <p>
+        Since this algorithm computes \(n!\) by first computing \((n-1)!\) before multiplying by \(n\), 
+        it is a clear example of a decrease-by-a-constant variation (where \(c=1\)). 
+        </p>
+        <p>
+        It is not difficult to determine that this is a linear-time algorithm. 
+          Let \(T(n)\) be the time to compute <code>factorial(n)</code>.
+          For \(n > 1\), each call does one recursive call on size \(n-1\) plus a constant amount of work: 
+          so when \(n \gt 1\), </p>
+           \[
+          T(n) = T(n-1) + c
+          \]
+          for some constant \(c\). The base case is \(T(1) = 1\) since 
+          the algorithm executes just one conditional statement
+          and then returns 1. This recurrence relation is easy to solve using iteration:
+          \[
+          \begin{aligned}
+          T(n)
+            &= \textcolor{blue}{T(n-1)} + c\\
+            &= \textcolor{blue}{(T(n-2) + c)} + c\\
+            &= \textcolor{green}{T(n-2)} + 2c\\
+            &= \textcolor{green}{(T(n-3) + c)} + 2c\\
+            &= \textcolor{red}{T(n-3)} + 3c\\
+            &= \textcolor{red}{(T(n-4) + c)} + 3c\\
+            &= \textcolor{orange}{T(n-4)} + 4c\\
+            &\;\;\vdots\\
+            &= \textcolor{purple}{T(n-k)} + k\,c\\
+             &\; \; \; \; \; \mbox{Plug in } k=n-1 \mbox{ to get to the base case of } n-(n-1)=1\\
+            &= \textcolor{magenta}{T(n-(n-1))} \;+\; (n-1)c\\
+            &= \textcolor{magenta}{T(1)} + (n-1)\,c\\
+            &= \textcolor{magenta}{1} + (n-1)\,c\\
+            &= c\,n - c + 1 = O(n).
+          \end{aligned}
+          \]
+          Thus the recursive factorial algorithm runs in linear time.
+        </p>
+    </div>
+    
+    <div class="example-box">
+  <strong class="example-title">Example 2: Insertion Sort (Decrease-by-a-Constant)</strong>
+  <p>
+    Insertion Sort solves the the <a href="?path=Problems/Foundational/Sorting">Sorting</a> Problem.
+    If you are unfamiliar with this problem, see that page.
+    Insertion Sort divides the array into a sorted prefix and an unsorted suffix. Starting with the first element as the only sorted item, it repeatedly takes the next element (the "key") and inserts it into its correct place in the sorted prefix&mdash;shrinking the unsorted portion by one each time. This makes it a classic decrease-by-a-constant algorithm. For full details of the algorithm, see <a href="?path=Algorithms/Decrease-and-Conquer/Insertion Sort">Insertion Sort</a>. Here is a demostration of the algorithm in action.
+  </p>
+  <div class="embeddedDemoContainer">
+    <iframe
+      class="embeddedDemo"
+      src="/Algorithms/Content/Demos/Decrease-and-Conquer/Insertion Sort Demo.html"
+      allow="fullscreen"
+      name="InsertionSort-DecrConst-demo"
+    ></iframe>
+  </div>
+  <p>It is fairly straightforward to implement Insertion Sort&mdash;the pseudocode is given below.</p>
+  <pre><code>insertionSort(A):
+    for i from 1 to length(A)-1:
+      key = A[i]
+      j = i - 1
+      while j >= 0 and A[j] > key:
+        A[j+1] = A[j]
+        j = j - 1
+      A[j+1] = key
+</code></pre>
+  <p>In the worse case, the algorithm has to shift every value up every time (e.g. the array is in 
+  reverse order). In this case, the complexity is \(O(n^2)\).
+  However, in the best case, when the array is mostly sorted, it a complexity of \(O(n)\).
+  On average, it is \(O(n)\). See <a href="?path=Algorithms/Decrease-and-Conquer/Insertion Sort">Insertion Sort</a>
+  for the complete details of this analysis.
+  </p>
+</div>
+
+  <section id="algorithms">
+    <h2>Algorithms Using This Technique</h2>
+    <ul>
+        <li><a href="?path=Algorithms/Decrease-and-Conquer/Factorial">Recursive Factorial</a>: computes \(n!\) by the recurrence \(n! = n \times (n-1)!\), running in \(O(n)\) time.</li>
+        <li><a href="?path=Algorithms/Decrease-and-Conquer/Insertion%20Sort">Insertion Sort</a>: builds a sorted prefix one element at a time, with worst-case \(O(n^2)\) and best-case \(O(n)\) time.</li>
+        <li>Palindrome Check: compares first and last characters and recurses on the substring of length \(n-2\)
+        in \(O(n)\) time.</li>
+        <li>Algorithms that iterate over an array (e.g. linear search, finding a mininum or maximum value, etc.)
+        can be thought of as decrease-by-a-constant, but they are probably better categorized as brute force.</li>
+      </ul>
+  </section>
+
+<section id="applicability">
+  <h2>When to Use</h2>
+  <p>Apply decrease-by-a-constant in problems where a single, slightly smaller instance suffices to build the full solution efficiently:</p>
+  <ul>
+    <li><strong>Natural "one-step" reduction:</strong> When removing or solving for one element (or a fixed small chunk) at a time yields a simpler subproblem&mdash;for example, computing \(n!\) or inserting one item into an already-sorted prefix.</li>
+    <li><strong>Single subproblem per call:</strong> When you do not need to branch into multiple subinstances (as in divide-and-conquer) but can solve the entire task by a sequence of dependent steps.</li>
+    <li><strong>Low per-step overhead:</strong> When the extra work beyond the recursive call is \(O(1)\) or otherwise negligible, so a long chain of reductions still runs in \(O(n)\).</li>
+    <li><strong>Simplicity over branching:</strong> When the problem's structure does not naturally split into independent subproblems, and a linear or logarithmic "peel-away" approach is clearer and easier to maintain.</li>
+  </ul>
+</section>
+
+<section id="limitations">
+  <h2>Limitations</h2>
+  <p>Decrease-by-a-constant may be less suitable in these scenarios:</p>
+  <ul>
+    <li><strong>Stack depth:</strong> A chain of \(O(n)\) reductions can lead to recursion depth \(O(n)\), risking stack overflow for large \(n\).</li>
+    <li><strong>High constant overhead:</strong> When each reduction step entails significant work, the extra constant factors can outweigh the depth advantage on moderate inputs.</li>
+    <li><strong>Independent subproblems:</strong> If the problem naturally splits into multiple independent pieces, a divide-and-conquer strategy often enables better parallelism and overall efficiency.</li>
+  </ul>
+</section>
+
+<section id="implementation-tips">
+  <h2>Implementation Tips</h2>
+  <ul>
+    <li><strong>Clear base case:</strong> Define and test your termination condition (e.g., \(n \le 1\) or a small threshold) to avoid infinite recursion or loops.</li>
+    <li><strong>Prefer iteration for constant reduction:</strong> For decrease-by-a-constant, implement a simple loop rather than recursion to eliminate stack overhead.</li>
+  </ul>
+</section>
+
+<section id="common-pitfalls">
+  <h2>Common Pitfalls</h2>
+  <ul>
+    <li><strong>Missing or incorrect base case:</strong> Failing to stop when \(n \le 1\) (or your chosen threshold) can lead to infinite recursion or loops.</li>
+    <li><strong>Off-by-one in size reduction:</strong> Mixing \(n-1\) vs. \(n-c\) inconsistently may leave subproblems unchanged or skip elements.</li>
+    <li><strong>Unintended array copies:</strong> Using slicing or subarray creation inside each call adds \(O(n)\) work per step, potentially turning an \(O(n)\) scheme into \(O(n^2)\).</li>
+    <li><strong>Excessive recursion depth:</strong> A long chain of recursive calls&mdash;especially without converting tail calls to iteration&mdash;can exhaust the call stack on large inputs.</li>
+  </ul>
+</section>
+
+<section id="real-world-applications">
+  <h2>Real-World Applications</h2>
+  <p>Decrease-by-a-constant techniques power many practical systems, especially where the problem is solved by reducing one element at a time:</p>
+  <ul>
+    <li><strong>Hybrid sorting:</strong> Insertion Sort handles small runs within advanced sorts (e.g. Quicksort, Merge Sort implementations) to reduce overhead and improve performance.</li>
+    <li><strong>Text processing:</strong> Palindrome checks and small-pattern matches in compilers, text editors, and search tools use decrease-by-a-constant logic.</li>
+  </ul>
+</section>
+
+
+<section id="summary">
+  <h2>Summary and Key Takeaways</h2>
+  <ul>
+    <li><strong>Core idea:</strong> Solve a problem by reducing the input size from \(n\) to \(n - c\) 
+    (commonly \(c = 1\)), discarding a fixed constant.</li>
+    <li><strong>Recursion depth:</strong> Typically \(O(n/c) = O(n)\) levels of recursion (or loop iterations).</li>
+    <li><strong>Time complexity:</strong>
+      <ul>
+        <li>With \(O(1)\) work per level: \(T(n) = T(n - c) + O(1) = O(n)\)</li>
+        <li>More generally: \(T(n) = T(n - c) + O(f(n)) = O(n\cdot f(n))\)</li>
+      </ul>
+    </li>
+  <li><strong>Space complexity:</strong> \(O\bigl(n / c\bigr) = O(n)\) stack space for a naive recursive version (or \(O(1)\) if implemented iteratively or via tail-call optimization), plus any extra workspace per level.  
+    For example, the recursive Factorial demo uses \(O(n)\) stack space, 
+    whereas Insertion Sort uses \(O(1)\) extra space since it is implemented iteratively.
+  </li>
+    <li><strong>When to Reach For It:</strong> Use this technique when a single subproblem can be solved per step, and each step reduces the problem by a constant amount.</li>
+    <li><strong>Limitations:</strong> Beware of deep recursion stacks, inefficient slicing, and hidden \(O(n)\) overheads per step.</li>
+    <li><strong>Real-world impact:</strong> Suitable for numeric routines (e.g., GCD, factorial), basic scans or searches, and insertion-based sorting methods.</li>
+    <li><strong>Implementation considerations:</strong>
+      <ul>
+        <li>Always define and test a clear base case (e.g., stop when \(n \le 1\)).</li>
+        <li>Use iteration instead of recursion when possible to avoid stack growth.</li>
+      </ul>
+    </li>
+  </ul>
+</section>
+
+<section id="reading-questions-constant">
+  <h2>Reading Comprehension Questions</h2>
+  <ol> <li>
+      <strong>Factorial Recurrence</strong><br>
+      What recurrence describes the running time of the recursive factorial algorithm, and what does it solve to?
+    </li>
+    <li>
+      <strong>Insertion Sort Bounds</strong><br>
+      What are the worst-case and best-case time complexities of Insertion Sort, and why?
+    </li>
+  </ol>
+  <button id="toggleAnswers" aria-expanded="false">Show Answers</button>
+  <div id="answers" hidden>
+    <ol> <li>
+        <strong>Answer:</strong><br>
+        The recurrence is \(T(n)=T(n-1)+c\), which solves to \(O(n)\).
+      </li>
+      <li>
+        <strong>Answer:</strong><br>
+        Worst-case \(O(n^2)\) when each insertion shifts \(O(n)\) elements (reverse order); best-case \(O(n)\) when the array is already sorted because each insertion is constant time.
+      </li>
+    </ol>
+  </div>
+</section>
+
+<section id="activities-constant">
+  <h2>In-Class Activities</h2>
+  <ol>
+   <li>
+      <strong>Recurrence Derivation:</strong><br>
+      For <em>factorial</em> and <em>insertion sort</em>, write down the recurrence relations, 
+      then solve them exactly by iteration to confirm their \(O(n)\) and \(O(n^2)\) bounds respectively (No peeking!).
+    </li>
+      <li>
+      <strong>Loop vs. Recursion Conversion:</strong><br>
+      Rewrite the recursive factorial algorithm as an iterative loop. Compare the two implementations in terms of code clarity, stack usage, and performance (space and time).
+    </li>   
+    <li>
+      <strong>Insertion Sort Trace:</strong><br>
+      Hand-execute insertion sort on the array \([3,1,4,5,2]\). For each insertion, record how many shifts occur, and draw the state of the sorted prefix after each step.
+    </li> 
+    <li><strong>Recursive Insertion Sort</strong><br>
+    Give a recursive implementation of Insertion Sort. Determine the best-case and worst-case performance of 
+    the recursive version. Was this a good idea? Explain.
+    </li>
+  </ol>
+</section>
+
+<section id="problems-constant">
+  <h2>Homework Problems</h2>
+  <ol> 
+  <li>
+      <strong>Iterative Conversion:</strong><br>
+      Rewrite the recursive factorial algorithm as an iterative loop. 
+      Briefly compare the two versions in terms of memory usage, complexity of the code, 
+      and total number of operations. Is one clearly a better choice? Explain.
+    </li>
+    <li>
+      <strong>Insertion Sort Trace:</strong><br>
+      Hand-execute insertion sort on the array \(\bigl[h,d,g,b,j,c,f,a,i,e\bigr]\). After each insertion, record the contents of the sorted prefix and count the number of shifts performed.
+    </li>
+  </ol>
+</section>
+
+
+
+
+
+
+ 
+</body>
+</html>

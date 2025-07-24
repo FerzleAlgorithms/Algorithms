@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Decrease-and-Conquer Summary</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js"></script>
+  <script type="text/x-mathjax-config">
+    MathJax.Hub.Config({ TeX: { extensions: ["color.js"] } });
+  </script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <script src="/Algorithms/scripts/chapterScripts.js"></script>
+  <link rel="stylesheet" href="/Algorithms/css/style.css">
+  <link rel="stylesheet" href="/Algorithms/css/chapter.css">
+    <!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-DQ5LVZVFDC"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-DQ5LVZVFDC');
+</script>
+</head>
+<body>
+  <h1>Decrease-and-Conquer Summary</h1>
+  <section id="summary">
+  <h2>Summary and Key Takeaways</h2>
+  <p>After reading about the three different flavors of decrease-and-conauer, hopefully these are some of
+  the things you learned.
+    <ul>
+      <li><strong>Core idea:</strong> Solve a problem of size \(n\) by reducing it to a smaller problem
+      and then solve that subproblem.</li>
+      <li><strong>Three flavors</strong>:
+          <ul>
+            <li><strong>Decrease-by-a-constant</strong>: Peel off a fixed amount each step (e.g. \(n\to n-1\)).</li>
+            <li><strong>Decrease-by-a-constant-factor</strong>: 
+            Shrink by a fixed fraction each time (e.g. \(n\to\lfloor n/2\rfloor\)).</li>
+            <li><strong>Variable-size decrease</strong>: 
+            Reduce by an input-dependent amount (e.g. Quickselect's pivot split or Euclid's remainder).</li>
+          </ul>
+      </li>
+      <li><strong>Complexities:</strong>
+      <ul>
+        <li><strong>Decrease-by-a-constant:</strong>  
+        Often leads to a recurrence of the form \(T(n)=T(n-c)+f(n)\), and with about \(n/c=O(n)\) levels,
+        the solution is generally \(T(n)=O\bigl(n\cdot f(n)\bigr)\), where \(f(n)\) is the per-level work.</li>
+        <li><strong>Decrease-by-a-constant-factor:</strong>  
+          Often leads to a recurrence of the form \(T(n)=T(\lfloor n/b\rfloor)+f(n)\), with
+          about \(\Theta(\log_b n)\) levels, generally leading to a complexity of 
+          \(T(n)=O\bigl(f(n)\,\log_b n\bigr)\).</li>
+        <li><strong>Variable-size decrease:</strong> Because of their unpredictable nature, these are harder 
+        to generalize. On average, they have simlar performance to decrease-by-a-constant-factor algorithms
+        (assuming they generally have "nice" splits/division), and
+        in the worst-case, they are similar to decrease-by-a-constant algorithms (assuming they have "poor"
+        splits/divisions).
+    </li>
+    </ul>
+    </li>
+    <li><strong>When to Reach For It:</strong>  
+Ideal when you can "peel off" a single subproblem&mdash;by a fixed amount, a fixed fraction, or adaptively&mdash;and funnel all work through one chain of reductions rather than branching into multiple independent calls (in which case divide-and-conquer might be more appropriate).</li>
+
+  <li><strong>Limitations:</strong> Beware of worst-case degradation (e.g. bad pivots), deep recursion stacks, and hidden \(O(n)\) costs from slicing or division.</li>
+  <li><strong>Real-world impact:</strong> Algorithms based on this technique are applicable to a wide
+  range of applications, from high-speed search (binary search) and selection (Quickselect) to numeric routines (binary GCD) and cryptographic operations (modular exponentiation)&mdash;demonstrating broad practical utility.</li>
+  <li><strong>Implementation considerations:</strong>
+      <ul>
+        <li>Define and test a clear base case (e.g. stop when \(n\le1\) or at a small threshold) to prevent infinite recursion or loops.</li>
+        <li>Use a straightforward loop instead of recursion when you're just decrementing by a fixed amount 
+        to eliminate the overhead of repeated function calls.</li>
+        <li>Enable tail-call elimination to avoid deep call stacks and reduce overhead.</li>
+        <li>In variable-size methods, choose robust pivots (e.g. randomized or median-of-medians) to guard against unbalanced splits that lead to bad worst-case behavior.</li>
+    <li>When a subproblem's size falls below a tuned cutoff (e.g. \(n \le 16\)), switch to a direct iterative or closed-form method&mdash;such as a simple loop, lookup, or formula&mdash;instead of another recursive or factor-based step, to eliminate extra call and partitioning overhead on very small inputs.</li>
+        <li>Watch your stack usage: unoptimized recursion can consume \(O(n)\) or \(O(\log n)\) frames; prefer iterative forms when \(O(1)\) extra space is needed.</li>
+      </ul>
+  </li>
+  </ul>
+</section>
+  
+  
+  
+  
+  
+  
+    
+  
+<section id="related-links">
+  <h2>Related Links and Resources</h2>
+  <ul>
+    <li><a href="https://www.geeksforgeeks.org/dsa/decrease-and-conquer/" target="_blank">Decrease and Conquer Algorithm (GeeksforGeeks)</a></li>
+    <li><a href="https://www.tutorialspoint.com/decrease-and-conquer" target="_blank">Decrease and Conquer Technique (Tutorialspoint)</a></li>
+    <li><a href="https://www.educative.io/blog/decrease-and-conquer" target="_blank">Problem-solving using the Decrease-and-Conquer Technique (Educative)</a></li>
+  <li><a href="https://www.cs.csustan.edu/~xliang/Courses2/CS4440-25S-S1/LectureSlides/PDF/ch04.pdf" target="_blank">Decrease-and-Conquer Lecture Notes</a> Slides covering decrease-by-factor approaches (e.g. fake-coin problem) and variable-size reductions with recurrence analysis. Based on Levitin's book.</li>
+  </ul>
+</section>
+  
+  
+  
+<section id="reading-questions-constant">
+  <h2>Reading Comprehension Questions</h2>
+  <ol><li>
+      <strong>Paradigm Steps</strong><br>
+      What are the three main steps of a decrease-and-conquer algorithm?
+    </li>
+    <li>
+      <strong>Flavors Identification</strong><br>
+      What are the three common flavors of decrease-and-conquer, and how does each reduce the problem size?
+    </li>
+    <li>
+      <strong>Example Algorithms</strong><br>
+      Give one algorithm example for each flavor: decrease-by-a-constant, decrease-by-a-constant-factor, and variable-size-decrease.
+    </li>  
+    <li>
+      <strong>When to Use</strong><br>
+      Name two situations described where decrease-and-conquer is especially effective.
+    </li>
+     <li>
+      <strong>Implementation Tip</strong><br>
+      Describe one implementation tip that helps reduce recursion overhead.
+    </li>
+    <li>
+      <strong>Common Pitfall</strong><br>
+      Identify one common pitfall and explain how it can affect performance or correctness.
+    </li>
+    <li>
+      <strong>Real-World Application</strong><br>
+      Provide one real-world application of decrease-and-conquer techniques mentioned on the page.
+    </li>
+  </ol>
+  <button id="toggleAnswers" aria-expanded="false">Show Answers</button>
+  <div id="answers" hidden>
+    <ol><li>
+        <strong>Answer:</strong><br>
+        Reduce the problem to one smaller instance; recurse on it; then determine the final solution
+        (The details of the last step vary greatly with each algorithm).
+      </li>
+      <li>
+        <strong>Answer:</strong><br>
+        <ul>
+          <li>Decrease-by-a-constant: reduce \(n\) by a fixed amount (e.g. \(n\to n-1\)).</li>
+          <li>Decrease-by-a-constant-factor: shrink \(n\) by a factor (e.g. \(n\to\lfloor n/2\rfloor\)).</li>
+          <li>Variable-size decrease: reduce by an input-dependent amount (e.g. pivot split or remainder).</li>
+        </ul>
+      </li>
+      <li>
+        <strong>Answer:</strong><br>
+        <ul>
+          <li>Decrease-by-a-constant: Factorial (or Insertion Sort).</li>
+          <li>Decrease-by-a-constant-factor: Binary Search (or Exponentiation by Squaring).</li>
+          <li>Variable-size-decrease: Quickselect (or Euclidean Algorithm).</li>
+        </ul>
+      </li>
+      <li>
+        <strong>Answer:</strong><br>
+        Examples include peeling off one element at a time (e.g. factorial) and halving the input each step (e.g. binary search).
+      </li>
+      <li>
+        <strong>Answer:</strong><br>
+        Prefer simple loops to recursive calls when possible.
+      </li>
+      <li>
+        <strong>Answer:</strong><br>
+        An off-by-one in size reduction (e.g. mixing \(\lfloor n/b\rfloor\) and \(\lceil n/b\rceil\)) can leave subproblems unchanged or skip elements, causing incorrect behavior or infinite loops.
+      </li>
+      <li>
+        <strong>Answer:</strong><br>
+        Exponentiation by squaring in cryptographic protocols (e.g. RSA) to compute large modular powers efficiently.
+      </li>
+    </ol>
+  </div>
+</section>
+
+<section id="activities-constant">
+  <h2>In-Class Activities</h2>
+  <ol>    
+  <li>
+      <strong>Flavor Classification:</strong><br>
+      For each of the following, state which decrease-and-conquer flavor it uses 
+      (<em>constant</em>, <em>constant-factor</em>, or <em>variable-size</em>):<br>
+      (a) linear search in an array,<br>
+      (b) computing \(2^n\) by repeated doubling,<br>
+      (c) Quickselect for the median.
+    </li>
+  </ol>
+</section>
+
+<section id="problems-constant">
+  <h2>Homework Problems</h2>
+  <ol>
+  <li>
+      <strong>Kth-Order Statistic Algorithms</strong><br>
+      <ol type="a">
+        <li>Describe a simple (but not necessarily efficient) algorithm to solve the\(k\)-th order statistic problem
+        and give its complexity.</li>
+        <li>Describe Quickselect with random pivot: give pseudocode, derive the average-case recurrence, 
+        and solve for its expected time.</li>
+        <li>Describe the median-of-medians algorithm: give pseudocode, derive the worst-case recurrence  
+          \(\;T(n)=T(n/5)+T(7n/10)+O(n)\;\), and show it is \(O(n)\).
+          (You are allowed to consult outside sources for this part since we did not provide the details!)</li>
+        <li>Compare the practical trade-offs between Quickselect and median-of-medians 
+        (average vs worst case, constant factors, space, etc.).</li>
+      </ol>
+    </li>
+    <li>
+      <strong>First-Occurrence Binary Search:</strong><br>
+      Modify the standard binary search pseudocode so that, in a sorted array with duplicate values, it returns the index of the first occurrence of the target. Explain why your modification still runs in \(O(\log n)\) time.
+    </li>
+    <li>
+      <strong>Tail-Call Elimination:</strong><br>
+      Show how to convert the recursive binary search into a tail-recursive form. Then rewrite it as a purely iterative function. Discuss the impact on time and space complexity.
+    </li>
+    <li>
+      <strong>Design a Shrink-By-Three Algorithm:</strong><br>
+      Propose an algorithm that computes \(\lfloor n/3\rfloor\) by decrease-by-a-constant each step. Write its recurrence and determine its time and space complexities.
+    </li>
+    <li>
+      <strong>Hybrid Threshold Tuning:</strong><br>
+      For Quickselect, experiment with different small-case cutoff values \(k\in\{8,16,32,64\}\) where you switch to insertion sort. On arrays of size 10,000, measure the average running time and identify the optimal \(k\). Explain why that cutoff is best.
+    </li>
+     <li>
+      <strong>Counterfeit Coin Puzzle (divide into thirds):</strong><br>
+      You have \(N\) coins, one of which is heavier. Using only a balance scale that can compare two groups of coins and tell which side is heavier (or if they balance), design a decrease-by-a-constant-factor algorithm that finds the counterfeit coin in as few weighings as possible. Provide clear pseudocode and analyze the number of weighings.
+    </li>
+    <li>
+      <strong>Ternary Search on a Unimodal Function:</strong><br>
+      Given a unimodal function \(f\) on a closed interval \([a,b]\) (that is, it strictly increases then strictly decreases), implement a divide-into-thirds (decrease-by-a-constant-factor) procedure to approximate the maximum point to within an error \(\varepsilon\). Write pseudocode and bound the number of function evaluations in terms of \(\log_3\bigl(\tfrac{b-a}{\varepsilon}\bigr)\).
+    </li>
+    <li>
+      <strong>Median of Two Sorted Arrays:</strong><br>
+      You are given two sorted arrays of lengths \(n\) and \(m\). Design a decrease-by-a-constant-factor algorithm that finds the median of the union of these arrays in \(O(\log(n+m))\) time. Provide pseudocode and prove its running time.
+    </li>
+    <li>
+      <strong>Search in a Rotated Sorted Array:</strong><br>
+      A sorted array of length \(n\) has been rotated at an unknown pivot. Devise a modified binary search (decrease-by-a-constant-factor) that finds a target value in \(O(\log n)\) time. Include pseudocode and a correctness argument.
+    </li>
+    <li>
+      <strong>Peak in a Bitonic Array:</strong><br>
+      A bitonic array first strictly increases and then strictly decreases. Write a decrease-by-a-constant-factor (binary search) algorithm to locate the peak element in \(O(\log n)\) time, and explain why it works.
+    </li>
+    <li>
+      <strong>Defective Batch Testing:</strong><br>
+      You have \(n\) items, exactly one of which is defective. You can test any subset and learn whether it contains the defective item. Design an algorithm to pinpoint the defective item using the fewest tests possible. Provide pseudocode and an analysis of the number of tests required.
+    </li>
+  </ol>
+</section>
+
+
+
+ 
+</body>
+</html>

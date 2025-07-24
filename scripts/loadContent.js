@@ -26,14 +26,23 @@ const ALGORITHMS_ORDER = [
   'Exhaustive Search',
   'Divide-and-Conquer',
   'Decrease-and-Conquer',
-  'Transform-and-Conquer',
   'Greedy',
   'Greedy Algorithms',
   'Dynamic Programming',
+  'Transform-and-Conquer',
   'Space-Time Tradeoff',
   'Backtracking',
+  'Branch-and-Bound',
   'Randomized'
 ];
+const DECREASE_AND_CONQUER_ORDER = [
+  'Introduction',
+  'Decrease-by-a-Constant',
+  'Decrease-by-a-Constant-Factor',
+  'Variable-Size-Decrease',
+  'Summary'
+];
+
 // For "Demos", we just mirror the same order as the algorithm names:
 const DEMOS_ORDER = [...ALGORITHMS_ORDER];
 const TECHNIQUES_ORDER = [...ALGORITHMS_ORDER];
@@ -57,6 +66,16 @@ const getKey = (entry) =>
   typeof entry === 'string'
     ? entry.replace(/\.html$/, '')
     : Object.keys(entry)[0];
+
+// -----------------------------------------------------------------
+function highlightActiveLink(path) {
+  document.querySelectorAll('#menu a').forEach(a => {
+    const aPath = new URLSearchParams(a.href.split('?')[1]).get('path');
+    a.classList.toggle('active', aPath === path);
+  });
+}
+// -----------------------------------------------------------------
+
 
 // ─── Resize Helpers ──────────────────────────────────────────────────────────
 // Get the iframe's Document object (handles both contentDocument & contentWindow)
@@ -106,10 +125,14 @@ const navigateTo = (rawPath) => {
   // 3) Load
   window.scrollTo(0, 0);
   loadContent(`${safe}.html`);
+  
+  highlightActiveLink(rawPath);
+
 };
 
 const loadFromURLParams = () => {
   const rawPath = new URLSearchParams(window.location.search).get('path') || 'home';
+  highlightActiveLink(rawPath);
   loadContent(`${normalizePath(rawPath)}.html`);
 };
 
@@ -194,7 +217,15 @@ const buildMenu = (chapters) => {
   `;
   const menuRoot = menuContainer.querySelector('ul');
 
-  const buildList = (items, container, pathPrefix, orderList = [], level = 1) => {
+  const buildList = (items, container, pathPrefix, level = 1) => {
+   const orderList = (() => {
+    if (pathPrefix === 'Techniques/Decrease-and-Conquer/') return DECREASE_AND_CONQUER_ORDER;
+    if (pathPrefix === 'Techniques/') return TECHNIQUES_ORDER;
+    if (pathPrefix === 'Problems/') return PROBLEMS_ORDER;
+    if (pathPrefix === 'Algorithms/') return ALGORITHMS_ORDER;
+    if (pathPrefix === 'Demos/') return DEMOS_ORDER;
+    return [];
+  })();
     items
       .sort((a, b) => {
         const indexA = orderList.indexOf(getKey(a));
@@ -239,13 +270,16 @@ const buildMenu = (chapters) => {
     li.appendChild(span);
 
     const ul = document.createElement('ul');
+
+/*
     const orderList = {
       Problems: PROBLEMS_ORDER,
       Algorithms: ALGORITHMS_ORDER,
       Demos: DEMOS_ORDER,
       Techniques: TECHNIQUES_ORDER
-    }[sectionName] || [];
-    buildList(contents, ul, `${sectionName}/`, orderList);
+    }[sectionName] || [];*/
+    
+    buildList(contents, ul, `${sectionName}/`);
     li.appendChild(ul);
     menuRoot.appendChild(li);
   });
@@ -379,5 +413,6 @@ window.addEventListener('popstate', (event) => {
   const state = event.state || {};
   pendingScrollRestore = typeof state.scrollY === 'number' ? state.scrollY : 0;
   const rawPath = state.path || 'home';
+  highlightActiveLink(rawPath);
   loadContent(`${normalizePath(rawPath)}.html`);
 });

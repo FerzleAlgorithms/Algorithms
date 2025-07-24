@@ -212,6 +212,15 @@
   "Techniques": [
     "Backtracking.html",
     "Brute Force.html",
+    {
+      "Decrease-and-Conquer": [
+        "Decrease-by-a-Constant-Factor.html",
+        "Decrease-by-a-Constant.html",
+        "Introduction.html",
+        "Summary.html",
+        "Variable-Size-Decrease.html"
+      ]
+    },
     "Decrease-and-Conquer.html",
     "Divide-and-Conquer.html",
     "Dynamic Programming.html",
