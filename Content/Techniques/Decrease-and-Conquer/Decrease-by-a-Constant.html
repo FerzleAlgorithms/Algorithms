@@ -28,7 +28,14 @@
   <section id="decrease-by-constant">
     <h2>Introduction</h2>
     <p>
-      In this variant, each recursive call handles an input of size \(n-1\) (or \(n-c\) for some constant \(c\)), and the extra work per step is usually \(O(1)\). This simple shrinkage usually yields very direct, easy-to-understand code, though it incurs about \(n/c\) recursive calls (which is still \(\Theta(n)\)) and hence \(O(n)\) stack space. We will see how these traits manifest in the Factorial and Insertion Sort examples.
+      In this variant, each recursive call handles an input of size \(n-1\) (or \(n-c\) for some constant \(c\)), 
+      and the extra work per step is usually \(O(1)\). This simple shrinkage usually yields very direct, 
+      easy-to-understand code, though it incurs about \(n/c\) recursive calls (which is still \(\Theta(n)\)) 
+      and hence \(O(n)\) stack space. 
+      If implemented iteratively instead of recursively, 
+      it yields and algorithm that iterates \(n/c\) times and typically uses less space since
+      there is no call stack.
+      We will see how these traits manifest in the Factorial and Insertion Sort examples.
     </p>
     
     
@@ -149,11 +156,11 @@
   <section id="algorithms">
     <h2>Algorithms Using This Technique</h2>
     <ul>
-        <li><a href="?path=Algorithms/Decrease-and-Conquer/Factorial">Recursive Factorial</a>: computes \(n!\) by the recurrence \(n! = n \times (n-1)!\), running in \(O(n)\) time.</li>
-        <li><a href="?path=Algorithms/Decrease-and-Conquer/Insertion%20Sort">Insertion Sort</a>: builds a sorted prefix one element at a time, with worst-case \(O(n^2)\) and best-case \(O(n)\) time.</li>
-        <li>Palindrome Check: compares first and last characters and recurses on the substring of length \(n-2\)
+        <li><strong>Recursive Factorial</strong>: computes \(n!\) by the recurrence \(n! = n \times (n-1)!\), running in \(O(n)\) time.</li>
+        <li><strong>Insertion Sort</strong>: builds a sorted prefix one element at a time, with worst-case \(O(n^2)\) and best-case \(O(n)\) time.</li>
+        <li><strong>Palindrome Check:</strong> compares first and last characters and recurses on the substring of length \(n-2\)
         in \(O(n)\) time.</li>
-        <li>Algorithms that iterate over an array (e.g. linear search, finding a mininum or maximum value, etc.)
+        <li><strong>Array Iteration:</strong> Algorithms that iterate over an array (e.g. linear search, finding a mininum or maximum value, etc.)
         can be thought of as decrease-by-a-constant, but they are probably better categorized as brute force.</li>
       </ul>
   </section>
@@ -165,7 +172,7 @@
     <li><strong>Natural "one-step" reduction:</strong> When removing or solving for one element (or a fixed small chunk) at a time yields a simpler subproblem&mdash;for example, computing \(n!\) or inserting one item into an already-sorted prefix.</li>
     <li><strong>Single subproblem per call:</strong> When you do not need to branch into multiple subinstances (as in divide-and-conquer) but can solve the entire task by a sequence of dependent steps.</li>
     <li><strong>Low per-step overhead:</strong> When the extra work beyond the recursive call is \(O(1)\) or otherwise negligible, so a long chain of reductions still runs in \(O(n)\).</li>
-    <li><strong>Simplicity over branching:</strong> When the problem's structure does not naturally split into independent subproblems, and a linear or logarithmic "peel-away" approach is clearer and easier to maintain.</li>
+    <li><strong>Simplicity over branching:</strong> When the problem's structure does not naturally split into independent subproblems, and a linear "peel-away" approach is clearer and easier to maintain.</li>
   </ul>
 </section>
 
@@ -173,8 +180,9 @@
   <h2>Limitations</h2>
   <p>Decrease-by-a-constant may be less suitable in these scenarios:</p>
   <ul>
-    <li><strong>Stack depth:</strong> A chain of \(O(n)\) reductions can lead to recursion depth \(O(n)\), risking stack overflow for large \(n\).</li>
-    <li><strong>High constant overhead:</strong> When each reduction step entails significant work, the extra constant factors can outweigh the depth advantage on moderate inputs.</li>
+    <li><strong>Stack depth:</strong> A chain of \(O(n)\) reductions can lead to recursion depth \(O(n)\), risking stack overflow for large \(n\). Luckily, this is easily fixed by implementing the algorithm iteratively.</li>
+    <li><strong>High overhead:</strong> The complexity of these algorithms is typically \(O(n\cdot f(n))\) where
+	\(f(n)\) is the amount of work done to reduce the problem. This is usually fine if \(f(n)=c\) for some small constant \(c\), but if \(c\) is large or \(f(n)=n\) or worse, there may be a more efficient approach.</li>
     <li><strong>Independent subproblems:</strong> If the problem naturally splits into multiple independent pieces, a divide-and-conquer strategy often enables better parallelism and overall efficiency.</li>
   </ul>
 </section>
@@ -183,7 +191,9 @@
   <h2>Implementation Tips</h2>
   <ul>
     <li><strong>Clear base case:</strong> Define and test your termination condition (e.g., \(n \le 1\) or a small threshold) to avoid infinite recursion or loops.</li>
-    <li><strong>Prefer iteration for constant reduction:</strong> For decrease-by-a-constant, implement a simple loop rather than recursion to eliminate stack overhead.</li>
+    <li><strong>Prefer iteration:</strong> 
+	Implement a simple loop rather than recursion to eliminate function calls and stack overhead. This 
+	often leads to slightly smaller constants and less space.</li>
   </ul>
 </section>
 
@@ -201,7 +211,7 @@
   <h2>Real-World Applications</h2>
   <p>Decrease-by-a-constant techniques power many practical systems, especially where the problem is solved by reducing one element at a time:</p>
   <ul>
-    <li><strong>Hybrid sorting:</strong> Insertion Sort handles small runs within advanced sorts (e.g. Quicksort, Merge Sort implementations) to reduce overhead and improve performance.</li>
+    <li><strong>Hybrid sorting:</strong> Insertion Sort handles small subproblems within advanced sorts (e.g. Quicksort and Merge Sort) to reduce overhead and improve performance.</li>
     <li><strong>Text processing:</strong> Palindrome checks and small-pattern matches in compilers, text editors, and search tools use decrease-by-a-constant logic.</li>
   </ul>
 </section>
@@ -212,19 +222,20 @@
   <ul>
     <li><strong>Core idea:</strong> Solve a problem by reducing the input size from \(n\) to \(n - c\) 
     (commonly \(c = 1\)), discarding a fixed constant.</li>
-    <li><strong>Recursion depth:</strong> Typically \(O(n/c) = O(n)\) levels of recursion (or loop iterations).</li>
+    <li><strong>Recursion depth:</strong> Typically \(n/c = O(n)\) levels of recursion (or loop iterations).</li>
     <li><strong>Time complexity:</strong>
       <ul>
         <li>With \(O(1)\) work per level: \(T(n) = T(n - c) + O(1) = O(n)\)</li>
         <li>More generally: \(T(n) = T(n - c) + O(f(n)) = O(n\cdot f(n))\)</li>
       </ul>
     </li>
-  <li><strong>Space complexity:</strong> \(O\bigl(n / c\bigr) = O(n)\) stack space for a naive recursive version (or \(O(1)\) if implemented iteratively or via tail-call optimization), plus any extra workspace per level.  
+  <li><strong>Space complexity:</strong> \(O\bigl(n / c\bigr) = O(n)\) stack space for a naive recursive version, or \(O(1)\) if implemented iteratively or via tail-call optimization, plus any extra workspace per level.  
     For example, the recursive Factorial demo uses \(O(n)\) stack space, 
     whereas Insertion Sort uses \(O(1)\) extra space since it is implemented iteratively.
+	An iterative implementation of the Factorial algorithm would only require \(O(1)\) space.
   </li>
     <li><strong>When to Reach For It:</strong> Use this technique when a single subproblem can be solved per step, and each step reduces the problem by a constant amount.</li>
-    <li><strong>Limitations:</strong> Beware of deep recursion stacks, inefficient slicing, and hidden \(O(n)\) overheads per step.</li>
+    <li><strong>Limitations:</strong> Beware of deep recursion stacks and hidden \(O(n)\) overheads per step.</li>
     <li><strong>Real-world impact:</strong> Suitable for numeric routines (e.g., GCD, factorial), basic scans or searches, and insertion-based sorting methods.</li>
     <li><strong>Implementation considerations:</strong>
       <ul>
@@ -245,6 +256,18 @@
       <strong>Insertion Sort Bounds</strong><br>
       What are the worst-case and best-case time complexities of Insertion Sort, and why?
     </li>
+	<li>
+      <strong>Technique Identification:</strong><br>
+      What features help you recognize whether an algorithm uses the decrease-by-a-constant approach?
+    </li>
+    <li>
+      <strong>Comparison with Divide-and-Conquer:</strong><br>
+      How does decrease-by-a-constant differ from divide-and-conquer in terms of problem reduction and recursion structure?
+    </li>
+    <li>
+      <strong>Recursive Overhead:</strong><br>
+      Why might a recursive decrease-by-a-constant algorithm be less efficient in practice than its iterative counterpart?
+    </li>
   </ol>
   <button id="toggleAnswers" aria-expanded="false">Show Answers</button>
   <div id="answers" hidden>
@@ -256,6 +279,18 @@
         <strong>Answer:</strong><br>
         Worst-case \(O(n^2)\) when each insertion shifts \(O(n)\) elements (reverse order); best-case \(O(n)\) when the array is already sorted because each insertion is constant time.
       </li>
+	   <li>
+      <strong>Answer:</strong><br>
+      An algorithm uses decrease-by-a-constant if each step solves a single subproblem of size \(n - c\), where \(c\) is a constant (often 1). Indicators include code that processes or removes one item per call.
+    </li>
+    <li>
+      <strong>Answer:</strong><br>
+      Decrease-by-a-constant reduces the problem size by a fixed constant each step and makes a single recursive call. Divide-and-conquer typically splits the input into multiple subproblems (e.g., halves), solves each recursively, and combines the results.
+    </li>
+    <li>
+      <strong>Answer:</strong><br>
+      Recursive implementations have function call overhead and use stack space proportional to the recursion depth, which is \(O(n)\) in decrease-by-a-constant algorithms. Iterative versions avoid these costs and are often more space- and time-efficient in practice.
+    </li>
     </ol>
   </div>
 </section>
@@ -269,16 +304,34 @@
       then solve them exactly by iteration to confirm their \(O(n)\) and \(O(n^2)\) bounds respectively (No peeking!).
     </li>
       <li>
-      <strong>Loop vs. Recursion Conversion:</strong><br>
+      <strong>Iterative Factorial:</strong><br>
       Rewrite the recursive factorial algorithm as an iterative loop. Compare the two implementations in terms of code clarity, stack usage, and performance (space and time).
     </li>   
     <li>
       <strong>Insertion Sort Trace:</strong><br>
       Hand-execute insertion sort on the array \([3,1,4,5,2]\). For each insertion, record how many shifts occur, and draw the state of the sorted prefix after each step.
+    </li>   
+    <li>
+      <strong>Insertion Sort Best and Worst Cases:</strong><br>
+	  Create two arrays of size 10: one that will result in the best-case behavior of Insertion Sort
+	  and one that will result in the worst-case behavior. Use the demo or trace them each by hand 
+	  to demonstrate how good/bad the algorithm is on each.
     </li> 
     <li><strong>Recursive Insertion Sort</strong><br>
     Give a recursive implementation of Insertion Sort. Determine the best-case and worst-case performance of 
     the recursive version. Was this a good idea? Explain.
+    </li> 
+	<li>
+      <strong>Classify Algorithms:</strong><br>
+      Given the following algorithms: binary search, selection sort, linear search, and merge sort—identify which ones use decrease-by-a-constant, and justify your answer.
+    </li>
+    <li>
+      <strong>Write Your Own:</strong><br>
+      Design a simple algorithm that uses decrease-by-a-constant to solve a problem not mentioned on the page. Write both recursive and iterative versions.
+    </li>
+    <li>
+      <strong>Visualize Recursion Tree:</strong><br>
+      Draw the recursion tree for `factorial(5)` and annotate the cost at each level. Compare it with a tree from a divide-and-conquer algorithm (e.g., merge sort). What is the biggest difference between the two?
     </li>
   </ol>
 </section>
@@ -295,6 +348,24 @@
     <li>
       <strong>Insertion Sort Trace:</strong><br>
       Hand-execute insertion sort on the array \(\bigl[h,d,g,b,j,c,f,a,i,e\bigr]\). After each insertion, record the contents of the sorted prefix and count the number of shifts performed.
+    </li>
+	<li>
+      <strong>Recursive Digit Sum:</strong><br>
+      Write a recursive function `digitSum(n)` that computes the sum of the digits of a nonnegative integer \(n\). Prove that your algorithm uses decrease-by-a-constant and analyze its time and space complexity.
+    </li>
+    <li>
+      <strong>Recursive Palindrome Check:</strong><br>
+      Implement a recursive algorithm to determine if a given string is a palindrome by comparing first and last characters and recursing on the appropriate substring.
+      Give pseudocode or code in the language of your choice.	  
+	  What is the time and space complexity?
+    </li>
+    <li>
+      <strong>Iterative Palindrome Check:</strong><br>
+      Implement an <em>iterative</em> algorithm to determine if a given string is a palindrome by comparing first and last characters and continuing on the appropriate substring.
+      Give pseudocode or code in the language of your choice.	  
+	  What is the time and space complexity?
+	  Compare the algorithm with the recursive one (see the previous problem) in terms of time, space,
+	  and the difficulty of the algorithm to implement.
     </li>
   </ol>
 </section>

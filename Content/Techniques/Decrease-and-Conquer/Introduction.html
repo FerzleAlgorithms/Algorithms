@@ -26,17 +26,18 @@
 <!-- Motivation & Introduction -->
   <section id="introduction">
     <h2>Introduction</h2>
-    Decrease-and-Conquer is an algorithmic paradigm in which a problem of size \(n\) is solved by 
-    reducing it to a single smaller instance, solving that recursively, and then doing a bit of 
-    additional work to produce the final result.  There are three common flavors:
+    Decrease-and-Conquer is an algorithmic paradigm in which a problem is solved by 
+    reducing it to a single smaller instance of the same problem and solving that problem, typically recursively. 
+    It usually involves doing a bit work either to shrink the problem instance or to produce the final result.  
+    There are three common flavors:
     <ul>
       <li><strong>Decrease-by-a-Constant:</strong> Each step reduces \(n\) by a fixed amount 
-      (e.g. \(n-c\) for some constant \(c)\) examples include Insertion Sort, 
+      (e.g. \(n-c\) for some constant \(c)\). Examples include Insertion Sort, 
       computing \(n!\) based on the recursive definition, and an algorithm to solve the topological sort problem.</li>
       <li><strong>Decrease-by-a-Constant-Factor:</strong> Each step reduces \(n\) by dividing by a 
-      constant \(b>1\); examples include binary exponentiation and binary search.</li>
+      constant \(b>1\). Examples include binary exponentiation and binary search.</li>
       <li><strong>Variable-Size-Decrease:</strong> The amount by which \(n\) shrinks depends on the 
-      input (often via a pivot or selection); Binary Search and Quickselect are classic examples.</li>
+      input (often via a pivot or selection). Binary Search and Quickselect are classic examples.</li>
     </ul>
     
 <p>We will provide complete descriptions and examples of each flavor. Use the menu or the links below.</p>

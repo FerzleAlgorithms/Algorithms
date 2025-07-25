@@ -12,6 +12,7 @@
   <script src="/Algorithms/scripts/chapterScripts.js"></script>
   <link rel="stylesheet" href="/Algorithms/css/style.css">
   <link rel="stylesheet" href="/Algorithms/css/chapter.css">
+
     <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-DQ5LVZVFDC"></script>
 <script>
@@ -77,11 +78,6 @@ Ideal when you can "peel off" a single subproblem&mdash;by a fixed amount, a fix
 </section>
   
   
-  
-  
-  
-  
-    
   
 <section id="related-links">
   <h2>Related Links and Resources</h2>
@@ -180,12 +176,105 @@ Ideal when you can "peel off" a single subproblem&mdash;by a fixed amount, a fix
       (b) computing \(2^n\) by repeated doubling,<br>
       (c) Quickselect for the median.
     </li>
+	 <li>
+    <strong>Algorithm Transformation:</strong><br>
+    Problem: Find the number of even integers in an array of 1000 random integers between 1 and 9999.  
+    Design a solution using each flavor of decrease-and-conquer:
+    <ul>
+      <li><em>(a)</em> Constant Decrease: Check and remove one element per step.</li>
+      <li><em>(b)</em> Constant-Factor Decrease: Split the array in half at each step and process one half.</li>
+      <li><em>(c)</em> Variable-Size Decrease: Use an adaptive strategy—e.g., partition the array by a pivot and recurse on the side likely to contain more evens.</li>
+    </ul>
+    Write pseudocode or describe each approach. Compare their efficiency and overhead.
+  </li>
+  <li>
+    <strong>Recurrence Matching:</strong><br>
+    The following recurrence relations describe the running times of three different decrease-and-conquer algorithms:
+    <ul>
+      <li>\(T(n) = T(n - 1) + O(1)\)</li>
+      <li>\(T(n) = T(n/2) + O(1)\)</li>
+      <li>\(T(n) = T(k) + O(n)\), where \(k\) depends on the result of a partitioning step</li>
+    </ul>
+    Match each recurrence to one of the three decrease-and-conquer flavors and name a representative algorithm for each.  
+    Explain how the recurrence structure reflects the algorithm’s behavior.
+  </li>
+  <li>
+    <strong>Algorithm Comparison:</strong><br>
+    Consider the problem of finding the \(k\)-th smallest element in an array of 30 integers.  
+    Discuss how you would approach it using:  
+    <em>(a)</em> brute force,  
+    <em>(b)</em> sorting then indexing, and  
+    <em>(c)</em> Quickselect (variable-size-decrease).  
+    Which is most efficient for large \(n\), and why?
+  </li>
+
+  <li>
+    <strong>Real-World Analogy Brainstorm:</strong><br>
+    Think of real-world tasks that correspond to each flavor of decrease-and-conquer.  
+    For example, checking items off a to-do list (constant), halving the search space in a game (constant-factor), or removing random-sized chunks of a task (variable-size).  
+    Share examples with the class and discuss how the choice of strategy affects efficiency.
+  </li>
   </ol>
 </section>
 
 <section id="problems-constant">
   <h2>Homework Problems</h2>
   <ol>
+    <li>
+      <strong>Identify the Flavor:</strong><br>
+      For each of the following pseudocode snippets, determine which decrease-and-conquer flavor is used:
+      <em>decrease-by-a-constant</em>, <em>decrease-by-a-constant-factor</em>, or <em>variable-size-decrease</em>.
+      Briefly explain your reasoning.
+	  <ol type='a' class="code-list">
+  <li>
+    <div style="display: flex; align-items: flex-start;">
+      <pre><code>countDown(n):
+    if n == 0:
+        return
+    else:
+        print(n)
+        countDown(n - 1)</code></pre>
+    </div>
+  </li>
+  <li>
+    <div  style="display: flex; align-items: flex-start;">
+      <pre><code>halveAndProcess(n):
+    if n <= 1:
+        return
+    else:
+        doLogarithmicWork(n)
+        halveAndProcess(n // 2)</code></pre>
+    </div>
+  </li>
+  <li>
+    <div  style="display: flex; align-items: flex-start;">
+      <pre><code>processMaxSegment(A):
+    if length(A) == 0:
+        return
+    else:
+        maxIndex = indexOfMax(A)
+        doSomethingWith(A[maxIndex])
+        rest = A[0:maxIndex] + A[maxIndex+1:]
+        processMaxSegment(rest)</code></pre>
+    </div>
+  </li>
+</ol>
+    </li>
+   <li>
+      <strong>Classify Recurrences:</strong><br>
+      Each of the following recurrence relations gives the computational complexity of a, decrease-and-conquer
+	  algorithm. Based on this, determine what flavor (if any) the algorithm most likely uses: <em>decrease-by-a-constant</em>, <em>decrease-by-a-constant-factor</em>, or <em>variable-size-decrease</em>. Briefly explain your reasoning.
+      <br><br>
+      <ol type='a'>
+        <li>\(T(n) = T(n - 3) + 5\)
+        </li>
+        <li>\(T(n) = T(n / 2) + \log n\)
+        </li>
+        <li>\(T(n) = T(n - k) + n\), 
+		  where \(k\) depends on the input and is <em>not</em> constant.
+        </li>
+      </ol>
+    </li>
   <li>
       <strong>Kth-Order Statistic Algorithms</strong><br>
       <ol type="a">
@@ -200,6 +289,11 @@ Ideal when you can "peel off" a single subproblem&mdash;by a fixed amount, a fix
         (average vs worst case, constant factors, space, etc.).</li>
       </ol>
     </li>
+	  <li>
+    <strong>Interpolation Search Analysis:</strong><br>
+    Suppose you have a sorted array of 10,000 uniformly distributed keys. 
+    Estimate the average number of comparisons made by interpolation search and compare that to binary search.
+  </li>
     <li>
       <strong>First-Occurrence Binary Search:</strong><br>
       Modify the standard binary search pseudocode so that, in a sorted array with duplicate values, it returns the index of the first occurrence of the target. Explain why your modification still runs in \(O(\log n)\) time.

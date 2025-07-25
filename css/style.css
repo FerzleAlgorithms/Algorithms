@@ -54,6 +54,19 @@ header h4 {
 }
 
 /*-------------------------------------------------------------*/
+h1 {
+	font-size: 1.5em;
+	margin-bottom: .25em;
+}
+h2 {
+	font-size: 1.25em;
+	margin-bottom: .25em;
+}
+h3 {
+	font-size: 1em;
+	margin-bottom: .25em;
+}
+
 /* 1) Site layout (only on <body class="mainSite">) */
 body.mainSite {
   display: flex;
