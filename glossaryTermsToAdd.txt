@@ -1,0 +1,3 @@
+variable-size-decrease
+decrease-by-a-constant
+decrease-by-a-constant-factor
