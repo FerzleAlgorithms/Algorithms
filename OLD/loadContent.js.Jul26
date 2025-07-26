@@ -236,12 +236,9 @@ const buildMenu = (chapters) => {
         const li = document.createElement('li');
         if (typeof item === 'string') {
           const raw = item.replace(/\.html$/, '');
-          const fullPath = (pathPrefix.includes('More/DRAFTS') && raw.includes('/'))
-            ? raw // already a full path
-            : pathPrefix + raw;
           const a = document.createElement('a');
-          a.textContent = raw.split('/').pop().replace(/Demo$/, '').trim();
-          a.href = `?path=${encodeURIComponent(fullPath)}`;
+          a.textContent = raw.replace(/Demo$/, '').trim();
+          a.href = `?path=${encodeURIComponent(pathPrefix + raw)}`;
           a.style.fontSize = `${1 - (level - 1) * 0.1}em`;
           li.appendChild(a);
         } else {

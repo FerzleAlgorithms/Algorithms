@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Polynomial Evaluation (Brute Force)</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js"></script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <script src="/Algorithms/scripts/chapterScripts.js"></script>
+  <link rel="stylesheet" href="/Algorithms/css/style.css">
+  <link rel="stylesheet" href="/Algorithms/css/chapter.css">
+  <!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-DQ5LVZVFDC"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-DQ5LVZVFDC');
+</script>
+</head>
+<body>
+  <h1>Polynomial Evaluation (Brute Force)</h1>
+
+  <section id="problem-solved">
+    <h2>Problem Solved</h2>
+    <p>
+      Here we will describe the brute force algorithm that solves the
+      <a class="problem" href="?path=Problems%2FFoundational%2FPolynomial%20Evaluation">Polynomial Evaluation</a>
+      problem.
+    </p>
+  </section>
+
+  <section id="design">
+    <h2>Design and Strategy</h2>
+    <p>
+      To evaluate a polynomial of the form
+      \( P(x) = a_0 + a_1x + a_2x^2 + \dots + a_nx^n \),
+      a straightforward method is to compute each term \( a_i x^i \) separately and sum the results.
+    </p>
+    <p>
+      For each term, we compute \( x^i \) by multiplying \( x \) by itself \( i \) times. This means that evaluating the full polynomial requires nested loops: one to sum each term and one to compute each power.
+    </p>
+    <p>
+      This brute-force approach is easy to understand, but it is inefficient. For a polynomial of degree \( n \), it requires roughly \( O(n^2) \) operations.
+    </p>
+
+<ol class="spaced">
+  <li>Let \( \text{result} = 0 \).</li>
+  <li>For \( i \) from 0 to \( n \):
+    <ol>
+      <li>Set \( \text{power} = 1 \).</li>
+      <li>Repeat \( i \) times: \( \text{power} = \text{power} \times x \).</li>
+      <li>Add \( a[i] \times \text{power} \) to \( \text{result} \).</li>
+    </ol>
+  </li>
+  <li>Return \( \text{result} \).</li>
+</ol>
+
+    <p>This simple strategy uses no clever optimizations, so it exemplifies a <strong>brute-force</strong> approach: just rely on the definition of the problem and do exactly what it suggests.
+    </p>
+  </section>
+
+  <section id="demo">
+  <p>This demo should give you a really good idea of how the algorithm works. 
+  It shows each step of the computation and counts the number of additions and multiplications
+  so you can see exactly how long it takes. And later you can compare it with better algorithms.</p>
+    <div class="embeddedDemoContainer">
+      <iframe class="embeddedDemo"
+              src="/Algorithms/Content/Demos/Brute%20Force/Polynomial%20Evaluation%20(Quadratic)%20Demo.html"
+              allow="fullscreen"
+              name="polynomial-evaluation-demo">
+      </iframe>
+    </div>
+  </section>
+
+  <section id="code">
+    <h2>Implementation in Java, C++, Python</h2>
+    <div class="tab-group">
+      <div class="tabs" role="tablist">
+        <button id="tab-java" class="tablink active" data-lang="java" role="tab" aria-controls="java" aria-selected="true">Java</button>
+        <button id="tab-cpp" class="tablink" data-lang="cpp" role="tab" aria-controls="cpp" aria-selected="false">C++</button>
+        <button id="tab-python" class="tablink" data-lang="python" role="tab" aria-controls="python" aria-selected="false">Python</button>
+      </div>
+      <div id="java" class="code-container active" role="tabpanel" aria-labelledby="tab-java">
+        <pre><code class="language-java">double evaluate(double[] a, double x) {
+    double result = 0;
+    for (int i = 0; i < a.length; i++) {
+        double power = 1;
+        for (int j = 0; j < i; j++) {
+            power *= x;
+        }
+        result += a[i] * power;
+    }
+    return result;
+}</code></pre>
+      </div>
+      <div id="cpp" class="code-container" role="tabpanel" aria-labelledby="tab-cpp">
+        <pre><code class="language-cpp">double evaluate(double a[], int n, double x) {
+    double result = 0;
+    for (int i = 0; i < n; i++) {
+        double power = 1;
+        for (int j = 0; j < i; j++) {
+            power *= x;
+        }
+        result += a[i] * power;
+    }
+    return result;
+}</code></pre>
+      </div>
+      <div id="python" class="code-container" role="tabpanel" aria-labelledby="tab-python">
+        <pre><code class="language-python">def evaluate(a, x):
+    result = 0
+    for i in range(len(a)):
+        power = 1
+        for _ in range(i):
+            power *= x
+        result += a[i] * power
+    return result</code></pre>
+      </div>
+    </div>
+  </section>
+
+  <section id="analysis">
+    <h2>Time/Space Analysis</h2>
+    <p><strong>Time Complexity:</strong> The outer loop runs \( n + 1 \) times, and each iteration has an inner loop of up to \( i \) multiplications. The total number of operations is \( 1 + 2 + \dots + n = \frac{n(n+1)}{2} \), which is \( O(n^2) \).</p>
+    <p><strong>Space Complexity:</strong> The algorithm uses only a small number of variables for the result and intermediate power computations, so the space complexity is \( O(1) \).</p>
+  </section>
+
+  <section id="variations">
+  <h2>Variations/Improvements</h2>
+  <ul>
+    <li>By avoiding redundant multiplications when computing \( x^i \), we can reduce the total time to linear \( O(n) \). For example, by reusing \( x^{i-1} \) to compute \( x^i \), we only need one multiplication per term.</li>
+    <li>Horner's Rule (or Horner's Method) is a more efficient algorithm that rewrites the polynomial as nested multiplications:
+      \[ P(x) = (...((a_n x + a_{n-1})x + a_{n-2})x + \dots + a_1)x + a_0 \]
+      This avoids computing powers entirely and the total number of operations is also \( O(n) \),
+      but with slightly smaller constants.
+    </li>
+  </ul>
+  </section>
+
+  <section id="links">
+    <h2>Links to Resources</h2>
+    <ul>
+      <li><a href="https://en.wikipedia.org/wiki/Polynomial_evaluation" target="_blank">Wikipedia: Polynomial Evaluation</a> Describes the polynomial evaluation problem and gives several algorithms.</li>
+      <li><a href="https://www.geeksforgeeks.org/dsa/horners-method-polynomial-evaluation/" target="_blank">GeeksforGeeks: Horner's Method</a> Overview and examples of Horner's method.</li>
+    </ul>
+  </section>
+
+  <section id="reading-questions">
+    <h2>Reading Comprehension Questions</h2>
+    <ol>
+      <li><strong>Polynomial Form:</strong> What is the general form of a polynomial used in this algorithm?</li>
+      <li><strong>Key Operation:</strong> Why is computing powers of \( x \) a bottleneck in the brute-force algorithm?</li>
+      <li><strong>Technique Category:</strong> Why is this algorithm considered brute force?</li>
+      <li><strong>Time Complexity:</strong> What is the total number of operations required for a degree \( n \) polynomial?</li>
+      <li><strong>Space Complexity:</strong> Why is the space complexity only \( O(1) \)?</li>
+      <li><strong>Alternative Approach:</strong> How can the number of operations be reduced to \( O(n) \)?</li>
+    </ol>
+    <button id="toggleAnswers" class="show-answer" aria-expanded="false">Show Answers</button>
+    <div id="answers" class="answer" hidden>
+      <ol>
+        <li><strong>Answer:</strong> \( P(x) = a_0 + a_1x + a_2x^2 + \dots + a_nx^n \)</li>
+        <li><strong>Answer:</strong> Because computing \( x^i \) takes \( i \) multiplications, leading to \( O(n^2) \) total operations.</li>
+        <li><strong>Answer:</strong> It blindly follows the definition of a polynomial without optimization, computing each term from scratch.</li>
+        <li><strong>Answer:</strong> \( O(n^2) \)</li>
+        <li><strong>Answer:</strong> Only a few variables are used to track the result and intermediate values.</li>
+        <li><strong>Answer:</strong> Either by being clever about computing powers or by using Horner's Rule.</li>
+      </ol>
+    </div>
+  </section>
+
+  <section id="activities">
+    <h2>In-Class Activities</h2>
+    <ol>
+      <li><strong>Manual Evaluation:</strong> Have students evaluate \( P(x) = 3 + 2x + 5x^2 - 7 x^3 + 9 x^4 \) for \( x = 5 \) using the brute-force method by hand.</li>
+      <li><strong>Code Comparison:</strong> Walk through the provided brute-force implementation line by line with a sample array of coefficients.</li>
+      <li><strong>Exact Analysis:</strong> Use the interactive demo to derive formulas for the exact 
+      number of multiplications and additions needed for a polynomial of degree \(n\).</li>
+      <li><strong>Cost Estimation:</strong> Ask students to estimate the total number of operations for a degree-10 polynomial.</li>
+      <li><strong>Linear-Time Algorithm:</strong> Improve the algorithm to work in linear time.
+      Begin by working in small groups talking it through. If you get stuck, work through a few examples
+      with the <a class="problem" href="?path=Demos/Brute%20Force/Polynomial%20Evaluation%20(Linear)%20Demo">Polynomial Evaluation (Linear) Demo</a> and see if you can extract the idea from there.
+      Give clear code/pseudocode of your algorithm!
+      </li>
+      <li><strong>Re-Inventing Horner's Rule:</strong> In small groups, work together to try to devise
+      an algorithm based on Horner's Rule.
+      If you get stuck, take a look at the 
+      <a class="problem" href="?path=Demos/Transform-and-Conquer/Horners%20Rule%20Demo">Horner's Rule Demo</a> for inspiration. In particular, it can help you better understand how to factor a polynomial
+      into the form that leads to Horner's Rule.</li>
+    </ol>
+  </section>
+
+  <section id="problems">
+    <h2>Homework Problems</h2>
+    <ol>
+      <li><strong>Step-by-step:</strong> Evaluate \( P(x) = 2 - 3x - x^2 + 4x^3 + 5x^4 - 6x^5\) at \( x = 3 \) using the brute-force method. Show all work.</li>
+      <li><strong>Trace the Code:</strong> Trace the brute-force algorithm with input <code>a = [1, 0, 2, -4, 7, 9, 13]</code> and <code>x = 4</code>. Draw a table like the demo does (But do not use the demo!).
+      </li>
+      <li><strong>Exact Analysis:</strong> Derive an exact formula for the number of multiplications
+      used by the brute force algorithm to evaluate a polynomial of degree \(n\) and verify that it
+      is \(O(n^2)\).</li>
+      <li><strong>Linear-Time Version:</strong> Modify the brute force algorithm so it operates
+      in linear time. Explain what change(s) you had to make to the algorithm to reduce the time.
+      Did it require more space?</li>
+        <li><strong>Taylor Polynomial Evaluation:</strong> 
+        The \(n\)-degree Taylor Polynomial for the exponential function is defined as 
+        \( e^x \approx T_n(x) = 1 + \frac{x}{1!} + \frac{x^2}{2!} + \dots + \frac{x^n}{n!}.\) 
+        It is an an approximation of the exact value of the function.
+        Design a linear-time algorithm <code>expApprox(float a, int n)</code> 
+        that computes \(T_n(a)\). 
+        Analyze its time and space complexity.
+        </li>
+          <li><strong>Compute Derivative At a Point:</strong> Given a polynomial \( P(x) = a_0 + a_1x + a_2x^2 + \dots + a_nx^n \), the derivative is \( P'(x) = a_1 + 2a_2x + 3a_3x^2 + \dots + na_nx^{n-1} \). Assume the coefficients are provided in an array \( [a_0, a_1, \dots, a_n] \), and you are given a value \( x \). Design an algorithm to evaluate \( P'(x) \) efficiently. Analyze the time and space complexity of your algorithm.</li>
+          <li><strong>Compute Derivative:</strong> Given a polynomial \( P(x) = a_0 + a_1x + a_2x^2 + \dots + a_nx^n \), the derivative is \( P'(x) = a_1 + 2a_2x + 3a_3x^2 + \dots + na_nx^{n-1} \). Assume the coefficients are provided in an array \( [a_0, a_1, \dots, a_n] \).
+          Design an algorithm to return the derivative, \( P'(x) \), as a function, efficiently. 
+          That is, it should output the array \( [a_1, 2a_2, 3a_3, \dots, na_n] \).
+          Analyze the time and space complexity of your algorithm.</li>
+
+    </ol>
+  </section>
+</body>
+</html>

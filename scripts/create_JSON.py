@@ -4,28 +4,35 @@ import os, json, urllib.parse, xml.etree.ElementTree as ET
 # Edit this to match your actual root URL for the menu (include trailing slash if needed)
 SITE_ROOT = "https:///Algorithms/"
 
-def scan_dir(current_path):
+def scan_dir(current_path, path_prefix="", draft_accumulator=None):
     items = []
     for entry in sorted(os.listdir(current_path)):
         entry_path = os.path.join(current_path, entry)
         if os.path.isdir(entry_path):
-            items.append({entry: scan_dir(entry_path)})
-        elif entry.endswith('.html') and "DRAFT" not in entry.upper():
-            items.append(entry)
+            sub = scan_dir(entry_path, path_prefix + entry + "/", draft_accumulator)
+            if sub:
+                items.append({entry: sub})
+        elif entry.endswith('.html'):
+            if "DRAFT" in entry.upper():
+                if draft_accumulator is not None:
+                    draft_accumulator.append(path_prefix + entry)
+            else:
+                items.append(entry)
     return items
-
 def build_chapters_json(base_dir='/home/cusack/public_html/Algorithms/Content'):
     chapters = {}
+    drafts = []
     for chapter_dir in sorted(os.listdir(base_dir)):
         chapter_path = os.path.join(base_dir, chapter_dir)
         if os.path.isdir(chapter_path):
-            chapters[chapter_dir] = scan_dir(chapter_path)
+            chapters[chapter_dir] = scan_dir(chapter_path, chapter_dir + "/", drafts)
+    if drafts:
+        chapters.setdefault("More", []).append({"DRAFTS": sorted(drafts)})
 
     with open('/home/cusack/public_html/Algorithms/scripts/chapters.json', 'w') as f:
         json.dump(chapters, f, indent=2)
 
     return chapters
-
 def load_chapters_json():
     with open('chapters.json', 'r') as f:
         return json.load(f)

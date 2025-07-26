@@ -4,6 +4,7 @@
       "Brute Force": [
         "Bubble Sort.html",
         "Fibonacci Naive.html",
+        "Polynomial Evaluation.html",
         "Selection Sort.html",
         "Sequential Search.html"
       ]
@@ -154,7 +155,13 @@
   "More": [
     "Books.html",
     "Glossary.html",
-    "Links.html"
+    "Links.html",
+    {
+      "DRAFTS": [
+        "Algorithms/Space-Time Tradeoff/Boyer-Moore_DRAFT.html",
+        "Demos/Brute Force/Polynomial Evaluation (Quadratic) Demo DRAFT.html"
+      ]
+    }
   ],
   "Problems": [
     {
