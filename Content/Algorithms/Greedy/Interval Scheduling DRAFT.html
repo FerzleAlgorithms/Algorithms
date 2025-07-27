@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Greedy Interval Scheduling</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js"></script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <script src="/Algorithms/scripts/chapterScripts.js"></script>
+  <link rel="stylesheet" href="/Algorithms/css/style.css">
+  <link rel="stylesheet" href="/Algorithms/css/chapter.css">
+</head>
+<body>
+  <h1>Greedy Interval Scheduling</h1>
+
+  <section id="problem-solved">
+  <h2>Problem Solved</h2>
+  <p>
+    Greedy Interval Scheduling solves the
+    <a class="problem" href="?path=Problems%2FOptimization%2FInterval%20Scheduling">Interval Scheduling</a>
+    problem.
+  </p>
+  </section>
+
+  <section id="design">
+  <h2>Design and Strategy</h2>
+  <p>
+    The Interval Scheduling problem asks for the maximum number of mutually non-overlapping intervals (jobs, events, tasks) that can be scheduled.
+    A greedy strategy works surprisingly well here: always select the interval that finishes earliest.
+    This choice maximizes the remaining time for subsequent intervals.
+  </p>
+
+  <p>Here is the algorithm in more formal steps:</p>
+  <ol class="spaced">
+    <li>Sort all intervals by their finishing time.</li>
+    <li>Initialize an empty list for selected intervals and a variable <code>currentTime = -\infty</code>.</li>
+    <li>For each interval <code>[start, end]</code> in sorted order:
+      <ul>
+        <li>If <code>start \geq currentTime</code>:
+          <ul>
+            <li>Select the interval.</li>
+            <li>Update <code>currentTime = end</code>.</li>
+          </ul>
+        </li>
+      </ul>
+    </li>
+  </ol>
+
+  <p>This algorithm is greedy because it always chooses the locally optimal step—selecting the interval that ends the soonest—without reconsidering earlier decisions.</p>
+
+  <div class="example-box">
+    <strong class="example-title">Example:</strong>
+    <table class="example-table">
+      <thead>
+        <tr><th>Interval</th><th>Start</th><th>End</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>A</td><td>1</td><td>4</td></tr>
+        <tr><td>B</td><td>3</td><td>5</td></tr>
+        <tr><td>C</td><td>0</td><td>6</td></tr>
+        <tr><td>D</td><td>5</td><td>7</td></tr>
+        <tr><td>E</td><td>3</td><td>8</td></tr>
+        <tr><td>F</td><td>5</td><td>9</td></tr>
+        <tr><td>G</td><td>6</td><td>10</td></tr>
+        <tr><td>H</td><td>8</td><td>11</td></tr>
+        <tr><td>I</td><td>8</td><td>12</td></tr>
+        <tr><td>J</td><td>2</td><td>13</td></tr>
+        <tr><td>K</td><td>12</td><td>14</td></tr>
+      </tbody>
+    </table>
+    <p>Sorted by finish time, the algorithm selects: A, D, H, K.</p>
+  </div>
+  </section>
+
+  <section id="demo">
+  <div class="embeddedDemoContainer">
+    <iframe class="embeddedDemo"
+            src="/Algorithms/Content/Demos/Greedy/Interval Scheduling Demo.html"
+            allow="fullscreen"
+            name="Interval-Scheduling-demo">
+    </iframe>
+  </div>
+  </section>
+
+  <section id="code">
+  <h2>Implementation in Java, C++, Python</h2>
+  <div class="tab-group">
+    <div class="tabs" role="tablist">
+      <button id="tab-java" class="tablink active" data-lang="java" role="tab" aria-controls="java" aria-selected="true">Java</button>
+      <button id="tab-cpp" class="tablink" data-lang="cpp" role="tab" aria-controls="cpp" aria-selected="false">C++</button>
+      <button id="tab-python" class="tablink" data-lang="python" role="tab" aria-controls="python" aria-selected="false">Python</button>
+    </div>
+    <div id="java" class="code-container active" role="tabpanel" aria-labelledby="tab-java">
+      <pre><code class="language-java">int intervalSchedule(int[][] intervals) {
+    Arrays.sort(intervals, (a, b) -> Integer.compare(a[1], b[1]));
+    int count = 0, current = Integer.MIN_VALUE;
+    for (int[] interval : intervals) {
+        if (interval[0] >= current) {
+            count++;
+            current = interval[1];
+        }
+    }
+    return count;
+}</code></pre>
+    </div>
+    <div id="cpp" class="code-container" role="tabpanel" aria-labelledby="tab-cpp">
+      <pre><code class="language-cpp">int intervalSchedule(vector<pair<int, int>> &intervals) {
+    sort(intervals.begin(), intervals.end(), [](auto &a, auto &b) {
+        return a.second < b.second;
+    });
+    int count = 0, current = INT_MIN;
+    for (auto &interval : intervals) {
+        if (interval.first >= current) {
+            count++;
+            current = interval.second;
+        }
+    }
+    return count;
+}</code></pre>
+    </div>
+    <div id="python" class="code-container" role="tabpanel" aria-labelledby="tab-python">
+      <pre><code class="language-python">def interval_schedule(intervals):
+    intervals.sort(key=lambda x: x[1])
+    count = 0
+    current = float('-inf')
+    for start, end in intervals:
+        if start >= current:
+            count += 1
+            current = end
+    return count</code></pre>
+    </div>
+  </div>
+  </section>
+
+  <section id="analysis">
+  <h2>Time/Space Analysis</h2>
+  <p><strong>Time Complexity:</strong> The sort step takes \(O(n \log n)\), and the single pass over the sorted intervals takes \(O(n)\). So the total time is \(O(n \log n)\).</p>
+  <p><strong>Space Complexity:</strong> The algorithm uses \(O(1)\) extra space if sorting is done in place; otherwise, \(O(n)\) if the sort creates a new list.</p>
+
+  <h2>Variations/Improvements</h2>
+  <ul>
+    <li><strong>Weighted Interval Scheduling:</strong> Maximizes total value rather than number of intervals—requires dynamic programming.</li>
+    <li><strong>Minimizing Resource Usage:</strong> Instead of maximizing count, minimize the number of machines needed (interval partitioning).</li>
+    <li><strong>Allowing Overlaps:</strong> Some variants allow limited overlaps (e.g., with buffers or priorities), which changes the strategy.</li>
+  </ul>
+  </section>
+
+  <section id="links">
+  <h2>Links to Resources</h2>
+  <ul>
+    <li><a href="https://en.wikipedia.org/wiki/Interval_scheduling">Wikipedia: Interval Scheduling</a></li>
+    <li><a href="https://www.geeksforgeeks.org/greedy-algorithms-set-1-activity-selection-problem/">GeeksforGeeks: Activity Selection Problem</a></li>
+    <li><a href="https://visualgo.net/en/greedy">VisuAlgo: Greedy Algorithms</a></li>
+  </ul>
+  </section>
+
+  <section id="reading-questions">
+    <h2>Reading Comprehension Questions</h2>
+    <ol>
+      <li>Why does sorting by end time lead to an optimal solution?</li>
+      <li>What is the time complexity of the algorithm?</li>
+      <li>What condition determines whether an interval is selected?</li>
+      <li>Why is this considered a greedy algorithm?</li>
+      <li>What would happen if we sorted by start time instead?</li>
+    </ol>
+    <button id="toggleAnswers" class="show-answer" aria-expanded="false">Show Answers</button>
+    <div id="answers" class="answer" hidden>
+      <ol>
+        <li><strong>Answer:</strong> Choosing the interval that finishes first leaves the most room for others, maximizing total count.</li>
+        <li><strong>Answer:</strong> \(O(n \log n)\) due to sorting.</li>
+        <li><strong>Answer:</strong> An interval is selected if its start time is at or after the end of the last selected interval.</li>
+        <li><strong>Answer:</strong> It makes locally optimal decisions (earliest finish) that lead to a global optimum.</li>
+        <li><strong>Answer:</strong> Sorting by start time may select early-starting intervals that block better choices later.</li>
+      </ol>
+    </div>
+  </section>
+
+  <section id="activities">
+    <h2>In-Class Activities</h2>
+    <ol>
+      <li>Manually apply the algorithm to a set of 6–10 intervals and select the ones chosen.</li>
+      <li>Compare schedules produced by sorting by start vs. end time.</li>
+      <li>Write code to implement the greedy interval scheduler.</li>
+      <li>Test the algorithm on sets with overlapping and non-overlapping intervals.</li>
+      <li>Design an instance where the greedy algorithm fails if sorted by start time instead of end time.</li>
+      <li>Draw interval schedules on a timeline to visualize overlaps.</li>
+      <li>Compare this to the weighted interval scheduling problem and discuss why a different approach is needed.</li>
+    </ol>
+  </section>
+
+  <section id="problems">
+    <h2>Homework Problems</h2>
+    <ol>
+      <li><strong>Step-by-step selection:</strong> Given 8 intervals, show which ones are selected by the greedy algorithm and in what order.</li>
+      <li><strong>Bad sorting strategy:</strong> Construct an example where sorting by start time leads to a suboptimal selection.</li>
+      <li><strong>Proof of correctness:</strong> Prove why selecting the earliest-finishing interval leads to an optimal schedule.</li>
+      <li><strong>Weighted variant:</strong> Suggest a case where the greedy algorithm fails to maximize total value in the weighted version.</li>
+      <li><strong>Count comparisons:</strong> How many intervals are compared in a run of the algorithm on 10 inputs?</li>
+      <li><strong>Custom intervals:</strong> Create a list of 6–10 intervals such that only 3 are selected by the greedy strategy.</li>
+    </ol>
+  </section>
+
+</body>
+</html>

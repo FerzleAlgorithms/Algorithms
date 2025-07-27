@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Binary Search</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js"></script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <script src="/Algorithms/scripts/chapterScripts.js"></script>
+  <link rel="stylesheet" href="/Algorithms/css/style.css">
+  <link rel="stylesheet" href="/Algorithms/css/chapter.css">
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DQ5LVZVFDC"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-DQ5LVZVFDC');
+  </script>
+</head>
+<body>
+  <h1>Binary Search</h1>
+
+  <section id="problem-solved">
+  <h2>Problem Solved</h2>
+  <p>
+    Binary Search solves the
+    <a class="problem" href="?path=Problems%2FFoundational%2FSearch">Search</a>
+    problem.
+  </p>
+  </section>
+
+  <section id="design">
+  <h2>Design and Strategy</h2>
+  <p>
+    Binary Search is a classic <strong>decrease-and-conquer</strong> algorithm. Given a sorted array and a target value, it eliminates half of the search space in each step by comparing the target with the middle element. This efficient strategy reduces the problem size exponentially.
+  </p>
+  <p>
+    The key idea is to repeatedly divide the interval in half:
+  </p>
+  <ol>
+    <li>Let <code>low</code> and <code>high</code> be the current endpoints of the search interval.</li>
+    <li>If <code>low &gt; high</code>, the search fails (target not in array).</li>
+    <li>Compute <code>mid = (low + high) / 2</code> (use integer division).</li>
+    <li>If <code>A[mid] == target</code>, return <code>mid</code>.</li>
+    <li>If <code>A[mid] &lt; target</code>, search the right half: <code>low = mid + 1</code>.</li>
+    <li>If <code>A[mid] &gt; target</code>, search the left half: <code>high = mid - 1</code>.</li>
+  </ol>
+  <p>
+    Here's a mini example. Suppose we search for 13 in <code>[1, 4, 6, 9, 13, 17, 21]</code>:
+  </p>
+  <ul>
+    <li>Check mid index 3: 9 &lt; 13, so search right half.</li>
+    <li>Now low = 4, high = 6. Mid = 5: 17 &gt; 13, so search left half.</li>
+    <li>Now low = 4, high = 4. Mid = 4: 13 == 13. Found at index 4.</li>
+  </ul>
+
+  <p>
+    Because the input size is reduced by half each step, Binary Search exemplifies the decrease-by-a-constant-factor strategy.
+  </p>
+  </section>
+
+  <section id="demo">
+  <div class="embeddedDemoContainer">
+    <iframe class="embeddedDemo"
+            src="/Algorithms/Content/Demos/Decrease-and-Conquer/Binary Search Demo.html"
+            allow="fullscreen"
+            name="Binary_Search-demo">
+    </iframe>
+  </div>
+  </section>
+
+  <section id="code">
+  <h2>Implementation in Java, C++, Python</h2>
+  <p>Here are simple recursive implementations. Iterative versions are similar and left as an exercise.</p>
+  <div class="tab-group">
+    <div class="tabs" role="tablist">
+      <button id="tab-java" class="tablink active" data-lang="java" role="tab" aria-controls="java" aria-selected="true">Java</button>
+      <button id="tab-cpp" class="tablink" data-lang="cpp" role="tab" aria-controls="cpp" aria-selected="false">C++</button>
+      <button id="tab-python" class="tablink" data-lang="python" role="tab" aria-controls="python" aria-selected="false">Python</button>
+    </div>
+    <div id="java" class="code-container active" role="tabpanel" aria-labelledby="tab-java">
+      <pre><code class="language-java">int binarySearch(int[] A, int target, int low, int high) {
+    if (low &gt; high) return -1;
+    int mid = (low + high) / 2;
+    if (A[mid] == target) return mid;
+    else if (A[mid] &gt; target)
+        return binarySearch(A, target, low, mid - 1);
+    else
+        return binarySearch(A, target, mid + 1, high);
+}</code></pre>
+    </div>
+    <div id="cpp" class="code-container" role="tabpanel" aria-labelledby="tab-cpp">
+      <pre><code class="language-cpp">int binarySearch(int A[], int target, int low, int high) {
+    if (low &gt; high) return -1;
+    int mid = (low + high) / 2;
+    if (A[mid] == target) return mid;
+    else if (A[mid] &gt; target)
+        return binarySearch(A, target, low, mid - 1);
+    else
+        return binarySearch(A, target, mid + 1, high);
+}</code></pre>
+    </div>
+    <div id="python" class="code-container" role="tabpanel" aria-labelledby="tab-python">
+      <pre><code class="language-python">def binary_search(A, target, low, high):
+    if low &gt; high:
+        return -1
+    mid = (low + high) // 2
+    if A[mid] == target:
+        return mid
+    elif A[mid] &gt; target:
+        return binary_search(A, target, low, mid - 1)
+    else:
+        return binary_search(A, target, mid + 1, high)</code></pre>
+    </div>
+  </div>
+  </section>
+
+  <section id="analysis">
+  <h2>Time/Space Analysis</h2>
+  <p><strong>Time Complexity:</strong> At each recursive step, the size of the array is cut in half. This gives a recurrence:</p>
+  <p>
+    \[ T(n) = T(n/2) + O(1) \Rightarrow T(n) = O(\log n) \]
+  </p>
+  <p><strong>Space Complexity:</strong> For the recursive version, each call adds to the call stack. In the worst case, there are \( O(\log n) \) recursive calls, so the space complexity is \( O(\log n) \). Iterative versions use \( O(1) \) space.</p>
+
+  <h2>Variations/Improvements</h2>
+  <ul>
+    <li><strong>Iterative Version:</strong> Binary search can be implemented iteratively with the same logic, using a loop instead of recursion.</li>
+    <li><strong>First or Last Occurrence:</strong> Modified versions can be used to find the first or last occurrence of a target value in a sorted array with duplicates.</li>
+    <li><strong>Ternary Search:</strong> For unimodal functions or optimization problems, a variant called ternary search splits the interval into three parts instead of two.</li>
+  </ul>
+  </section>
+
+  <section id="links">
+  <h2>Links to Resources</h2>
+  <ul>
+    <li><a href="https://en.wikipedia.org/wiki/Binary_search_algorithm" target="_blank">Wikipedia: Binary Search</a></li>
+    <li><a href="https://www.geeksforgeeks.org/binary-search/" target="_blank">GeeksforGeeks: Binary Search</a></li>
+    <li><a href="https://visualgo.net/en/search" target="_blank">Visualgo: Binary Search</a></li>
+  </ul>
+  </section>
+
+  <section id="reading-questions">
+    <h2>Reading Comprehension Questions</h2>
+    <ol>
+      <li><strong>Recursive Design:</strong> What condition causes the recursion to stop?</li>
+      <li><strong>Midpoint Check:</strong> Why do we compare the target to the middle element?</li>
+      <li><strong>Decreasing the Problem:</strong> How does the algorithm reduce the problem size each step?</li>
+      <li><strong>Worst Case:</strong> What is the time complexity in the worst case?</li>
+      <li><strong>Recursive vs Iterative:</strong> How does the space complexity of the recursive version compare to the iterative version?</li>
+    </ol>
+    <button id="toggleAnswers" class="show-answer" aria-expanded="false">Show Answers</button>
+    <div id="answers" class="answer" hidden>
+      <ol>
+        <li><strong>Answer:</strong> When <code>low &gt; high</code>, we know the target is not in the array.</li>
+        <li><strong>Answer:</strong> Because it helps us determine which half to search next.</li>
+        <li><strong>Answer:</strong> It discards half of the current range at each step.</li>
+        <li><strong>Answer:</strong> \( O(\log n) \)</li>
+        <li><strong>Answer:</strong> Recursive uses \( O(\log n) \) space; iterative uses \( O(1) \).</li>
+      </ol>
+    </div>
+  </section>
+
+  <section id="activities">
+    <h2>In-Class Activities</h2>
+    <ol>
+      <li><strong>Trace Search:</strong> Work through several recursive binary searches on small arrays by hand.</li>
+      <li><strong>Write Iterative:</strong> Write an iterative version and analyze time and space complexity.</li>
+      <li><strong>Compare Implementations:</strong> Compare recursive and iterative approaches for a few inputs.</li>
+      <li><strong>Divide by 2 or 3:</strong> Consider a problem where one coin is heavier. How would you solve it using a divide-in-half strategy?</li>
+      <li><strong>Coin Variation:</strong> Now try solving the same problem by dividing into thirds. Which is faster?</li>
+      <li><strong>Ternary Search:</strong> Try a ternary search on a unimodal function. How does it work?</li>
+      <li><strong>Compare Halves and Thirds:</strong> Why is dividing into thirds better for the coin problem, but not for general search?</li>
+    </ol>
+  </section>
+
+  <section id="problems">
+    <h2>Homework Problems</h2>
+    <ol>
+      <li><strong>Recursive Binary Search:</strong> Implement the recursive version and test it on sorted arrays of different sizes.</li>
+      <li><strong>Iterative Binary Search:</strong> Write and analyze the iterative version. Ensure the runtime is \( O(\log n) \).</li>
+      <li><strong>Coin Problem:</strong> You have 1 heavy fake coin among \( n \) identical coins. Using a balance scale, design two algorithms:
+        <ul>
+          <li>One that divides the coins into halves</li>
+          <li>One that divides into thirds</li>
+        </ul>
+        Compare the number of weighings required.
+      </li>
+      <li><strong>Ternary Search:</strong> Describe how ternary search works on a unimodal function. When is it better than binary search?</li>
+      <li><strong>Compare Thirds:</strong> Why does ternary search not beat binary search for standard lookup in sorted arrays?</li>
+      <li><strong>Find First Occurrence:</strong> Modify binary search to return the first index of the target if it appears more than once.</li>
+      <li><strong>Trace by Hand:</strong> For the array <code>[2, 4, 6, 9, 13, 20]</code>, trace a search for 6 and for 15 step-by-step.</li>
+    </ol>
+  </section>
+</body>
+</html>

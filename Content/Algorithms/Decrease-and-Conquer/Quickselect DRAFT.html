@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Quickselect</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js"></script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <script src="/Algorithms/scripts/chapterScripts.js"></script>
+  <link rel="stylesheet" href="/Algorithms/css/style.css">
+  <link rel="stylesheet" href="/Algorithms/css/chapter.css">
+</head>
+<body>
+  <h1>Quickselect</h1>
+
+  <section id="problem-solved">
+  <h2>Problem Solved</h2>
+  <p>
+    Quickselect solves the
+    <a class="problem" href="?path=Problems%2FFoundational%2FK-th%20Order%20Statistic">K-th Order Statistic</a>
+    problem.
+  </p>
+  </section>
+
+  <section id="design">
+  <h2>Design and Strategy</h2>
+  <p>
+    Quickselect is a <strong>decrease-and-conquer</strong> algorithm that efficiently finds the k-th smallest element
+    in an unordered array. It is related to Quicksort, but instead of recursively sorting both sides of a partition,
+    it recurses into only the side that contains the desired element, effectively reducing the problem size at each step.
+  </p>
+  <p>
+    The algorithm uses a partitioning function (often Hoare’s or Lomuto’s scheme) to rearrange the elements around a pivot.
+    Based on the index of the pivot, the algorithm determines whether to:
+  </p>
+  <ul>
+    <li>Return the pivot if it's at the desired rank.</li>
+    <li>Recur on the left subarray if the pivot is too far right.</li>
+    <li>Recur on the right subarray if the pivot is too far left.</li>
+  </ul>
+
+  <p>Here is pseudocode using 0-based indexing:</p>
+  <ol>
+    <li>If the array has one element, return it.</li>
+    <li>Choose a pivot and partition the array.</li>
+    <li>Let <code>p</code> be the index where the pivot ends up.</li>
+    <li>If <code>p == k</code>, return <code>A[p]</code>.</li>
+    <li>If <code>k &lt; p</code>, recursively select in <code>A[lo..p-1]</code>.</li>
+    <li>Otherwise, recursively select in <code>A[p+1..hi]</code> with adjusted index <code>k - (p - lo + 1)</code>.</li>
+  </ol>
+
+  <div class="example-box">
+    <strong class="example-title">Mini Example:</strong>
+    To find the 4th smallest value in [7, 2, 1, 6, 8, 5, 3, 4], Quickselect may partition around pivot 4, leading to [2,1,3,4,8,5,6,7].
+    Since 4 is at index 3 (the 4th element), return 4.
+  </div>
+
+  <p>
+    This algorithm exemplifies the <strong>decrease-and-conquer</strong> strategy because in each recursive call,
+    the size of the array we explore is reduced based on the pivot’s position.
+  </p>
+  </section>
+
+  <section id="demo">
+  <div class="embeddedDemoContainer">
+    <iframe class="embeddedDemo"
+            src="/Algorithms/Content/Demos/Decrease-and-Conquer/Quickselect Demo.html"
+            allow="fullscreen"
+            name="Quickselect-demo">
+    </iframe>
+  </div>
+  </section>
+
+  <section id="code">
+  <h2>Implementation in Java, C++, Python</h2>
+  <div class="tab-group">
+    <div class="tabs" role="tablist">
+      <button id="tab-java" class="tablink active" data-lang="java" role="tab" aria-controls="java" aria-selected="true">Java</button>
+      <button id="tab-cpp" class="tablink" data-lang="cpp" role="tab" aria-controls="cpp" aria-selected="false">C++</button>
+      <button id="tab-python" class="tablink" data-lang="python" role="tab" aria-controls="python" aria-selected="false">Python</button>
+    </div>
+    <div id="java" class="code-container active" role="tabpanel" aria-labelledby="tab-java">
+      <pre><code class="language-java">int quickselect(int[] A, int lo, int hi, int k) {
+    int pivotIndex = partition(A, lo, hi);
+    if (k == pivotIndex) return A[k];
+    else if (k < pivotIndex) return quickselect(A, lo, pivotIndex - 1, k);
+    else return quickselect(A, pivotIndex + 1, hi, k);
+}</code></pre>
+    </div>
+    <div id="cpp" class="code-container" role="tabpanel" aria-labelledby="tab-cpp">
+      <pre><code class="language-cpp">int quickselect(int A[], int lo, int hi, int k) {
+    int pivotIndex = partition(A, lo, hi);
+    if (k == pivotIndex) return A[k];
+    else if (k < pivotIndex) return quickselect(A, lo, pivotIndex - 1, k);
+    else return quickselect(A, pivotIndex + 1, hi, k);
+}</code></pre>
+    </div>
+    <div id="python" class="code-container" role="tabpanel" aria-labelledby="tab-python">
+      <pre><code class="language-python">def quickselect(A, lo, hi, k):
+    pivot_index = partition(A, lo, hi)
+    if k == pivot_index:
+        return A[k]
+    elif k < pivot_index:
+        return quickselect(A, lo, pivot_index - 1, k)
+    else:
+        return quickselect(A, pivot_index + 1, hi, k)</code></pre>
+    </div>
+  </div>
+  </section>
+
+  <section id="analysis">
+  <h2>Time/Space Analysis</h2>
+  <p><strong>Time Complexity:</strong> The average-case time is \( O(n) \) due to reducing the problem size by half on average each time. However, the worst case is \( O(n^2) \), which occurs when the pivot consistently produces unbalanced partitions (e.g., always picking smallest or largest element).</p>
+  <p><strong>Space Complexity:</strong> \( O(1) \) extra space if done in-place with tail recursion optimization. Otherwise, \( O(n) \) call stack space in the worst case, \( O(\log n) \) in average case.</p>
+
+  <h2>Variations/Improvements</h2>
+  <ul>
+    <li><strong>Randomized Pivot:</strong> Randomly selecting a pivot reduces the likelihood of worst-case behavior.</li>
+    <li><strong>Median of Medians:</strong> Guarantees linear time even in the worst case, though it’s more complex and slower in practice.</li>
+    <li><strong>Iterative Version:</strong> Avoids recursion and uses a while loop instead.</li>
+  </ul>
+  </section>
+
+  <section id="links">
+  <h2>Links to Resources</h2>
+  <ul>
+    <li><a href="https://en.wikipedia.org/wiki/Quickselect" target="_blank">Wikipedia: Quickselect</a></li>
+    <li><a href="https://www.geeksforgeeks.org/quickselect-algorithm/" target="_blank">GeeksforGeeks: Quickselect Algorithm</a></li>
+    <li><a href="https://visualgo.net/en/sorting" target="_blank">VisuAlgo: K-th Order Statistic via Quickselect</a></li>
+  </ul>
+  </section>
+
+  <section id="reading-questions">
+    <h2>Reading Comprehension Questions</h2>
+    <ol>
+      <li><strong>What is the main problem solved by Quickselect?</strong> </li>
+      <li><strong>How does Quickselect decide which part of the array to recurse on?</strong></li>
+      <li><strong>Why does Quickselect run in expected linear time?</strong></li>
+      <li><strong>How is Quickselect related to Quicksort?</strong></li>
+      <li><strong>What causes the worst-case \( O(n^2) \) behavior?</strong></li>
+      <li><strong>How can randomized pivots help improve Quickselect’s performance?</strong></li>
+      <li><strong>What is the difference between selecting the k-th smallest and sorting the array?</strong></li>
+    </ol>
+    <button id="toggleAnswers" class="show-answer" aria-expanded="false">Show Answers</button>
+    <div id="answers" class="answer" hidden>
+      <ol>
+        <li><strong>Answer:</strong> It finds the k-th smallest element in an unordered array.</li>
+        <li><strong>Answer:</strong> It compares the pivot index to k and chooses the side where the k-th element lies.</li>
+        <li><strong>Answer:</strong> Because it typically halves the size of the problem each time, on average.</li>
+        <li><strong>Answer:</strong> Both use a partitioning step, but Quicksort recurses on both sides while Quickselect recurses on only one.</li>
+        <li><strong>Answer:</strong> When the pivot produces extremely unbalanced partitions repeatedly (e.g., smallest or largest element every time).</li>
+        <li><strong>Answer:</strong> They reduce the chance of unbalanced partitions by not consistently choosing poor pivots.</li>
+        <li><strong>Answer:</strong> Selecting just one element avoids the full work of sorting the entire array.</li>
+      </ol>
+    </div>
+  </section>
+
+  <section id="activities">
+    <h2>In-Class Activities</h2>
+    <ol>
+      <li><strong>Trace Quickselect:</strong> Have students find the 3rd and 6th smallest values in the same array by hand using Quickselect.</li>
+      <li><strong>Compare with Sorting:</strong> Compare number of steps needed to find k-th smallest with full sort.</li>
+      <li><strong>Try Worst Case:</strong> Use an already sorted array and poor pivot choice. Count comparisons and recursive calls.</li>
+      <li><strong>Pivot Strategies:</strong> Try selecting the pivot randomly or using median-of-three and observe the changes.</li>
+      <li><strong>Rewriting Iteratively:</strong> Rewrite Quickselect iteratively and analyze changes in memory usage.</li>
+      <li><strong>Weighing Coins Problem:</strong> Compare divide-in-two and divide-in-three versions for a heavy coin problem.</li>
+      <li><strong>Ternary Search?</strong> Try adapting Quickselect to divide array into 3 parts. Why doesn’t it help?</li>
+      <li><strong>Quickselect vs Hoare Partition:</strong> How is Hoare’s Partition used inside Quickselect?</li>
+    </ol>
+  </section>
+
+  <section id="problems">
+    <h2>Homework Problems</h2>
+    <ol>
+      <li><strong>Basic Trace:</strong> Trace Quickselect on [5,2,9,1,6,7] to find the 4th smallest value. Show all recursive calls.</li>
+      <li><strong>Sorted Array:</strong> What happens if you run Quickselect on a sorted array using first element as pivot?</li>
+      <li><strong>Random Pivot Simulation:</strong> Simulate Quickselect on [4,8,2,9,7,3,6] to find the 5th smallest value using randomized pivot selection.</li>
+      <li><strong>Comparison Count:</strong> Count the number of comparisons made in each recursive call on a specific array.</li>
+      <li><strong>Iterative Version:</strong> Implement and test iterative Quickselect. Compare recursion depth and memory use.</li>
+      <li><strong>Weighing Coins:</strong> Design an algorithm to find a heavy fake coin among 27 using balance scales in as few weighings as possible. How does dividing into 3 parts help?</li>
+      <li><strong>Extension to Median-of-Medians:</strong> Implement median-of-medians and test on edge cases. Measure performance compared to random pivot version.</li>
+    </ol>
+  </section>
+
+</body>
+</html>

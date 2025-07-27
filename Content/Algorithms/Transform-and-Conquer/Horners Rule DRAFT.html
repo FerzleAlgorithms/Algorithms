@@ -1,0 +1,209 @@
+<!DOCTYPE html> 
+<html lang="en"> 
+<head> 
+<meta charset="UTF-8"> 
+<title>Horner's Rule</title> 
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github.min.css"> 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js"></script> 
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script> 
+<script src="/Algorithms/scripts/chapterScripts.js"></script> 
+<link rel="stylesheet" href="/Algorithms/css/style.css"> 
+<link rel="stylesheet" href="/Algorithms/css/chapter.css"> 
+<!-- Google tag (gtag.js) --> 
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-DQ5LVZVFDC"></script> 
+<script> window.dataLayer = window.dataLayer || []; function gtag(){dataLayer.push(arguments);} gtag('js', new Date()); gtag('config', 'G-DQ5LVZVFDC'); </script> 
+</head> 
+					<body>
+						<h1>Horner's Rule</h1>
+						<section id="problem-solved">
+							<h2>Problem Solved</h2>
+							<p> Horner's Rule solves the <a class="problem"
+								   href="?path=Problems%2FFoundational%2FPolynomial%20Evaluation">Polynomial Evaluation</a> problem. </p>
+						</section>
+						<section id="design">
+							<h2>Design and Strategy</h2>
+							<p> Horner's Rule (also known as Horner's Method) uses a <strong>transform-and-conquer</strong> strategy to evaluate polynomials efficiently. Instead of computing each term \(a_i x^i\) separately as in a brute-force approach, the polynomial is <em>transformed</em> into a nested form that factors out powers of \(x\). This nested form drastically reduces redundant calculations. </p>
+							<p> For example, consider a 6th-degree polynomial with a few negative coefficients: \[ P(x) = 5x^6 - 3x^5 + 2x^4 - x^3 + 4x^2 + 7x - 1. \] We can rewrite this polynomial by factoring \(x\) step by step: \[ P(x) = x(5x^5 - 3x^4 + 2x^3 - x^2 + 4x + 7) - 1, \] \[ \qquad= x\!\Big(x(5x^4 - 3x^3 + 2x^2 - x + 4) + 7\Big) - 1, \] \[ \qquad\vdots \] \[ \qquad= (((((5x - 3)x + 2)x - 1)x + 4)x + 7)x - 1. \] This fully <em>nested</em> representation corresponds to evaluating the polynomial by starting with the leading coefficient and repeatedly multiplying by \(x\) and adding the next coefficient. In general, any polynomial \(P(x) = a_0 + a_1x + a_2x^2 + \dots + a_nx^n\) can be transformed into the form \[ P(x) = (...((a_n x + a_{n-1})x + a_{n-2})x + \dots + a_1)x + a_0, \] which is exactly the representation Horner's Rule uses. </p>
+							<p> Using the nested form, we can evaluate \(P(x)\) efficiently: Start with \(a_n\), multiply by \(x\), add \(a_{n-1}\), then multiply by \(x\) again, add \(a_{n-2}\), and so on, until finally adding \(a_0\). The process eliminates any need to compute \(x^2, x^3,\) etc. from scratch. </p>
+							<ol class="spaced">
+								<li>Let <code>result = a[n]</code> (the highest-degree coefficient).</li>
+								<li>For <code>i</code> from <code>n-1</code> down to <code>0</code>: <ol>
+										<li>Set <code>result = result * x + a[i]</code>.</li>
+									</ol>
+								</li>
+								<li>Return <code>result</code>.</li>
+							</ol>
+							<p> The above pseudocode describes Horner's Rule. Each loop iteration multiplies the current accumulated value by \(x\) and then adds the next coefficient. The interactive demo below illustrates this process step by step. </p>
+						</section>
+						<section id="demo">
+							<p> This demo shows Horner's Rule in action. It visualizes the evaluation of a polynomial in nested form, highlighting each multiplication and addition. You can see how the running total is updated at each step and compare the number of operations to the brute-force method. </p>
+							<div class="embeddedDemoContainer">
+								<iframe class="embeddedDemo"
+								        src="/Algorithms/Content/Demos/Transform-and-Conquer/Horners%20Rule%20Demo.html"
+								        allow="fullscreen"
+								        name="horners-rule-demo"> </iframe>
+							</div>
+						</section>
+						<section id="code">
+							<h2>Implementation in Java, C++, Python</h2>
+							<div class="tab-group">
+								<div class="tabs"
+								     role="tablist">
+									<button id="tab-java"
+									        class="tablink active"
+									        data-lang="java">Java</button>
+									<button id="tab-cpp"
+									        class="tablink"
+									        data-lang="cpp">C++</button>
+									<button id="tab-python"
+									        class="tablink"
+									        data-lang="python">Python</button>
+								</div>
+								<div id="java"
+								     class="code-container active">
+									<pre>
+										<code class="language-java">double evaluate(double[] a, double x) {
+    double result = 0;
+    for (int i = a.length - 1; i >= 0; i--) {
+        result = result * x + a[i];
+    }
+    return result;
+}</code>
+									</pre>
+								</div>
+								<div id="cpp"
+								     class="code-container">
+									<pre>
+										<code class="language-cpp">double evaluate(double a[], int n, double x) {
+    double result = 0;
+    for (int i = n - 1; i >= 0; i--) {
+        result = result * x + a[i];
+    }
+    return result;
+}</code>
+									</pre>
+								</div>
+								<div id="python"
+								     class="code-container">
+									<pre>
+										<code class="language-python">def evaluate(a, x):
+    result = 0
+    for i in range(len(a) - 1, -1, -1):
+        result = result * x + a[i]
+    return result</code>
+									</pre>
+								</div>
+							</div>
+						</section>
+						<section id="analysis">
+							<h2>Time/Space Analysis</h2>
+							<p>
+								<strong>Time Complexity:</strong> Horner's Rule runs in linear time \(O(n)\) for a degree \(n\) polynomial. The algorithm performs one multiplication and one addition per coefficient (approximately \(n\) multiplications and \(n\) additions in total for a degree \(n\)). This is a dramatic improvement over the \(O(n^2)\) time of the brute-force method, which recalculates powers of \(x\). By reusing the partial result at each step, Horner's method avoids all redundant power computations.</p>
+							<p>
+								<strong>Space Complexity:</strong> The space complexity is \(O(1)\) (constant space). Horner's Rule requires only a few fixed-size variables (for example, the accumulator for the result and a loop index). It evaluates the polynomial in place without needing any extra arrays or significant additional memory, aside from storing the input coefficients.</p>
+						</section>
+						<section id="variations">
+							<h2>Variations/Improvements</h2>
+							<ul>
+								<li>
+									<strong>Simultaneous Derivative:</strong> Horner's method can be extended to compute both \(P(x_0)\) and its derivative \(P'(x_0)\) in one pass. By maintaining a second accumulator for the derivative, each iteration can update both the value and the derivative. This yields an efficient way to get the derivative value without a separate pass (still \(O(n)\) time).</li>
+								<li>
+									<strong>Synthetic Division:</strong> Horner's scheme is essentially the same as synthetic division. Evaluating \(P(c)\) via Horner's Rule not only gives the remainder \(P(c)\) but also produces the coefficients of the quotient polynomial \(Q(x)\) when dividing \(P(x)\) by \((x - c)\). If \(c\) is a known root, Horner's method efficiently "deflates" the polynomial into \(Q(x)\) (of degree \(n-1\)) and the remainder.</li>
+								<li>
+									<strong>Parallel Evaluation:</strong> Horner's Rule minimizes total operations sequentially. If parallelism is available, an alternative like <em>Estrin's algorithm</em> can evaluate different portions of the polynomial concurrently, reducing the evaluation depth (roughly to \(O(\log n)\) steps). However, the overall number of operations remains \(O(n)\), and Horner's Rule is usually optimal for single-point evaluation on a single processor.</li>
+							</ul>
+						</section>
+						<section id="links">
+							<h2>Links to Resources</h2>
+							<ul>
+								<li>
+									<a href="https://en.wikipedia.org/wiki/Horner%27s_method"
+									   target="_blank">Wikipedia: Horner's Method</a> Overview of Horner's scheme for polynomial evaluation (also touches on history and applications like synthetic division).</li>
+								<li>
+									<a href="https://www.geeksforgeeks.org/dsa/horners-method-polynomial-evaluation/"
+									   target="_blank">GeeksforGeeks: Horner's Method</a> Explanation of Horner's Rule with example code and step-by-step sample evaluation.</li>
+								<li>
+									<a href="https://www.cut-the-knot.org/Curriculum/Calculus/HornerMethod.shtml"
+									   target="_blank">Cut-the-Knot: Horner's Method Interactive</a> Detailed walkthrough of Horner's method including an interactive applet, and how it relates to evaluating derivatives and polynomial division.</li>
+							</ul>
+						</section>
+						<section id="reading-questions">
+							<h2>Reading Comprehension Questions</h2>
+							<ol>
+								<li>
+									<strong>Nested Form:</strong> What is the general nested form of a polynomial as used by Horner's Rule?</li>
+								<li>
+									<strong>Strategy:</strong> Horner's Rule is an example of which algorithm design strategy, and why?</li>
+								<li>
+									<strong>Coefficient Order:</strong> In Horner's algorithm, do we process coefficients from the highest degree term to the lowest, or vice versa? Explain.</li>
+								<li>
+									<strong>Per-Iteration Operation:</strong> During Horner's method, what operation is repeated for each new coefficient incorporated?</li>
+								<li>
+									<strong>Time Complexity:</strong> How many multiplications and additions does Horner's Rule perform for a polynomial of degree \(n\)? What is its overall time complexity?</li>
+								<li>
+									<strong>Space Complexity:</strong> Why does Horner's Rule use only \(O(1)\) space despite processing potentially many coefficients?</li>
+								<li>
+									<strong>Efficiency vs Brute:</strong> What redundant computation from the brute-force approach is eliminated by Horner's Rule, making it more efficient?</li>
+							</ol>
+							<button id="toggleAnswers"
+							        class="show-answer"
+							        aria-expanded="false">Show Answers</button>
+							<div id="answers"
+							     class="answer"
+							     hidden>
+							<ol>
+								<li>
+									<strong>Answer:</strong> It writes the polynomial in a nested way: \(P(x) = (...((a_n x + a_{n-1})x + a_{n-2})x + \dots + a_1)x + a_0\). This is the fully nested form Horner's Rule uses.</li>
+								<li>
+									<strong>Answer:</strong> It exemplifies a <em>transform-and-conquer</em> strategy. The polynomial's form is transformed (algebraically factored) into a form that makes the computation simpler and more efficient.</li>
+								<li>
+									<strong>Answer:</strong> Horner's method processes coefficients from the highest degree to the lowest (starting with \(a_n\) and ending with \(a_0\)). This order matches the nested form and allows the algorithm to build the result incrementally by descending degrees.</li>
+								<li>
+									<strong>Answer:</strong> At each step it multiplies the current result by \(x\) and then adds the next coefficient. In other words, Horner's algorithm repeatedly does "result = result &times; x + coefficient".</li>
+								<li>
+									<strong>Answer:</strong> It performs about \(n\) multiplications and \(n\) additions for a degree \(n\) polynomial (one of each per coefficient, roughly). This yields a linear time complexity \(O(n)\).</li>
+								<li>
+									<strong>Answer:</strong> Because the algorithm only uses a fixed number of variables (like the accumulator for the result and a loop index) regardless of \(n\). It doesn't allocate extra arrays or structures proportional to the input size.</li>
+								<li>
+									<strong>Answer:</strong> Horner's Rule avoids recomputing powers of \(x\). The brute-force method computed \(x^2, x^3,\) etc. afresh for each term, but Horner's method carries forward a running value, multiplying by \(x\) just once for each degree step. This reuse of intermediate results eliminates all the unnecessary repeated multiplications.</li>
+							</ol>
+						</div>
+					</section>
+					<section id="activities">
+						<h2>In-Class Activities</h2>
+						<ol>
+							<li>
+								<strong>Manual Evaluation (Horner's):</strong> Have students evaluate \( P(x) = 3 + 2x + 5x^2 - 7x^3 + 9x^4 \) at \( x = 5 \) using Horner's Rule by hand. (They should rewrite it in nested form and compute step by step.) Afterwards, discuss how many multiplications/additions they performed and compare it to the brute-force method for the same polynomial.</li>
+							<li>
+								<strong>Code Walkthrough:</strong> Walk through the Horner's Rule pseudocode or implementation line by line with a sample set of coefficients. For example, use coefficients <code>[7, 1, 0, -3, 2]</code> (which represents \(7 + 1x + 0x^2 - 3x^3 + 2x^4\)) and trace the algorithm for a specific value (say \(x = 2\)). Have students update the <code>result</code> at each iteration and verify the final answer.</li>
+							<li>
+								<strong>Operation Count:</strong> Using the interactive demos or a provided example, have the class compare the number of operations used by brute-force vs. Horner's Rule. For instance, evaluate a degree-5 polynomial in both demos and count the multiplications and additions reported. Discuss how the counts grow with the polynomial's degree and why Horner's count is linear.</li>
+							<li>
+								<strong>Nested Form Practice:</strong> Give students a polynomial and ask them to transform it into Horner's nested form. For example, provide \(4x^3 - 2x^2 + 5\) (notice the missing \(x\) term) and have them factor it step by step to \((((4x - 2)x + 0)x + 5)\). They can then expand their result to double-check it equals the original polynomial.</li>
+							<li>
+								<strong>Synthetic Division:</strong> Demonstrate how Horner's method relates to synthetic division. Pick a polynomial with an obvious root (e.g. \(x^3 - 6x^2 + 11x - 6\) has root \(x=1\)). Have students use Horner's scheme to divide the polynomial by \((x - 1)\) and find the quotient coefficients and remainder. This activity reinforces understanding that Horner's computes \(P(1)\) and the quotient \(Q(x)\) such that \(P(x) = (x-1)Q(x) + P(1)\).</li>
+							<li>
+								<strong>Special Cases:</strong> Discuss what Horner's algorithm does for special inputs. Ask: If \(x = 1\), what does Horner's Rule compute (hint: the sum of all coefficients)? If \(x = 0\), what is the result (hint: just \(a_0\))? Use these cases to illustrate how the algorithm seamlessly handles them and why the results make sense.</li>
+						</ol>
+					</section>
+					<section id="problems">
+						<h2>Homework Problems</h2>
+						<ol>
+							<li>
+								<strong>Step-by-step:</strong> Evaluate \( P(x) = 2 - 3x - x^2 + 4x^3 + 5x^4 - 6x^5 \) at \( x = 3 \) using Horner's Rule. Show all steps of the calculation (demonstrate how the polynomial is evaluated in nested form). How many multiplications and additions were used?</li>
+							<li>
+								<strong>Trace the Code:</strong> Trace the Horner's Rule algorithm for input <code>a = [1, 0, 2, -4, 7, 9, 13]</code> (which represents a polynomial of degree 6) and <code>x = 4</code>. List the value of the <code>result</code> variable after each iteration of the loop. (Do this by hand, without using the demo, to simulate what the algorithm is doing.)</li>
+							<li>
+								<strong>Exact Analysis:</strong> Derive an exact formula for the number of multiplications (and additions) that Horner's algorithm performs to evaluate a polynomial of degree \(n\). Use this formula to explain why the time complexity is \(O(n)\).</li>
+							<li>
+								<strong>Nested Form:</strong> Express the polynomial \(2x^4 - x^3 + 0x^2 + 4x + 7\) in Horner's nested form. (Include the \(0x^2\) term in your working to make the pattern clear.) Then, if you use Horner's Rule to evaluate this polynomial at some \(x\), illustrate the sequence of operations it would perform.</li>
+							<li>
+								<strong>Polynomial &amp; Derivative:</strong> Design an algorithm (in pseudocode or clear prose) that uses Horner's method to compute both \(P(x_0)\) and \(P'(x_0)\) in a single pass for a given polynomial and value \(x_0\). Describe how the algorithm works, and state its time complexity. (Hint: you can update the derivative alongside the main evaluation by maintaining a second accumulator.)</li>
+							<li>
+								<strong>Synthetic Division:</strong> Given \( P(x) = x^3 - 6x^2 + 11x - 6 \) and knowing that \(x = 1\) is a root, use Horner's Rule to divide \(P(x)\) by \((x - 1)\). Show the computation (either in a synthetic division table or stepwise), and provide the coefficients of the quotient polynomial and the remainder.</li>
+							<li>
+								<strong>Expand Nested:</strong> Expand the following expression to confirm it equals a standard polynomial form: \((((2x - 4)x + 2)x + 3)x - 2\). Show the expansion step by step and write the resulting polynomial with like terms combined.</li>
+						</ol>
+					</section>
+				</body>
+			</html>

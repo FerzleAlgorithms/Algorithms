@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Fractional Knapsack</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js"></script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <script src="/Algorithms/scripts/chapterScripts.js"></script>
+  <link rel="stylesheet" href="/Algorithms/css/style.css">
+  <link rel="stylesheet" href="/Algorithms/css/chapter.css">
+</head>
+<body>
+  <h1>Fractional Knapsack</h1>
+
+  <section id="problem-solved">
+    <h2>Problem Solved</h2>
+    <p>
+      Fractional Knapsack solves the
+      <a class="problem" href="?path=Problems%2FOptimization%2FFractional%20Knapsack">Fractional Knapsack</a>
+      problem.
+    </p>
+  </section>
+
+  <section id="design">
+    <h2>Design and Strategy</h2>
+    <p>
+      The Fractional Knapsack problem asks: given a set of items, each with a weight and a value, and a maximum capacity, 
+      how should we choose fractions of items to maximize total value without exceeding the capacity? 
+      This differs from the 0-1 Knapsack problem, in which items must be either fully included or excluded.
+    </p>
+    <p>
+      The greedy strategy works optimally for the fractional version. The core idea is simple:
+      always take as much as possible of the item with the highest value-to-weight ratio.
+    </p>
+
+    <p>Here is the high-level algorithm:</p>
+    <ol>
+      <li>Sort all items by their value-to-weight ratio in descending order.</li>
+      <li>Initialize total value and remaining capacity to zero and the given limit, respectively.</li>
+      <li>For each item:
+        <ol>
+          <li>If the whole item fits, take it entirely and subtract its weight from the remaining capacity.</li>
+          <li>If only a fraction fits, take the fraction that fits, add proportional value, and stop.</li>
+        </ol>
+      </li>
+    </ol>
+
+    <div class="example-box">
+      <strong class="example-title">Mini Example:</strong>
+      <table class="example-table">
+        <thead><tr><th>Item</th><th>Value</th><th>Weight</th><th>Ratio</th></tr></thead>
+        <tbody>
+          <tr><td>A</td><td>60</td><td>10</td><td>6.0</td></tr>
+          <tr><td>B</td><td>100</td><td>20</td><td>5.0</td></tr>
+          <tr><td>C</td><td>120</td><td>30</td><td>4.0</td></tr>
+        </tbody>
+      </table>
+      <p>If capacity is 50, the greedy algorithm picks all of A and B (30 units), then 2/3 of C (20 units), yielding total value:
+        \(60 + 100 + 80 = 240\).</p>
+    </div>
+
+    <p>
+      This is a <strong>greedy algorithm</strong> because at each step, it makes the locally optimal choice (highest ratio) hoping to find the global optimum.
+    </p>
+    <p>
+      This algorithm provides an <em>approximation</em> for the 0-1 Knapsack problem, but may fail to find the best solution when items cannot be split.
+    </p>
+    <p>Here is an example where the greedy algorithm fails for the 0-1 version:</p>
+    <table class="example-table">
+      <thead><tr><th>Item</th><th>Value</th><th>Weight</th><th>Ratio</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td>90</td><td>10</td><td>9.0</td></tr>
+        <tr><td>2</td><td>85</td><td>10</td><td>8.5</td></tr>
+        <tr><td>3</td><td>80</td><td>10</td><td>8.0</td></tr>
+        <tr><td>4</td><td>70</td><td>10</td><td>7.0</td></tr>
+        <tr><td>5</td><td>20</td><td>1</td><td>20.0</td></tr>
+        <tr><td>6</td><td>20</td><td>1</td><td>20.0</td></tr>
+      </tbody>
+    </table>
+    <p>
+      If capacity is 20, greedy selects items 5, 6, 1, 2 (weights 1+1+10+10), but this exceeds the limit.
+      It then takes items 5, 6, and 1 (weight 12, value 130). But the optimal 0-1 solution is 2 + 3 (weight 20, value 165).
+    </p>
+  </section>
+
+  <section id="demo">
+    <div class="embeddedDemoContainer">
+      <iframe class="embeddedDemo" src="/Algorithms/Content/Demos/Greedy/Fractional Knapsack Demo.html" allow="fullscreen" name="fractional-knapsack-demo"></iframe>
+    </div>
+  </section>
+
+  <section id="code">
+    <h2>Implementation in Java, C++, Python</h2>
+    <p>All implementations sort items by ratio and then fill the knapsack greedily.</p>
+    <div class="tab-group">
+      <div class="tabs" role="tablist">
+        <button id="tab-java" class="tablink active" data-lang="java" role="tab" aria-controls="java" aria-selected="true">Java</button>
+        <button id="tab-cpp" class="tablink" data-lang="cpp" role="tab" aria-controls="cpp" aria-selected="false">C++</button>
+        <button id="tab-python" class="tablink" data-lang="python" role="tab" aria-controls="python" aria-selected="false">Python</button>
+      </div>
+      <div id="java" class="code-container active" role="tabpanel" aria-labelledby="tab-java">
+        <pre><code class="language-java">class Item {
+  int value, weight;
+  Item(int v, int w) { value = v; weight = w; }
+}
+
+double fractionalKnapsack(Item[] items, int capacity) {
+  Arrays.sort(items, (a,b) -> Double.compare(b.value*1.0/b.weight, a.value*1.0/a.weight));
+  double total = 0.0;
+  for (Item item : items) {
+    if (capacity >= item.weight) {
+      capacity -= item.weight;
+      total += item.value;
+    } else {
+      total += item.value * ((double)capacity / item.weight);
+      break;
+    }
+  }
+  return total;
+}</code></pre>
+      </div>
+      <div id="cpp" class="code-container" role="tabpanel" aria-labelledby="tab-cpp">
+        <pre><code class="language-cpp">struct Item {
+  int value, weight;
+};
+
+bool compare(Item a, Item b) {
+  return (double)a.value/a.weight > (double)b.value/b.weight;
+}
+
+double fractionalKnapsack(Item items[], int n, int capacity) {
+  sort(items, items+n, compare);
+  double total = 0.0;
+  for (int i = 0; i < n; i++) {
+    if (capacity >= items[i].weight) {
+      capacity -= items[i].weight;
+      total += items[i].value;
+    } else {
+      total += items[i].value * ((double)capacity / items[i].weight);
+      break;
+    }
+  }
+  return total;
+}</code></pre>
+      </div>
+      <div id="python" class="code-container" role="tabpanel" aria-labelledby="tab-python">
+        <pre><code class="language-python">def fractional_knapsack(items, capacity):
+    items.sort(key=lambda x: x[0]/x[1], reverse=True)
+    total = 0.0
+    for value, weight in items:
+        if capacity >= weight:
+            capacity -= weight
+            total += value
+        else:
+            total += value * (capacity / weight)
+            break
+    return total</code></pre>
+      </div>
+    </div>
+  </section>
+
+  <section id="analysis">
+    <h2>Time/Space Analysis</h2>
+    <p><strong>Time Complexity:</strong> Sorting items takes \(O(n \log n)\). The greedy scan is linear, \(O(n)\). So total time is \(O(n \log n)\).</p>
+    <p><strong>Space Complexity:</strong> The algorithm uses \(O(1)\) extra space if sorting is done in-place. Otherwise, sorting may use additional \(O(n)\) space.</p>
+
+    <h2>Variations/Improvements</h2>
+    <ul>
+      <li><strong>Approximation for 0-1 Knapsack:</strong> This algorithm is not optimal for the 0-1 version, but it can serve as a fast heuristic.</li>
+      <li><strong>Bounded Knapsack:</strong> If you are allowed multiple copies of each item, a similar strategy can apply if fractions are allowed.</li>
+    </ul>
+  </section>
+
+  <section id="links">
+    <h2>Links to Resources</h2>
+    <ul>
+      <li><a href="https://en.wikipedia.org/wiki/Knapsack_problem">Wikipedia: Knapsack Problem</a> Overview of knapsack variants and algorithms.</li>
+      <li><a href="https://www.geeksforgeeks.org/fractional-knapsack-problem/">GeeksforGeeks: Fractional Knapsack</a> Detailed explanation with code and dry run.</li>
+      <li><a href="https://visualgo.net/en/knapsack">VisuAlgo: Knapsack</a> Visualization tool (includes 0-1 and fractional cases).</li>
+    </ul>
+  </section>
+
+  <section id="reading-questions">
+    <h2>Reading Comprehension Questions</h2>
+    <ol>
+      <li><strong>Greedy Basis:</strong> Why is sorting by value-to-weight ratio a good idea for the fractional knapsack problem?</li>
+      <li><strong>Termination Rule:</strong> Why does the algorithm stop as soon as it fills the remaining capacity?</li>
+      <li><strong>Optimality:</strong> Why does this greedy algorithm work for fractional knapsack but not for 0-1 knapsack?</li>
+      <li><strong>Failure Case:</strong> What is an example where this algorithm would not find the best 0-1 knapsack solution?</li>
+      <li><strong>Time Analysis:</strong> Why is the overall time complexity \(O(n \log n)\)?</li>
+      <li><strong>Partial Items:</strong> How does the algorithm handle an item that cannot fit entirely?</li>
+    </ol>
+    <button id="toggleAnswers" class="show-answer" aria-expanded="false">Show Answers</button>
+    <div id="answers" class="answer" hidden>
+      <ol>
+        <li><strong>Answer:</strong> Because the most value per unit weight helps maximize total value efficiently.</li>
+        <li><strong>Answer:</strong> Once capacity is full, adding more would exceed the limit, so no further value can be gained.</li>
+        <li><strong>Answer:</strong> Fractional allows splitting items, so greedy is always optimal; 0-1 requires combinations that may not match greedy order.</li>
+        <li><strong>Answer:</strong> Items with high ratio but small total value may be chosen over better-valued sets of lower ratio.</li>
+        <li><strong>Answer:</strong> Sorting takes \(O(n \log n)\), which dominates the linear scan step.</li>
+        <li><strong>Answer:</strong> It takes the maximum fitting fraction and adds the proportional value before stopping.</li>
+      </ol>
+    </div>
+  </section>
+
+  <section id="activities">
+    <h2>In-Class Activities</h2>
+    <ol>
+      <li>Trace the algorithm by hand for 3–5 item examples with fractional weights.</li>
+      <li>Try examples where the last item must be taken partially. Calculate the total value precisely.</li>
+      <li>Explore what happens if you take items in increasing order of ratio—what total value do you get?</li>
+      <li>Discuss whether greedy works for 0-1 knapsack and provide a concrete counterexample.</li>
+      <li>Try writing code to sort by ratio and fill the knapsack on paper, then compare it to a real implementation.</li>
+      <li>Have students propose variations that might make greedy work for bounded integer knapsack.</li>
+      <li>Compare greedy results to dynamic programming solutions for the same input sets.</li>
+    </ol>
+  </section>
+
+  <section id="problems">
+    <h2>Homework Problems</h2>
+    <ol>
+      <li><strong>Step-by-Step Example:</strong> Given items with (value, weight) = [(60,10), (100,20), (120,30)] and capacity = 50, walk through the algorithm.</li>
+      <li><strong>Counterexample Construction:</strong> Construct a 0-1 knapsack instance where the greedy solution is suboptimal.</li>
+      <li><strong>Code Implementation:</strong> Implement and test the greedy algorithm for fractional knapsack in your language of choice.</li>
+      <li><strong>Time Analysis:</strong> Analyze how the sort impacts the overall runtime and where the bottleneck occurs.</li>
+      <li><strong>Greedy vs 0-1:</strong> Compare the result of the greedy fractional algorithm with dynamic programming 0-1 knapsack on a set of 6 items.</li>
+      <li><strong>Ratio Priority:</strong> Create a set of 5–7 items where taking the top k by ratio is worse than a different subset of items.</li>
+      <li><strong>Parameter Tuning:</strong> Modify the algorithm to stop after taking at most 3 items (including fractions). Is the greedy approach still optimal?</li>
+    </ol>
+  </section>
+
+</body>
+</html>

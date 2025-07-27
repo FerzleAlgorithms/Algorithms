@@ -56,7 +56,7 @@
         "Bubble Sort Demo.html",
         "Fibonacci 5 Naive Demo.html",
         "Fibonacci Naive Demo.html",
-        "Matrix Multiplcation Demo.html",
+        "Matrix Multiplication Demo.html",
         "Polynomial Evaluation (Linear) Demo.html",
         "Polynomial Evaluation (Quadratic) Demo.html",
         "Selection Sort Demo.html",
@@ -158,7 +158,16 @@
     "Links.html",
     {
       "DRAFTS": [
+        "Algorithms/Brute Force/Matrix Multiplication DRAFT.html",
+        "Algorithms/Brute Force/String Matching DRAFT.html",
+        "Algorithms/Decrease-and-Conquer/Binary Search DRAFT.html",
+        "Algorithms/Decrease-and-Conquer/Quickselect DRAFT.html",
+        "Algorithms/Exhaustive Search/N-Queens DRAFT.html",
+        "Algorithms/Exhaustive Search/Subset Sum DRAFT.html",
+        "Algorithms/Greedy/Fractional Knapsack DRAFT.html",
+        "Algorithms/Greedy/Interval Scheduling DRAFT.html",
         "Algorithms/Space-Time Tradeoff/Boyer-Moore_DRAFT.html",
+        "Algorithms/Transform-and-Conquer/Horners Rule DRAFT.html",
         "Demos/Brute Force/Polynomial Evaluation (Quadratic) Demo DRAFT.html"
       ]
     }
@@ -200,13 +209,13 @@
         "Chain Matrix Multiplication.html",
         "Edit Distance.html",
         "Fractional Knapsack.html",
+        "Interval Scheduling.html",
         "Minimum Coin Change.html"
       ]
     },
     {
       "Other": [
         "Fibonacci.html",
-        "Interval Scheduling.html",
         "N-Queens.html",
         "Optimal Character Encoding.html",
         "String Matching.html",
