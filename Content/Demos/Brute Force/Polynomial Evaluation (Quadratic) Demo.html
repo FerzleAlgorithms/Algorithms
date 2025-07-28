@@ -134,7 +134,7 @@
       <thead>
         <tr>
           <th>i (term index)</th>
-          <th>term = a<sub>i</sub>·x<sup>i</sup></th>
+          <th>power = x<sup>i</sup></th>
           <th>result</th>
           <th>#mult</th>
           <th>#add</th>
@@ -249,39 +249,41 @@
 
       nonzeroIndices.forEach((i, nzIdx) => {
         const coeff = coefficients[i];
-        // Create new row with initial term = coefficient
+
+        // Create new row with initial power = 1
         events.push({
           type: 'createRow',
           rowIdx: nzIdx,
           termIdx: nzIdx,
           i,
-          initialTerm: coeff,
-          desc: `Start i=${i}, term = a[${i}] = ${coeff}`
+          power: 1,
+          desc: `Start i=${i}, power = 1`
         });
 
-        // Multiplication steps
-        let prevTerm = coeff;
+        // Compute power = x^i
+        let power = 1;
         let multCount = 0;
-        for (let j = 1; j <= i; j++) {
-          const term = prevTerm * x;
+        for (let j = 0; j < i; j++) {
+          const prevPower = power;
+          power *= x;
           multCount++;
           events.push({
-            type: 'updateMult',
+            type: 'updatePower',
             rowIdx: nzIdx,
             i,
-            prevTerm,
+            prevPower,
             x,
-            term,
+            power,
             multCount,
             total: cumulative,
-            totalMultSteps: i,
-            desc: `Multiply x: term = term * x = ${prevTerm} * ${x} = ${term} (multiplication ${multCount} of ${i})`
+            totalMultSteps: i + 1,
+            desc: `Multiply x: power = power * x = ${prevPower} * ${x} = ${power} (multiplication ${multCount} of ${i + 1})`
           });
-          prevTerm = term;
         }
 
-        // Addition step
-        const term = prevTerm;
+        // Multiply by coefficient and add result in one step
+        const term = coeff * power;
+        multCount++;
         const prevTotal = cumulative;
         cumulative += term;
         events.push({
@@ -290,9 +292,12 @@
           i,
           prevTotal,
           term,
+          power,
+          coeff,
+          multCount,
           total: cumulative,
           addCount: 1,
-          desc: `Add term to result: ${prevTotal} + ${term} = ${cumulative}`
+          desc: `Multiply coefficient and add: ${prevTotal} + ${coeff}*${power} = ${cumulative} (multiplication ${multCount} of ${i + 1})`
         });
       });
 
@@ -327,7 +332,7 @@
         const ev = events[idx];
         switch (ev.type) {
           case 'createRow': {
-            const { rowIdx, termIdx, i, initialTerm } = ev;
+            const { rowIdx, termIdx, i, power } = ev;
 
             // 3a) Highlight the new polynomial term
             document.querySelectorAll('.term.current').forEach(el => 
@@ -343,10 +348,10 @@
             tdI.textContent = i;
             tr.appendChild(tdI);
 
-            // term cell (coefficient) – we will highlight at the very end
-            const tdTerm = document.createElement('td');
-            tdTerm.textContent = initialTerm;
-            tr.appendChild(tdTerm);
+            // power cell – we will highlight at the very end
+            const tdPower = document.createElement('td');
+            tdPower.textContent = power;
+            tr.appendChild(tdPower);
 
             // result cell (blank for now)
             const tdRes = document.createElement('td');
@@ -371,31 +376,34 @@
             break;
           }
 
-          case 'updateMult': {
-            const { rowIdx, term, multCount } = ev;
+          case 'updatePower': {
+            const { rowIdx, power, multCount } = ev;
             totalMult++;
 
             const tr = rows[rowIdx];
             const cells = tr.querySelectorAll('td');
 
-            // 3d) Update term text and #mult (no highlight yet)
-            cells[1].textContent = term;
+            // 3d) Update power text and #mult (no highlight yet)
+            cells[1].textContent = power;
             cells[3].textContent = multCount;
 
-            // Track highlight: term cell at the very end
+            // Track highlight: power cell at the very end
             lastHighlight = { rowIdx, cellIdx: 1 };
             break;
           }
 
+
           case 'updateAdd': {
-            const { rowIdx, total, addCount } = ev;
+            const { rowIdx, total, addCount, prevTotal, term, coeff, power, multCount } = ev;
             totalAdd++;
+            if (multCount) totalMult++;
 
             const tr = rows[rowIdx];
             const cells = tr.querySelectorAll('td');
 
             // 3e) Update result text and #add (no highlight yet)
-            cells[2].textContent = total;
+            cells[2].textContent = `${prevTotal} + ${coeff}*${power} = ${total}`;
+            if (multCount) cells[3].textContent = multCount;
             cells[4].textContent = addCount;
 
             // Track highlight: result cell at the very end
