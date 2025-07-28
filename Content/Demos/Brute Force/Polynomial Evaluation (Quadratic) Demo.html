@@ -281,23 +281,9 @@
           });
         }
 
-        // Multiply by coefficient
+        // Multiply by coefficient and add result in one step
         const term = coeff * power;
         multCount++;
-        events.push({
-          type: 'multCoeff',
-          rowIdx: nzIdx,
-          i,
-          coeff,
-          power,
-          term,
-          multCount,
-          total: cumulative,
-          totalMultSteps: i + 1,
-          desc: `Multiply coefficient: term = a[${i}] * power = ${coeff} * ${power} = ${term} (multiplication ${multCount} of ${i + 1})`
-        });
-
-        // Addition step
         const prevTotal = cumulative;
         cumulative += term;
         events.push({
@@ -308,9 +294,10 @@
           term,
           power,
           coeff,
+          multCount,
           total: cumulative,
           addCount: 1,
-          desc: `Add term to result: ${prevTotal} + ${term} = ${cumulative}`
+          desc: `Multiply coefficient and add: ${prevTotal} + ${coeff}*${power} = ${cumulative} (multiplication ${multCount} of ${i + 1})`
         });
       });
 
@@ -401,34 +388,25 @@
             cells[3].textContent = multCount;
 
             // Track highlight: power cell at the very end
+
             lastHighlight = { rowIdx, cellIdx: 1 };
             break;
           }
 
-          case 'multCoeff': {
-            const { rowIdx, multCount } = ev;
-            totalMult++;
-
-            const tr = rows[rowIdx];
-            const cells = tr.querySelectorAll('td');
-
-            // update #mult only
-            cells[3].textContent = multCount;
-
-            // highlight power cell to indicate multiplication
-            lastHighlight = { rowIdx, cellIdx: 1 };
-            break;
-          }
 
           case 'updateAdd': {
-            const { rowIdx, total, addCount, prevTotal, term, coeff, power } = ev;
+            const { rowIdx, total, addCount, prevTotal, term, coeff, power, multCount } = ev;
+
             totalAdd++;
+            if (multCount) totalMult++;
 
             const tr = rows[rowIdx];
             const cells = tr.querySelectorAll('td');
 
             // 3e) Update result text and #add (no highlight yet)
             cells[2].textContent = `${prevTotal} + ${coeff}*${power} = ${total}`;
+            if (multCount) cells[3].textContent = multCount;
+
             cells[4].textContent = addCount;
 
             // Track highlight: result cell at the very end
