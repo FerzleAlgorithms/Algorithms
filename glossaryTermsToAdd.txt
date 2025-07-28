@@ -4,3 +4,8 @@ Decrease-by-a-Constant-Factor
 Horner's Rule, Horner's Method
 Taylor Polynomial
 Taylor Series
+Identity Matrix
+Horspool's Algorithm, Horspool
+Rabin-Karp Algorithm, Rabin-Karp
+Knuth-Morris-Pratt Algorithm, Knuth-Morris-Pratt, KMP Algorithm
+Combinatorial Explosion
