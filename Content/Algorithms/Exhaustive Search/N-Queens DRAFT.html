@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>N-Queens: Exhaustive Search</title>
+  <title>N-Queens (Exhaustive Search)</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github.min.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js"></script>
   <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
@@ -19,16 +19,62 @@
   </script>
 </head>
 <body>
-  <h1>N-Queens: Exhaustive Search</h1>
+  <h1>N-Queens (Exhaustive Search)</h1>
 
   <section id="problem-solved">
     <h2>Problem Solved</h2>
-    <p>
-      N-Queens: Exhaustive Search solves the
+    <p>Here will will present the exhaustive search algorithm that solves the 
       <a class="problem" href="?path=Problems%2FOther%2FN-Queens">N-Queens</a>
       problem.
     </p>
   </section>
+<section id="design">
+  <h2>Design and Strategy</h2>
+  <p>
+    The N-Queens problem asks how to place \(N\) queens on an \(N \times N\) chessboard so that no two queens threaten each other. 
+    That is, no two queens can be on the same row, column, or diagonal.
+  </p>
+
+<p>
+  This version of the algorithm uses a brute-force strategy. It represents each board configuration as an array \( Q \) of length \( n \), 
+  where \( Q[i] \) gives the column index of the queen placed in row \( i \). Each queen can be placed in any column from 0 to \( n-1 \), 
+  so there are \( N^N \) total assignments. These assignments may include illegal configurations such as multiple queens in the same column. 
+  Each complete array is then checked to determine whether any two queens attack each other on the same column or diagonal.
+</p>
+
+
+  <p>
+    For instance, we start by placing a queen in column 0 of every row: \([0,0,0,\dots,0]\), then try placing a queen in column 1 of the last row: \([0,0,0,\dots,1]\), 
+    and so on through \([0,0,0,\dots,n-1]\). 
+	This continues until we finally get to \([n-1,n-1,n-1,\dots,n-1]\). 
+	For each configuration, we check if it is valid and then try the next combination. 
+    This results in trying every possible list of column assignments.
+  </p>
+
+  <p>
+    This exhaustive method does not avoid obviously invalid partial states and is extremely inefficient for larger \(N\), but 
+    it is conceptually simple and useful for illustrating the problem's structure and constraints.
+  </p>
+
+  <p>Here is a high-level pseudocode outline:</p>
+  <ol>
+    <li>Initialize an array \( Q \) of length \( n \) to hold column choices for each row.</li>
+    <li>Recursively generate all assignments of column values for each row (from 0 to \( n-1 \)).</li>
+    <li>For each completed assignment:
+      <ol>
+        <li>Check if the configuration is valid (no column or diagonal conflicts).</li>
+        <li>If valid, record the solution.</li>
+      </ol>
+    </li>
+  </ol>
+
+  <p>
+    This is an example of <strong>exhaustive search</strong> because it explores all possibilities without any pruning or 
+    constraints&mdash;resulting in a combinatorial explosion of work.
+  </p>
+</section>
+
+
 
   <section id="design">
     <h2>Design and Strategy</h2>
@@ -38,8 +84,7 @@
     </p>
 
     <p>
-      This version of the algorithm uses a brute-force strategy. It generates all possible assignments of \(N\) queens—
-      one per row—where each queen can be placed in any column (including repeating columns), yielding \(n^n\) total configurations.
+      This version of the algorithm uses a brute-force strategy. It generates all possible assignments of \(N\) queens&mdash;one per row&mdash;where each queen can be placed in any column (including repeating columns), yielding \(N^N\) total configurations.
       Each configuration is then checked for validity: whether any two queens share a column or diagonal.
     </p>
 

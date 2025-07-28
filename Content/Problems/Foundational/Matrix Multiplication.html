@@ -22,11 +22,15 @@
     <h2>Problem Description</h2>
     <p>
       Given two matrices \( A \) of size \( m \times n \) and \( B \) of size \( n \times p \)
-      with real number entries, compute the product matrix \( C = A \cdot B \), where \( C \) is an \( m \times p \) matrix and each element \( c_{ij} \) is defined as:
+      with real number entries, compute the product matrix \( C = A \cdot B \), where \( C \) is an \( m \times p \) matrix and each element \( C[i][j] \) is defined as:
       \[
-      c_{ij} = \sum_{k=1}^{n} a_{ik} \cdot b_{kj}
+      C[i][j] = \sum_{k=1}^{n} A[i][k] \cdot B[k][j]
       \]
     </p>
+	<p><em>Note: Depending on where you learned about matrices, you may have seen different notation
+	for accessing the entries. For a matrix \(A\), the most common notations for accessing the
+	element at row \(r\) and column \(c\) are \(A_{rc}\), \(A[r,c]\), and \(A[r][c]\).</em>
+	We will use the notation \(A[r][c]\) since it matches the syntax of many programming languages.</p>
     <h3>Input</h3>
     <p>
       Two matrices: <br>
@@ -75,7 +79,7 @@
   <li>\((3,3): 7\cdot7 + 8\cdot4 + 9\cdot1 = 49 + 32 + 9 = 90\)</li>
 </ul>
       <strong>Output:</strong><br>
-      \( A \times B = \begin{bmatrix}
+      \( A \cdot B = \begin{bmatrix}
         30 & 24 & 18 \\ 
         84 & 69 & 54 \\ 
         138 & 114 & 90
@@ -95,7 +99,7 @@
     <li>\((2,2): -1\cdot1 + 3\cdot1 + 1\cdot0 = -1 + 3 + 0 = 2\)</li>
   </ul>
       <strong>Output:</strong><br>
-      \( A\times B = \begin{bmatrix}5 & 1\\ 4 & 2\end{bmatrix} \)
+      \( A\cdot B = \begin{bmatrix}5 & 1\\ 4 & 2\end{bmatrix} \)
     </div>
   </section>
 

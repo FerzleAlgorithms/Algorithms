@@ -4,9 +4,11 @@
       "Brute Force": [
         "Bubble Sort.html",
         "Fibonacci Naive.html",
+        "Matrix Multiplication.html",
         "Polynomial Evaluation.html",
         "Selection Sort.html",
-        "Sequential Search.html"
+        "Sequential Search.html",
+        "String Matching.html"
       ]
     },
     {
@@ -113,6 +115,7 @@
     {
       "Exhaustive Search": [
         "BFS demo.html",
+        "DFS demo.html",
         "N-Queens Demo.html",
         "Subset Sum Demo.html"
       ]
@@ -158,8 +161,6 @@
     "Links.html",
     {
       "DRAFTS": [
-        "Algorithms/Brute Force/Matrix Multiplication DRAFT.html",
-        "Algorithms/Brute Force/String Matching DRAFT.html",
         "Algorithms/Decrease-and-Conquer/Binary Search DRAFT.html",
         "Algorithms/Decrease-and-Conquer/Quickselect DRAFT.html",
         "Algorithms/Exhaustive Search/Breadth-First Search DRAFT.html",
@@ -169,8 +170,7 @@
         "Algorithms/Greedy/Fractional Knapsack DRAFT.html",
         "Algorithms/Greedy/Interval Scheduling DRAFT.html",
         "Algorithms/Space-Time Tradeoff/Boyer-Moore_DRAFT.html",
-        "Algorithms/Transform-and-Conquer/Horners Rule DRAFT.html",
-        "Demos/Brute Force/Polynomial Evaluation (Quadratic) Demo DRAFT.html"
+        "Algorithms/Transform-and-Conquer/Horners Rule DRAFT.html"
       ]
     }
   ],

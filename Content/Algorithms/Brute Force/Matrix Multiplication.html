@@ -24,7 +24,7 @@
   <section id="problem-solved">
   <h2>Problem Solved</h2>
   <p>
-    Matrix Multiplication solves the
+    Here we present the brute force algorithm to solve the
     <a class="problem" href="?path=Problems%2FFoundational%2FMatrix%20Multiplication">Matrix Multiplication</a>
     problem.
   </p>
@@ -56,12 +56,14 @@
     <strong class="example-title">Example:</strong><br>
     Let
     \( A = \begin{bmatrix} 1 & 2 \\ 3 & 4 \end{bmatrix} \),
-    \( B = \begin{bmatrix} 5 & 6 \\ 7 & 8 \end{bmatrix} \).<br>
+    \( B = \begin{bmatrix} 5 & 6 \\ 7 & 8 \end{bmatrix} \).<br><br>
     Then
-    \( C = AB = \begin{bmatrix} 1\cdot5 + 2\cdot7 & 1\cdot6 + 2\cdot8 \\ 3\cdot5 + 4\cdot7 & 3\cdot6 + 4\cdot8 \end{bmatrix} = \begin{bmatrix} 19 & 22 \\ 43 & 50 \end{bmatrix} \).
+    \( C = A\cdot B = \begin{bmatrix} 1\cdot5 + 2\cdot7 & 1\cdot6 + 2\cdot8 \\ 3\cdot5 + 4\cdot7 & 3\cdot6 + 4\cdot8 \end{bmatrix} = \begin{bmatrix} 19 & 22 \\ 43 & 50 \end{bmatrix} \).
   </div>
   <p>
     This algorithm is classified as a <strong>brute force</strong> algorithm because it directly follows the definition without any optimization. Every value is computed from scratch using straightforward iteration.
+	The following demo should make it very clear how the algorithm progresses to compute each entry. Instead
+	of showing every single calculation, it shows the computation for the inner-most loop in one step.
   </p>
   </section>
 
@@ -77,7 +79,7 @@
 
   <section id="code">
   <h2>Implementation in Java, C++, Python</h2>
-  <p>This implementation assumes the input matrices are compatible in size and given as 2D arrays.</p>
+  <p>These implementations assume the input matrices are compatible in size and given as 2D arrays.</p>
   <div class="tab-group">
     <div class="tabs" role="tablist">
       <button id="tab-java" class="tablink active" data-lang="java" role="tab" aria-controls="java" aria-selected="true">Java</button>
@@ -101,14 +103,18 @@
 }</code></pre>
     </div>
     <div id="cpp" class="code-container" role="tabpanel" aria-labelledby="tab-cpp">
-      <pre><code class="language-cpp">vector&lt;vector&lt;int&gt;&gt; multiply(vector&lt;vector&lt;int&gt;&gt;&amp; A, vector&lt;vector&lt;int&gt;&gt;&amp; B) {
-    int m = A.size();
-    int n = A[0].size();
-    int p = B[0].size();
-    vector&lt;vector&lt;int&gt;&gt; C(m, vector&lt;int&gt;(p, 0));
-    for (int i = 0; i &lt; m; i++) {
-        for (int j = 0; j &lt; p; j++) {
-            for (int k = 0; k &lt; n; k++) {
+      <pre><code class="language-cpp">int** multiply(int** A, int** B, int m, int n, int p) {
+    // allocate result array 
+    int** C = new int*[m];
+    for (int i = 0; i < m; i++) {
+        C[i] = new int[p];
+        for (int j = 0; j < p; j++)
+            C[i][j] = 0;
+    }
+
+    for (int i = 0; i < m; i++) {
+        for (int j = 0; j < p; j++) {
+            for (int k = 0; k < n; k++) {
                 C[i][j] += A[i][k] * B[k][j];
             }
         }
@@ -132,7 +138,8 @@
 
   <section id="analysis">
   <h2>Time/Space Analysis</h2>
-  <p><strong>Time Complexity:</strong> \( O(m \cdot n \cdot p) \). There are three nested loops over the dimensions of the matrices. Each element of the result matrix requires \( n \) multiplications and additions.</p>
+  <p><strong>Time Complexity:</strong> There are three nested loops over the dimensions of the matrices (\(m\), \(n\), and \(p\)), and the code in the inner-most loop takes constant time, 
+  so the complxity is clearly \( O(m \cdot n \cdot p) \).</p>
   <p><strong>Space Complexity:</strong> \( O(m \cdot p) \) for the output matrix. Aside from the result, only a constant amount of extra space is used.</p>
 
   <h2>Variations/Improvements</h2>
@@ -148,7 +155,7 @@
   <h2>Links to Resources</h2>
   <ul>
     <li><a href="https://en.wikipedia.org/wiki/Matrix_multiplication" target="_blank">Wikipedia: Matrix Multiplication</a> Mathematical definition and variations.</li>
-    <li><a href="https://www.geeksforgeeks.org/matrix-chain-multiplication-dp-8/" target="_blank">GeeksforGeeks: Matrix Multiplication</a> Covers naive and advanced techniques.</li>
+    <li><a href="https://www.geeksforgeeks.org/dsa/strassens-matrix-multiplication/" target="_blank">GeeksforGeeks: Matrix Multiplication</a> Covers naive and advanced techniques.</li>
     <li><a href="https://www.tutorialspoint.com/cplusplus-program-to-perform-matrix-multiplication" target="_blank">TutorialsPoint: Matrix Multiplication in C++</a> Simple C++ implementation.</li>
   </ul>
   </section>
@@ -160,42 +167,50 @@
       <li>Why does the triple-nested loop implementation correctly compute matrix multiplication?</li>
       <li>What is the time complexity of brute-force matrix multiplication?</li>
       <li>What happens if the number of columns in A does not match the number of rows in B?</li>
-      <li>Why is matrix multiplication not commutative?</li>
     </ol>
     <button id="toggleAnswers" class="show-answer" aria-expanded="false">Show Answers</button>
     <div id="answers" class="answer" hidden>
       <ol>
         <li><strong>Answer:</strong> The result is an \( m \times p \) matrix.</li>
-        <li><strong>Answer:</strong> Because it computes each entry \( C[i][j] \) by summing products of corresponding row and column elements.</li>
+        <li><strong>Answer:</strong> Because it computes each entry \( C[i][j] \) by summing products of corresponding row and column elements. Put another way, it does exactly as specified in the
+		definition of the matrix product.</li>
         <li><strong>Answer:</strong> \( O(m \cdot n \cdot p) \).</li>
-        <li><strong>Answer:</strong> The multiplication is invalid; dimensions must be compatible.</li>
-        <li><strong>Answer:</strong> Because in general \( AB \neq BA \) for matrices A and B.</li>
+        <li><strong>Answer:</strong> The multiplication is invalid; dimensions must be compatible since
+		otherwise we would try to access entries in one of the matrices that does not exist.</li>
       </ol>
     </div>
   </section>
+<section id="activities">
+  <h2>In-Class Activities</h2>
+  <ol>
+    <li><strong>Manual Matrix Multiplication:</strong> Use the demo to generate two small matrices (\(3\times 3\) is probably a good size). Then, compute the product by hand using the brute-force definition.
+	Run the demo and compare the computations and results with your own.</li>
+    <li><strong>Loop Index Meaning:</strong> For a given implementation, identify and explain the roles of the loop indices \( i \), \( j \), and \( k \) in terms of rows and columns of the input and result matrices.</li>
+    <li><strong>Non-Commutativity Exploration:</strong> Try swapping matrices \( A \) and \( B \) and compute both \( AB \) and \( BA \) (if defined). Observe and explain how the results differ.</li>
+    <li><strong>Incompatible Dimensions Discussion:</strong> Examine cases where the number of columns in matrix \( A \) does not match the number of rows in matrix \( B \). Discuss why multiplication fails and how to detect such cases programmatically.</li>
+	<li><strong>Better Algorithm?:</strong> Discuss in small groups any ideas for a more efficient algorithm to compute matrix products. Is it possible to do better than \( O(m \cdot n \cdot p) \)? Make sure to
+	justify your thoughts.</li>
+  </ol>
+</section>
 
-  <section id="activities">
-    <h2>In-Class Activities</h2>
-    <ol>
-      <li>Manually multiply two small matrices by hand using the brute-force method.</li>
-      <li>Trace through the triple-nested loop implementation with sample inputs.</li>
-      <li>Use the demo to verify your hand computations step-by-step.</li>
-      <li>Explain what each loop index corresponds to in terms of matrix dimensions.</li>
-      <li>Try swapping A and B and see how the result differs (if defined).</li>
-      <li>Discuss what would happen with incompatible matrix dimensions.</li>
-    </ol>
-  </section>
+<section id="problems">
+  <h2>Homework Problems</h2>
+  <ol>
+    <li><strong>Matrix Power:</strong> Write a function that takes a square matrix \( A \) and an integer \( k \geq 0 \), and returns \( A^k \) (i.e., the matrix raised to the \( k \)-th power under matrix multiplication). Use the brute-force matrix multiplication routine repeatedly. Test it on small matrices for \( k = 0, 1, 2, 3 \).</li>
+    <li><strong>Matrix Addition:</strong> Design and implement an algorithm that takes two matrices \( A \) and \( B \) of the same dimension and returns their sum \( A + B \), where each entry is the sum of the corresponding entries. Then write a version that adds three matrices at once. Provide clear code/pseudocode.</li>
+    <li><strong>Transpose then Multiply:</strong> Given two \( n \times n \) matrices \( A \) and \( B \), compute \( A \cdot B^T \) (where \( B^T \) is the transpose of \( B \)). Implement this efficiently by writing a separate transpose function and reusing the standard multiplication algorithm.
+	Provide clear code/pseudocode for both parts.</li>
+    <li><strong>Diagonal Matrix Multiplication:</strong> Suppose you are multiplying a diagonal matrix \( D \) by another matrix \( M \). Write a specialized algorithm that avoids unnecessary operations.  Provide clear code/pseudocode. Compare the number of multiplications your method performs with the standard matrix multiplication.</li>
+    <li><strong>Build Your Own Identity Test:</strong> Write a function that checks whether a given square matrix \( A \) is the identity matrix. Provide clear code/pseudocode.</li>
+    <li><strong>Row Vector × Matrix:</strong> Write a function that multiplies a row vector of length \( n \) by an \( n \times m \) matrix. Then explain how this is a special case of matrix multiplication. Try using your regular matrix multiplication routine to compute the same result and compare performance and clarity.</li>
 
-  <section id="problems">
-    <h2>Homework Problems</h2>
-    <ol>
-      <li>Multiply \( A = [[1, 2], [3, 4]] \) and \( B = [[5, 6], [7, 8]] \) by hand.</li>
-      <li>Implement brute-force matrix multiplication in your language of choice and test with \( 3 \times 2 \) and \( 2 \times 4 \) matrices.</li>
-      <li>Given an \( m \times n \) matrix and an \( n \times p \) matrix, explain why the result is \( m \times p \).</li>
-      <li>Modify the code to handle non-square matrices and test with different dimensions.</li>
-      <li>Compare computation time for multiplying \( 10 \times 10 \), \( 100 \times 100 \), and \( 1000 \times 1000 \) square matrices.</li>
-    </ol>
-  </section>
+    <li><strong>Column Norms:</strong> Given an \( m \times n \) matrix \( A \), compute the Euclidean norm of each column using. That is, return an array \(N\) of size \(n\) where entry \( j \) is \[N[j] = \sqrt{\sum_{i=0}^{m-1} \left(A[i][j]\right)^2 }.\]</li>
+
+  </ol>
+</section>
+
+</section>
+
 
 </body>
 </html>

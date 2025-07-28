@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Brute Force String Matching</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js"></script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <script src="/Algorithms/scripts/chapterScripts.js"></script>
+  <link rel="stylesheet" href="/Algorithms/css/style.css">
+  <link rel="stylesheet" href="/Algorithms/css/chapter.css">
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DQ5LVZVFDC"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-DQ5LVZVFDC');
+  </script>
+</head>
+<body>
+  <h1>Brute Force String Matching</h1>
+
+  <section id="problem-solved">
+    <h2>Problem Solved</h2>
+    <p>
+      Here we present the Brute Force algorithm that solves the
+      <a class="problem" href="?path=Problems%2FOther%2FString%20Matching">Exact String Matching</a>
+      problem.
+    </p>
+  </section>
+
+  <section id="design">
+    <h2>Design and Strategy</h2>
+    <p>
+      The brute force approach to string matching is the most direct and intuitive method for finding a pattern \( P \) of length \( m \) within a text \( T \) of length \( n \).
+      It systematically checks every possible starting position in the text where the pattern could begin and compares characters one-by-one.
+    </p>
+    <p>
+      At each shift position \( i \), the algorithm checks whether \( T[i..i+m-1] = P[0..m-1] \). 
+	  That is, if characters \(i\) through \(i+m-1\) in the text all match, character by character,
+	  the characters of the pattern.
+	  If all characters match, then a match is found. Otherwise, it shifts the pattern by one position and tries again.
+    </p>
+
+    <p>Here is a formal description of the algorithm:</p>
+    <ol>
+      <li>Let \( n \) be the length of text \( T \), and \( m \) be the length of pattern \( P \).</li>
+      <li>For \( i = 0 \) to \( n - m \):</li>
+      <ol type='a'>
+        <li>For \( j = 0 \) to \( m - 1 \):</li>
+        <ul>
+          <li>If \( T[i + j] \neq P[j] \), break and try the next \( i \).</li>
+        </ul>
+        <li>If inner loop completed without break, report match at position \( i \).</li>
+      </ol>
+    </ol>
+	<div class="example-box">
+  <strong class="example-title">Example:</strong><br><br>
+  Let \( T = \text{ABCADABCAAB} \) (length \( n = 11 \)) and \( P = \text{ABC} \) (length \( m = 3 \)).<br>
+  The algorithm checks each possible alignment of the pattern within the text, from position \( i = 0 \) to \( i = n - m = 8 \).<br>
+  At each position \( i \), it compares \( P[0] \) to \( T[i] \), then \( P[1] \) to \( T[i+1] \), and so on, stopping early if a mismatch is found.<br>
+  <br>
+  <span style="color:green;">Green</span> characters indicate matches.<br>
+  <span style="color:red;">Red</span> indicates the first mismatch (which stops further comparisons).<br>
+  <span style="color:black;">Black</span> characters are not checked due to early termination.<br>
+  <br>
+  Matches occur at positions \( i = 0 \) and \( i = 5 \).<br>
+  <pre style="font-family:monospace; line-height:1; font-size:1.25em;">Text:  A B C A D A B C A A B
+i=0:   <span style="color:green;">A</span> <span style="color:green;">B</span> <span style="color:green;">C</span>
+i=1:     <span style="color:red;">A</span> <span style="color:black;">B</span> <span style="color:black;">C</span>
+i=2:       <span style="color:red;">A</span> <span style="color:black;">B</span> <span style="color:black;">C</span>
+i=3:         <span style="color:green;">A</span> <span style="color:red;">B</span> <span style="color:black;">C</span>
+i=4:           <span style="color:red;">A</span> <span style="color:black;">B</span> <span style="color:black;">C</span>
+i=5:             <span style="color:green;">A</span> <span style="color:green;">B</span> <span style="color:green;">C</span>
+i=6:               <span style="color:red;">A</span> <span style="color:black;">B</span> <span style="color:black;">C</span>
+i=7:                 <span style="color:red;">A</span> <span style="color:black;">B</span> <span style="color:black;">C</span>
+i=8:                   <span style="color:green;">A</span> <span style="color:red;">B</span> <span style="color:black;">C</span></pre>
+<br>
+The total number of character comparisons for this example is 15.
+  </div>
+
+    <p>
+      This algorithm exemplifies the <strong>brute force</strong> technique because it tries every possibility without using any preprocessing or insight about the pattern or text to eliminate unnecessary comparisons.
+    </p>
+  </section>
+
+  <section id="demo">
+  <p>Try the following demo with several different patterns and texts to make sure you understand exactly what the
+  algorithm is doing.</p>
+    <div class="embeddedDemoContainer">
+      <iframe class="embeddedDemo"
+              src="/Algorithms/Content/Demos/Brute Force/String Matching Demo.html"
+              allow="fullscreen"
+              name="brute-force-string-matching-demo">
+      </iframe>
+    </div>
+  </section>
+
+  <section id="code">
+    <h2>Implementation in Java, C++, Python</h2>
+    <p>This is the straightforward version of brute-force string matching in three languages.
+	The Java version assumes the text and pattern are stored as <code>String</code>s,
+	C++ is using <code>std:string</code>, and Python is using the <code>str</code> type.
+	All three implementations find all matches.</p>
+
+    <div class="tab-group">
+      <div class="tabs" role="tablist">
+        <button id="tab-java" class="tablink active" data-lang="java" role="tab" aria-controls="java" aria-selected="true">Java</button>
+        <button id="tab-cpp" class="tablink" data-lang="cpp" role="tab" aria-controls="cpp" aria-selected="false">C++</button>
+        <button id="tab-python" class="tablink" data-lang="python" role="tab" aria-controls="python" aria-selected="false">Python</button>
+      </div>
+
+      <div id="java" class="code-container active" role="tabpanel" aria-labelledby="tab-java">
+<pre><code class="language-java">void bruteForceMatch(String text, String pattern) {
+    int n = text.length();
+    int m = pattern.length();
+    for (int i = 0; i <= n - m; i++) {
+        int j = 0;
+        while (j < m && text.charAt(i + j) == pattern.charAt(j)) {
+            j++;
+        }
+        if (j == m) {
+            System.out.println("Match at index " + i);
+        }
+    }
+}</code></pre>
+      </div>
+
+      <div id="cpp" class="code-container" role="tabpanel" aria-labelledby="tab-cpp">
+<pre><code class="language-cpp">void bruteForceMatch(string text, string pattern) {
+    int n = text.size();
+    int m = pattern.size();
+    for (int i = 0; i <= n - m; i++) {
+        int j = 0;
+        while (j < m && text[i + j] == pattern[j]) {
+            j++;
+        }
+        if (j == m) {
+            cout << "Match at index " << i << endl;
+        }
+    }
+}</code></pre>
+      </div>
+
+      <div id="python" class="code-container" role="tabpanel" aria-labelledby="tab-python">
+<pre><code class="language-python">def brute_force_match(text, pattern):
+    n, m = len(text), len(pattern)
+    for i in range(n - m + 1):
+        j = 0
+        while j < m and text[i + j] == pattern[j]:
+            j += 1
+        if j == m:
+            print(f"Match at index {i}")</code></pre>
+      </div>
+    </div>
+  </section>
+
+  <section id="analysis">
+    <h2>Time/Space Analysis</h2>
+    <p><strong>Time Complexity:</strong>
+    In the worst case, for each of the \( n - m + 1 \) positions, we may perform up to \( m \) comparisons. Therefore, the worst-case time is \( O((n - m + 1)m) = O(nm) \). This occurs, for example, when both the pattern and text contain repeated characters and nearly match at each position.</p>
+    <p>The best case occurs when an early mismatch happens at each position, leading to \( O(n) \) total comparisons.</p>
+    <p><strong>Space Complexity:</strong> 
+    The algorithm uses \( O(1) \) extra space. It does not use any auxiliary arrays or recursion.</p>
+
+    <h2>Variations/Improvements</h2>
+    <ul>
+      <li><strong>Early Termination:</strong> Stop the search after the first match if only one match is required.</li>
+      <li><strong>Case-Insensitive Match:</strong> Normalize both pattern (e.g. by converting both string to upper-case) and text if matches should be case-insensitive.</li>
+      <li><strong>More Efficient Algorithms:</strong> Use Horspool, Knuth-Morris-Pratt, Boyer-Moore, or Rabin-Karp for faster performance in practical applications.</li>
+    </ul>
+  </section>
+
+  <section id="links">
+    <h2>Links to Resources</h2>
+    <ul>
+      <li><a href="https://en.wikipedia.org/wiki/String_searching_algorithm" target="_blank">Wikipedia: String Searching Algorithms</a> Information about String Searching Algorithms.</li>
+      <li><a href="https://www.geeksforgeeks.org/dsa/pattern-searching/" target="_blank">GeeksforGeeks: Pattern Searching</a> Information about pattern matching, including lots of links to algorithms.</li>
+	  <li><a href="https://www.geeksforgeeks.org/dsa/applications-of-string-matching-algorithms/" target="_blank">GeeksforGeeks: Applications of String Matching Algorithms</a> Real Applications of string matching.</li>
+    </ul>
+  </section>
+
+<section id="reading-questions">
+  <h2>Reading Comprehension Questions</h2>
+  <ol>
+    <li><strong>Algorithm Goal:</strong> What is the brute force string matching algorithm trying to do at each position?</li>
+    <li><strong>Character Comparisons:</strong> What is the role of the inner loop?</li>
+    <li><strong>Loop Boundaries:</strong> Why does the outer loop go from \( i = 0 \) to \( i = n - m \)?</li>
+    <li><strong>Complexity:</strong> What are the best-case and worst-case time complexities of this algorithm, and when do they occur?</li>
+    <li><strong>Alternatives:</strong> What are some improvements or alternatives to the brute force method?</li>
+  </ol>
+  <button id="toggleAnswers" class="show-answer" aria-expanded="false">Show Answers</button>
+  <div id="answers" class="answer" hidden>
+    <ol>
+      <li><strong>Answer:</strong> At each index \( i \), it checks whether the pattern \( P \) matches the substring of text \( T \) starting at position \( i \).</li>
+      <li><strong>Answer:</strong> The inner loop compares each character of the pattern to the corresponding character in the text, one by one, until a mismatch is found or the pattern is fully matched.</li>
+      <li><strong>Answer:</strong> The outer loop only needs to consider starting positions \( i \) such that the remaining text from \( i \) to the end is at least as long as the pattern—that is, \( i \leq n - m \). Beyond that, there aren't enough characters left to match the pattern.</li>
+      <li><strong>Answer:</strong> Best case is \( O(n) \) when a mismatch occurs immediately at each position. Worst case is \( O(nm) \), which happens when the text and pattern have many repeated characters and nearly match at each shift.</li>
+      <li><strong>Answer:</strong> More efficient alternatives include Horspool, Knuth-Morris-Pratt (KMP), Boyer-Moore, and Rabin-Karp, all of which use preprocessing or heuristics to skip unnecessary comparisons.</li>
+    </ol>
+  </div>
+</section>
+
+<section id="activities">
+  <h2>In-Class Activities</h2>
+  <ol>
+    <li><strong>Trace by Hand:</strong> Given \( T = \text{ABCDABCD} \) and \( P = \text{BCD} \), trace the brute force algorithm step-by-step by hand. Show which characters are compared and how many comparisons are made in total. Compare your results with the demo.</li>
+    <li><strong>Best/Worst Case Examples:</strong> Come up with an example that would cause the algorithm to stop early at every shift (best case), and one that would result in the maximum number of comparisons (worst case). Justify your choices and compute the exact number of comparisons for each case.</li>
+    <li><strong>Build a Similar Algorithm (Strings):</strong> Write a brute-force algorithm to check whether a string \( P \) is a palindrome (reads the same forwards and backwards). Then compare its structure to the brute force string matching algorithm.</li>
+    <li><strong>Build a Similar Algorithm (Arrays):</strong> Write a brute-force algorithm that checks whether an array \( A \) of integers contains a contiguous subarray that matches a given pattern array \( B \). Compare your algorithm with the one given here.</li>
+	<li><strong>Subarray Sum Match:</strong>
+	  Given an array of positive integers \( A[0 \dots n-1] \) and an integer target value \( k \), determine whether there exists a contiguous subarray whose elements sum to exactly \( k \).<br>
+	  <ol type='a'>
+		<li>Design and write a brute-force algorithm using a nested loop to solve this problem.</li>
+		<li>What are the best-case and worst-case time complexities?</li>
+		<li>Apply your algorithm to the example \( A = [2, 4, 1, 3, 6, 2, 5] \) with \( k = 10 \). Show all subarrays considered.</li>
+	  </ol>
+	</li>
+	<li><strong>Subarray Sum Match Version 2:</strong>
+	Repeat the previous problem, but in this version negative numbers are allowed. Is this version easier or harder? Explain.</li>
+    <li><strong>Compare Loop Bounds:</strong> For several different values of \( n \) and \( m \), compute how many times the outer loop will run. Explain why the condition is \( i \leq n - m \) and what would go wrong if the loop ran shorter or longer.</li>
+    <li><strong>Visual Demo Exploration:</strong> Use the interactive demo to explore various combinations of text and pattern. Identify input cases that produce:
+      <ol type='a'>
+        <li>A match on the first try</li>
+        <li>No matches at all</li>
+        <li>Multiple matches</li>
+        <li>Worst-case comparison count</li>
+      </ol>
+      Record how many character comparisons occur in each scenario.
+    </li>
+    <li><strong>Efficiency Reflection:</strong> After completing several traces, discuss with a partner how the algorithm might be improved. Which comparisons seem redundant? Could we avoid them?</li>
+    <li><strong>Loop Inversion Challenge:</strong> Rewrite the algorithm so that the inner loop runs in reverse (from \( m - 1 \) to 0). Does this affect correctness or efficiency? Why or why not?</li>
+  </ol>
+</section>
+
+<section id="problems">
+  <h2>Homework Problems</h2>
+  <ol>
+    <li><strong>Trace a Match:</strong> Let \( T = \text{AABAACAADAABAABA} \) and \( P = \text{AABA} \). Trace the brute-force algorithm step-by-step and list all positions where matches occur. Count the total number of character comparisons.</li>
+    <li><strong>Best and Worst Case Exploration:</strong>
+	For each of the following 
+      <ol type='a'>
+        <li>Construct a pattern \( P \) of length \( m \) and a text \( T \) of length \( n \) 
+		where the brute-force algorithm performs the <em>fewest</em> number of comparisons. 
+		Clearly state how many comparisons it is (based on \(n\) and \(m\)).</li>
+        <li>Construct a pattern \( P \) of length \( m \) and a text \( T \) of length \( n \) 
+		where the brute-force algorithm performs the <em>maximum</em> number of comparisons. 
+		Clearly state how many comparisons it is (based on \(n\) and \(m\)).</li>
+      </ol>
+    </li>
+    <li><strong>Pattern with Gaps:</strong> Suppose you want to find all occurrences of a 3-letter pattern in a text where only the <em>first and last letters</em> of the pattern must match the text. (Ignore the middle letter.)<br>
+    Write a brute-force algorithm (code or pseudocode) to solve this variation.</li>
+    <li><strong>Subarray Sum Match:</strong>
+	  Given an array of positive integers \( A[0 \dots n-1] \) and an integer target value \( k \), determine whether there exists a contiguous subarray whose elements sum to exactly \( k \).<br>
+	  <ol type='a'>
+		<li>Design and write a brute-force algorithm using a nested loop to solve this problem.</li>
+		<li>What are the best-case and worst-case time complexities?</li>
+		<li>Apply your algorithm to the example \( A = [1, 5, 2, 7, 4, 2, 5] \) with \( k = 10 \). Show all subarrays considered.</li>
+	  </ol>
+	</li>
+    <li><strong>Substring of Repeated Characters:</strong> Write an algorithm to find the <em>length of the longest contiguous substring</em> in a given string that consists of the <em>same character</em> repeated. (For example, in "aaabbbaaac", the answer is 3.)<br>
+    Give your algorithm in pseudocode and analyze the time complexity.</li>
+    <li><strong>Find the First Match Only:</strong> Modify the brute-force string matching algorithm to stop after the <em>first match is found</em>. Write out the updated code/pseudocode and explain what changes you made. Clearly explain how the best- and worst-case complexities of this algorithm 
+	compare with the original version.</li>
+    <li><strong>Reverse Match:</strong> Write a brute-force algorithm that finds all occurrences of a pattern \( P \) in a text \( T \), but matching from right to left (i.e., compare the last character first, then move backward). Give clear pseudocode and explain whether this changes the number of comparisons.</li>
+    <li><strong>Character Histogram Match:</strong> Suppose you want to find all substrings of the text of length \( m \) that contain the <em>same multiset of characters</em> as the pattern (e.g., “cab” matches “abc”).<br>
+    Give a brute-force algorithm for this problem. Assume the alphabet is small and fixed (e.g., lowercase letters). Provide clear pseudocode and analyze the time and space complexity of your algorithm.</li>
+  </ol>
+</section>
+</body>
+</html>
