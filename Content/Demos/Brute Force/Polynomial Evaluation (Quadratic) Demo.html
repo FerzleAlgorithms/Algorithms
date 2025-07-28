@@ -388,6 +388,7 @@
             cells[3].textContent = multCount;
 
             // Track highlight: power cell at the very end
+
             lastHighlight = { rowIdx, cellIdx: 1 };
             break;
           }
@@ -395,6 +396,7 @@
 
           case 'updateAdd': {
             const { rowIdx, total, addCount, prevTotal, term, coeff, power, multCount } = ev;
+
             totalAdd++;
             if (multCount) totalMult++;
 
@@ -404,6 +406,7 @@
             // 3e) Update result text and #add (no highlight yet)
             cells[2].textContent = `${prevTotal} + ${coeff}*${power} = ${total}`;
             if (multCount) cells[3].textContent = multCount;
+
             cells[4].textContent = addCount;
 
             // Track highlight: result cell at the very end
