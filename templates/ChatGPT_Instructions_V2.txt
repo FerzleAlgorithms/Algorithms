@@ -1,0 +1,115 @@
+These are instructions for ChatGPT (or student contributors) to generate content for algorithm chapters. Please follow every section carefully and preserve the structure of the template file.
+
+This project is to write algorithm chapter pages in HTML, JavaScript, and SVG.
+
+You will be given:
+- `Algorithm TEMPLATE.html`: A template file you must closely follow. I want the output to be this file with the details filled in as specified below.
+- `Hoare Partition.html`: A completed example to illustrate the desired format and content.
+- Supporting files (`style.css`, `chapter.css`, and `chapterScripts.js`): These are already included and should not be modified.
+
+**General Guidelines**
+- Do not alter the overall HTML structure—especially the header.
+- Use only ASCII characters.
+- Use LaTeX for math within `\(...\)` delimiters.
+- Ensure clarity and completeness while being concise and pedagogically sound.
+
+---
+
+### 0. Problem Solved 
+- Fill in the details in the template. The pattern is:
+ALGORITHM NAME solves the <a class="problem" href="?path=Problems%2FCATEGORY%2FALGORITHM%20NAME">ALGORITHM NAME</a> problem.
+
+For example, if the algorithm is Quicksort, this would be modified to:
+Quicksort solves the <a class="problem" href="?path=Problems/Foundational/Sorting">Sorting</a> problem.
+
+The current problem types are Foundational, Optimization, Geometry, Graphs, and Other. If you aren't sure where it fits, use Other and I can fix it.
+
+---
+
+### 1. Motivation and Description
+Explain:
+- The motivation or intuition behind the algorithm.
+- The algorithm’s general approach in prose.
+- A more precise pseudocode-style presentation using a nested `<ol>`. Include substeps if needed.
+
+Add a **mini example** if helpful to illustrate the idea (use HTML tables or SVG for visuals). Avoid duplicating the interactive demo but feel free to include a small hand-worked example if it helps understanding.
+
+Somewhere in this section, explain why the algorithm fits under the given technique (e.g., divide-and-conquer, greedy). If I forget to tell you the technique and you're not sure, please ask.
+
+---
+
+### 2. Demo
+- Copy this section exactly as in the template, changing only the demo file path. Use the pattern "/Algorithms/Content/Demos/TECHNIQUE/ALGORITHM NAME Demo.html".
+For instance, for Quicksort it is "/Algorithms/Content/Demos/Divide-and-Conquer/QuickSort Demo.html"
+
+---
+### 3. Code Tabs
+Each implementation tab should use idiomatic code for the language, unless noted:
+
+- **C++:** Avoid STL and assume basic arrays.
+- **Java:** Use arrays unless otherwise specified.
+- **Python:** Use the cleanest Python style. If it significantly differs from the others (e.g., uses a dictionary), add a fourth tab:
+  - Tab 3: Python version that resembles the others.
+  - Tab 4: More Pythonic implementation.
+
+---
+
+### 4. Analysis
+- Provide **complete but concise** time and space analysis.
+- Walk through the code, identifying time cost for key parts.
+- Solve any recurrence relations clearly.
+- For space complexity, focus on **extra space**, not input size.
+- Point out variants that affect space usage (e.g., recursion stack vs iteration).
+- Include best, worst, and average/expected case complexities when appropriate.
+- Use Big-O notation (e.g., `\(O(n \log n)\)`).
+
+---
+
+### 5. External Links
+Include links to reputable algorithm resources like:
+- Wikipedia
+- GeeksforGeeks
+- TutorialsPoint
+- Visualgo
+- Other well-known, relevant sites
+
+Make sure links are directly relevant to the **specific** algorithm.
+
+---
+
+### 6. Reading Comprehension Questions
+Include **4–10 questions** that:
+- Focus on what’s covered on the page only.
+- Cover how the algorithm works, examples, analysis, and classification.
+- May ask about variable roles, corner cases, or subtle steps.
+
+Each question should include a **clearly formatted answer**.
+
+---
+
+### 7. In-Class Activities
+Include **6–10 specific, concrete activities**, such as:
+- Working through provided examples by hand.
+- Comparing the algorithm to others.
+- Modifying the algorithm to handle a variation.
+- Using the demo for guided exploration.
+- Physical representations (e.g., cards, boards).
+
+Avoid vague prompts like "Choose an algorithm..." or "Try your own input..."
+
+---
+
+### 8. Problems
+Include **6–10 focused problems**, such as:
+- Step-by-step tracing on specific inputs.
+- Analyzing variations of the algorithm.
+- Comparing with alternative algorithms for the same problem.
+- Applying the idea to a new problem.
+- Draw from well-known problems related to the given algorithm.
+
+Make sure each problem is **narrowly defined** with clear expectations.
+
+---
+Your output should be a complete filled-in version of the template HTML file, ready to drop into the website. Only modify placeholder sections—not the structural HTML.
+
+Please feel free to ask questions if anything is unclear or if you’re unsure about algorithm details, implementation assumptions, or analysis depth.

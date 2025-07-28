@@ -1,3 +1,6 @@
-variable-size-decrease
-decrease-by-a-constant
-decrease-by-a-constant-factor
+Variable-Size-Decrease
+Decrease-by-a-Constant
+Decrease-by-a-Constant-Factor
+Horner's Rule, Horner's Method
+Taylor Polynomial
+Taylor Series
