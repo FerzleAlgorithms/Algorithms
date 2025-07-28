@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Breadth-First Search</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js"></script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <script src="/Algorithms/scripts/chapterScripts.js"></script>
+  <link rel="stylesheet" href="/Algorithms/css/style.css">
+  <link rel="stylesheet" href="/Algorithms/css/chapter.css">
+</head>
+<body>
+  <h1>Breadth-First Search</h1>
+<h3><font color="red">Not the best version--see ChatGPT for better content in wrong format. Also, second version below.</font></h3>
+  <section id="problem-solved">
+  <h2>Problem Solved</h2>
+  <p>
+    Breadth-First Search solves the
+    <a class="problem" href="?path=Problems%2FGraphs%2FGraph%20Traversal">Graph Traversal</a>
+    problem.
+  </p>
+  </section>
+
+  <section id="design">
+  <h2>Design and Strategy</h2>
+  <p>
+    Breadth-First Search (BFS) is a classic algorithm for traversing or searching an unweighted graph. 
+    It explores the graph layer by layer starting from a given source vertex, visiting all neighbors before moving to the next layer.
+  </p>
+  <p>
+    BFS uses a queue to track which vertex to explore next. It also maintains a distance array to store the shortest distance 
+    from the source to each vertex, and a visited array to prevent reprocessing nodes.
+  </p>
+  <p><strong>This algorithm exemplifies the exhaustive search technique</strong> because it systematically explores all vertices reachable from the source without using heuristics or pruning strategies.</p>
+
+  <p>Here is the high-level pseudocode:</p>
+  <ol class="spaced">
+    <li>Initialize an array <code>visited</code> of size <code>V</code> to false.</li>
+    <li>Initialize an array <code>dist</code> of size <code>V</code> to infinity, except <code>dist[s] = 0</code> where <code>s</code> is the source.</li>
+    <li>Initialize a queue <code>Q</code> and enqueue <code>s</code>. Mark <code>s</code> as visited.</li>
+    <li>While <code>Q</code> is not empty:
+      <ol>
+        <li>Dequeue <code>u</code> from <code>Q</code>.</li>
+        <li>For all <code>v</code> adjacent to <code>u</code>:
+          <ol>
+            <li>If <code>v</code> is not visited:
+              <ol>
+                <li>Mark <code>v</code> as visited.</li>
+                <li>Set <code>dist[v] = dist[u] + 1</code>.</li>
+                <li>Enqueue <code>v</code>.</li>
+              </ol>
+            </li>
+          </ol>
+        </li>
+      </ol>
+    </li>
+  </ol>
+  </section>
+
+  <section id="demo">
+  <div class="embeddedDemoContainer">
+    <iframe class="embeddedDemo"
+            src="/Algorithms/Content/Demos/Exhaustive%20Search/Breadth-First%20Search%20Demo.html"
+            allow="fullscreen"
+            name="bfs-demo">
+    </iframe>
+  </div>
+  </section>
+
+  <section id="code">
+  <h2>Implementation in Java, C++, Python</h2>
+  <p>All three versions assume the graph is represented as an adjacency list.</p>
+  <div class="tab-group">
+    <div class="tabs" role="tablist">
+      <button id="tab-java" class="tablink active" data-lang="java" role="tab" aria-controls="java" aria-selected="true">Java</button>
+      <button id="tab-cpp" class="tablink" data-lang="cpp" role="tab" aria-controls="cpp" aria-selected="false">C++</button>
+      <button id="tab-python" class="tablink" data-lang="python" role="tab" aria-controls="python" aria-selected="false">Python</button>
+    </div>
+    <div id="java" class="code-container active" role="tabpanel" aria-labelledby="tab-java">
+      <pre><code class="language-java">void bfs(List&lt;Integer&gt;[] graph, int s, int[] dist) {
+    boolean[] visited = new boolean[graph.length];
+    Arrays.fill(dist, Integer.MAX_VALUE);
+    Queue&lt;Integer&gt; q = new LinkedList&lt;&gt;();
+    visited[s] = true;
+    dist[s] = 0;
+    q.add(s);
+    while (!q.isEmpty()) {
+        int u = q.poll();
+        for (int v : graph[u]) {
+            if (!visited[v]) {
+                visited[v] = true;
+                dist[v] = dist[u] + 1;
+                q.add(v);
+            }
+        }
+    }
+}</code></pre>
+    </div>
+    <div id="cpp" class="code-container" role="tabpanel" aria-labelledby="tab-cpp">
+      <pre><code class="language-cpp">void bfs(vector&lt;vector&lt;int&gt;&gt;& graph, int s, vector&lt;int&gt;& dist) {
+    vector&lt;bool&gt; visited(graph.size(), false);
+    dist.assign(graph.size(), INT_MAX);
+    queue&lt;int&gt; q;
+    visited[s] = true;
+    dist[s] = 0;
+    q.push(s);
+    while (!q.empty()) {
+        int u = q.front(); q.pop();
+        for (int v : graph[u]) {
+            if (!visited[v]) {
+                visited[v] = true;
+                dist[v] = dist[u] + 1;
+                q.push(v);
+            }
+        }
+    }
+}</code></pre>
+    </div>
+    <div id="python" class="code-container" role="tabpanel" aria-labelledby="tab-python">
+      <pre><code class="language-python">from collections import deque
+
+def bfs(graph, s):
+    visited = [False] * len(graph)
+    dist = [float('inf')] * len(graph)
+    q = deque()
+    visited[s] = True
+    dist[s] = 0
+    q.append(s)
+    while q:
+        u = q.popleft()
+        for v in graph[u]:
+            if not visited[v]:
+                visited[v] = True
+                dist[v] = dist[u] + 1
+                q.append(v)
+    return dist</code></pre>
+    </div>
+  </div>
+  </section>
+
+  <section id="analysis">
+  <h2>Time/Space Analysis</h2>
+  <p><strong>Time Complexity:</strong> \(O(V + E)\), where \(V\) is the number of vertices and \(E\) the number of edges. Each vertex is enqueued and dequeued at most once, and each edge is checked once.</p>
+  <p><strong>Space Complexity:</strong> \(O(V)\) for the queue, visited array, and distance array.</p>
+
+  <h2>Variations/Improvements</h2>
+  <ul>
+    <li><strong>Path reconstruction:</strong> Add a <code>parent</code> array to reconstruct the shortest path from source to any vertex.</li>
+    <li><strong>Level-order collection:</strong> BFS can be modified to collect vertices by level (layered traversal).</li>
+    <li><strong>Early exit:</strong> Stop when a target is found (useful for shortest path in unweighted graphs).</li>
+    <li><strong>Multiple sources:</strong> Initialize the queue with all source nodes.</li>
+  </ul>
+  </section>
+
+  <section id="links">
+  <h2>Links to Resources</h2>
+  <ul>
+    <li><a href="https://en.wikipedia.org/wiki/Breadth-first_search" target="_blank">Wikipedia: Breadth-first search</a></li>
+    <li><a href="https://www.geeksforgeeks.org/breadth-first-search-or-bfs-for-a-graph/" target="_blank">GeeksforGeeks: BFS for a Graph</a></li>
+    <li><a href="https://visualgo.net/en/dfsbfs" target="_blank">VisuAlgo: DFS and BFS</a></li>
+  </ul>
+  </section>
+
+  <section id="reading-questions">
+    <h2>Reading Comprehension Questions</h2>
+    <ol>
+      <li><strong>Queue Usage:</strong> Why does BFS use a queue?</li>
+      <li><strong>Distance Updates:</strong> When is <code>dist[v]</code> updated?</li>
+      <li><strong>Search Order:</strong> In what order are vertices explored?</li>
+      <li><strong>Unreachable Vertices:</strong> What does <code>dist[v] = ∞</code> mean after BFS?</li>
+      <li><strong>Shortest Paths:</strong> How does BFS ensure shortest paths in unweighted graphs?</li>
+    </ol>
+    <button id="toggleAnswers" class="show-answer" aria-expanded="false">Show Answers</button>
+    <div id="answers" class="answer" hidden>
+      <ol>
+        <li><strong>Answer:</strong> It ensures that vertices are explored in increasing order of distance from the source.</li>
+        <li><strong>Answer:</strong> When vertex <code>v</code> is first discovered from a neighbor <code>u</code>.</li>
+        <li><strong>Answer:</strong> BFS explores all vertices at distance \(d\) before any at \(d+1\).</li>
+        <li><strong>Answer:</strong> Vertex <code>v</code> is not reachable from the source.</li>
+        <li><strong>Answer:</strong> Because the first time a vertex is reached is via the shortest possible path from the source.</li>
+      </ol>
+    </div>
+  </section>
+
+  <section id="activities">
+    <h2>In-Class Activities</h2>
+    <ol>
+      <li>Trace BFS step-by-step on a given undirected graph starting from a chosen source.</li>
+      <li>Manually compute the shortest distance array for a graph using BFS.</li>
+      <li>Compare BFS and DFS on the same graph and record visit orders.</li>
+      <li>Modify BFS to return a parent array for path reconstruction.</li>
+      <li>Explore graphs where multiple vertices are unreachable from the source.</li>
+      <li>Devise an algorithm using BFS to test if a graph is connected.</li>
+      <li>Use the demo and highlight which vertices are visited each round.</li>
+    </ol>
+  </section>
+
+  <section id="problems">
+    <h2>Homework Problems</h2>
+    <ol>
+      <li><strong>Trace BFS:</strong> On the given graph, list the order of vertex visits starting from vertex 0.</li>
+      <li><strong>Shortest Distances:</strong> Using BFS, compute the shortest distance from source to every vertex.</li>
+      <li><strong>Is Connected:</strong> Use BFS to determine whether an undirected graph is connected.</li>
+      <li><strong>Bipartite Check:</strong> Design a BFS-based algorithm to check if a graph is bipartite.</li>
+      <li><strong>Cycle Detection:</strong> Devise an algorithm using BFS to detect cycles in an undirected graph.</li>
+      <li><strong>Level Grouping:</strong> Group vertices by distance from the source (layered BFS).</li>
+      <li><strong>Path Recovery:</strong> Extend BFS to return the shortest path from the source to a target vertex.</li>
+    </ol>
+  </section>
+
+</body>
+</html>
+
+<hr>
+<br>
+<hr>
+
+<h1> ANother version below!</h1>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Breadth-First Search</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js"></script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <script src="/Algorithms/scripts/chapterScripts.js"></script>
+  <link rel="stylesheet" href="/Algorithms/css/style.css">
+  <link rel="stylesheet" href="/Algorithms/css/chapter.css">
+</head>
+<body>
+  <h1>Breadth-First Search</h1>
+
+<h3><font color="red">Not the best version--see ChatGPT for better content in wrong format.</font></h3>
+  <section id="problem-solved">
+    <h2>Problem Solved</h2>
+    <p>
+      Breadth-First Search solves the
+      <a class="problem" href="?path=Problems%2FGraphs%2FGraph%20Traversal">Graph Traversal</a>
+      problem.
+    </p>
+  </section>
+
+  <section id="design">
+    <h2>Design and Strategy</h2>
+    <p>
+      Breadth-First Search (BFS) is an exhaustive search strategy that explores all vertices in a graph, layer by layer, starting from a source vertex. It is guaranteed to find the shortest path (in terms of number of edges) from the start vertex to all reachable vertices in an unweighted graph.
+    </p>
+    <p>
+      BFS uses a queue to maintain the frontier of exploration, and a visited array to avoid revisiting nodes. It first explores all vertices at distance 1 from the start, then all at distance 2, and so on.
+    </p>
+    <p>
+      Here is the abstract pseudocode:
+    </p>
+    <ol>
+      <li>Mark all vertices as unvisited.</li>
+      <li>Mark <code>s</code> as visited and enqueue <code>s</code>.</li>
+      <li>While the queue is not empty:
+        <ol>
+          <li>Dequeue the front vertex <code>u</code>.</li>
+          <li>For all <code>v</code> adjacent to <code>u</code>:
+            <ul>
+              <li>If <code>v</code> is unvisited:
+                <ul>
+                  <li>Mark <code>v</code> as visited.</li>
+                  <li>Enqueue <code>v</code>.</li>
+                </ul>
+              </li>
+            </ul>
+          </li>
+        </ol>
+      </li>
+    </ol>
+    <p>
+      A small example: if A is connected to B and C, and B is connected to D, and C to E, then starting from A, the visitation order is A, B, C, D, E.
+    </p>
+  </section>
+
+  <section id="demo">
+    <div class="embeddedDemoContainer">
+      <iframe class="embeddedDemo" src="/Algorithms/Content/Demos/Exhaustive%20Search/Breadth-First%20Search%20Demo.html" allow="fullscreen" name="Breadth-First-Search-demo"></iframe>
+    </div>
+  </section>
+
+  <section id="code">
+    <h2>Implementation in Java, C++, Python</h2>
+    <p>All implementations assume an adjacency list representation.</p>
+    <div class="tab-group">
+      <div class="tabs" role="tablist">
+        <button id="tab-java" class="tablink active" data-lang="java" role="tab" aria-controls="java" aria-selected="true">Java</button>
+        <button id="tab-cpp" class="tablink" data-lang="cpp" role="tab" aria-controls="cpp" aria-selected="false">C++</button>
+        <button id="tab-python" class="tablink" data-lang="python" role="tab" aria-controls="python" aria-selected="false">Python</button>
+      </div>
+      <div id="java" class="code-container active" role="tabpanel" aria-labelledby="tab-java">
+        <pre><code class="language-java">int n; // number of vertices
+List&lt;Integer&gt;[] adj;
+boolean[] visited = new boolean[n];
+Queue&lt;Integer&gt; queue = new LinkedList&lt;&gt;();
+
+int start = 0;
+visited[start] = true;
+queue.add(start);
+
+while (!queue.isEmpty()) {
+    int u = queue.remove();
+    for (int v : adj[u]) {
+        if (!visited[v]) {
+            visited[v] = true;
+            queue.add(v);
+        }
+    }
+}</code></pre>
+      </div>
+      <div id="cpp" class="code-container" role="tabpanel" aria-labelledby="tab-cpp">
+        <pre><code class="language-cpp">int n;
+vector&lt;vector&lt;int&gt;&gt; adj(n);
+vector&lt;bool&gt; visited(n, false);
+queue&lt;int&gt; q;
+
+int start = 0;
+visited[start] = true;
+q.push(start);
+
+while (!q.empty()) {
+    int u = q.front();
+    q.pop();
+    for (int v : adj[u]) {
+        if (!visited[v]) {
+            visited[v] = true;
+            q.push(v);
+        }
+    }
+}</code></pre>
+      </div>
+      <div id="python" class="code-container" role="tabpanel" aria-labelledby="tab-python">
+        <pre><code class="language-python">from collections import deque
+
+n = ...
+adj = [...]  # adjacency list
+visited = [False] * n
+queue = deque()
+
+start = 0
+visited[start] = True
+queue.append(start)
+
+while queue:
+    u = queue.popleft()
+    for v in adj[u]:
+        if not visited[v]:
+            visited[v] = True
+            queue.append(v)</code></pre>
+      </div>
+    </div>
+  </section>
+
+  <section id="analysis">
+    <h2>Time/Space Analysis</h2>
+    <p><strong>Time Complexity:</strong> \(O(V + E)\) — each vertex is enqueued once, and each edge is explored once.</p>
+    <p><strong>Space Complexity:</strong> \(O(V)\) — for the queue and visited array.</p>
+
+    <h2>Variations/Improvements</h2>
+    <ul>
+      <li>Directed graphs: BFS works for directed edges too.</li>
+      <li>Early stopping when goal is found.</li>
+      <li>Multi-source BFS by initializing queue with several start vertices.</li>
+      <li>Track distance with a separate array for shortest path info.</li>
+    </ul>
+  </section>
+
+  <section id="links">
+    <h2>Links to Resources</h2>
+    <ul>
+      <li><a href="https://en.wikipedia.org/wiki/Breadth-first_search">Wikipedia: Breadth-First Search</a></li>
+      <li><a href="https://www.geeksforgeeks.org/breadth-first-search-or-bfs-for-a-graph/">GeeksforGeeks: BFS</a></li>
+      <li><a href="https://visualgo.net/en/dfsbfs">Visualgo: BFS</a></li>
+    </ul>
+  </section>
+
+  <section id="reading-questions">
+    <h2>Reading Comprehension Questions</h2>
+    <ol>
+      <li>How does BFS determine traversal order?</li>
+      <li>Why is a queue used in BFS?</li>
+      <li>Why does BFS find shortest paths in unweighted graphs?</li>
+      <li>What role does the visited set play in BFS?</li>
+      <li>What is BFS's time complexity and why?</li>
+      <li>How can distances be tracked in BFS?</li>
+    </ol>
+    <button id="toggleAnswers" class="show-answer" aria-expanded="false">Show Answers</button>
+    <div id="answers" class="answer" hidden>
+      <ol>
+        <li><strong>Answer:</strong> It visits vertices layer by layer from the start.</li>
+        <li><strong>Answer:</strong> To explore nodes in the order they were discovered (FIFO).</li>
+        <li><strong>Answer:</strong> Because the first time a vertex is reached, it is via the shortest path.</li>
+        <li><strong>Answer:</strong> It prevents cycles and reprocessing.</li>
+        <li><strong>Answer:</strong> \(O(V+E)\), since all vertices and edges are explored once.</li>
+        <li><strong>Answer:</strong> Use a distance array and set <code>dist[v] = dist[u] + 1</code>.</li>
+      </ol>
+    </div>
+  </section>
+
+  <section id="activities">
+    <h2>In-Class Activities</h2>
+    <ol>
+      <li>Trace BFS by hand on a small graph, recording levels.</li>
+      <li>Use demo to track queue and visited state step by step.</li>
+      <li>Compare BFS and DFS traversal order on same graph.</li>
+      <li>Design BFS-based bipartiteness test.</li>
+      <li>Use BFS to detect connected components.</li>
+      <li>Apply BFS to find shortest paths in a grid maze.</li>
+    </ol>
+  </section>
+
+  <section id="problems">
+    <h2>Homework Problems</h2>
+    <ol>
+      <li>Perform BFS from vertex 0 on a given adjacency list and show order of visitation and BFS tree.</li>
+      <li>Compute shortest distances from start using BFS and list layers.</li>
+      <li>Run BFS on a disconnected graph and explain what vertices are missed.</li>
+      <li>Compare BFS and DFS order for a specific graph.</li>
+      <li>Find shortest path using BFS in an unweighted graph.</li>
+      <li>Test bipartiteness using BFS and describe coloring approach.</li>
+      <li>Modify BFS to detect cycles in undirected graphs and test on example.</li>
+      <li>Design multi-source BFS to find shortest distance to nearest hospital city.</li>
+    </ol>
+  </section>
+
+</body>
+</html>
