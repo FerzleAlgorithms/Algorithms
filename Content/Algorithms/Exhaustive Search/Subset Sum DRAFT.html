@@ -9,129 +9,131 @@
   <script src="/Algorithms/scripts/chapterScripts.js"></script>
   <link rel="stylesheet" href="/Algorithms/css/style.css">
   <link rel="stylesheet" href="/Algorithms/css/chapter.css">
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DQ5LVZVFDC"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-DQ5LVZVFDC');
+  </script>
 </head>
 <body>
   <h1>Subset Sum (Exhaustive Search)</h1>
 
   <section id="problem-solved">
-  <h2>Problem Solved</h2>
-  <p>
-    Subset Sum (Exhaustive Search) solves the
-    <a class="problem" href="?path=Problems%2FOther%2FSubset%20Sum">Subset Sum</a>
-    problem.
-  </p>
+    <h2>Problem Solved</h2>
+    <p>
+      Here we will describe the exhaustive search algorithm to solve the 
+      <a class="problem" href="?path=Problems%2FOther%2FSubset%20Sum">Subset Sum</a>
+      problem.
+    </p>
   </section>
 
   <section id="design">
-  <h2>Design and Strategy</h2>
-  <p>
-    The exhaustive search strategy for Subset Sum is to generate all possible subsets of the input set and check if any sum to the target. Each subset is considered independently, and we return true if any subset matches the desired sum.
-  </p>
-  <p>
-    One way to do this is via recursion using the inclusion/exclusion method. Another is by iterating over all subsets using bitmasks. Although there are multiple ways to generate all subsets, we assume a standard enumeration method is used. (See <a class="problem" href="?path=Algorithms%2FOther%2FSubset%20Enumeration">Subset Enumeration</a>.)
-  </p>
-  <p>Recursive pseudocode:</p>
-  <ol>
-    <li><strong>Base Case:</strong> If \(T = 0\), return TRUE. If no elements are left and \(T \neq 0\), return FALSE.</li>
-    <li><strong>Recursive Case:</strong> For the current element \(x\):
-      <ul>
-        <li>Include \(x\): recurse with \(T - x\).</li>
-        <li>Exclude \(x\): recurse with \(T\).</li>
-      </ul>
-    </li>
-    <li><strong>Return:</strong> TRUE if either recursive call returns TRUE.</li>
-  </ol>
+    <h2>Design and Strategy</h2>
+    <p>
+      The exhaustive search strategy for Subset Sum is to <strong>generate all possible subsets</strong> of the input set and check each subset's sum. Since each element can either be <em>included</em> or <em>excluded</em>, there are \(2^n\) possible subsets for \(n\) elements.
+    </p>
+    <p>
+      One convenient implementation is via recursion (the <em>inclusion--exclusion</em> approach). At each step, we choose whether to include the next element in our subset or not, forming a binary recursion tree of depth \(n\).
+    </p>
+    <p>Here is the pseudocode outline:</p>
+    <ol class="spaced">
+      <li><strong>Base Case:</strong> If the remaining target \(T = 0\), return <code>true</code>. If no elements remain and \(T \neq 0\), return <code>false</code>.</li>
+      <li><strong>Recursive Case:</strong> Otherwise, let \(x\) be the next element:
+        <ul>
+          <li><strong>Include \(x\):</strong> Recurse on the rest with target \(T - x\).</li>
+          <li><strong>Exclude \(x\):</strong> Recurse on the rest with the same target \(T\).</li>
+        </ul>
+      </li>
+      <li><strong>Result:</strong> Return <code>true</code> if either recursive call returns <code>true</code>; otherwise <code>false</code>.</li>
+    </ol>
   </section>
 
   <section id="demo">
-  <div class="embeddedDemoContainer">
-    <iframe class="embeddedDemo"
-            src="/Algorithms/Content/Demos/Exhaustive%20Search/Subset%20Sum%20Demo.html"
-            allow="fullscreen"
-            name="Subset_Sum_demo">
-    </iframe>
-  </div>
+    <div class="embeddedDemoContainer">
+      <iframe class="embeddedDemo"
+              src="/Algorithms/Content/Demos/Exhaustive%20Search/Subset%20Sum%20Demo.html"
+              allow="fullscreen"
+              name="Subset_Sum_demo">
+      </iframe>
+    </div>
   </section>
 
   <section id="code">
-  <h2>Implementation in Java, C++, Python</h2>
-  <p>Each implementation explores all subsets using recursion. They return true if a solution exists.</p>
-  <div class="tab-group">
-    <div class="tabs" role="tablist">
-      <button id="tab-java" class="tablink active" data-lang="java" role="tab" aria-controls="java" aria-selected="true">Java</button>
-      <button id="tab-cpp" class="tablink" data-lang="cpp" role="tab" aria-controls="cpp" aria-selected="false">C++</button>
-      <button id="tab-python" class="tablink" data-lang="python" role="tab" aria-controls="python" aria-selected="false">Python</button>
-    </div>
-    <div id="java" class="code-container active" role="tabpanel" aria-labelledby="tab-java">
-      <pre><code class="language-java">boolean subsetSum(int[] A, int T, int i) {
+    <h2>Implementation in Java, C++, Python</h2>
+    <p>These implementations use a recursive exhaustive search to decide if any subset sums to the target.</p>
+    <div class="tab-group">
+      <div class="tabs" role="tablist">
+        <button id="tab-java" class="tablink active" data-lang="java" role="tab" aria-controls="java" aria-selected="true">Java</button>
+        <button id="tab-cpp" class="tablink" data-lang="cpp" role="tab" aria-controls="cpp" aria-selected="false">C++</button>
+        <button id="tab-python" class="tablink" data-lang="python" role="tab" aria-controls="python" aria-selected="false">Python</button>
+      </div>
+      <div id="java" class="code-container active" role="tabpanel" aria-labelledby="tab-java">
+        <pre><code class="language-java">boolean subsetSum(int[] S, int n, int T) {
     if (T == 0) return true;
-    if (i == A.length) return false;
-    return subsetSum(A, T - A[i], i + 1) || subsetSum(A, T, i + 1);
-}
-
-boolean subsetSum(int[] A, int T) {
-    return subsetSum(A, T, 0);
+    if (n == 0) return false;
+    return subsetSum(S, n - 1, T) || subsetSum(S, n - 1, T - S[n - 1]);
 }</code></pre>
-    </div>
-    <div id="cpp" class="code-container" role="tabpanel" aria-labelledby="tab-cpp">
-      <pre><code class="language-cpp">bool subsetSum(int A[], int T, int i, int n) {
+      </div>
+      <div id="cpp" class="code-container" role="tabpanel" aria-labelledby="tab-cpp">
+        <pre><code class="language-cpp">bool subsetSum(int S[], int n, int T) {
     if (T == 0) return true;
-    if (i == n) return false;
-    return subsetSum(A, T - A[i], i + 1, n) || subsetSum(A, T, i + 1, n);
-}
-
-bool subsetSum(int A[], int T, int n) {
-    return subsetSum(A, T, 0, n);
+    if (n == 0) return false;
+    return subsetSum(S, n - 1, T) || subsetSum(S, n - 1, T - S[n - 1]);
 }</code></pre>
-    </div>
-    <div id="python" class="code-container" role="tabpanel" aria-labelledby="tab-python">
-      <pre><code class="language-python">def subset_sum(A, T, i=0):
+      </div>
+      <div id="python" class="code-container" role="tabpanel" aria-labelledby="tab-python">
+        <pre><code class="language-python">def subset_sum(S, n, T):
     if T == 0:
         return True
-    if i == len(A):
+    if n == 0:
         return False
-    return subset_sum(A, T - A[i], i + 1) or subset_sum(A, T, i + 1)</code></pre>
+    return subset_sum(S, n - 1, T) or subset_sum(S, n - 1, T - S[n - 1])</code></pre>
+      </div>
     </div>
-  </div>
   </section>
 
   <section id="analysis">
-  <h2>Time/Space Analysis</h2>
-  <p><strong>Time Complexity:</strong> \(O(2^n)\), since each of the \(n\) elements leads to two branches.</p>
-  <p><strong>Space Complexity:</strong> \(O(n)\) due to recursion stack depth.</p>
-
-  <h2>Variations/Improvements</h2>
-  <ul>
-    <li><strong>Dynamic Programming:</strong> \(O(n \cdot T)\) time and space if values are small integers.</li>
-    <li><strong>Meet-in-the-Middle:</strong> \(O(2^{n/2})\) time with extra space.</li>
-    <li><strong>Count/Return All Subsets:</strong> Return or count all subsets that meet the target.</li>
-    <li><strong>k-Subset Sum:</strong> Check only subsets of size \(k\).</li>
-    <li><strong>Backtracking with Pruning:</strong> Skip branches that exceed or cannot reach the target.</li>
-  </ul>
+    <h2>Time/Space Analysis</h2>
+    <p><strong>Time Complexity:</strong> There are \(2^n\) subsets of an \(n\)-element set. Each recursive step does constant work beyond the two recursive calls, so the total time is \(O(2^n)\).</p>
+    <p><strong>Space Complexity:</strong> The recursion stack can grow to depth \(n\), so the extra space is \(O(n)\).</p>
+    <h2>Variations/Improvements</h2>
+    <ul>
+      <li><strong>Dynamic Programming:</strong> A pseudo-polynomial DP solution runs in \(O(n \times T)\) time when the target \(T\) is not too large.</li>
+      <li><strong>Meet-in-the-Middle:</strong> Split the set into two halves, enumerate sums of each, and match to the target in \(O(2^{n/2})\) time.</li>
+      <li><strong>Backtracking and Pruning:</strong> Skip branches when the partial sum exceeds the target or cannot possibly reach it.</li>
+      <li><strong>Special Cases:</strong> Subset Sum is a special case of 0/1 Knapsack and Partition; knapsack techniques apply.</li>
+    </ul>
   </section>
 
   <section id="links">
-  <h2>Links to Resources</h2>
-  <ul>
-    <li><a href="https://en.wikipedia.org/wiki/Subset_sum_problem" target="_blank">Wikipedia: Subset Sum Problem</a></li>
-    <li><a href="https://www.geeksforgeeks.org/subset-sum-problem-dp-25/" target="_blank">GeeksforGeeks: Subset Sum (Brute Force & DP)</a></li>
-    <li><a href="https://www.finalround.ai/lessons/subset-sum" target="_blank">FinalRound AI: Subset Sum Tutorial</a></li>
-  </ul>
+    <h2>Links to Resources</h2>
+    <ul class="resource-list">
+      <li><a href="https://en.wikipedia.org/wiki/Subset_sum_problem" target="_blank">Subset Sum Problem – Wikipedia</a></li>
+      <li><a href="https://www.geeksforgeeks.org/subset-sum-problem-dp-25/" target="_blank">Subset Sum Problem – GeeksforGeeks</a></li>
+      <li><a href="https://www.finalround.ai/lessons/subset-sum" target="_blank">Subset Sum Tutorial – FinalRound AI</a></li>
+    </ul>
   </section>
 
   <section id="reading-questions">
     <h2>Reading Comprehension Questions</h2>
     <ol>
-      <li><strong>Subset Count:</strong> How many subsets does a set of size \(n\) have?</li>
-      <li><strong>Branching:</strong> What are the two recursive calls made at each level?</li>
-      <li><strong>Base Case:</strong> Why does returning TRUE on \(T=0\) work?</li>
+      <li>How many subsets does a set of size \(n\) have?</li>
+      <li>What are the two recursive calls made in the brute-force algorithm?</li>
+      <li>Why must we consider all subsets in the worst case?</li>
+      <li>How does the base case <code>T == 0</code> help solve the problem?</li>
+      <li>What is the time complexity of the brute-force approach?</li>
     </ol>
     <button id="toggleAnswers" class="show-answer" aria-expanded="false">Show Answers</button>
     <div id="answers" class="answer" hidden>
       <ol>
-        <li><strong>Answer:</strong> \(2^n\).</li>
-        <li><strong>Answer:</strong> Include the element or exclude it.</li>
-        <li><strong>Answer:</strong> Because we have matched the exact sum using some subset.</li>
+        <li><strong>Answer:</strong> There are \(2^n\) subsets of an \(n\)-element set.</li>
+        <li><strong>Answer:</strong> One call includes the current element (subtracting its value from \(T\)), and the other excludes it.</li>
+        <li><strong>Answer:</strong> Because any subset might sum to the target, so all must be checked.</li>
+        <li><strong>Answer:</strong> It detects when a valid subset has been found and stops further search along that branch.</li>
+        <li><strong>Answer:</strong> \(O(2^n)\) time.</li>
       </ol>
     </div>
   </section>
@@ -139,22 +141,27 @@ bool subsetSum(int A[], int T, int n) {
   <section id="activities">
     <h2>In-Class Activities</h2>
     <ol>
-      <li>Trace the recursive calls for \(S = \{1, 3, 4, 7\}\) and target 8.</li>
-      <li>Use the demo to test whether \(\{2, 5, 8, 11\}\) can sum to 16.</li>
-      <li>Sketch the recursive tree for \(n = 3\).</li>
-      <li>Discuss why pruning helps and give examples.</li>
-      <li>Design a brute-force algorithm to solve the Partition problem.</li>
+      <li>Trace the algorithm on the input set \{1, 3, 4, 7\} with target 8.</li>
+      <li>Explain what happens when all elements are larger than the target.</li>
+      <li>Use the demo to find multiple solutions for \{2, 5, 8, 11\} and target 16.</li>
+      <li>Design a brute-force algorithm to check if any subset has product exactly 24.</li>
+      <li>Propose how to count how many subsets match the target instead of just checking existence.</li>
+      <li>Modify the approach to only consider subsets of size 3.</li>
+      <li>Brainstorm why this approach fails when \(n\) is large (e.g., \(n > 30\)).</li>
     </ol>
   </section>
 
   <section id="problems">
     <h2>Homework Problems</h2>
     <ol>
-      <li><strong>Three-Sum:</strong> Find three numbers from a list that sum to \(T\).</li>
-      <li><strong>k-Clique via Subsets:</strong> Enumerate vertex subsets and check for complete graphs.</li>
-      <li><strong>Count Subsets:</strong> Return the total number of subsets summing to \(T\).</li>
-      <li><strong>Subset Product:</strong> Find a subset whose product is exactly \(T\).</li>
-      <li><strong>Subset of Size 3:</strong> Limit search to 3-element subsets.</li>
+      <li><strong>All Subsets:</strong> Write a program that prints all subsets that sum to the target value.</li>
+      <li><strong>Subset Product:</strong> Decide if any subset of the input has product equal to a given target.</li>
+      <li><strong>Count Solutions:</strong> Modify the recursive algorithm to return the number of subsets that match the target.</li>
+      <li><strong>Permutation Sum:</strong> Design an exhaustive search to find if any permutation of the numbers adds to the target (order matters).</li>
+      <li><strong>k-Subset Sum:</strong> Modify the algorithm to only consider subsets of size exactly \(k\).</li>
+      <li><strong>3-Element Target:</strong> Determine if any 3-element subset adds to a specified target.</li>
+      <li><strong>Subset Difference:</strong> Find a subset whose elements’ absolute differences sum to the target value.</li>
+      <li><strong>Weight Limit:</strong> Given item weights and a weight limit, check if any subset stays under the limit and meets a second goal.</li>
     </ol>
   </section>
 

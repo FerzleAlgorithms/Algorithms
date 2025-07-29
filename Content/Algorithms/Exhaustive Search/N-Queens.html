@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>N-Queens (Exhaustive Search)</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js"></script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <script src="/Algorithms/scripts/chapterScripts.js"></script>
+  <link rel="stylesheet" href="/Algorithms/css/style.css">
+  <link rel="stylesheet" href="/Algorithms/css/chapter.css?f=f">
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DQ5LVZVFDC"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-DQ5LVZVFDC');
+  </script>
+  <style>
+.config-list {
+  display: flex;
+  flex-wrap: wrap;
+  font-family: monospace;
+  gap: 8px 16px;
+  margin-bottom: 1em;
+}
+.config-list span {
+  white-space: pre;
+}
+</style>
+</head>
+<body>
+  <h1>N-Queens (Exhaustive Search)</h1>
+
+  <section id="problem-solved">
+    <h2>Problem Solved</h2>
+    <p>Here will will present the exhaustive search algorithm that solves the 
+      <a class="problem" href="?path=Problems%2FOther%2FN-Queens">N-Queens</a>
+      problem.
+    </p>
+  </section>
+  
+  <section id="design">
+  <h2>Design and Strategy</h2>
+  <p>
+    The N-Queens problem asks how to place \(N\) queens on an \(N \times N\) chessboard so that no two queens threaten each other. 
+    That is, no two queens can be on the same row, column, or diagonal.
+  </p>
+
+  <p>
+    The algorithm we will provide here uses a brute-force strategy. It represents each board configuration as an array \( Q \) of length \( n \), 
+    where \( Q[i] \) gives the column index of the queen placed in row \( i \).
+  </p>
+	
+    <div class="example-box">
+      <strong class="example-title">Example 1</strong><br><br>
+  If \( n = 5 \) and \( Q = [2, 3, 1, 0, 2] \), then the board would look like this:<br>
+<svg width="250" height="250" xmlns="http://www.w3.org/2000/svg" style="margin-bottom:10px;">
+  <!-- Draw chessboard -->
+  <g>
+    <!-- 5x5 grid -->
+    <rect width="250" height="250" fill="#fff"/>
+    <g>
+      <!-- Squares -->
+      <script type="application/ecmascript"><![CDATA[
+        for (let r = 0; r < 5; r++) {
+          for (let c = 0; c < 5; c++) {
+            const isDark = (r + c) % 2 === 1;
+            const x = c * 50;
+            const y = r * 50;
+            document.write(`<rect x="${x}" y="${y}" width="50" height="50" fill="${isDark ? '#ccc' : '#f8f8f8'}"/>`);
+          }
+        }
+      ]]></script>
+      <!-- Static version in case script doesn't run -->
+      <rect x="0" y="0" width="50" height="50" fill="#f8f8f8"/>
+      <rect x="50" y="0" width="50" height="50" fill="#ccc"/>
+      <rect x="100" y="0" width="50" height="50" fill="#f8f8f8"/>
+      <rect x="150" y="0" width="50" height="50" fill="#ccc"/>
+      <rect x="200" y="0" width="50" height="50" fill="#f8f8f8"/>
+      <rect x="0" y="50" width="50" height="50" fill="#ccc"/>
+      <rect x="50" y="50" width="50" height="50" fill="#f8f8f8"/>
+      <rect x="100" y="50" width="50" height="50" fill="#ccc"/>
+      <rect x="150" y="50" width="50" height="50" fill="#f8f8f8"/>
+      <rect x="200" y="50" width="50" height="50" fill="#ccc"/>
+      <rect x="0" y="100" width="50" height="50" fill="#f8f8f8"/>
+      <rect x="50" y="100" width="50" height="50" fill="#ccc"/>
+      <rect x="100" y="100" width="50" height="50" fill="#f8f8f8"/>
+      <rect x="150" y="100" width="50" height="50" fill="#ccc"/>
+      <rect x="200" y="100" width="50" height="50" fill="#f8f8f8"/>
+      <rect x="0" y="150" width="50" height="50" fill="#ccc"/>
+      <rect x="50" y="150" width="50" height="50" fill="#f8f8f8"/>
+      <rect x="100" y="150" width="50" height="50" fill="#ccc"/>
+      <rect x="150" y="150" width="50" height="50" fill="#f8f8f8"/>
+      <rect x="200" y="150" width="50" height="50" fill="#ccc"/>
+      <rect x="0" y="200" width="50" height="50" fill="#f8f8f8"/>
+      <rect x="50" y="200" width="50" height="50" fill="#ccc"/>
+      <rect x="100" y="200" width="50" height="50" fill="#f8f8f8"/>
+      <rect x="150" y="200" width="50" height="50" fill="#ccc"/>
+      <rect x="200" y="200" width="50" height="50" fill="#f8f8f8"/>
+    </g>
+  </g>
+
+  <!-- Draw queens: Q = [2, 3, 1, 0, 2] -->
+  <g font-size="28" font-family="serif" text-anchor="middle" dominant-baseline="central">
+    <text x="125" y="25">♛</text>   <!-- row 0, col 2 -->
+    <text x="175" y="75">♛</text>   <!-- row 1, col 3 -->
+    <text x="75" y="125">♛</text>   <!-- row 2, col 1 -->
+    <text x="25" y="175">♛</text>   <!-- row 3, col 0 -->
+    <text x="125" y="225">♛</text>  <!-- row 4, col 2 (conflict) -->
+  </g>
+</svg>
+<p>
+  Each queen is placed in the column indicated by the corresponding entry in \( Q \), one per row from top to bottom. 
+  In this case, rows 0 and 4 both place a queen in column 2, creating a conflict (this is just one of many conflicts for this configuration). Thus, the configuration is invalid.
+</p>
+</div>
+
+<p>
+  The algorithm systematically generates all possible ways to assign a column to each row. 
+  It begins by placing a queen in column 0 of every row—represented by the array \([0, 0, 0, \dots, 0]\). 
+  Then it modifies the last row to try column 1, then column 2, and so on up to \( N - 1 \), giving arrays like 
+  \([0, 0, 0, \dots, 1]\), \([0, 0, 0, \dots, 2]\), etc.</p>
+  <p>Once all options for the last row are exhausted, 
+  it increments the second-to-last row and resets the last row to 0, continuing this way until it reaches \([N-1, N-1, \dots, N-1]\). 
+  Each such array represents a complete assignment of queens&mdash;one per row&mdash;and the algorithm checks whether it is a valid configuration. 
+  This process continues until all \( N^N \) arrays have been explored.
+</p>
+ 
+    <div class="example-box">
+      <strong class="example-title">Example 2</strong><br>
+  <p>
+    If \( N = 3 \), the algorithm would systematically try all \( 3^3 = 27 \) configurations. Each configuration is a 
+    3-element array where entry \( i \) indicates the column to place the queen in row \( i \). The configurations tried are:
+  </p>
+
+ <div class="config-list">
+  <span>[0, 0, 0]</span> <span>[0, 0, 1]</span> <span>[0, 0, 2]</span>
+  <span>[0, 1, 0]</span> <span>[0, 1, 1]</span> <span>[0, 1, 2]</span>
+  <span>[0, 2, 0]</span> <span>[0, 2, 1]</span> <span>[0, 2, 2]</span>
+  <span>[1, 0, 0]</span> <span>[1, 0, 1]</span> <span>[1, 0, 2]</span>
+  <span>[1, 1, 0]</span> <span>[1, 1, 1]</span> <span>[1, 1, 2]</span>
+  <span>[1, 2, 0]</span> <span>[1, 2, 1]</span> <span>[1, 2, 2]</span>
+  <span>[2, 0, 0]</span> <span>[2, 0, 1]</span> <span>[2, 0, 2]</span>
+  <span>[2, 1, 0]</span> <span>[2, 1, 1]</span> <span>[2, 1, 2]</span>
+  <span>[2, 2, 0]</span> <span>[2, 2, 1]</span> <span>[2, 2, 2]</span>
+</div>
+  <p>
+   Each of these arrays represents a choice of column for each of the three rows. 
+   In this case, all of them are invalid 
+   (In other words, the problem has no solution for \(N=3\)). For instance,  
+    \([0, 0, 0]\) places all three queens in the same column, while \([0, 1, 2]\) puts them all on the same diagonal.</p>
+  </div>
+  <p>
+  Since each queen can independently be placed in any column from 0 to \( N - 1 \), 
+  there are \( N^N \) total assignments the algorithm must consider. This exhaustive method 
+  does not avoid obviously invalid partial states and is extremely inefficient for larger \( N \), 
+  but it is conceptually simple and useful for illustrating the problem's structure and constraints.
+</p>
+
+<p>
+  To summarize the approach: the algorithm places queens row by row, trying all possible column positions for each. 
+  It recursively fills in the next row for each assignment, and once all rows are filled, it checks whether the full board 
+  is valid. This process explores all \( N^N \) configurations in a systematic, depth-first manner.
+</p>
+
+
+  <p>Here is a high-level pseudocode outline:</p>
+  <ol>
+  <li>
+    <strong>Initialize:</strong> Create an array \( Q \) of length \( N \) to hold the column choices for each row.<br>
+    Set \( \text{row} = 0 \).
+  </li>
+  <li>
+    <strong>Fill:</strong> For each value \( \text{col} \) from \( 0 \) to \( N - 1 \):
+    <ol>
+      <li>Set \( Q[\text{row}] = \text{col} \).</li>
+      <li>If \( \text{row} = N - 1 \), then <strong>Validate</strong>:
+        <ol>
+          <li>Check whether the configuration is valid (i.e., no two queens share a column or diagonal).</li>
+          <li>If valid, record or output the solution.</li>
+        </ol>
+      </li>
+      <li>Otherwise, increment \( \text{row} \) and go to <strong>Fill</strong> with the new row value.</li>
+    </ol>
+  </li>
+</ol>
+
+<p>If this is not entirely clear, walk through the following demo to see what is really happening.</p>
+</section>
+
+  <section id="demo">
+    <div class="embeddedDemoContainer">
+      <iframe class="embeddedDemo"
+              src="/Algorithms/Content/Demos/Exhaustive%20Search/N-Queens Demo.html"
+              allow="fullscreen"
+              name="n-queens-demo">
+      </iframe>
+    </div>
+  </section>
+
+  <p>
+    This is an example of <strong>exhaustive search</strong> because it explores all possibilities without any pruning or constraints—resulting in a combinatorial explosion of work.
+  </p>
+  
+  
+  <section id="code">
+    <h2>Implementation in Java, C++, Python</h2>
+    <p>This implementation generates all \(N^N\) possible row-to-column assignments and filters out invalid ones. The code uses \(n\) instead of \(N\) because lower-case variables are more common.
+	The <code>isValid</code> function 
+	checks, for every pair of queens, whether or not they attack each other.
+	We leave it to the reader to explore the correctness of that function.</p>
+	
+    <div class="tab-group">
+      <div class="tabs" role="tablist">
+        <button id="tab-java" class="tablink active" data-lang="java" role="tab" aria-controls="java" aria-selected="true">Java</button>
+        <button id="tab-cpp" class="tablink" data-lang="cpp" role="tab" aria-controls="cpp" aria-selected="false">C++</button>
+        <button id="tab-python" class="tablink" data-lang="python" role="tab" aria-controls="python" aria-selected="false">Python</button>
+      </div>
+      <div id="java" class="code-container active" role="tabpanel" aria-labelledby="tab-java">
+        <pre><code class="language-java">void generateAll(int[] Q, int row, int n) {
+    if (row == n) {
+        if (isValid(Q, n)) {
+            printSolution(Q);
+        }
+        return;
+    }
+    for (int col = 0; col &lt; n; col++) {
+        Q[row] = col;
+        generateAll(Q, row + 1, n);
+    }
+}
+
+boolean isValid(int[] Q, int n) {
+    for (int i = 0; i &lt; n; i++) {
+        for (int j = i + 1; j &lt; n; j++) {
+            if (Q[i] == Q[j] || Math.abs(i - j) == Math.abs(Q[i] - Q[j])) {
+                return false;
+            }
+        }
+    }
+    return true;
+}</code></pre>
+      </div>
+
+      <div id="cpp" class="code-container" role="tabpanel" aria-labelledby="tab-cpp">
+        <pre><code class="language-cpp">void generateAll(int Q[], int row, int n) {
+    if (row == n) {
+        if (isValid(Q, n)) {
+            printSolution(Q, n);
+        }
+        return;
+    }
+    for (int col = 0; col &lt; n; col++) {
+        Q[row] = col;
+        generateAll(Q, row + 1, n);
+    }
+}
+
+bool isValid(int Q[], int n) {
+    for (int i = 0; i &lt; n; i++) {
+        for (int j = i + 1; j &lt; n; j++) {
+            if (Q[i] == Q[j] || abs(i - j) == abs(Q[i] - Q[j])) {
+                return false;
+            }
+        }
+    }
+    return true;
+}</code></pre>
+      </div>
+
+      <div id="python" class="code-container" role="tabpanel" aria-labelledby="tab-python">
+        <pre><code class="language-python">def generate_all(Q, row, n):
+    if row == n:
+        if is_valid(Q):
+            print(Q)
+        return
+    for col in range(n):
+        Q[row] = col
+        generate_all(Q, row + 1, n)
+
+def is_valid(Q):
+    n = len(Q)
+    for i in range(n):
+        for j in range(i + 1, n):
+            if Q[i] == Q[j] or abs(i - j) == abs(Q[i] - Q[j]):
+                return False
+    return True</code></pre>
+      </div>
+    </div>
+  </section>
+
+  <section id="analysis">
+    <h2>Time/Space Analysis</h2>
+	<p><strong>Time Complexity:</strong> 
+  There are \( N^N \) possible assignments to explore, since each of the \( N \) rows 
+  can independently choose any of \( N \) columns for its queen. For each assignment, 
+  the algorithm performs a validity check by comparing each pair of rows to ensure no 
+  queens share a column or diagonal. This check takes \( O(N^2) \) time in the worst case, 
+  since there are \( O(N^2) \) pairs of rows to consider. As a result, the total time 
+  complexity is \( O(N^N \cdot N^2) = O(N^{N+2}) \). 
+  Hopefully it is obvious that this is not very efficient and would be impossible to run even for moderately sized values of \( N \). 
+  </p>
+  <p>
+  Hopefully it is obvious that this is not
+  very efficient and would be impossible to run even for moderately sized values of \(N\).
+  For example, \( N = 10 \) requires on the order of \( 10^{12} \) operations, 
+  which would take about 3  hours to complete even on a modern computer.
+  \(N=11\) would take about a day, 
+  \(N=12\) about 148 days,
+  and \(N=13\) about 41 years! 
+</p>
+<p><strong>Space Complexity:</strong> 
+  Although the N-Queens problem involves an \( N \times N \) chessboard, this algorithm never explicitly 
+  stores the full board. Instead, it uses a one-dimensional array \( Q \) of length \( N,\) where 
+  \( Q[i] \) holds the column index of the queen placed in row \( i \). This compact representation 
+  allows the algorithm to track queen positions efficiently without storing any unused board information.
+</p>
+
+<p>
+  In addition to the array \( Q \), 
+  the recursive implementation uses a call stack with depth at most \( N,\) 
+  since it places one queen per row. Therefore, the overall space complexity is \( O(N).\) 
+  No additional data structures are used.
+</p>
+
+<h2>Variations/Improvements</h2>
+<p>
+  Several optimizations can reduce the search space significantly while still exploring 
+  all valid configurations. Some improvements still follow a brute-force mindset but add 
+  early pruning or constraints.
+</p><ul>
+  <li><strong>Prune by Columns:</strong> Restrict each queen to a different column; only permutations of columns are valid, reducing the total from \( N^N \) to \( N! \). This idea avoids immediately invalid configurations where multiple queens share a column.</li>
+  <li><strong>Backtracking:</strong> A more efficient recursive approach that eliminates invalid partial configurations as soon as they occur, instead of waiting until the board is completely filled. We will explore this technique later as a better alternative.</li>
+  <li><strong>Bitmasking (Advanced):</strong> In languages like C++ or Java, bitmasks can represent available columns and diagonals compactly, enabling very fast pruning. This is beyond simple exhaustive search but relevant for high-performance implementations.</li>
+</ul>
+
+<section id="links">
+  <h2>Links to Resources</h2>
+  <ul>
+    <li>
+      <a href="https://en.wikipedia.org/wiki/Eight_queens_puzzle" target="_blank">
+        Wikipedia: Eight Queens Puzzle
+      </a> Historical background, mathematical properties, and various algorithmic approaches, including brute-force and backtracking.
+    </li>
+    <li>
+      <a href="https://www.geeksforgeeks.org/dsa/n-queen-problem-backtracking-3/" target="_blank">
+        GeeksforGeeks: N-Queens Problem
+      </a> Clear explanation and dicussion of backtracking solution in C++, Python, and Java.
+    </li>
+    <li>
+      <a href="https://www.cs.usfca.edu/~galles/visualization/RecQueens.html" target="_blank">Data Structure Visualizations: N-Queens Problem
+      </a> Animated visual for N-Queens backtracking, showing placement and backtracking decisions step-by-step.
+    </li>
+  </ul>
+</section>
+<section id="reading-questions">
+  <h2>Reading Comprehension Questions</h2>
+  <ol> 
+  <li><strong>Representation:</strong> What does the array \( Q \) represent in this algorithm, and how is it used?</li>
+	<li><strong>Board Representation:</strong> Draw the board that corresponds to the array <code>[1, 0, 3, 1, 4]</code>. Is it a valid solution?</li>
+    <li><strong>Total Configurations:</strong> Why are there \( N^N \) configurations considered by this algorithm?</li>
+    <li><strong>Validity Check:</strong> What specific conditions must a configuration meet to be considered valid?</li>
+    <li><strong>Search Strategy:</strong> In what way is this algorithm an example of exhaustive search?</li>
+    <li><strong>Early Pruning:</strong> How would restricting queens to different columns reduce the number of configurations explored?</li>
+    <li><strong>Efficiency Limits:</strong> Why is this brute-force approach infeasible for values like \( N = 12 \) or \( N = 13 \)?</li>
+   
+    <li><strong>Diagonal Conflicts:</strong> How does the algorithm detect if two queens are on the same diagonal?</li>
+    <li><strong>Space Complexity:</strong> Why is the space complexity only \( O(N) \), even though the board is \( N \times N \)?</li>
+  </ol>
+
+  <button id="toggleAnswers" class="show-answer" aria-expanded="false">Show Answers</button>
+  <div id="answers" class="answer" hidden>
+    <ol> 
+	<li><strong>Answer:</strong> The array \( Q \) stores queen positions: \( Q[i] \) is the column of the queen in row \( i \).</li>
+	  <li><strong>Answer:</strong> Each number in the array represents the column index for the queen in that row. So the board looks like this:<br>
+<pre>
+. Q . . .
+Q . . . .
+. . . Q .
+. Q . . .
+. . . . Q
+</pre><br>
+Note that rows 0 and 3 both place a queen in column 1, so this configuration is invalid due to a column conflict.
+</li>
+      <li><strong>Answer:</strong> Each of the \( N \) rows can independently choose any of \( N \) columns, so there are \( N^N \) total assignments.</li>
+      <li><strong>Answer:</strong> No two queens can be in the same column or on the same diagonal.</li>
+      <li><strong>Answer:</strong> It tries every possible configuration of column assignments across rows, with no pruning or shortcuts — hence "exhaustive."</li>
+      <li><strong>Answer:</strong> Requiring unique columns makes each configuration a permutation, reducing the total from \( N^N \) to \( N! \).</li>
+      <li><strong>Answer:</strong> Because the number of configurations grows faster than exponential, taking months or years to run for large \( N \).</li>
+     
+      <li><strong>Answer:</strong> Two queens at \( (i, Q[i]) \) and \( (j, Q[j]) \) are on the same diagonal if \( |i - j| = |Q[i] - Q[j]| \).</li>
+      <li><strong>Answer:</strong> The board is never stored; the algorithm uses only the \( Q \) array and a call stack of depth \( N \), both of which are linear in size.</li>
+    </ol>
+  </div>
+</section>
+
+<section id="activities">
+  <h2>In-Class Activities</h2>
+  <ol>
+    <li><strong>Board Visualization:</strong> Given a list like \([3, 1, 4, 2, 0]\), draw the corresponding board and verify whether the configuration is valid. 
+      What kinds of patterns indicate diagonal conflicts?</li>
+	<li><strong>Is <code>isValid</code> Valid?:</strong> Discuss the correctness of the
+	<code>isValid</code> function from the code above. Justify why it always returns the
+	correct answer.</li>
+    <li><strong>Try Small Cases:</strong> In small groups, list the first 20 configurations
+	for \( N = 4 \) and determine which are valid solutions.</li>
+	<li><strong>Column Constraint Exploration:</strong> For \(N=3\) and \(N=4\), list all of the
+	possible configuration that do not place two queens in the same column. 
+	How many configurations are there in each case? How many do you think there are for \(N=5\)?</li>
+	<li><strong>Column Constraint + Pseudocode:</strong> 
+	  Modify the algorithm to ensure no two queens share a column (i.e., generate only permutations of column indices). 
+	  Work in pairs to write clear pseudocode or code for this version. Then compare how many configurations it tries for \( N = 4 \), \( 5 \), and \( 6 \) 
+	  compared to the original version. What is the theoretical time complexity of this new approach?
+	</li>
+    <li><strong>Runtime Exploration:</strong> Use the demo to count how many configurations are tested for \( N = 4 \), \( 5 \), and \( 6 \). 
+      Does the growth match what you’d expect from the theoretical time complexity?</li>
+	<li><strong>Comparing Growth of Two Brute-Force Strategies:</strong> 
+	  Suppose you are considering two versions of the N-Queens algorithm:
+	  <ul>
+		<li>The basic version that explores all \( N^N \) row-to-column assignments and takes \( O(N^2) \) time to validate each configuration.</li>
+		<li>The improved version that only explores permutations (i.e., each queen in a different column), which leads to \( N! \) configurations, and only checks diagonals in \( O(N) \) time per configuration.</li>
+	  </ul>
+	  <strong>Part 1 — Chart the Combinatorics:</strong> 
+	  Using a spreadsheet or graphing tool, create a chart that shows the values of \( N^N \) and \( N! \) for \( N = 1 \) to \( N = 20 \). 
+	  Use a logarithmic scale if needed to better visualize the difference. 
+	  <br>Discuss: At what value of \( N \) do the two functions start to diverge dramatically? 
+	  Does reducing from \( N^N \) to \( N! \) solve the problem of exponential growth?
+	  <br><br><strong>Part 2 — Estimate Runtime:</strong> 
+	  In the same spreadsheet, estimate how long each algorithm would take to run for various values of \( N \), using the following assumptions:
+	  <ul>
+		<li>The \( N^N \) algorithm performs \( N^2 \) operations per configuration → total time is \( N^N \cdot N^2 \).</li>
+		<li>The \( N! \) algorithm performs \( N \) operations per configuration → total time is \( N! \cdot N \).</li>
+		<li>Your computer performs \( 10^8 \) operations per second.</li>
+	  </ul>
+	  Add two more charts: one for the estimated number of operations, and one for runtime in seconds (or minutes/hours). 
+	  Highlight when each method becomes impractical. 
+	  <br>Discuss: How much improvement does the permutation-based version actually provide in terms of usable input sizes?
+	</li>
+	<li><strong>Latin Squares:</strong> 
+	  A <em>Latin square</em> of size \( N \) is an \( N \times N \) grid filled with the numbers \( 1 \) through \( N \) 
+	  such that each number appears exactly once in every row and exactly once in every column.
+	 <ol type='a'>
+	  <li>Design an exhaustive search algorithm to generate all Latin squares of size \( N \). </li>
+	  <li>Estimate the size of the search space and the worst-case complexity of your algorithm.</li>
+	  <li>
+	  How quickly does the algorithm slow down as \( N \) increases? What optimizations might help?</li>
+	  </ol>
+	</li>
+    <li><strong>N-Queens Improvement Brainstorm:</strong> With your group, discuss possible ways of solving
+	the N-Queens problem more quickly. Think about what kinds of information could track during the recursive process to help reject bad configurations earlier, and what short-cuts you might be
+	able to take. In addition, can <code>isValid</code> be implemented more efficiently?
+	</li>
+  </ol>
+</section>
+<section id="problems">
+  <h2>Homework Problems</h2>
+  <ol>
+    <li><strong>Manual Tracing:</strong> For \( N = 4 \), 
+	list all possible row-to-column configurations in which \(Q[0]=2\) until you find a valid solution (so start with \([2,0,0,0]\)).	
+	Explain why each invalid one fails (e.g., column conflict, diagonal conflict).</li>
+    <li><strong>Conflict Identification:</strong> Give an example of a configuration that has exactly one pair of queens in conflict. Identify the rows involved, the type of conflict (same column or diagonal), and describe how the algorithm would detect it.</li>
+    <li><strong>Better isValid:</strong> The basic <code>isValid</code> 
+	function checks all \( \binom{N}{2} \) pairs of queens. 
+	Implement a more efficient version that runs in \( O(N) \) time.
+	Give clear pseudocode and explain how/why it works.
+	Use auxiliary storage if necessary.
+	Justify that it runs in linear time.</li>
+<li><strong>N-Queens in N! Configurations:</strong> 
+	 Give an exhaustive search algorithm for N-Queens that only checks \(N!\) configurations.
+	 Give clear pseudocode. 
+	 Explain the approach and why it works. Justify that it considers \(N!\) configurations.
+	 Implement an improved <code>IsValid</code> that works in linear time so the overall time
+	 is \(O(N\cdot N!)\).
+	</li>
+    <li><strong>Compare Exhaustive Variants:</strong> Implement both the original \( N^N \) and the permutation-based \( N! \) version of the algorithm. For each \( N \) from 4 through 10, report how many configurations each version checks and how long they take to run.</li>
+    <li><strong>Latin Square Generator:</strong> A Latin square is an \( N \times N \) grid where each row and each column contains every number from 1 to \( N \) exactly once. 
+	Write an exhaustive search algorithm to generate all Latin squares of size \( N \). 
+	Clearly explain how you exhaust all appropriate configurations and how you determine validity
+	of each.
+	Give clear pseudocode. What is the worst-case complexity of your algorithm?</li>
+    <li><strong>Space-Time Tradeoff?:</strong> The algorithm given here 
+	stores the queen configuration in a 1D array. 
+	Can you write a better algorithm using a full \( N \times N \) board? If not, can you
+	justify why not? If so, give the algorithm in clear pseudocode and give its worst-case
+	complexity.</li>
+  </ol>
+</section>
+</body>
+</html>
