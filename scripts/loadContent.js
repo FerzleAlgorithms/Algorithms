@@ -1,5 +1,7 @@
 // File: scripts/loadContent.js
-
+// NOTE: SHIFT-ALT-CLICK a link to copy a full HTML URL. 
+// E.g. <a href="?path=Algorithms%2FGreedy%2FMerge">Merge</a>
+// Documented here to remind me.
 history.scrollRestoration = 'manual';
 
 // ─── Ordering Constants ───────────────────────────────────────────────────────
@@ -13,8 +15,8 @@ const TOP_LEVEL_ORDER = [
   'More'
 ];
 const PROBLEMS_ORDER = [
-  'Problem List',
   'Foundational',
+  'Problem List',
   'Optimization',
   'Geometry',
   'Graphs',
@@ -243,13 +245,46 @@ const buildMenu = (chapters) => {
           a.textContent = raw.split('/').pop().replace(/Demo$/, '').trim();
           a.href = `?path=${encodeURIComponent(fullPath)}`;
           a.style.fontSize = `${1 - (level - 1) * 0.1}em`;
+		    // Alt+Shift+Click to copy <a> HTML
+		 a.addEventListener('click', (e) => {
+			  if (e.altKey && e.shiftKey) {
+				e.preventDefault();
+				e.stopImmediatePropagation();
+
+				// Temporarily disable selection
+				const menu = document.querySelector('#menu');
+				menu.classList.add('noselect');
+
+				// Clear selection *before* it visually appears
+				const sel = window.getSelection?.();
+				if (sel && !sel.isCollapsed) sel.removeAllRanges();
+
+				// Re-enable selection after a frame
+				requestAnimationFrame(() => {
+				  menu.classList.remove('noselect');
+				});
+
+				const html = `<a href="?path=${encodeURIComponent(fullPath)}">${a.textContent}</a>`;
+				navigator.clipboard.writeText(html)
+				  .then(() => {
+					a.title = 'Copied!';
+					setTimeout(() => (a.title = ''), 1000);
+				  })
+				  .catch(() => alert('Failed to copy link'));
+			  }
+			});
           li.appendChild(a);
         } else {
           Object.entries(item).forEach(([dir, sub]) => {
             const span = document.createElement('span');
             span.textContent = dir;
             span.style.fontSize = `${1 - (level - 1) * 0.1}em`;
-            span.onclick = () => li.classList.toggle('open');
+            /*span.onclick = () => li.classList.toggle('open');*/
+			span.onclick = (e) => {
+				// Only toggle submenu if not Alt+Shift+Click
+				if (e.altKey && e.shiftKey) return;
+				li.classList.toggle('open');
+				};
             li.appendChild(span);
 
             const ul = document.createElement('ul');
@@ -269,23 +304,22 @@ const buildMenu = (chapters) => {
     const span = document.createElement('span');
     span.textContent = sectionName;
     span.style.fontSize = '1.1em';
-    span.onclick = () => li.classList.toggle('open');
+    /*span.onclick = () => li.classList.toggle('open');*/
+	span.onclick = (e) => {
+		  // Prevent toggling open if Alt+Shift was used (used for copy)
+		  if (e.altKey && e.shiftKey) return;
+		  li.classList.toggle('open');
+		};
+
     li.appendChild(span);
 
     const ul = document.createElement('ul');
-
-/*
-    const orderList = {
-      Problems: PROBLEMS_ORDER,
-      Algorithms: ALGORITHMS_ORDER,
-      Demos: DEMOS_ORDER,
-      Techniques: TECHNIQUES_ORDER
-    }[sectionName] || [];*/
     
     buildList(contents, ul, `${sectionName}/`);
     li.appendChild(ul);
     menuRoot.appendChild(li);
   });
+
 };
 
 // ─── Load Content via Fetch + Replace‐into‐iframe ────────────────────────────
@@ -383,6 +417,23 @@ document.addEventListener('DOMContentLoaded', () => {
     })
     .catch(console.error);
 
+document.addEventListener('click', (event) => {
+  if (event.target.closest('iframe')) return;
+   const anchor = event.target.closest('a[href^="?path="]');
+  if (!anchor) return;
+
+  if (event.altKey && event.shiftKey) {
+    // Let the in-link handler do the copy
+    return;
+  }
+
+  event.preventDefault();
+  const rawPath = new URLSearchParams(anchor.getAttribute('href').slice(1)).get('path');
+  if (!rawPath) return;
+  navigateTo(rawPath);
+});
+
+/*
   document.addEventListener('click', (event) => {
     if (event.target.closest('iframe')) return;
     const anchor = event.target.closest('a[href^="?path="]');
@@ -391,7 +442,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const rawPath = new URLSearchParams(anchor.getAttribute('href').slice(1)).get('path');
     if (!rawPath) return;
     navigateTo(rawPath);
-  });
+  });*/
 
   window.addEventListener('message', (event) => {
     const msg = event.data;
