@@ -1,8 +1,19 @@
 // File: scripts/loadContent.js
-// NOTE: SHIFT-ALT-CLICK a link to copy a full HTML URL. 
-// E.g. <a href="?path=Algorithms%2FGreedy%2FMerge">Merge</a>
+// NOTE: a-CLICK a link to copy a full HTML URL. 
+// E.g. <li><a href="?path=Algorithms%2FGreedy%2FMerge">Merge</a></li>
 // Documented here to remind me.
 history.scrollRestoration = 'manual';
+
+
+let aKeyDown = false;
+window.addEventListener('keydown', (e) => {
+  if (e.key === 'a' || e.key === 'A') aKeyDown = true;
+});
+window.addEventListener('keyup', (e) => {
+  if (e.key === 'a' || e.key === 'A') aKeyDown = false;
+});
+window.addEventListener('blur', () => aKeyDown = false);
+
 
 // ─── Ordering Constants ───────────────────────────────────────────────────────
 const TOP_LEVEL_ORDER = [
@@ -245,34 +256,33 @@ const buildMenu = (chapters) => {
           a.textContent = raw.split('/').pop().replace(/Demo$/, '').trim();
           a.href = `?path=${encodeURIComponent(fullPath)}`;
           a.style.fontSize = `${1 - (level - 1) * 0.1}em`;
-		    // Alt+Shift+Click to copy <a> HTML
-		 a.addEventListener('click', (e) => {
-			  if (e.altKey && e.shiftKey) {
-				e.preventDefault();
-				e.stopImmediatePropagation();
+		  
+		 
+		a.addEventListener('click', (e) => {
+		  if (aKeyDown) {
+			e.preventDefault();
+			e.stopImmediatePropagation();
 
-				// Temporarily disable selection
-				const menu = document.querySelector('#menu');
-				menu.classList.add('noselect');
-
-				// Clear selection *before* it visually appears
-				const sel = window.getSelection?.();
-				if (sel && !sel.isCollapsed) sel.removeAllRanges();
-
-				// Re-enable selection after a frame
-				requestAnimationFrame(() => {
-				  menu.classList.remove('noselect');
-				});
-
-				const html = `<a href="?path=${encodeURIComponent(fullPath)}">${a.textContent}</a>`;
-				navigator.clipboard.writeText(html)
-				  .then(() => {
-					a.title = 'Copied!';
-					setTimeout(() => (a.title = ''), 1000);
-				  })
-				  .catch(() => alert('Failed to copy link'));
-			  }
+			const menu = document.querySelector('#menu');
+			menu.classList.add('noselect');
+			const sel = window.getSelection?.();
+			if (sel && !sel.isCollapsed) sel.removeAllRanges();
+			requestAnimationFrame(() => {
+			  menu.classList.remove('noselect');
 			});
+
+			const url = new URL(window.location.href);
+			url.search = `?path=${encodeURIComponent(fullPath)}`;
+			const html = `<li><a href="${url.href}">DAIA: ${a.textContent}</a></li>`;
+
+			navigator.clipboard.writeText(html)
+			  .then(() => {
+				a.title = 'Copied!';
+				setTimeout(() => (a.title = ''), 1000);
+			  })
+			  .catch(() => alert('Failed to copy link'));
+		  }
+		});
           li.appendChild(a);
         } else {
           Object.entries(item).forEach(([dir, sub]) => {
@@ -417,32 +427,19 @@ document.addEventListener('DOMContentLoaded', () => {
     })
     .catch(console.error);
 
-document.addEventListener('click', (event) => {
-  if (event.target.closest('iframe')) return;
-   const anchor = event.target.closest('a[href^="?path="]');
-  if (!anchor) return;
 
-  if (event.altKey && event.shiftKey) {
-    // Let the in-link handler do the copy
-    return;
-  }
-
-  event.preventDefault();
-  const rawPath = new URLSearchParams(anchor.getAttribute('href').slice(1)).get('path');
-  if (!rawPath) return;
-  navigateTo(rawPath);
-});
-
-/*
   document.addEventListener('click', (event) => {
+	  
+	console.log("Click!");
     if (event.target.closest('iframe')) return;
     const anchor = event.target.closest('a[href^="?path="]');
     if (!anchor) return;
+    if (aKeyDown) return;
     event.preventDefault();
     const rawPath = new URLSearchParams(anchor.getAttribute('href').slice(1)).get('path');
     if (!rawPath) return;
     navigateTo(rawPath);
-  });*/
+  });
 
   window.addEventListener('message', (event) => {
     const msg = event.data;
