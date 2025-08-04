@@ -86,8 +86,6 @@
     },
     {
       "Decrease-and-Conquer": [
-        "Binary Exponentiation LTR Demo.html",
-        "Binary Exponentiation RTL Demo.html",
         "Binary Search Demo.html",
         "Euclidean GCD Demo.html",
         "Exponentiation By Squaring Demo.html",
@@ -154,6 +152,8 @@
     },
     {
       "Transform-and-Conquer": [
+        "Binary Exponentiation LTR Demo.html",
+        "Binary Exponentiation RTL Demo.html",
         "Fibonacci Number (Matrix) Demo.html",
         "Heapsort Demo.html",
         "Horners Rule Demo.html"

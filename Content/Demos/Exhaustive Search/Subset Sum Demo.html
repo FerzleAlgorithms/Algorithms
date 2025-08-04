@@ -175,7 +175,6 @@
         }
         steps.push({ mask, subset, sum, isMatch: sum === targetVal, size: subset.length });
       }
-      steps.sort((a,b) => a.size - b.size || a.mask - b.mask);
     }
 
     function displaySolutions() {

@@ -136,7 +136,7 @@
       particularly if the keys being sorted have data associated with them. That one uses a prefix-sum of the
       counting array and walks through the input array backwards, coping values into their proper location
       in the output array.
-      <?p>
+      </p>
     </div>
 
   <div class="example-box">
@@ -242,26 +242,26 @@ Typically you would choose one of these two ways of doing it and do it the same 
   <h2>Algorithms Using This Technique</h2>
   <p>The following algorithms and data structures leverage space-time tradeoffs by investing extra memory (e.g. lookup tables, auxiliary arrays, caching structures) to gain faster running times.</p>
   <ul>
-    <li><a class="problem" href="?path=Algorithms/Space-Time Tradeoff/Counting Sort">Counting Sort:</a>  
+    <li><strong>Counting Sort:</strong>  
     Uses an auxiliary count array of size \(m\) to sort \(n\) items in \(O(n+m)\) time.</li>
-    <li><a class="problem" href="?path=Algorithms/Space-Time Tradeoff/Radix Sort">Radix Sort:</a> 
+    <li><strong>Radix Sort:</strong> 
     Uses digit-by-digit processing (typically least-significant-digit to most-significant-digit) with a 
     stable sub-sort (often Counting Sort), achieving \(O(d\,(n + b))\) time and \(O(n + b)\) space, 
     where \(d\) is the number of digits and \(b\) is the base.</li>
-    <li><a class="problem" href="?path=Algorithms/Space-Time Tradeoff/Bucket Sort">Bucket Sort:</a> 
+    <li><strong>Bucket Sort:</strong> 
     Distributes \(n\) input values uniformly into \(k\) buckets, then sorts each bucket (commonly via insertion sort) 
     in \(O(n + \frac{n^2}{k}+k)\) expected time (which is \(O(n)\) if \(k=O(n)\))
     and \(O(n + k)\) space when inputs are uniformly distributed.</li>
     <li><strong>Hash Tables:</strong> Trade \(O(m+n)\) space for expected \(O(1)\) 
     insert/search via open addressing or chaining.</li>
-    <li><a class="problem" href="?path=Algorithms/Space-Time Tradeoff/Boyer-Moore">Boyer-Moore Algorithm:</a> 
+    <li><strong>Boyer-Moore Algorithm:</strong> 
      A string matching algorithm (to find a pattern of length \(m\) in a text of length \(n\))
      that employs both <em>bad-character</em> and <em>good-suffix heuristics</em>,
      building two shift tables of sizes \(\lvert\Sigma\rvert\) and \(m\) in \(O(m + \lvert\Sigma\rvert)\) 
      preprocessing time and space (space can be reduced to \(O(m)\) by using a hash table), 
      to achieve sublinear average-case search (best-case \(O(n/m)\), 
      worst-case \(O(n m)\)).</li>
-     <li><a class="problem" href="?path=Algorithms/Space-Time Tradeoff/Horspool">Horspool's Algorithm:</a>
+     <li><strong>Horspool's Algorithm:</strong>
      A simplified variant of the Boyer-Moore string matching algorithm
     that precomputes a 
     <em>bad-character</em> shift table of size \(\lvert\Sigma\rvert\) (where \(\Sigma\) is the alphabet being used) 
