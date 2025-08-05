@@ -25,6 +25,7 @@
     },
     {
       "Exhaustive Search": [
+        "Breadth-First Search.html",
         "N-Queens.html",
         "Subset Sum.html"
       ]
@@ -169,7 +170,6 @@
       "DRAFTS": [
         "Algorithms/Decrease-and-Conquer/Binary Search DRAFT.html",
         "Algorithms/Decrease-and-Conquer/Quickselect DRAFT.html",
-        "Algorithms/Exhaustive Search/Breadth-First Search DRAFT.html",
         "Algorithms/Exhaustive Search/Depth-First Search DRAFT.html",
         "Algorithms/Greedy/Fractional Knapsack DRAFT.html",
         "Algorithms/Greedy/Interval Scheduling DRAFT.html",
