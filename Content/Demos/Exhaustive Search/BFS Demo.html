@@ -5,6 +5,7 @@
   <title>BFS Demo</title>
   <!-- Reuse your existing CSS -->
   <script src="/Algorithms/scripts/demoScripts.js"></script>
+  <script src="https://d3js.org/d3.v7.min.js"></script>
   <link rel="stylesheet" href="/Algorithms/css/style.css">
   <link rel="stylesheet" href="/Algorithms/css/demo.css">
 
@@ -174,6 +175,8 @@ ted set container ── */
 #svg {
   background: #fff;
   border: 1px solid #ccc;
+  width: 100%;
+  height: 100%;
 }
 
 .queueNode {
@@ -220,10 +223,11 @@ ted set container ── */
   stroke-dasharray: none !important;  /* force a solid line */
 }
 
-/* Clamp the graph‐side to exactly 600px so it never grows when the queue widens */
+/* Let the graph stretch to fill available space */
 .graph-panel {
-  width: 340px;        /* match your SVG */
+  flex: 1;
   box-sizing: border-box;
+  height: 400px;
 }
 
 
@@ -240,8 +244,10 @@ ted set container ── */
   /* or use border: 2px solid black; if you prefer */
 }
 
+/* Keep the table narrow so the graph uses most of the width */
 .table-panel {
-  margin-left: 40px;  /* instead of using flex-gap */
+  flex: 0 0 220px;
+  margin-left: 20px;
 }
 
 
@@ -297,6 +303,7 @@ document.getElementById('generateBtn').addEventListener('click', () => {
   const rawSize = parseInt(document.getElementById('graphSize').value, 10) || 6;
   const n       = Math.min(15, Math.max(1, rawSize));
   adjList = generateGraph(n);
+  nodePositions = layoutGraph(adjList);
 
   // update source-input max
   const srcInput = document.getElementById('sourceNode');
@@ -350,7 +357,7 @@ document.getElementById('generateSourceBtn').addEventListener('click', () => {
   <div class="panel graph-panel">
     <h3>Graph</h3>
     <!-- wrap the <g> layers _inside_ the svg -->
-    <svg id="svg" width="400" height="400" preserveAspectRatio="xMinYMin meet">
+    <svg id="svg" viewBox="0 0 400 400" width="100%" height="100%" preserveAspectRatio="xMidYMid meet">
       <g id="linkLayer"></g>
       <g id="nodeLayer"></g>
     </svg>
@@ -396,7 +403,8 @@ const centerX = width  / 2,
       centerY = height / 2,
       circleR = 150;   // you can leave this if you still want 150px node‐orbit radius
 
-    let adjList, steps, stepIndex = 0;
+    let adjList, steps, stepIndex = 0,
+        nodePositions = [];
 
     // Generate a random connected graph of n nodes
     function generateGraph(n) {
@@ -418,6 +426,24 @@ const centerX = width  / 2,
       return adj;
     }
 
+    // Compute an automatic layout based on edges using a simple force simulation
+    function layoutGraph(adj) {
+      const nodes = d3.range(adj.length).map(i => ({ id: i }));
+      const links = [];
+      for (let i = 0; i < adj.length; i++) {
+        for (const j of adj[i]) {
+          if (i < j) links.push({ source: i, target: j });
+        }
+      }
+      const sim = d3.forceSimulation(nodes)
+        .force('charge', d3.forceManyBody().strength(-200))
+        .force('center', d3.forceCenter(width / 2, height / 2))
+        .force('link', d3.forceLink(links).distance(80))
+        .stop();
+      for (let i = 0; i < 300; i++) sim.tick();
+      return nodes.map(n => ({ x: n.x, y: n.y }));
+    }
+
     // Build the step-by-step event list for BFS from start=0
     // New buildBfsSteps
 // ── 1) buildBfsSteps ──
@@ -435,7 +461,7 @@ function buildBfsSteps(adj, start) {
 
   const queue = [ start ];
   events.push({
-    desc: `Initialize BFS with source = ${start}`,
+    desc: `Initialize BFS with source = ${start}; set d[${start}]=0 and color ${start} gray`,
     color: color.slice(),
     d:     d.slice(),
     p:     p.slice(),
@@ -472,8 +498,7 @@ function buildBfsSteps(adj, start) {
   d[v]     = d[u] + 1;
   p[v]     = u;
   queue.push(v);
-  desc = `Checked neighbor ${v} of node ${u}: said node was unvisted (blue), so we visit it (orange), enqueue, and 
- update the Vertex Table.`;
+  desc = `Checked neighbor ${v} of node ${u}. It was unvisited (blue), so set d[${v}] = d[${u}] + 1, p[${v}] = ${u}, color ${v} gray, and enqueue it.`;
   
   events.push({
     desc,
@@ -513,7 +538,7 @@ function buildBfsSteps(adj, start) {
     // ③ After all neighbors, finish u (clears all highlights)
     color[u] = 'black';
     events.push({
-      desc: `Traversed all of ${u}’s neighbors, node is colored green`,
+      desc: `Finished exploring all neighbors of ${u}; color ${u} black`,
       color:    color.slice(),
       d:        d.slice(),
       p:        p.slice(),
@@ -537,13 +562,72 @@ function buildBfsSteps(adj, start) {
 
 
 
-    // Position nodes evenly around a circle
+    // Get current position of node i
     function computeNodePosition(i, n) {
+      if (nodePositions[i]) return nodePositions[i];
       const angle = 2 * Math.PI * i / n - Math.PI / 2;
       return {
         x: centerX + circleR * Math.cos(angle),
         y: centerY + circleR * Math.sin(angle)
       };
+    }
+
+    function updateNode(i) {
+      const g = document.querySelector(`g.graphNode[data-id='${i}']`);
+      if (!g) return;
+      const pos = nodePositions[i];
+      g.querySelector('circle').setAttribute('cx', pos.x);
+      g.querySelector('circle').setAttribute('cy', pos.y);
+      g.querySelector('text').setAttribute('x', pos.x);
+      g.querySelector('text').setAttribute('y', pos.y + 4);
+    }
+
+    function updateEdges(i) {
+      adjList[i].forEach(j => {
+        const id = `edge-${Math.min(i,j)}-${Math.max(i,j)}`;
+        const line = document.getElementById(id);
+        if (line) {
+          const p1 = nodePositions[Math.min(i,j)];
+          const p2 = nodePositions[Math.max(i,j)];
+          line.setAttribute('x1', p1.x);
+          line.setAttribute('y1', p1.y);
+          line.setAttribute('x2', p2.x);
+          line.setAttribute('y2', p2.y);
+        }
+        const hl = document.querySelector(`#linkLayer line[data-edge='${id}']`);
+        if (hl) {
+          const p1 = nodePositions[i];
+          const p2 = nodePositions[j];
+          hl.setAttribute('x1', p1.x);
+          hl.setAttribute('y1', p1.y);
+          hl.setAttribute('x2', p2.x);
+          hl.setAttribute('y2', p2.y);
+        }
+      });
+    }
+
+    function addDragHandlers(g, i) {
+      g.addEventListener('mousedown', (e) => {
+        e.preventDefault();
+        const svgRect = document.getElementById('svg').getBoundingClientRect();
+        const offsetX = e.clientX - svgRect.left - nodePositions[i].x;
+        const offsetY = e.clientY - svgRect.top - nodePositions[i].y;
+
+        function onMove(e2) {
+          nodePositions[i].x = e2.clientX - svgRect.left - offsetX;
+          nodePositions[i].y = e2.clientY - svgRect.top - offsetY;
+          updateNode(i);
+          updateEdges(i);
+        }
+
+        function onUp() {
+          window.removeEventListener('mousemove', onMove);
+          window.removeEventListener('mouseup', onUp);
+        }
+
+        window.addEventListener('mousemove', onMove);
+        window.addEventListener('mouseup', onUp);
+      });
     }
 
     // Render the current step
@@ -567,118 +651,44 @@ function buildBfsSteps(adj, start) {
 }
 
 
-
-    // Draw nodes & edges, coloring by visited/current status
-  function renderGraph(ev) {
-  const svgNS     = 'http://www.w3.org/2000/svg';
-  const linkLayer = document.getElementById('linkLayer');
-  const nodeLayer = document.getElementById('nodeLayer');
-
-  // 1) clear out previous content
-  linkLayer.innerHTML = '';
-  nodeLayer.innerHTML = '';
-
-  // 2) draw the base edges in black
-  adjList.forEach((nbrs, i) => {
-    nbrs.forEach(j => {
-      const p1   = computeNodePosition(i, adjList.length);
-      const p2   = computeNodePosition(j, adjList.length);
-      const edge = document.createElementNS(svgNS, 'line');
-      edge.setAttribute('x1', p1.x);
-      edge.setAttribute('y1', p1.y);
-      edge.setAttribute('x2', p2.x);
-      edge.setAttribute('y2', p2.y);
-      edge.setAttribute('stroke', '#000');
-      edge.setAttribute('stroke-width', '2');
-      linkLayer.appendChild(edge);
-    });
-  });
-
-  // 3) overlay highlightEdges in yellow dashed
-  if (ev.highlightEdges) {
-    ev.highlightEdges.forEach(({ from, to }) => {
-      const p1 = computeNodePosition(from, adjList.length);
-      const p2 = computeNodePosition(to,   adjList.length);
-      const hl = document.createElementNS(svgNS, 'line');
-      hl.setAttribute('x1', p1.x);
-      hl.setAttribute('y1', p1.y);
-      hl.setAttribute('x2', p2.x);
-      hl.setAttribute('y2', p2.y);
-      hl.setAttribute('stroke', 'yellow');       // ← yellow highlight
-      hl.setAttribute('stroke-width', '4');
-      hl.setAttribute('stroke-dasharray', '6 4');
-      linkLayer.appendChild(hl);
-    });
-  }
-
-  // 4) draw the nodes
-  ev.color.forEach((col, i) => {
-    const pos    = computeNodePosition(i, adjList.length);
-    const g      = document.createElementNS(svgNS, 'g');
-    g.classList.add('graphNode', col);
-    if (ev.current === i)    g.classList.add('current');
-    else if (col === 'black') g.classList.add('visited');
-
-    // circle fill based on col
-    const circle = document.createElementNS(svgNS, 'circle');
-    circle.setAttribute('cx', pos.x);
-    circle.setAttribute('cy', pos.y);
-    circle.setAttribute('r', 20);
-    circle.setAttribute('fill', col === 'white' ? 'lightblue'
-                             : col === 'gray'  ? 'orange'
-                             :                   'lightgreen');
-    circle.setAttribute('stroke', '#444');
-    circle.setAttribute('stroke-width', '2');
-    g.appendChild(circle);
-
-    // label
-    const text = document.createElementNS(svgNS, 'text');
-    text.setAttribute('x', pos.x);
-    text.setAttribute('y', pos.y + 4);
-    text.setAttribute('text-anchor', 'middle');
-    text.setAttribute('dominant-baseline', 'middle');
-    text.setAttribute('font-size', '16');
-    text.textContent = i;
-    g.appendChild(text);
-
-    nodeLayer.appendChild(g);
-  });
-}
-
-
-    // New helper (place anywhere in your <script> block)
+// New helper (place anywhere in your <script> block)
 // ── 2) renderGraph ──
 function renderGraph(ev) {
   const svgNS     = 'http://www.w3.org/2000/svg';
   const linkLayer = document.getElementById('linkLayer');
   const nodeLayer = document.getElementById('nodeLayer');
 
-  // clear out everything
   linkLayer.innerHTML = '';
   nodeLayer.innerHTML = '';
 
-  // draw the static base edges first
+  // draw static base edges once
   adjList.forEach((nbrs, i) => {
     nbrs.forEach(j => {
-      const p1 = computeNodePosition(i, adjList.length);
-      const p2 = computeNodePosition(j, adjList.length);
-      const L  = document.createElementNS(svgNS, 'line');
-      L.setAttribute('x1', p1.x);
-      L.setAttribute('y1', p1.y);
-      L.setAttribute('x2', p2.x);
-      L.setAttribute('y2', p2.y);
-      L.setAttribute('stroke', '#000');
-      L.setAttribute('stroke-width', '2');
-      linkLayer.appendChild(L);
+      if (i < j) {
+        const p1 = computeNodePosition(i, adjList.length);
+        const p2 = computeNodePosition(j, adjList.length);
+        const L  = document.createElementNS(svgNS, 'line');
+        const id = `edge-${i}-${j}`;
+        L.setAttribute('id', id);
+        L.setAttribute('x1', p1.x);
+        L.setAttribute('y1', p1.y);
+        L.setAttribute('x2', p2.x);
+        L.setAttribute('y2', p2.y);
+        L.setAttribute('stroke', '#000');
+        L.setAttribute('stroke-width', '2');
+        linkLayer.appendChild(L);
+      }
     });
   });
 
-  // draw only this event’s highlightEdges (over the top)
+  // draw highlight edges
   if (ev.highlightEdges) {
     ev.highlightEdges.forEach(({ from, to }) => {
       const p1 = computeNodePosition(from, adjList.length);
       const p2 = computeNodePosition(to,   adjList.length);
+      const id = `edge-${Math.min(from,to)}-${Math.max(from,to)}`;
       const H  = document.createElementNS(svgNS, 'line');
+      H.setAttribute('data-edge', id);
       H.setAttribute('x1', p1.x);
       H.setAttribute('y1', p1.y);
       H.setAttribute('x2', p2.x);
@@ -690,15 +700,15 @@ function renderGraph(ev) {
     });
   }
 
-  // draw nodes as before
+  // draw nodes
   ev.color.forEach((col, i) => {
     const pos = computeNodePosition(i, adjList.length);
     const g   = document.createElementNS(svgNS, 'g');
+    g.dataset.id = i;
     g.classList.add('graphNode', col);
     if (ev.current === i)    g.classList.add('current');
     else if (col === 'black') g.classList.add('visited');
 
-    // circle
     const circ = document.createElementNS(svgNS, 'circle');
     circ.setAttribute('cx', pos.x);
     circ.setAttribute('cy', pos.y);
@@ -713,7 +723,6 @@ function renderGraph(ev) {
     circ.setAttribute('stroke-width', '2');
     g.appendChild(circ);
 
-    // label
     const txt = document.createElementNS(svgNS, 'text');
     txt.setAttribute('x', pos.x);
     txt.setAttribute('y', pos.y + 4);
@@ -724,6 +733,7 @@ function renderGraph(ev) {
     g.appendChild(txt);
 
     nodeLayer.appendChild(g);
+    addDragHandlers(g, i);
   });
 }
 
@@ -792,6 +802,7 @@ function renderTable(ev) {
     // Initialize on page load
     function initializeDemo() {
         adjList = generateGraph(6);                // graph size = 6
+        nodePositions = layoutGraph(adjList);
 
         // initialize source-input to valid range [0,5]
         const srcInput = document.getElementById('sourceNode');
