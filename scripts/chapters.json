@@ -25,7 +25,8 @@
     },
     {
       "Exhaustive Search": [
-        "N-Queens.html"
+        "N-Queens.html",
+        "Subset Sum.html"
       ]
     },
     {
@@ -117,8 +118,8 @@
     },
     {
       "Exhaustive Search": [
-        "BFS demo.html",
-        "DFS demo.html",
+        "BFS Demo.html",
+        "DFS Demo.html",
         "N-Queens Demo.html",
         "Subset Sum Demo.html"
       ]
@@ -170,7 +171,6 @@
         "Algorithms/Decrease-and-Conquer/Quickselect DRAFT.html",
         "Algorithms/Exhaustive Search/Breadth-First Search DRAFT.html",
         "Algorithms/Exhaustive Search/Depth-First Search DRAFT.html",
-        "Algorithms/Exhaustive Search/Subset Sum DRAFT.html",
         "Algorithms/Greedy/Fractional Knapsack DRAFT.html",
         "Algorithms/Greedy/Interval Scheduling DRAFT.html",
         "Algorithms/Space-Time Tradeoff/Boyer-Moore_DRAFT.html",
