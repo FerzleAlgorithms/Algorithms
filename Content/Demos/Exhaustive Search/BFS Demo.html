@@ -76,7 +76,7 @@
   align-items: center;
   overflow-x: auto;        /* scroll if too wide */
   white-space: nowrap;
-  max-width: 550px;        /* ← adjust to your SVG width (600px) minus label/margins */
+  max-width: 750px;        /* ← adjust to your SVG width (800px) minus label/margins */
 }
 
 /* ── Visi
@@ -146,9 +146,9 @@ ted set container ── */
   font-weight: bold;
 }
 /* match the graph’s lightblue, orange, lightgreen: */
-.color-cell.white { background: lightblue; color: #000; }
-.color-cell.gray  { background: orange;    color: #000; }
-.color-cell.black { background: lightgreen; color: #000; }
+.color-cell.blue   { background: lightblue;  color: #000; }
+.color-cell.orange { background: orange;     color: #000; }
+.color-cell.green  { background: lightgreen; color: #000; }
 
 /* wrap each panel and center its contents if needed */
 .panel {
@@ -176,12 +176,22 @@ ted set container ── */
   background: #fff;
   border: 1px solid #ccc;
   width: 100%;
-  height: 100%;
+  height: auto;
+  aspect-ratio: 1 / 1;
+  max-width: 800px;
+  max-height: 800px;
 }
 
 .queueNode {
   background: none;
   border: none;
+}
+
+.drag-note {
+  font-size: 0.9em;
+  font-style: italic;
+  margin-top: -0.5em;
+  margin-bottom: 0.5em;
 }
 
 /* leave your .panel { align-items: center } alone, but make these two left-align */
@@ -246,7 +256,7 @@ ted set container ── */
 
 /* Keep the table narrow so the graph uses most of the width */
 .table-panel {
-  flex: 0 0 220px;
+  flex: 0 0 180px;
   margin-left: 20px;
 }
 
@@ -342,9 +352,9 @@ document.getElementById('generateSourceBtn').addEventListener('click', () => {
   <!-- Legend -->
  <div class="legend">
   <strong>Legend:</strong>
-  <span class="legend-box default"></span><span class="legend-label">Unvisited</span>
-  <span class="legend-box current"></span><span class="legend-label">Visited</span>
-  <span class="legend-box visited"></span><span class="legend-label">All Neighbors Visted</span>
+  <span class="legend-box default"></span><span class="legend-label">Unvisited (blue)</span>
+  <span class="legend-box current"></span><span class="legend-label">Visited (orange)</span>
+  <span class="legend-box visited"></span><span class="legend-label">All Neighbors Visited (green)</span>
 </div>
 
   <!-- Graph drawing area -->
@@ -356,8 +366,9 @@ document.getElementById('generateSourceBtn').addEventListener('click', () => {
   <!-- Graph Panel -->
   <div class="panel graph-panel">
     <h3>Graph</h3>
+    <p class="drag-note">Drag vertices to reposition them.</p>
     <!-- wrap the <g> layers _inside_ the svg -->
-    <svg id="svg" viewBox="0 0 400 400" width="100%" height="100%" preserveAspectRatio="xMidYMid meet">
+    <svg id="svg" viewBox="0 0 800 800" preserveAspectRatio="xMidYMid meet">
       <g id="linkLayer"></g>
       <g id="nodeLayer"></g>
     </svg>
@@ -396,12 +407,12 @@ document.getElementById('generateSourceBtn').addEventListener('click', () => {
   <script>
     // ── JavaScript for BFS Demo ──
     // ── JavaScript for BFS Demo ──
-const width  = 400,
-      height = 400,
+const width  = 800,
+      height = 800,
       radius = 20;
 const centerX = width  / 2,
       centerY = height / 2,
-      circleR = 150;   // you can leave this if you still want 150px node‐orbit radius
+      circleR = width / 2 - 50;
 
     let adjList, steps, stepIndex = 0,
         nodePositions = [];
@@ -438,7 +449,7 @@ const centerX = width  / 2,
       const sim = d3.forceSimulation(nodes)
         .force('charge', d3.forceManyBody().strength(-200))
         .force('center', d3.forceCenter(width / 2, height / 2))
-        .force('link', d3.forceLink(links).distance(80))
+        .force('link', d3.forceLink(links).distance(width / 5))
         .stop();
       for (let i = 0; i < 300; i++) sim.tick();
       return nodes.map(n => ({ x: n.x, y: n.y }));
@@ -461,7 +472,7 @@ function buildBfsSteps(adj, start) {
 
   const queue = [ start ];
   events.push({
-    desc: `Initialize BFS with source = ${start}; set d[${start}]=0 and color ${start} gray`,
+    desc: `Initialize BFS with source = ${start}; set d[${start}]=0 and color ${start} orange`,
     color: color.slice(),
     d:     d.slice(),
     p:     p.slice(),
@@ -498,7 +509,7 @@ function buildBfsSteps(adj, start) {
   d[v]     = d[u] + 1;
   p[v]     = u;
   queue.push(v);
-  desc = `Checked neighbor ${v} of node ${u}. It was unvisited (blue), so set d[${v}] = d[${u}] + 1, p[${v}] = ${u}, color ${v} gray, and enqueue it.`;
+  desc = `Checked neighbor ${v} of node ${u}. It was unvisited (blue), so set d[${v}] = d[${u}] + 1, p[${v}] = ${u}, color ${v} orange, and enqueue it.`;
   
   events.push({
     desc,
@@ -538,7 +549,7 @@ function buildBfsSteps(adj, start) {
     // ③ After all neighbors, finish u (clears all highlights)
     color[u] = 'black';
     events.push({
-      desc: `Finished exploring all neighbors of ${u}; color ${u} black`,
+      desc: `Finished exploring all neighbors of ${u}; color ${u} green`,
       color:    color.slice(),
       d:        d.slice(),
       p:        p.slice(),
@@ -758,22 +769,21 @@ function renderQueue(ev) {
 function renderTable(ev) {
   const tbody = document.getElementById('state-table-body');
   tbody.innerHTML = '';
-  const displayMap = { white:'blue', gray:'orange', black:'green' };
-  
+  const colorMap = { white:'blue', gray:'orange', black:'green' };
+
   ev.color.forEach((col, i) => {
     const tr = document.createElement('tr');
-    // highlight if this was the updated vertex
     if (ev.updatedVertex === i) {
       tr.classList.add('highlighted-row');
     }
-    
-    const displayText = displayMap[col] || col;
+
+    const displayText = colorMap[col] || col;
     tr.innerHTML = `
       <td>${i}</td>
       <td>${adjList[i].join(', ')}</td>
       <td>${ev.d[i] === Infinity ? '∞' : ev.d[i]}</td>
       <td>${ev.p[i] === null ? 'NIL' : ev.p[i]}</td>
-      <td class="color-cell ${col}">${displayText}</td>
+      <td class="color-cell ${displayText}">${displayText}</td>
     `;
     tbody.appendChild(tr);
   });
