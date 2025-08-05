@@ -13,6 +13,7 @@
     /* ─── your existing styles (unchanged) ────────────────────────────────── */
     #summaryLabel { margin: 10px 0; font-size: 16px; font-weight: bold; }
     #solutionsLabel { margin: 5px 0 15px; font-size: 16px; font-style: italic; }
+    #summaryLabel .selected { background-color: yellow; }
 
     /* ─── flex container for multiple tables ─────────────────────────────── */
     #subsetContainer {
@@ -35,8 +36,8 @@
     .subsetTable th {
       background-color: #f0f0f0;
     }
-    .subsetTable th:nth-child(2),
-    .subsetTable td:nth-child(2) {
+    .subsetTable th:nth-child(3),
+    .subsetTable td:nth-child(3) {
       min-width: 150px;
     }
     .subsetTable .match-row {
@@ -192,7 +193,7 @@
       const tbl = document.createElement('table');
       tbl.className = 'subsetTable';
       const hdr = document.createElement('tr');
-      ['#','Subset','Sum'].forEach(txt => {
+      ['#','Binary','Subset','Sum'].forEach(txt => {
         const th = document.createElement('th');
         th.textContent = txt;
         hdr.appendChild(th);
@@ -223,14 +224,15 @@
         row.id = 'row-' + idx;
         if (step.isMatch) row.classList.add('match-row');
 
-        const [tdNum, tdSubset, tdSum] = [0,1,2].map(() => document.createElement('td'));
-        tdNum.textContent    = idx + 1;
+        const [tdNum, tdBin, tdSubset, tdSum] = [0,1,2,3].map(() => document.createElement('td'));
+        tdNum.textContent    = idx;
+        tdBin.textContent    = step.mask.toString(2).padStart(currentArray.length, '0');
         tdSubset.textContent = step.subset.length
           ? `{${step.subset.join(',')}}`
           : `{ }`;
         tdSum.textContent    = step.sum;
 
-        row.append(tdNum, tdSubset, tdSum);
+        row.append(tdNum, tdBin, tdSubset, tdSum);
         tbl.appendChild(row);
       }
 
@@ -240,6 +242,16 @@
       const curr = document.getElementById('row-' + idx);
       curr && (curr.classList.add('current-row'),
                curr.scrollIntoView({ behavior:'smooth', block:'center' }));
+
+      document.querySelectorAll('#summaryLabel .set-item')
+              .forEach(el => el.classList.remove('selected'));
+      const mask = steps[idx].mask;
+      for (let j = 0; j < currentArray.length; j++) {
+        if ((mask >> j) & 1) {
+          const span = document.querySelector(`#summaryLabel .set-item[data-idx="${j}"]`);
+          span && span.classList.add('selected');
+        }
+      }
     }
 
     // ─── CONTROLS: Start / Prev / Next ────────────────────────────────────
@@ -249,8 +261,10 @@
       if (!a.length || isNaN(t)) return alert('Enter valid set & target');
 
       currentArray = a; targetVal = t;
-      document.getElementById('summaryLabel').textContent =
-        `S = { ${a.join(', ')} }, Target = ${t}`;
+      const summary = 'S = { ' +
+        a.map((num, i) => `<span class="set-item" data-idx="${i}">${num}</span>`)
+         .join(', ') + ` }, Target = ${t}`;
+      document.getElementById('summaryLabel').innerHTML = summary;
 
       setupTable();
       genSteps(a);
