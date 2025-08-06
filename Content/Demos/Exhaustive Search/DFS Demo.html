@@ -8,43 +8,37 @@
   <link rel="stylesheet" href="/Algorithms/css/demo.css">
   <style>
     :root {
-      --node-fill: lightblue;
       --node-stroke: #444;
-      --edge-stroke: #888;
+      --edge-stroke: #ccc;
       --edge-highlight: crimson;
       --font-sans: sans-serif;
     }
     .graphNode circle {
-      fill: var(--node-fill);
       stroke: var(--node-stroke);
       stroke-width: 1px;
     }
+    .graphNode.blue circle   { fill: lightblue; }
+    .graphNode.orange circle { fill: orange; }
+    .graphNode.green circle  { fill: lightgreen; }
+    .graphNode.current circle { stroke-width: 2.5px; }
     .graphNode text {
-      font-size: 20px;
       text-anchor: middle;
       dominant-baseline: middle;
       fill: #202020;
     }
-    .graphNode .disc {
-      font-size: 14px;
-      transform: translateY(-35px);
-    }
-    .graphNode .fin {
-      font-size: 14px;
-      transform: translateY(35px);
-    }
-    .graphNode.current circle { fill: orange; stroke-width: 2.5px; }
-    .graphNode.black circle { fill: lightgreen; }
+    .graphNode .label { font-size: 20px; }
+    .graphNode .times { font-size: 14px; }
     #svg line { stroke: var(--edge-stroke); stroke-width: 3px; }
-    #linkLayer line.stack-edge { stroke: var(--edge-highlight); stroke-width: 4px; }
-    #linkLayer line.back-edge { stroke: #aaa; stroke-width: 3px; opacity: 0.3; }
+    #linkLayer line.active-edge { stroke: var(--edge-highlight); stroke-width: 4px; }
+    #linkLayer line.tree-edge { stroke: #444; stroke-width: 4px; }
+    #linkLayer line.non-tree-edge { stroke: #999; stroke-width: 3px; }
     #state-table { width: 100%; border-collapse: collapse; font-family: var(--font-sans); }
     #state-table th, #state-table td { border: 1px solid #ddd; padding: 0.5em; text-align: center; }
     #state-table th { background: #f0f0f0; }
     .highlighted-row { outline: 2px solid #000; }
-    .color-cell.white  { background: lightblue;  }
-    .color-cell.gray   { background: orange;     }
-    .color-cell.black  { background: lightgreen; }
+    .color-cell.blue   { background: lightblue;  }
+    .color-cell.orange { background: orange;     }
+    .color-cell.green  { background: lightgreen; }
     #stack-container { display: grid; grid-template-columns: max-content 1fr; align-items: center; column-gap: 8px; height: 60px; }
     #stack { display: inline-flex; align-items: center; overflow-x: auto; white-space: nowrap; max-width: 750px; }
     .queueNode { margin: 0 4px; flex: 0 0 auto; background: none; border: none; }
@@ -52,8 +46,19 @@
     .panel { display:flex; flex-direction:column; align-items:center; }
     .graph-panel { flex:1 1 auto; }
     .table-panel { flex:0 0 250px; margin-left:10px; }
+    #structures { display:flex; flex-direction:column; align-items:center; gap:8px; margin:10px 0; font-family:var(--font-sans); }
     #svg { width:100%; height:auto; max-height:65vh; background-color:#fff !important; }
     #demo-wrapper { min-height:800px; display:flex; flex-direction:column; }
+    .table-panel .legend { display:flex; flex-direction:column; align-items:flex-start; gap:0.5em; font-family:var(--font-sans); margin-top:1em; }
+    .table-panel .legend-item { display:flex; align-items:center; gap:0.5em; }
+    .legend-box { width:1em; height:1em; display:inline-block; }
+    .legend-line { width:1.5em; height:0.3em; display:inline-block; }
+    .legend-box.blue { background: lightblue; }
+    .legend-box.orange { background: orange; }
+    .legend-box.green { background: lightgreen; }
+    .legend-line.active { background: var(--edge-highlight); }
+    .legend-line.tree { background: #444; }
+    .legend-line.nontree { background: #999; }
   </style>
   <!-- Google tag (gtag.js) -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-DQ5LVZVFDC"></script>
@@ -70,8 +75,6 @@
   <div id="controls">
     <label>Graph Size: <input id="graphSize" type="number" min="1" max="15" value="8" style="width:4em"></label>
     <button id="generateBtn">Generate Graph</button>
-    <label>Source Node: <input id="sourceNode" type="number" min="0" max="14" value="0" style="width:4em"></label>
-    <button id="generateSourceBtn">Change Source</button>
     <br>
     <button id="prevBtn" disabled>Previous</button>
     <button id="nextBtn" disabled>Next</button>
@@ -91,8 +94,29 @@
         <g id="linkLayer"></g>
         <g id="nodeLayer"></g>
       </svg>
-      <div id="structures">
-        <div id="stack-container"><strong>Stack:</strong> <span id="stack"></span></div>
+    </div>
+    <div class="panel table-panel">
+      <h3>Vertex Table</h3>
+      <table id="state-table">
+        <thead>
+          <tr>
+            <th>v</th>
+            <th>discover</th>
+            <th>final</th>
+            <th>parent</th>
+            <th>color</th>
+          </tr>
+        </thead>
+        <tbody id="state-table-body"></tbody>
+      </table>
+      <div class="legend">
+        <strong>Legend</strong>
+        <div class="legend-item"><span class="legend-box blue"></span><span class="legend-label">Unvisited</span></div>
+        <div class="legend-item"><span class="legend-box orange"></span><span class="legend-label">Visiting</span></div>
+        <div class="legend-item"><span class="legend-box green"></span><span class="legend-label">Finished</span></div>
+        <div class="legend-item"><span class="legend-line active"></span><span class="legend-label">Active Edge</span></div>
+        <div class="legend-item"><span class="legend-line tree"></span><span class="legend-label">Tree Edge</span></div>
+        <div class="legend-item"><span class="legend-line nontree"></span><span class="legend-label">Non-tree Edge</span></div>
       </div>
       <div id="commentary"></div>
     </div>
@@ -112,32 +136,67 @@
       </table>
     </div>
   </div>
+  <div id="structures">
+    <div id="stack-container"><strong>Stack:</strong> <span id="stack"></span></div>
+    <div id="commentary"></div>
+  </div>
 </div>
 <script>
-const width=800,height=800,radius=30,margin=10;
+const width=800,height=800,radius=40,margin=10;
 const circleR=width/2-radius-margin;
 const centerX=width/2,centerY=height/2;
 let adjList,steps,stepIndex=0,nodePositions=[];
+function buildDfsSteps(adj){
+  const events=[];const n=adj.length;
+  const color=Array(n).fill('blue');
+  const disc=Array(n).fill(null);
+  const fin=Array(n).fill(null);
+  const parent=Array(n).fill(null);
+  const stack=[];const activeEdges=[];const treeEdges=[];const backEdges=[];let time=0;
+  function snapshot(desc){events.push({desc,color:color.slice(),disc:disc.slice(),fin:fin.slice(),parent:parent.slice(),stack:stack.slice(),activeEdges:activeEdges.slice(),treeEdges:treeEdges.slice(),backEdges:backEdges.slice(),current:stack[stack.length-1]??null});}
+  function dfsVisit(u,incoming){
+    color[u]='orange';disc[u]=++time;stack.push(u);if(incoming)activeEdges.push(incoming);
+    snapshot(incoming?`Tree edge ${incoming.from}-${incoming.to} and discover ${u}`:`Discover ${u}`);
+    for(const v of adj[u]){
+      if(v===parent[u]) continue;const edge={from:u,to:v};
+      if(color[v]==='blue'){
+        parent[v]=u;
+        dfsVisit(v,edge);
+        const idx=activeEdges.findIndex(e=>e.from===edge.from&&e.to===edge.to);
+        if(idx>=0)activeEdges.splice(idx,1);
+        treeEdges.push(edge);
+        snapshot(`Backtrack from ${v} to ${u}`);
+      }else{
+        const key=`${Math.min(u,v)}-${Math.max(u,v)}`;
+        if(!backEdges.some(e=>`${Math.min(e.from,e.to)}-${Math.max(e.from,e.to)}`===key)) backEdges.push(edge);
+        snapshot(`Non-tree edge ${u}-${v}`);
+      }
+    }
+    stack.pop();color[u]='green';fin[u]=++time;snapshot(`Finish ${u}`);
+  }
+  snapshot('Initialize DFS');
+  for(let i=0;i<n;i++){if(color[i]==='blue')dfsVisit(i,null);}
+  snapshot('DFS complete');
+  return events;
+}
 function generateGraph(n){const adj=Array.from({length:n},()=>[]);for(let i=0;i<n-1;i++){adj[i].push(i+1);adj[i+1].push(i);}for(let i=0;i<n;i++){for(let j=i+2;j<n;j++){if(Math.random()<0.3){adj[i].push(j);adj[j].push(i);}}}return adj;}
 function layoutGraph(adj){return adj.map((_,i)=>{const t=2*Math.PI*i/adj.length-Math.PI/2;return{x:centerX+circleR*Math.cos(t),y:centerY+circleR*Math.sin(t)};});}
-function buildDfsSteps(adj,start){const events=[];const n=adj.length;const color=Array(n).fill('white');const disc=Array(n).fill(null);const fin=Array(n).fill(null);const parent=Array(n).fill(null);const stack=[];const treeEdges=[];const backEdges=[];const backSet=new Set();let time=0;function snapshot(desc,currentEdge){events.push({desc,color:color.slice(),disc:disc.slice(),fin:fin.slice(),parent:parent.slice(),stack:stack.slice(),treeEdges:treeEdges.slice(),backEdges:backEdges.slice(),currentEdge});}
-function dfsVisit(u){color[u]='gray';disc[u]=++time;stack.push(u);snapshot(`Discover ${u}`,null);for(const v of adj[u]){if(v===parent[u]) continue;const edge={from:u,to:v};if(color[v]==='white'){parent[v]=u;treeEdges.push(edge);snapshot(`Tree edge ${u}-${v}`,edge);dfsVisit(v);snapshot(`Return to ${u} from ${v}`,edge);}else{const key=`${Math.min(u,v)}-${Math.max(u,v)}`;if(!backSet.has(key)){backSet.add(key);backEdges.push(edge);}snapshot(`Back edge ${u}-${v}`,edge);}}
-stack.pop();color[u]='black';fin[u]=++time;snapshot(`Finish ${u}`,null);}snapshot(`Initialize DFS with source = ${start}`,null);dfsVisit(start);snapshot('DFS complete',null);return events;}
 function renderStep(){const ev=steps[stepIndex];document.getElementById('commentary').textContent=ev.desc;renderGraph(ev);renderStack(ev);renderTable(ev);updateButtons();}
-function renderGraph(ev){const svgNS='http://www.w3.org/2000/svg';const linkLayer=document.getElementById('linkLayer');const nodeLayer=document.getElementById('nodeLayer');linkLayer.innerHTML='';nodeLayer.innerHTML='';adjList.forEach((nbrs,i)=>{nbrs.forEach(j=>{if(i<j){const p1=nodePositions[i],p2=nodePositions[j];const L=document.createElementNS(svgNS,'line');L.setAttribute('id',`edge-${i}-${j}`);L.setAttribute('x1',p1.x);L.setAttribute('y1',p1.y);L.setAttribute('x2',p2.x);L.setAttribute('y2',p2.y);L.setAttribute('stroke','#ccc');L.setAttribute('stroke-width','3');linkLayer.appendChild(L);}});});ev.treeEdges.forEach(({from,to})=>{const p1=nodePositions[from],p2=nodePositions[to];const L=document.createElementNS(svgNS,'line');const id=`edge-${Math.min(from,to)}-${Math.max(from,to)}`;L.setAttribute('data-tree',id);L.setAttribute('x1',p1.x);L.setAttribute('y1',p1.y);L.setAttribute('x2',p2.x);L.setAttribute('y2',p2.y);L.setAttribute('stroke','#444');L.setAttribute('stroke-width','4');linkLayer.appendChild(L);});ev.backEdges.forEach(({from,to})=>{const p1=nodePositions[from],p2=nodePositions[to];const L=document.createElementNS(svgNS,'line');const id=`edge-${Math.min(from,to)}-${Math.max(from,to)}`;L.setAttribute('data-back',id);L.setAttribute('x1',p1.x);L.setAttribute('y1',p1.y);L.setAttribute('x2',p2.x);L.setAttribute('y2',p2.y);L.classList.add('back-edge');linkLayer.appendChild(L);});for(let k=0;k<ev.stack.length-1;k++){const a=ev.stack[k],b=ev.stack[k+1];const p1=nodePositions[a],p2=nodePositions[b];const L=document.createElementNS(svgNS,'line');const id=`edge-${Math.min(a,b)}-${Math.max(a,b)}`;L.setAttribute('data-stack',id);L.setAttribute('x1',p1.x);L.setAttribute('y1',p1.y);L.setAttribute('x2',p2.x);L.setAttribute('y2',p2.y);L.classList.add('stack-edge');linkLayer.appendChild(L);}ev.color.forEach((col,i)=>{const pos=nodePositions[i];const g=document.createElementNS(svgNS,'g');g.dataset.id=i;g.classList.add('graphNode',col);if(ev.current===i)g.classList.add('current');if(col==='black')g.classList.add('black');const circ=document.createElementNS(svgNS,'circle');circ.setAttribute('cx',pos.x);circ.setAttribute('cy',pos.y);circ.setAttribute('r',radius);circ.setAttribute('stroke','#444');circ.setAttribute('stroke-width','2');circ.setAttribute('fill',col==='white'? 'lightblue':col==='gray'? 'orange':'lightgreen');g.appendChild(circ);const label=document.createElementNS(svgNS,'text');label.classList.add('label');label.setAttribute('x',pos.x);label.setAttribute('y',pos.y+4);label.textContent=i;g.appendChild(label);const dText=document.createElementNS(svgNS,'text');dText.classList.add('disc');dText.setAttribute('x',pos.x);dText.setAttribute('y',pos.y);dText.textContent=ev.disc[i]??'';g.appendChild(dText);const fText=document.createElementNS(svgNS,'text');fText.classList.add('fin');fText.setAttribute('x',pos.x);fText.setAttribute('y',pos.y);fText.textContent=ev.fin[i]??'';g.appendChild(fText);nodeLayer.appendChild(g);addDragHandlers(g,i);});}
+function renderGraph(ev){const svgNS='http://www.w3.org/2000/svg';const linkLayer=document.getElementById('linkLayer');const nodeLayer=document.getElementById('nodeLayer');linkLayer.innerHTML='';nodeLayer.innerHTML='';adjList.forEach((nbrs,i)=>{nbrs.forEach(j=>{if(i<j){const p1=nodePositions[i],p2=nodePositions[j];const L=document.createElementNS(svgNS,'line');L.setAttribute('id',`edge-${i}-${j}`);L.setAttribute('x1',p1.x);L.setAttribute('y1',p1.y);L.setAttribute('x2',p2.x);L.setAttribute('y2',p2.y);linkLayer.appendChild(L);}});});ev.treeEdges.forEach(({from,to})=>{const p1=nodePositions[from],p2=nodePositions[to];const L=document.createElementNS(svgNS,'line');const id=`edge-${Math.min(from,to)}-${Math.max(from,to)}`;L.setAttribute('data-tree',id);L.setAttribute('x1',p1.x);L.setAttribute('y1',p1.y);L.setAttribute('x2',p2.x);L.setAttribute('y2',p2.y);L.classList.add('tree-edge');linkLayer.appendChild(L);});ev.backEdges.forEach(({from,to})=>{const p1=nodePositions[from],p2=nodePositions[to];const L=document.createElementNS(svgNS,'line');const id=`edge-${Math.min(from,to)}-${Math.max(from,to)}`;L.setAttribute('data-back',id);L.setAttribute('x1',p1.x);L.setAttribute('y1',p1.y);L.setAttribute('x2',p2.x);L.setAttribute('y2',p2.y);L.classList.add('non-tree-edge');linkLayer.appendChild(L);});ev.activeEdges.forEach(({from,to})=>{const p1=nodePositions[from],p2=nodePositions[to];const L=document.createElementNS(svgNS,'line');const id=`edge-${Math.min(from,to)}-${Math.max(from,to)}`;L.setAttribute('data-active',id);L.setAttribute('x1',p1.x);L.setAttribute('y1',p1.y);L.setAttribute('x2',p2.x);L.setAttribute('y2',p2.y);L.classList.add('active-edge');linkLayer.appendChild(L);});ev.color.forEach((col,i)=>{const pos=nodePositions[i];const g=document.createElementNS(svgNS,'g');g.dataset.id=i;g.classList.add('graphNode',col);if(ev.current===i)g.classList.add('current');const circ=document.createElementNS(svgNS,'circle');circ.setAttribute('cx',pos.x);circ.setAttribute('cy',pos.y);circ.setAttribute('r',radius);g.appendChild(circ);const label=document.createElementNS(svgNS,'text');label.classList.add('label');label.setAttribute('x',pos.x);label.setAttribute('y',pos.y-10);label.textContent=i;g.appendChild(label);const times=document.createElementNS(svgNS,'text');times.classList.add('times');times.setAttribute('x',pos.x);times.setAttribute('y',pos.y+14);const d=ev.disc[i]??'';const f=ev.fin[i]??'';times.textContent=d||f?`${d}/${f}`:'';g.appendChild(times);nodeLayer.appendChild(g);addDragHandlers(g,i);});}
 function renderStack(ev){const stackEl=document.getElementById('stack');stackEl.innerHTML='';ev.stack.forEach((node,i)=>{stackEl.insertAdjacentHTML('beforeend',`<svg class="queueNode" width="40" height="40" xmlns="http://www.w3.org/2000/svg"><circle cx="20" cy="20" r="18" fill="lightblue" stroke="#444" stroke-width="2"/><text x="20" y="24" text-anchor="middle" dominant-baseline="middle" font-size="16">${node}</text></svg>`);if(i<ev.stack.length-1){stackEl.insertAdjacentHTML('beforeend','<span class="queue-arrow">→</span>');}});} 
 function renderTable(ev){const tbody=document.getElementById('state-table-body');tbody.innerHTML='';ev.color.forEach((col,i)=>{const tr=document.createElement('tr');if(ev.updatedVertex===i)tr.classList.add('highlighted-row');tr.innerHTML=`<td>${i}</td><td>${ev.disc[i]??''}</td><td>${ev.fin[i]??''}</td><td>${ev.parent[i]===null?'NIL':ev.parent[i]}</td><td class="color-cell ${col}">${col}</td>`;tbody.appendChild(tr);});}
-function updateNode(i){const g=document.querySelector(`g.graphNode[data-id='${i}']`);if(!g) return;const pos=nodePositions[i];g.querySelector('circle').setAttribute('cx',pos.x);g.querySelector('circle').setAttribute('cy',pos.y);g.querySelector('text.label').setAttribute('x',pos.x);g.querySelector('text.label').setAttribute('y',pos.y+4);g.querySelector('text.disc').setAttribute('x',pos.x);g.querySelector('text.disc').setAttribute('y',pos.y-35);g.querySelector('text.fin').setAttribute('x',pos.x);g.querySelector('text.fin').setAttribute('y',pos.y+35);} 
-function updateEdges(i){adjList[i].forEach(j=>{const id=`edge-${Math.min(i,j)}-${Math.max(i,j)}`;const p1=nodePositions[Math.min(i,j)],p2=nodePositions[Math.max(i,j)];const base=document.getElementById(id);if(base){base.setAttribute('x1',p1.x);base.setAttribute('y1',p1.y);base.setAttribute('x2',p2.x);base.setAttribute('y2',p2.y);}['tree','back','stack'].forEach(type=>{document.querySelectorAll(`#linkLayer line[data-${type}='${id}']`).forEach(line=>{line.setAttribute('x1',nodePositions[i].x);line.setAttribute('y1',nodePositions[i].y);line.setAttribute('x2',nodePositions[j].x);line.setAttribute('y2',nodePositions[j].y);});});});}
+function updateNode(i){const g=document.querySelector(`g.graphNode[data-id='${i}']`);if(!g) return;const pos=nodePositions[i];g.querySelector('circle').setAttribute('cx',pos.x);g.querySelector('circle').setAttribute('cy',pos.y);g.querySelector('text.label').setAttribute('x',pos.x);g.querySelector('text.label').setAttribute('y',pos.y-10);g.querySelector('text.times').setAttribute('x',pos.x);g.querySelector('text.times').setAttribute('y',pos.y+14);}
+function updateEdges(i){adjList[i].forEach(j=>{const id=`edge-${Math.min(i,j)}-${Math.max(i,j)}`;const p1=nodePositions[Math.min(i,j)],p2=nodePositions[Math.max(i,j)];const base=document.getElementById(id);if(base){base.setAttribute('x1',p1.x);base.setAttribute('y1',p1.y);base.setAttribute('x2',p2.x);base.setAttribute('y2',p2.y);}['tree','back','active'].forEach(type=>{document.querySelectorAll(`#linkLayer line[data-${type}='${id}']`).forEach(line=>{line.setAttribute('x1',nodePositions[i].x);line.setAttribute('y1',nodePositions[i].y);line.setAttribute('x2',nodePositions[j].x);line.setAttribute('y2',nodePositions[j].y);});});});}
+
 function addDragHandlers(g,i){const svgEl=document.getElementById('svg');g.addEventListener('mousedown',e=>{e.preventDefault();const pt=svgEl.createSVGPoint();const ctmInv=svgEl.getScreenCTM().inverse();pt.x=e.clientX;pt.y=e.clientY;const start=pt.matrixTransform(ctmInv);const offsetX=start.x-nodePositions[i].x;const offsetY=start.y-nodePositions[i].y;function onMove(e2){pt.x=e2.clientX;pt.y=e2.clientY;const p=pt.matrixTransform(ctmInv);nodePositions[i].x=p.x-offsetX;nodePositions[i].y=p.y-offsetY;updateNode(i);updateEdges(i);}function onUp(){window.removeEventListener('mousemove',onMove);window.removeEventListener('mouseup',onUp);}window.addEventListener('mousemove',onMove);window.addEventListener('mouseup',onUp);});}
 function clampAllNodes(){const svgEl=document.getElementById('svg');const pt=svgEl.createSVGPoint();const ctmInv=svgEl.getScreenCTM().inverse();const rect=svgEl.getBoundingClientRect();const tl=new DOMPoint(rect.left+radius,rect.top+radius).matrixTransform(ctmInv);const br=new DOMPoint(rect.right-radius,rect.bottom-radius).matrixTransform(ctmInv);nodePositions.forEach((pos,i)=>{pos.x=Math.max(tl.x,Math.min(br.x,pos.x));pos.y=Math.max(tl.y,Math.min(br.y,pos.y));updateNode(i);updateEdges(i);});}
 window.addEventListener('resize',clampAllNodes);
 function nextStep(){if(stepIndex<steps.length-1){stepIndex++;renderStep();}}
 function prevStep(){if(stepIndex>0){stepIndex--;renderStep();}}
 function updateButtons(){document.getElementById('prevBtn').disabled=stepIndex===0;document.getElementById('nextBtn').disabled=stepIndex===steps.length-1;}
-function initializeDemo(){adjList=generateGraph(8);nodePositions=layoutGraph(adjList);const srcInput=document.getElementById('sourceNode');srcInput.max=adjList.length-1;const rawSrc=parseInt(srcInput.value,10);const start=Math.min(adjList.length-1,Math.max(0,isNaN(rawSrc)?0:rawSrc));steps=buildDfsSteps(adjList,start);stepIndex=0;document.getElementById('prevBtn').addEventListener('click',prevStep);document.getElementById('nextBtn').addEventListener('click',nextStep);renderStep();}
-document.getElementById('generateBtn').addEventListener('click',()=>{const rawSize=parseInt(document.getElementById('graphSize').value,10)||8;const n=Math.min(15,Math.max(1,rawSize));adjList=generateGraph(n);nodePositions=layoutGraph(adjList);const srcInput=document.getElementById('sourceNode');srcInput.max=n-1;const rawSrc=parseInt(srcInput.value,10);const start=Math.min(n-1,Math.max(0,isNaN(rawSrc)?0:rawSrc));srcInput.value=start;steps=buildDfsSteps(adjList,start);stepIndex=0;renderStep();});
-document.getElementById('generateSourceBtn').addEventListener('click',()=>{const srcInput=document.getElementById('sourceNode');const rawSrc=parseInt(srcInput.value,10);const start=Math.min(adjList.length-1,Math.max(0,isNaN(rawSrc)?0:rawSrc));srcInput.value=start;steps=buildDfsSteps(adjList,start);stepIndex=0;renderStep();});
+function initializeDemo(){adjList=generateGraph(8);nodePositions=layoutGraph(adjList);steps=buildDfsSteps(adjList);stepIndex=0;document.getElementById('prevBtn').addEventListener('click',prevStep);document.getElementById('nextBtn').addEventListener('click',nextStep);renderStep();}
+document.getElementById('generateBtn').addEventListener('click',()=>{const rawSize=parseInt(document.getElementById('graphSize').value,10)||8;const n=Math.min(15,Math.max(1,rawSize));adjList=generateGraph(n);nodePositions=layoutGraph(adjList);steps=buildDfsSteps(adjList);stepIndex=0;renderStep();});
+
 let timer=null;const playBtn=document.getElementById('playBtn');const speedSelect=document.getElementById('speedSelect');playBtn.addEventListener('click',()=>{if(timer){clearInterval(timer);timer=null;playBtn.textContent='Play';}else{playBtn.textContent='Pause';timer=setInterval(()=>{if(stepIndex<steps.length-1)nextStep();else{clearInterval(timer);playBtn.textContent='Play';}},1000/parseInt(speedSelect.value,10));}});
 speedSelect.addEventListener('change',()=>{if(timer){clearInterval(timer);playBtn.textContent='Pause';timer=setInterval(()=>{if(stepIndex<steps.length-1)nextStep();else{clearInterval(timer);playBtn.textContent='Play';}},1000/parseInt(speedSelect.value,10));}});
 window.onload=initializeDemo;
