@@ -9,8 +9,11 @@
   <style>
     :root {
       --node-stroke: #444;
-      --edge-stroke: #ccc;
-      --edge-highlight: crimson;
+      --edge-stroke: black; /* Default edge color is black */
+      --edge-highlight-stack: red; /* Edges in the call stack are red */
+      --edge-highlight-current: orange; /* Current edge being explored is orange */
+      --tree-edge: blue; /* Tree edges are blue */
+      --non-tree-edge: lightblue; /* Non-tree edges are light blue */
       --font-sans: sans-serif;
     }
     .graphNode circle {
@@ -29,9 +32,19 @@
     .graphNode .label { font-size: 20px; }
     .graphNode .times { font-size: 14px; }
     #svg line { stroke: var(--edge-stroke); stroke-width: 3px; }
-    #linkLayer line.active-edge { stroke: var(--edge-highlight); stroke-width: 4px; }
-    #linkLayer line.tree-edge { stroke: #444; stroke-width: 4px; }
-    #linkLayer line.non-tree-edge { stroke: #999; stroke-width: 3px; }
+    #linkLayer line.active-stack-edge { stroke: var(--edge-highlight-stack); stroke-width: 4px; }
+    #linkLayer line.active-current-edge { stroke: var(--edge-highlight-current); stroke-width: 4px; }
+    #linkLayer line.tree-edge {
+      stroke: var(--tree-edge); /* Tree edges are blue */
+      stroke-width: 4px;
+    }
+    #linkLayer line.non-tree-edge {
+      stroke: var(--non-tree-edge); /* Non-tree edges are light blue */
+      stroke-width: 3px;
+    }
+    /*#linkLayer line.default-edge {
+      display: none; 
+   }*/
     #state-table { width: 100%; border-collapse: collapse; font-family: var(--font-sans); }
     #state-table th, #state-table td { border: 1px solid #ddd; padding: 0.5em; text-align: center; }
     #state-table th { background: #f0f0f0; }
@@ -39,14 +52,36 @@
     .color-cell.blue   { background: lightblue;  }
     .color-cell.orange { background: orange;     }
     .color-cell.green  { background: lightgreen; }
-    #stack-container { display: grid; grid-template-columns: max-content 1fr; align-items: center; column-gap: 8px; height: 60px; }
-    #stack { display: inline-flex; align-items: center; overflow-x: auto; white-space: nowrap; max-width: 750px; }
+    #structures {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start; /* Align children to the left */
+      gap: 8px;
+      margin: 10px 0;
+      font-family: var(--font-sans);
+    }
+
+    #stack-container {
+      display: flex;
+      align-items: flex-start; /* Align items to the top */
+      column-gap: 8px;
+      height: auto; /* Adjust height to fit content */
+      justify-content: flex-start; /* Left-align the stack */
+      width: 100%; /* Ensure it spans the full width */
+    }
+
+    #stack {
+      display: inline-flex;
+      align-items: center;
+      overflow-x: auto;
+      white-space: nowrap;
+      max-width: 750px;
+    }
     .queueNode { margin: 0 4px; flex: 0 0 auto; background: none; border: none; }
     .queue-arrow { margin: 0 4px; flex: 0 0 auto; }
     .panel { display:flex; flex-direction:column; align-items:center; }
     .graph-panel { flex:1 1 auto; }
     .table-panel { flex:0 0 250px; margin-left:10px; }
-    #structures { display:flex; flex-direction:column; align-items:center; gap:8px; margin:10px 0; font-family:var(--font-sans); }
     #svg { width:100%; height:auto; max-height:65vh; background-color:#fff !important; }
     #demo-wrapper { min-height:800px; display:flex; flex-direction:column; }
     .table-panel .legend { display:flex; flex-direction:column; align-items:flex-start; gap:0.5em; font-family:var(--font-sans); margin-top:1em; }
@@ -114,26 +149,11 @@
         <div class="legend-item"><span class="legend-box blue"></span><span class="legend-label">Unvisited</span></div>
         <div class="legend-item"><span class="legend-box orange"></span><span class="legend-label">Visiting</span></div>
         <div class="legend-item"><span class="legend-box green"></span><span class="legend-label">Finished</span></div>
-        <div class="legend-item"><span class="legend-line active"></span><span class="legend-label">Active Edge</span></div>
-        <div class="legend-item"><span class="legend-line tree"></span><span class="legend-label">Tree Edge</span></div>
-        <div class="legend-item"><span class="legend-line nontree"></span><span class="legend-label">Non-tree Edge</span></div>
+        <div class="legend-item"><span class="legend-line active-stack"></span><span class="legend-label">Active Edge in Call Stack (Red)</span></div>
+        <div class="legend-item"><span class="legend-line active-current"></span><span class="legend-label">Current Active Edge (Orange)</span></div>
+        <div class="legend-item"><span class="legend-line tree"></span><span class="legend-label">Tree Edge (Blue)</span></div>
+        <div class="legend-item"><span class="legend-line nontree"></span><span class="legend-label">Non-tree Edge (Light Blue)</span></div>
       </div>
-      <div id="commentary"></div>
-    </div>
-    <div class="panel table-panel">
-      <h3>Vertex Table</h3>
-      <table id="state-table">
-        <thead>
-          <tr>
-            <th>v</th>
-            <th>discover</th>
-            <th>final</th>
-            <th>parent</th>
-            <th>color</th>
-          </tr>
-        </thead>
-        <tbody id="state-table-body"></tbody>
-      </table>
     </div>
   </div>
   <div id="structures">
@@ -182,7 +202,91 @@ function buildDfsSteps(adj){
 function generateGraph(n){const adj=Array.from({length:n},()=>[]);for(let i=0;i<n-1;i++){adj[i].push(i+1);adj[i+1].push(i);}for(let i=0;i<n;i++){for(let j=i+2;j<n;j++){if(Math.random()<0.3){adj[i].push(j);adj[j].push(i);}}}return adj;}
 function layoutGraph(adj){return adj.map((_,i)=>{const t=2*Math.PI*i/adj.length-Math.PI/2;return{x:centerX+circleR*Math.cos(t),y:centerY+circleR*Math.sin(t)};});}
 function renderStep(){const ev=steps[stepIndex];document.getElementById('commentary').textContent=ev.desc;renderGraph(ev);renderStack(ev);renderTable(ev);updateButtons();}
-function renderGraph(ev){const svgNS='http://www.w3.org/2000/svg';const linkLayer=document.getElementById('linkLayer');const nodeLayer=document.getElementById('nodeLayer');linkLayer.innerHTML='';nodeLayer.innerHTML='';adjList.forEach((nbrs,i)=>{nbrs.forEach(j=>{if(i<j){const p1=nodePositions[i],p2=nodePositions[j];const L=document.createElementNS(svgNS,'line');L.setAttribute('id',`edge-${i}-${j}`);L.setAttribute('x1',p1.x);L.setAttribute('y1',p1.y);L.setAttribute('x2',p2.x);L.setAttribute('y2',p2.y);linkLayer.appendChild(L);}});});ev.treeEdges.forEach(({from,to})=>{const p1=nodePositions[from],p2=nodePositions[to];const L=document.createElementNS(svgNS,'line');const id=`edge-${Math.min(from,to)}-${Math.max(from,to)}`;L.setAttribute('data-tree',id);L.setAttribute('x1',p1.x);L.setAttribute('y1',p1.y);L.setAttribute('x2',p2.x);L.setAttribute('y2',p2.y);L.classList.add('tree-edge');linkLayer.appendChild(L);});ev.backEdges.forEach(({from,to})=>{const p1=nodePositions[from],p2=nodePositions[to];const L=document.createElementNS(svgNS,'line');const id=`edge-${Math.min(from,to)}-${Math.max(from,to)}`;L.setAttribute('data-back',id);L.setAttribute('x1',p1.x);L.setAttribute('y1',p1.y);L.setAttribute('x2',p2.x);L.setAttribute('y2',p2.y);L.classList.add('non-tree-edge');linkLayer.appendChild(L);});ev.activeEdges.forEach(({from,to})=>{const p1=nodePositions[from],p2=nodePositions[to];const L=document.createElementNS(svgNS,'line');const id=`edge-${Math.min(from,to)}-${Math.max(from,to)}`;L.setAttribute('data-active',id);L.setAttribute('x1',p1.x);L.setAttribute('y1',p1.y);L.setAttribute('x2',p2.x);L.setAttribute('y2',p2.y);L.classList.add('active-edge');linkLayer.appendChild(L);});ev.color.forEach((col,i)=>{const pos=nodePositions[i];const g=document.createElementNS(svgNS,'g');g.dataset.id=i;g.classList.add('graphNode',col);if(ev.current===i)g.classList.add('current');const circ=document.createElementNS(svgNS,'circle');circ.setAttribute('cx',pos.x);circ.setAttribute('cy',pos.y);circ.setAttribute('r',radius);g.appendChild(circ);const label=document.createElementNS(svgNS,'text');label.classList.add('label');label.setAttribute('x',pos.x);label.setAttribute('y',pos.y-10);label.textContent=i;g.appendChild(label);const times=document.createElementNS(svgNS,'text');times.classList.add('times');times.setAttribute('x',pos.x);times.setAttribute('y',pos.y+14);const d=ev.disc[i]??'';const f=ev.fin[i]??'';times.textContent=d||f?`${d}/${f}`:'';g.appendChild(times);nodeLayer.appendChild(g);addDragHandlers(g,i);});}
+function renderGraph(ev) {
+  const svgNS = 'http://www.w3.org/2000/svg';
+  const linkLayer = document.getElementById('linkLayer');
+  const nodeLayer = document.getElementById('nodeLayer');
+  linkLayer.innerHTML = '';
+  nodeLayer.innerHTML = '';
+
+  adjList.forEach((nbrs, i) => {
+    nbrs.forEach(j => {
+      if (i < j) {
+        const p1 = nodePositions[i], p2 = nodePositions[j];
+        const L = document.createElementNS(svgNS, 'line');
+        L.setAttribute('id', `edge-${i}-${j}`);
+        L.setAttribute('x1', p1.x);
+        L.setAttribute('y1', p1.y);
+        L.setAttribute('x2', p2.x);
+        L.setAttribute('y2', p2.y);
+        L.classList.add('default-edge'); // Mark as default edge
+        linkLayer.appendChild(L);
+      }
+    });
+  });
+
+  ev.treeEdges.forEach(({ from, to }) => {
+    const p1 = nodePositions[from], p2 = nodePositions[to];
+    const L = document.createElementNS(svgNS, 'line');
+    L.setAttribute('x1', p1.x);
+    L.setAttribute('y1', p1.y);
+    L.setAttribute('x2', p2.x);
+    L.setAttribute('y2', p2.y);
+    L.classList.add('tree-edge');
+    linkLayer.appendChild(L);
+  });
+
+  ev.backEdges.forEach(({ from, to }) => {
+    const p1 = nodePositions[from], p2 = nodePositions[to];
+    const L = document.createElementNS(svgNS, 'line');
+    L.setAttribute('x1', p1.x);
+    L.setAttribute('y1', p1.y);
+    L.setAttribute('x2', p2.x);
+    L.setAttribute('y2', p2.y);
+    L.classList.add('non-tree-edge');
+    linkLayer.appendChild(L);
+  });
+
+  ev.activeEdges.forEach(({ from, to }) => {
+    const p1 = nodePositions[from], p2 = nodePositions[to];
+    const L = document.createElementNS(svgNS, 'line');
+    L.setAttribute('x1', p1.x);
+    L.setAttribute('y1', p1.y);
+    L.setAttribute('x2', p2.x);
+    L.setAttribute('y2', p2.y);
+    L.classList.add(from === ev.current ? 'active-current-edge' : 'active-stack-edge'); // Differentiate current and stack edges
+    linkLayer.appendChild(L);
+  });
+
+  ev.color.forEach((col, i) => {
+    const pos = nodePositions[i];
+    const g = document.createElementNS(svgNS, 'g');
+    g.dataset.id = i;
+    g.classList.add('graphNode', col);
+    if (ev.current === i) g.classList.add('current');
+    const circ = document.createElementNS(svgNS, 'circle');
+    circ.setAttribute('cx', pos.x);
+    circ.setAttribute('cy', pos.y);
+    circ.setAttribute('r', radius);
+    g.appendChild(circ);
+    const label = document.createElementNS(svgNS, 'text');
+    label.classList.add('label');
+    label.setAttribute('x', pos.x);
+    label.setAttribute('y', pos.y - 10);
+    label.textContent = i;
+    g.appendChild(label);
+    const times = document.createElementNS(svgNS, 'text');
+    times.classList.add('times');
+    times.setAttribute('x', pos.x);
+    times.setAttribute('y', pos.y + 14);
+    const d = ev.disc[i] ?? '';
+    const f = ev.fin[i] ?? '';
+    times.textContent = d || f ? `${d}/${f}` : '';
+    g.appendChild(times);
+    nodeLayer.appendChild(g);
+    addDragHandlers(g, i);
+  });
+}
 function renderStack(ev){const stackEl=document.getElementById('stack');stackEl.innerHTML='';ev.stack.forEach((node,i)=>{stackEl.insertAdjacentHTML('beforeend',`<svg class="queueNode" width="40" height="40" xmlns="http://www.w3.org/2000/svg"><circle cx="20" cy="20" r="18" fill="lightblue" stroke="#444" stroke-width="2"/><text x="20" y="24" text-anchor="middle" dominant-baseline="middle" font-size="16">${node}</text></svg>`);if(i<ev.stack.length-1){stackEl.insertAdjacentHTML('beforeend','<span class="queue-arrow">→</span>');}});} 
 function renderTable(ev){const tbody=document.getElementById('state-table-body');tbody.innerHTML='';ev.color.forEach((col,i)=>{const tr=document.createElement('tr');if(ev.updatedVertex===i)tr.classList.add('highlighted-row');tr.innerHTML=`<td>${i}</td><td>${ev.disc[i]??''}</td><td>${ev.fin[i]??''}</td><td>${ev.parent[i]===null?'NIL':ev.parent[i]}</td><td class="color-cell ${col}">${col}</td>`;tbody.appendChild(tr);});}
 function updateNode(i){const g=document.querySelector(`g.graphNode[data-id='${i}']`);if(!g) return;const pos=nodePositions[i];g.querySelector('circle').setAttribute('cx',pos.x);g.querySelector('circle').setAttribute('cy',pos.y);g.querySelector('text.label').setAttribute('x',pos.x);g.querySelector('text.label').setAttribute('y',pos.y-10);g.querySelector('text.times').setAttribute('x',pos.x);g.querySelector('text.times').setAttribute('y',pos.y+14);}
