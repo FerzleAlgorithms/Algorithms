@@ -118,6 +118,22 @@
         <div class="legend-item"><span class="legend-line tree"></span><span class="legend-label">Tree Edge</span></div>
         <div class="legend-item"><span class="legend-line nontree"></span><span class="legend-label">Non-tree Edge</span></div>
       </div>
+      <div id="commentary"></div>
+    </div>
+    <div class="panel table-panel">
+      <h3>Vertex Table</h3>
+      <table id="state-table">
+        <thead>
+          <tr>
+            <th>v</th>
+            <th>discover</th>
+            <th>final</th>
+            <th>parent</th>
+            <th>color</th>
+          </tr>
+        </thead>
+        <tbody id="state-table-body"></tbody>
+      </table>
     </div>
   </div>
   <div id="structures">
@@ -171,6 +187,7 @@ function renderStack(ev){const stackEl=document.getElementById('stack');stackEl.
 function renderTable(ev){const tbody=document.getElementById('state-table-body');tbody.innerHTML='';ev.color.forEach((col,i)=>{const tr=document.createElement('tr');if(ev.updatedVertex===i)tr.classList.add('highlighted-row');tr.innerHTML=`<td>${i}</td><td>${ev.disc[i]??''}</td><td>${ev.fin[i]??''}</td><td>${ev.parent[i]===null?'NIL':ev.parent[i]}</td><td class="color-cell ${col}">${col}</td>`;tbody.appendChild(tr);});}
 function updateNode(i){const g=document.querySelector(`g.graphNode[data-id='${i}']`);if(!g) return;const pos=nodePositions[i];g.querySelector('circle').setAttribute('cx',pos.x);g.querySelector('circle').setAttribute('cy',pos.y);g.querySelector('text.label').setAttribute('x',pos.x);g.querySelector('text.label').setAttribute('y',pos.y-10);g.querySelector('text.times').setAttribute('x',pos.x);g.querySelector('text.times').setAttribute('y',pos.y+14);}
 function updateEdges(i){adjList[i].forEach(j=>{const id=`edge-${Math.min(i,j)}-${Math.max(i,j)}`;const p1=nodePositions[Math.min(i,j)],p2=nodePositions[Math.max(i,j)];const base=document.getElementById(id);if(base){base.setAttribute('x1',p1.x);base.setAttribute('y1',p1.y);base.setAttribute('x2',p2.x);base.setAttribute('y2',p2.y);}['tree','back','active'].forEach(type=>{document.querySelectorAll(`#linkLayer line[data-${type}='${id}']`).forEach(line=>{line.setAttribute('x1',nodePositions[i].x);line.setAttribute('y1',nodePositions[i].y);line.setAttribute('x2',nodePositions[j].x);line.setAttribute('y2',nodePositions[j].y);});});});}
+
 function addDragHandlers(g,i){const svgEl=document.getElementById('svg');g.addEventListener('mousedown',e=>{e.preventDefault();const pt=svgEl.createSVGPoint();const ctmInv=svgEl.getScreenCTM().inverse();pt.x=e.clientX;pt.y=e.clientY;const start=pt.matrixTransform(ctmInv);const offsetX=start.x-nodePositions[i].x;const offsetY=start.y-nodePositions[i].y;function onMove(e2){pt.x=e2.clientX;pt.y=e2.clientY;const p=pt.matrixTransform(ctmInv);nodePositions[i].x=p.x-offsetX;nodePositions[i].y=p.y-offsetY;updateNode(i);updateEdges(i);}function onUp(){window.removeEventListener('mousemove',onMove);window.removeEventListener('mouseup',onUp);}window.addEventListener('mousemove',onMove);window.addEventListener('mouseup',onUp);});}
 function clampAllNodes(){const svgEl=document.getElementById('svg');const pt=svgEl.createSVGPoint();const ctmInv=svgEl.getScreenCTM().inverse();const rect=svgEl.getBoundingClientRect();const tl=new DOMPoint(rect.left+radius,rect.top+radius).matrixTransform(ctmInv);const br=new DOMPoint(rect.right-radius,rect.bottom-radius).matrixTransform(ctmInv);nodePositions.forEach((pos,i)=>{pos.x=Math.max(tl.x,Math.min(br.x,pos.x));pos.y=Math.max(tl.y,Math.min(br.y,pos.y));updateNode(i);updateEdges(i);});}
 window.addEventListener('resize',clampAllNodes);
@@ -179,6 +196,7 @@ function prevStep(){if(stepIndex>0){stepIndex--;renderStep();}}
 function updateButtons(){document.getElementById('prevBtn').disabled=stepIndex===0;document.getElementById('nextBtn').disabled=stepIndex===steps.length-1;}
 function initializeDemo(){adjList=generateGraph(8);nodePositions=layoutGraph(adjList);steps=buildDfsSteps(adjList);stepIndex=0;document.getElementById('prevBtn').addEventListener('click',prevStep);document.getElementById('nextBtn').addEventListener('click',nextStep);renderStep();}
 document.getElementById('generateBtn').addEventListener('click',()=>{const rawSize=parseInt(document.getElementById('graphSize').value,10)||8;const n=Math.min(15,Math.max(1,rawSize));adjList=generateGraph(n);nodePositions=layoutGraph(adjList);steps=buildDfsSteps(adjList);stepIndex=0;renderStep();});
+
 let timer=null;const playBtn=document.getElementById('playBtn');const speedSelect=document.getElementById('speedSelect');playBtn.addEventListener('click',()=>{if(timer){clearInterval(timer);timer=null;playBtn.textContent='Play';}else{playBtn.textContent='Pause';timer=setInterval(()=>{if(stepIndex<steps.length-1)nextStep();else{clearInterval(timer);playBtn.textContent='Play';}},1000/parseInt(speedSelect.value,10));}});
 speedSelect.addEventListener('change',()=>{if(timer){clearInterval(timer);playBtn.textContent='Pause';timer=setInterval(()=>{if(stepIndex<steps.length-1)nextStep();else{clearInterval(timer);playBtn.textContent='Play';}},1000/parseInt(speedSelect.value,10));}});
 window.onload=initializeDemo;
