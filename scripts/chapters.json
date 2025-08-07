@@ -120,6 +120,7 @@
     {
       "Exhaustive Search": [
         "BFS Demo.html",
+        "DFS Demo (Directed).html",
         "DFS Demo.html",
         "N-Queens Demo.html",
         "Subset Sum Demo.html"

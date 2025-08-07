@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>DFS Demo</title>
+  <title>DFS Demo (Directed)</title>
   <script src="/Algorithms/scripts/demoScripts.js"></script>
   <link rel="stylesheet" href="/Algorithms/css/style.css">
   <link rel="stylesheet" href="/Algorithms/css/demo.css">
@@ -11,10 +11,12 @@
       --node-stroke: #444;
       --edge-stroke: black;
       --edge-highlight-stack: red;
-      --edge-highlight-current: orange;
-      --edge-highlight-current-under: gold; /* Highlight color for current edge (underlay) */
+      --edge-highlight-current: yellow;
+      --edge-highlight-current-under: yellow;
       --tree-edge: blue;
-      --non-tree-edge: lightblue;
+      --back-edge: #9933cc;
+      --forward-edge: #33cccc;
+      --cross-edge: #888888;
       --font-sans: sans-serif;
     }
     .graphNode circle {
@@ -37,17 +39,17 @@
     .graphNode .label { font-size: 20px; }
     .graphNode .times { font-size: 16px; }
     #svg line { stroke: var(--edge-stroke); stroke-width: 3px; }
-    #linkLayer line.active-stack-edge { stroke: var(--edge-highlight-stack); stroke-width: 4px; }
-    #linkLayer line.active-current-edge-under { stroke: var(--edge-highlight-current-under); stroke-width: 10px; opacity: 0.7; }
-    #linkLayer line.active-current-edge { stroke: var(--edge-highlight-current); stroke-width: 4px; }
-    #linkLayer line.neighbor-edge { stroke: #00cc00; stroke-width: 6px; }
-    #linkLayer line.tree-edge { stroke: var(--tree-edge); stroke-width: 4px; }
-    #linkLayer line.non-tree-edge { stroke: var(--non-tree-edge); stroke-width: 4px; }
-    /*#linkLayer line.default-edge {
-      display: none; 
-   }*/
+    #svg path { stroke: var(--edge-stroke); stroke-width: 3px; fill: none; }
+    #linkLayer line.active-stack-edge, #linkLayer path.active-stack-edge { stroke: var(--edge-highlight-stack); stroke-width: 4px; }
+    #linkLayer line.active-current-edge-under, #linkLayer path.active-current-edge-under { stroke: black; stroke-width: 6px; }
+    #linkLayer line.active-current-edge, #linkLayer path.active-current-edge { stroke: var(--edge-highlight-current); stroke-width: 4px; }
+    #linkLayer line.neighbor-edge, #linkLayer path.neighbor-edge { stroke: #00cc00; stroke-width: 4px; }
+    #linkLayer line.tree-edge, #linkLayer path.tree-edge { stroke: var(--tree-edge); stroke-width: 4px; }
+    #linkLayer line.back-edge, #linkLayer path.back-edge { stroke: var(--back-edge); stroke-width: 4px; }
+    #linkLayer line.forward-edge, #linkLayer path.forward-edge { stroke: var(--forward-edge); stroke-width: 4px; }
+    #linkLayer line.cross-edge, #linkLayer path.cross-edge { stroke: var(--cross-edge); stroke-width: 4px; }
     #state-table { width: 100%; border-collapse: collapse; font-family: var(--font-sans); }
-    #state-table th, #state-table td { border: 1px solid #ddd; padding: 0.5em; text-align: center; }
+    #state-table th, #state-table td { border: 1px solid #ddd; padding: 0.3em; text-align: center; }
     #state-table th { background: #f0f0f0; }
     .highlighted-row { outline: 2px solid #000; }
     .color-cell.blue   { background: lightblue;  }
@@ -56,7 +58,7 @@
     #structures {
       display: flex;
       flex-direction: column;
-      align-items: flex-start; /* Align children to the left */
+      align-items: flex-start;
       gap: 8px;
       margin: 10px 0;
       font-family: var(--font-sans);
@@ -64,11 +66,11 @@
 
     #stack-container {
       display: flex;
-      align-items: flex-start; /* Align items to the top */
+      align-items: flex-start;
       column-gap: 8px;
-      height: auto; /* Adjust height to fit content */
-      justify-content: flex-start; /* Left-align the stack */
-      width: 100%; /* Ensure it spans the full width */
+      height: auto;
+      justify-content: flex-start;
+      width: 100%;
     }
 
     #stack {
@@ -77,7 +79,7 @@
       overflow-x: auto;
       white-space: nowrap;
       max-width: 750px;
-      min-height: 2.5em; /* Ensure it has a minimum height */
+      min-height: 2.5em;
     }
     .queueNode { margin: 0 4px; flex: 0 0 auto; background: none; border: none; }
     .queue-arrow { margin: 0 4px; flex: 0 0 auto; }
@@ -86,7 +88,7 @@
     .table-panel { flex:0 0 250px; margin-left:10px; }
     #svg { width:100%; height:auto; max-height:65vh; background-color:#fff !important; }
     #demo-wrapper { min-height:800px; display:flex; flex-direction:column; }
-    .table-panel .legend { display:flex; flex-direction:column; align-items:flex-start; gap:0.5em; font-family:var(--font-sans); margin-top:1em; }
+    .table-panel .legend { display:flex; flex-direction:column; align-items:flex-start; gap:0.3em; font-family:var(--font-sans); margin-top:1em; }
     .table-panel .legend-item { display:flex; align-items:center; gap:0.5em; }
     .legend-box { width:1em; height:1em; display:inline-block; }
     .legend-box.blue { background: lightblue; }
@@ -94,11 +96,17 @@
     .legend-box.green { background: lightgreen; }
     .legend-line { width:2em; height:0.4em; display:inline-block; vertical-align:middle; border-radius: 4px; }
     .legend-line.active-stack { background: var(--edge-highlight-stack); }
-    .legend-line.active-current-under { background: var(--edge-highlight-current-under); border: 2px solid var(--edge-highlight-current-under); }
+    .legend-line.active-current-under { background: black; border: none; height: 0.6em; }
     .legend-line.active-current { background: var(--edge-highlight-current); }
     .legend-line.tree { background: var(--tree-edge); }
-    .legend-line.nontree { background: var(--non-tree-edge); }
+    .legend-line.back { background: var(--back-edge); }
+    .legend-line.forward { background: var(--forward-edge); }
+    .legend-line.cross { background: var(--cross-edge); }
     .legend-line.neighbors { background: #00cc00; }
+    
+    /* Reduce spacing before headings */
+    .graph-panel p { margin-top: 0; }
+    .table-panel h3 { margin-top: 0; }
   </style>
   <!-- Google tag (gtag.js) -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-DQ5LVZVFDC"></script>
@@ -111,7 +119,7 @@
 </head>
 <body class="no-tooltips">
 <div id="demo-wrapper">
-  <h2>Depth-First Search Demo</h2>
+  <h2>Depth-First Search Demo (Directed Graphs)</h2>
   <div id="controls">
     <label>Graph Size: <input id="graphSize" type="number" min="1" max="15" value="8" style="width:4em"></label>
     <button id="generateBtn">Generate Graph</button>
@@ -124,13 +132,55 @@
       <option value="1">1×</option>
       <option value="2">2×</option>
       <option value="4">4×</option>
+      <option value="8">8×</option>
     </select>
   </div>
-  <div id="main-container" style="display:flex; align-items:flex-start; gap:20px;">
+  <div id="main-container" style="display:flex; align-items:flex-start; gap:10px;">
     <div class="panel graph-panel">
-      <h3>Graph</h3>
-      <p class="drag-note">Drag vertices to reposition them.</p>
+      <p><b>Graph</b> (Drag vertices to reposition them)</p>
       <svg id="svg" viewBox="0 0 800 800" preserveAspectRatio="xMidYMid meet">
+        <defs>
+          <marker id="arrowhead" markerWidth="8" markerHeight="6" 
+                  refX="7" refY="3" orient="auto">
+            <polygon points="0 0, 8 3, 0 6" fill="black" />
+          </marker>
+          <marker id="arrowhead-red" markerWidth="8" markerHeight="6" 
+                  refX="7" refY="3" orient="auto">
+            <polygon points="0 0, 8 3, 0 6" fill="red" />
+          </marker>
+          <marker id="arrowhead-orange" markerWidth="8" markerHeight="6" 
+                  refX="7" refY="3" orient="auto">
+            <polygon points="0 0, 8 3, 0 6" fill="orange" />
+          </marker>
+          <marker id="arrowhead-green" markerWidth="8" markerHeight="6" 
+                  refX="7" refY="3" orient="auto">
+            <polygon points="0 0, 8 3, 0 6" fill="#00cc00" />
+          </marker>
+          <marker id="arrowhead-blue" markerWidth="8" markerHeight="6" 
+                  refX="7" refY="3" orient="auto">
+            <polygon points="0 0, 8 3, 0 6" fill="blue" />
+          </marker>
+          <marker id="arrowhead-purple" markerWidth="8" markerHeight="6" 
+                  refX="7" refY="3" orient="auto">
+            <polygon points="0 0, 8 3, 0 6" fill="purple" />
+          </marker>
+          <marker id="arrowhead-teal" markerWidth="8" markerHeight="6" 
+        refX="7" refY="3" orient="auto">
+          <polygon points="0 0, 8 3, 0 6" fill="#33cccc" />
+        </marker>
+        <marker id="arrowhead-grey" markerWidth="8" markerHeight="6" 
+                refX="7" refY="3" orient="auto">
+          <polygon points="0 0, 8 3, 0 6" fill="#888888" />
+        </marker>          
+        <marker id="arrowhead-yellow" markerWidth="8" markerHeight="6" 
+        refX="7" refY="3" orient="auto">
+          <polygon points="0 0, 8 3, 0 6" fill="yellow" stroke="black" stroke-width="0.2"/>
+        </marker>
+        <marker id="arrowhead-black" markerWidth="8" markerHeight="6" 
+        refX="7" refY="3" orient="auto" markerUnits="userSpaceOnUse">
+          <polygon points="0 0, 8 3, 0 6" fill="black"/>
+        </marker>
+        </defs>
         <g id="linkLayer"></g>
         <g id="nodeLayer"></g>
       </svg>
@@ -141,7 +191,7 @@
         <thead>
           <tr>
             <th>v</th>
-            <th>discover</th>
+            <th>disc</th>
             <th>final</th>
             <th>parent</th>
             <th>color</th>
@@ -159,7 +209,7 @@
           <span class="legend-label">Call Stack</span>
         </div>
         <div class="legend-item">
-          <span class="legend-line active-current-under"></span>
+          <span class="legend-line active-current"></span>
           <span class="legend-label">Being Explored</span>
         </div>
         <div class="legend-item">
@@ -171,8 +221,16 @@
           <span class="legend-label">Tree Edge</span>
         </div>
         <div class="legend-item">
-          <span class="legend-line nontree"></span>
-          <span class="legend-label">Non-tree Edge</span>
+          <span class="legend-line back"></span>
+          <span class="legend-label">Back Edge</span>
+        </div>
+        <div class="legend-item">
+          <span class="legend-line forward"></span>
+          <span class="legend-label">Forward Edge</span>
+        </div>
+        <div class="legend-item">
+          <span class="legend-line cross"></span>
+          <span class="legend-label">Cross Edge</span>
         </div>
       </div>
     </div>
@@ -187,13 +245,16 @@ const width=800,height=800,radius=40,margin=10;
 const circleR=width/2-radius-margin;
 const centerX=width/2,centerY=height/2;
 let adjList,steps,stepIndex=0,nodePositions=[];
+
 function buildDfsSteps(adj){
   const events=[];const n=adj.length;
   const color=Array(n).fill('blue');
   const disc=Array(n).fill(null);
   const fin=Array(n).fill(null);
   const parent=Array(n).fill(null);
-  const stack=[];const activeEdges=[];const treeEdges=[];const backEdges=[];let time=0;
+  const stack=[];const activeEdges=[];
+  const treeEdges=[];const backEdges=[];const forwardEdges=[];const crossEdges=[];
+  let time=0;
   
   function snapshot(desc, exploringEdge = null, highlightedNodes = [], currentOverride = null){
     events.push({
@@ -206,6 +267,8 @@ function buildDfsSteps(adj){
       activeEdges:activeEdges.slice(),
       treeEdges:treeEdges.slice(),
       backEdges:backEdges.slice(),
+      forwardEdges:forwardEdges.slice(),
+      crossEdges:crossEdges.slice(),
       current:currentOverride !== null ? currentOverride : (stack[stack.length-1]??null),
       exploringEdge,
       highlightedNodes
@@ -216,38 +279,38 @@ function buildDfsSteps(adj){
     color[u]='orange';disc[u]=++time;stack.push(u);
     if(incoming) activeEdges.push(incoming);
     
-    const neighbors = adj[u].filter(v => v !== parent[u]);
+    const neighbors = adj[u];
+    
     if(neighbors.length > 0) {
-      snapshot(`Visiting vertex ${u}: coloring orange<br>discover time = ${disc[u]}<br>Need to explore neighbors: ${neighbors.join(', ')}`, null, [u, ...neighbors]);
+      // Only highlight neighbors that we will actually explore outgoing edges to
+      snapshot(`Visiting vertex ${u}: coloring orange<br>discover time = ${disc[u]}<br>Need to explore outgoing edges to: ${neighbors.join(', ')}`, null, [u, ...neighbors]);
     } else {
-      snapshot(`Visiting vertex ${u}: coloring orange<br>discover time = ${disc[u]}<br>No neighbors to explore`, null, [u]);
+      snapshot(`Visiting vertex ${u}: coloring orange<br>discover time = ${disc[u]}<br>No outgoing edges to explore`, null, [u]);
     }
     
     for(const v of neighbors){
       const edge={from:u,to:v};
       
       if(color[v]==='blue'){
-        snapshot(`Exploring edge (${u},${v})<br>Vertex ${v} is unvisited (blue), so edge (${u},${v}) is a tree edge`, edge, [u, v], v);
+        snapshot(`Exploring edge (${u},${v})<br>Vertex ${v} is unvisited (blue), so edge (${u},${v}) is a tree edge`, edge, [v], v);
         parent[v]=u;
         activeEdges.push(edge);
         dfsVisit(v,edge);
-        // Remove from active edges and add to tree edges before backtracking snapshot
-        const idx=activeEdges.findIndex(e=>(e.from===edge.from&&e.to===edge.to)||(e.from===edge.to&&e.to===edge.from));
+        const idx=activeEdges.findIndex(e=>e.from===edge.from&&e.to===edge.to);
         if(idx>=0) activeEdges.splice(idx,1);
         treeEdges.push(edge);
         snapshot(`Backtracking from ${v} to ${u}<br>Edge (${u},${v}) now colored blue (tree edge)`, null, [u, v]);
       } else if(color[v]==='orange'){
-        const key=`${Math.min(u,v)}-${Math.max(u,v)}`;
-        if(!backEdges.some(e=>`${Math.min(e.from,e.to)}-${Math.max(e.from,e.to)}`===key)) {
-          backEdges.push(edge);
+        backEdges.push(edge);
+        snapshot(`Exploring edge (${u},${v})<br>Vertex ${v} is currently being visited (orange), so edge (${u},${v}) is a back edge`, edge, [v], v);
+      } else { // color[v] === 'green'
+        if(disc[u] < disc[v]) {
+          forwardEdges.push(edge);
+          snapshot(`Exploring edge (${u},${v})<br>Vertex ${v} is finished (green) and was discovered after ${u}, so edge (${u},${v}) is a forward edge`, edge, [v], v);
+        } else {
+          crossEdges.push(edge);
+          snapshot(`Exploring edge (${u},${v})<br>Vertex ${v} is finished (green) and was discovered before ${u}, so edge (${u},${v}) is a cross edge`, edge, [v], v);
         }
-        snapshot(`Exploring edge (${u},${v})<br>Vertex ${v} was already visited (orange), so edge (${u},${v}) is a back edge (non-tree edge)`, edge, [u, v], v);
-      } else {
-        const key=`${Math.min(u,v)}-${Math.max(u,v)}`;
-        if(!backEdges.some(e=>`${Math.min(e.from,e.to)}-${Math.max(e.from,e.to)}`===key)) {
-          backEdges.push(edge);
-        }
-        snapshot(`Exploring edge (${u},${v})<br>Vertex ${v} is finished (green), so edge (${u},${v}) is a back edge (non-tree edge)`, edge, [u, v], v);
       }
     }
     
@@ -265,35 +328,33 @@ function buildDfsSteps(adj){
   snapshot('DFS complete');
   return events;
 }
-/*function generateGraph(n){const adj=Array.from({length:n},()=>[]);for(let i=0;i<n-1;i++){adj[i].push(i+1);adj[i+1].push(i);}for(let i=0;i<n;i++){for(let j=i+2;j<n;j++){if(Math.random()<0.3){adj[i].push(j);adj[j].push(i);}}}return adj;}*/
+
 function generateGraph(n){
   const adj=Array.from({length:n},()=>[]);
   
-  // Ensure connectivity by creating a random spanning tree first
-  const connected = [0];
-  const unconnected = Array.from({length: n-1}, (_, i) => i + 1);
+  // Create a random directed graph with guaranteed connectivity
+  // First, create a random spanning tree (directed)
+  const visited = [0];
+  const unvisited = Array.from({length: n-1}, (_, i) => i + 1);
   
-  while(unconnected.length > 0) {
-    const fromIdx = Math.floor(Math.random() * connected.length);
-    const toIdx = Math.floor(Math.random() * unconnected.length);
-    const from = connected[fromIdx];
-    const to = unconnected[toIdx];
+  while(unvisited.length > 0) {
+    const fromIdx = Math.floor(Math.random() * visited.length);
+    const toIdx = Math.floor(Math.random() * unvisited.length);
+    const from = visited[fromIdx];
+    const to = unvisited[toIdx];
     
     adj[from].push(to);
-    adj[to].push(from);
     
-    connected.push(to);
-    unconnected.splice(toIdx, 1);
+    visited.push(to);
+    unvisited.splice(toIdx, 1);
   }
   
-  // Add additional random edges for more interesting structure
-  const edgeProbability = 0.2; // Adjust this to control density
+  // Add additional random directed edges
+  const edgeProbability = 0.15;
   for(let i = 0; i < n; i++) {
-    for(let j = i + 1; j < n; j++) {
-      // Skip if edge already exists
-      if(!adj[i].includes(j) && Math.random() < edgeProbability) {
+    for(let j = 0; j < n; j++) {
+      if(i !== j && !adj[i].includes(j) && Math.random() < edgeProbability) {
         adj[i].push(j);
-        adj[j].push(i);
       }
     }
   }
@@ -302,7 +363,65 @@ function generateGraph(n){
 }
 
 function layoutGraph(adj){return adj.map((_,i)=>{const t=2*Math.PI*i/adj.length-Math.PI/2;return{x:centerX+circleR*Math.cos(t),y:centerY+circleR*Math.sin(t)};});}
+
+function calculateCurvedPath(from, to) {
+  const p1 = nodePositions[from];
+  const p2 = nodePositions[to];
+  const dx = p2.x - p1.x;
+  const dy = p2.y - p1.y;
+  const distance = Math.sqrt(dx*dx + dy*dy);
+  const unitX = dx / distance;
+  const unitY = dy / distance;
+  
+  // Calculate start and end points at circle edges
+  const startX = p1.x + unitX * radius;
+  const startY = p1.y + unitY * radius;
+  const endX = p2.x - unitX * radius;
+  const endY = p2.y - unitY * radius;
+  
+  // Calculate control point for curve (bend to the right)
+  const midX = (startX + endX) / 2;
+  const midY = (startY + endY) / 2;
+  const perpX = -unitY; // Perpendicular to direction vector
+  const perpY = unitX;
+  const curvature = Math.min(distance * 0.2, 50); // Limit curve amount
+  const controlX = midX + perpX * curvature;
+  const controlY = midY + perpY * curvature;
+  
+  return `M ${startX} ${startY} Q ${controlX} ${controlY} ${endX} ${endY}`;
+}
+
+function calculateStraightPath(from, to) {
+  const p1 = nodePositions[from];
+  const p2 = nodePositions[to];
+  const dx = p2.x - p1.x;
+  const dy = p2.y - p1.y;
+  const distance = Math.sqrt(dx*dx + dy*dy);
+  const unitX = dx / distance;
+  const unitY = dy / distance;
+  
+  // Calculate start and end points at circle edges
+  const startX = p1.x + unitX * radius;
+  const startY = p1.y + unitY * radius;
+  const endX = p2.x - unitX * radius;
+  const endY = p2.y - unitY * radius;
+  
+  return `M ${startX} ${startY} L ${endX} ${endY}`;
+}
+
+function hasBidirectionalEdge(from, to) {
+  return adjList[from] && adjList[from].includes(to) && 
+         adjList[to] && adjList[to].includes(from);
+}
+
+function getPathData(from, to) {
+  return hasBidirectionalEdge(from, to) ? 
+    calculateCurvedPath(from, to) : 
+    calculateStraightPath(from, to);
+}
+
 function renderStep(){const ev=steps[stepIndex];document.getElementById('commentary').innerHTML=ev.desc;renderGraph(ev);renderStack(ev);renderTable(ev);updateButtons();}
+
 function renderGraph(ev) {
   const svgNS = 'http://www.w3.org/2000/svg';
   const linkLayer = document.getElementById('linkLayer');
@@ -310,114 +429,126 @@ function renderGraph(ev) {
   linkLayer.innerHTML = '';
   nodeLayer.innerHTML = '';
 
-  // Draw base edges
+  // Draw base edges with curved or straight paths
   adjList.forEach((nbrs, i) => {
     nbrs.forEach(j => {
-      if (i < j) {
-        const p1 = nodePositions[i], p2 = nodePositions[j];
-        const L = document.createElementNS(svgNS, 'line');
-        L.setAttribute('id', `edge-${i}-${j}`);
-        L.setAttribute('x1', p1.x);
-        L.setAttribute('y1', p1.y);
-        L.setAttribute('x2', p2.x);
-        L.setAttribute('y2', p2.y);
-        L.classList.add('default-edge');
-        linkLayer.appendChild(L);
-      }
+      const pathData = getPathData(i, j);
+      const path = document.createElementNS(svgNS, 'path');
+      path.setAttribute('id', `edge-${i}-${j}`);
+      path.setAttribute('d', pathData);
+      path.setAttribute('marker-end', 'url(#arrowhead)');
+      path.classList.add('default-edge');
+      linkLayer.appendChild(path);
     });
   });
 
-  // Highlight edges to neighbors (orange, thick, underlay) - before other highlights
-  if (ev.highlightedNodes && ev.highlightedNodes.length > 1 && ev.current !== null) {
+  // Highlight edges to neighbors - only if we're not currently exploring a specific edge
+  if (ev.highlightedNodes && ev.highlightedNodes.length > 1 && ev.current !== null && !ev.exploringEdge) {
     const current = ev.current;
+    console.log(`Rendering step ${stepIndex}: current=${current}, highlightedNodes=`, ev.highlightedNodes);
+    console.log(`adjList[${current}]=`, adjList[current]);
+    
     ev.highlightedNodes.forEach(neighbor => {
       if (neighbor !== current && adjList[current] && adjList[current].includes(neighbor)) {
-        const p1 = nodePositions[current], p2 = nodePositions[neighbor];
-        const L = document.createElementNS(svgNS, 'line');
-        L.setAttribute('x1', p1.x);
-        L.setAttribute('y1', p1.y);
-        L.setAttribute('x2', p2.x);
-        L.setAttribute('y2', p2.y);
-        L.setAttribute('data-from', current);
-        L.setAttribute('data-to', neighbor);
-        L.classList.add('neighbor-edge');
-        linkLayer.appendChild(L);
+        console.log(`Highlighting edge ${current}→${neighbor}`);
+        const pathData = getPathData(current, neighbor);
+        const path = document.createElementNS(svgNS, 'path');
+        path.setAttribute('d', pathData);
+        path.setAttribute('marker-end', 'url(#arrowhead-green)');
+        path.setAttribute('data-from', current);
+        path.setAttribute('data-to', neighbor);
+        path.classList.add('neighbor-edge');
+        linkLayer.appendChild(path);
+      } else {
+        console.log(`NOT highlighting edge ${current}→${neighbor} (neighbor=${neighbor}, current=${current}, exists=${adjList[current] && adjList[current].includes(neighbor)})`);
       }
     });
   }
 
-  // Highlight the edge being explored (yellow, thick, underlay)
+  // Active edges in stack
+  ev.activeEdges.forEach(({ from, to }) => {
+    const pathData = getPathData(from, to);
+    const path = document.createElementNS(svgNS, 'path');
+    path.setAttribute('d', pathData);
+    path.setAttribute('marker-end', 'url(#arrowhead-red)');
+    path.setAttribute('data-from', from);
+    path.setAttribute('data-to', to);
+    path.classList.add('active-stack-edge');
+    linkLayer.appendChild(path);
+  });
+
+  // Back edges
+  ev.backEdges.forEach(({ from, to }) => {
+    const pathData = getPathData(from, to);
+    const path = document.createElementNS(svgNS, 'path');
+    path.setAttribute('d', pathData);
+    path.setAttribute('marker-end', 'url(#arrowhead-purple)');
+    path.setAttribute('data-from', from);
+    path.setAttribute('data-to', to);
+    path.classList.add('back-edge');
+    linkLayer.appendChild(path);
+  });
+
+  // Forward edges
+  ev.forwardEdges.forEach(({ from, to }) => {
+    const pathData = getPathData(from, to);
+    const path = document.createElementNS(svgNS, 'path');
+    path.setAttribute('d', pathData);
+    path.setAttribute('marker-end', 'url(#arrowhead-teal)');
+    path.setAttribute('data-from', from);
+    path.setAttribute('data-to', to);
+    path.classList.add('forward-edge');
+    linkLayer.appendChild(path);
+  });
+
+  // Cross edges
+  ev.crossEdges.forEach(({ from, to }) => {
+    const pathData = getPathData(from, to);
+    const path = document.createElementNS(svgNS, 'path');
+    path.setAttribute('d', pathData);
+    path.setAttribute('marker-end', 'url(#arrowhead-grey)');
+    path.setAttribute('data-from', from);
+    path.setAttribute('data-to', to);
+    path.classList.add('cross-edge');
+    linkLayer.appendChild(path);
+  });
+
+  // Tree edges
+  ev.treeEdges.forEach(({ from, to }) => {
+    const pathData = getPathData(from, to);
+    const path = document.createElementNS(svgNS, 'path');
+    path.setAttribute('d', pathData);
+    path.setAttribute('marker-end', 'url(#arrowhead-blue)');
+    path.setAttribute('data-from', from);
+    path.setAttribute('data-to', to);
+    path.classList.add('tree-edge');
+    linkLayer.appendChild(path);
+  });
+
+  // Current edge being explored (black border underlay)
   if (ev.exploringEdge) {
     const {from, to} = ev.exploringEdge;
-    const p1 = nodePositions[from], p2 = nodePositions[to];
-    const L = document.createElementNS(svgNS, 'line');
-    L.setAttribute('x1', p1.x);
-    L.setAttribute('y1', p1.y);
-    L.setAttribute('x2', p2.x);
-    L.setAttribute('y2', p2.y);
-    L.setAttribute('data-from', from);
-    L.setAttribute('data-to', to);
-    L.classList.add('active-current-edge-under');
-    linkLayer.appendChild(L);
+    const pathData = getPathData(from, to);
+    const path = document.createElementNS(svgNS, 'path');
+    path.setAttribute('d', pathData);
+    path.setAttribute('marker-end', 'url(#arrowhead-black)');
+    path.setAttribute('data-from', from);
+    path.setAttribute('data-to', to);
+    path.classList.add('active-current-edge-under');
+    linkLayer.appendChild(path);
   }
 
-
-  // Active edges in stack (red)
-  ev.activeEdges.forEach(({ from, to }) => {
-    const p1 = nodePositions[from], p2 = nodePositions[to];
-    const L = document.createElementNS(svgNS, 'line');
-    L.setAttribute('x1', p1.x);
-    L.setAttribute('y1', p1.y);
-    L.setAttribute('x2', p2.x);
-    L.setAttribute('y2', p2.y);
-    L.setAttribute('data-from', from);
-    L.setAttribute('data-to', to);
-    L.classList.add('active-stack-edge');
-    linkLayer.appendChild(L);
-  });
-
-  // Non-tree edges (light blue)
-  ev.backEdges.forEach(({ from, to }) => {
-    const p1 = nodePositions[from], p2 = nodePositions[to];
-    const L = document.createElementNS(svgNS, 'line');
-    L.setAttribute('x1', p1.x);
-    L.setAttribute('y1', p1.y);
-    L.setAttribute('x2', p2.x);
-    L.setAttribute('y2', p2.y);
-    L.setAttribute('data-from', from);
-    L.setAttribute('data-to', to);
-    L.classList.add('non-tree-edge');
-    linkLayer.appendChild(L);
-  });
-
-  // Tree edges (blue)
-  ev.treeEdges.forEach(({ from, to }) => {
-    const p1 = nodePositions[from], p2 = nodePositions[to];
-    const L = document.createElementNS(svgNS, 'line');
-    L.setAttribute('x1', p1.x);
-    L.setAttribute('y1', p1.y);
-    L.setAttribute('x2', p2.x);
-    L.setAttribute('y2', p2.y);
-    L.setAttribute('data-from', from);
-    L.setAttribute('data-to', to);
-    L.classList.add('tree-edge');
-    linkLayer.appendChild(L);
-  });
-
-
-  // Current edge being explored (orange, on top)
+  // Current edge being explored (yellow overlay)
   if (ev.exploringEdge) {
     const {from, to} = ev.exploringEdge;
-    const p1 = nodePositions[from], p2 = nodePositions[to];
-    const L = document.createElementNS(svgNS, 'line');
-    L.setAttribute('x1', p1.x);
-    L.setAttribute('y1', p1.y);
-    L.setAttribute('x2', p2.x);
-    L.setAttribute('y2', p2.y);
-    L.setAttribute('data-from', from);
-    L.setAttribute('data-to', to);
-    L.classList.add('active-current-edge');
-    linkLayer.appendChild(L);
+    const pathData = getPathData(from, to);
+    const path = document.createElementNS(svgNS, 'path');
+    path.setAttribute('d', pathData);
+    path.setAttribute('marker-end', 'url(#arrowhead-yellow)');
+    path.setAttribute('data-from', from);
+    path.setAttribute('data-to', to);
+    path.classList.add('active-current-edge');
+    linkLayer.appendChild(path);
   }
 
   ev.color.forEach((col, i) => {
@@ -452,31 +583,31 @@ function renderGraph(ev) {
 }
 function renderStack(ev){const stackEl=document.getElementById('stack');stackEl.innerHTML='';ev.stack.forEach((node,i)=>{stackEl.insertAdjacentHTML('beforeend',`<svg class="queueNode" width="40" height="40" xmlns="http://www.w3.org/2000/svg"><circle cx="20" cy="20" r="18" fill="lightblue" stroke="#444" stroke-width="2"/><text x="20" y="24" text-anchor="middle" dominant-baseline="middle" font-size="16">${node}</text></svg>`);if(i<ev.stack.length-1){stackEl.insertAdjacentHTML('beforeend','<span class="queue-arrow">→</span>');}});} 
 function renderTable(ev){const tbody=document.getElementById('state-table-body');tbody.innerHTML='';ev.color.forEach((col,i)=>{const tr=document.createElement('tr');if(ev.updatedVertex===i)tr.classList.add('highlighted-row');tr.innerHTML=`<td>${i}</td><td>${ev.disc[i]??''}</td><td>${ev.fin[i]??''}</td><td>${ev.parent[i]===null?'NIL':ev.parent[i]}</td><td class="color-cell ${col}">${col}</td>`;tbody.appendChild(tr);});}
+
 function updateNode(i){const g=document.querySelector(`g.graphNode[data-id='${i}']`);if(!g) return;const pos=nodePositions[i];g.querySelector('circle').setAttribute('cx',pos.x);g.querySelector('circle').setAttribute('cy',pos.y);g.querySelector('text.label').setAttribute('x',pos.x);g.querySelector('text.label').setAttribute('y',pos.y-10);g.querySelector('text.times').setAttribute('x',pos.x);g.querySelector('text.times').setAttribute('y',pos.y+14);}
+
 function updateEdges(i){
   // Update base edges
-  adjList[i].forEach(j=>{
-    const id=`edge-${Math.min(i,j)}-${Math.max(i,j)}`;
-    const p1=nodePositions[Math.min(i,j)],p2=nodePositions[Math.max(i,j)];
-    const base=document.getElementById(id);
-    if(base){
-      base.setAttribute('x1',p1.x);
-      base.setAttribute('y1',p1.y);
-      base.setAttribute('x2',p2.x);
-      base.setAttribute('y2',p2.y);
-    }
+  adjList.forEach((nbrs, from) => {
+    nbrs.forEach(to => {
+      if (from === i || to === i) {
+        const basePath = document.getElementById(`edge-${from}-${to}`);
+        if(basePath) {
+          const pathData = getPathData(from, to);
+          basePath.setAttribute('d', pathData);
+        }
+      }
+    });
   });
   
   // Update all highlighted edges connected to this node
-  document.querySelectorAll('#linkLayer line[data-from], #linkLayer line[data-to]').forEach(line => {
-    const from = parseInt(line.getAttribute('data-from'));
-    const to = parseInt(line.getAttribute('data-to'));
+  document.querySelectorAll('#linkLayer path[data-from], #linkLayer path[data-to]').forEach(path => {
+    const from = parseInt(path.getAttribute('data-from'));
+    const to = parseInt(path.getAttribute('data-to'));
     
     if (from === i || to === i) {
-      line.setAttribute('x1', nodePositions[from].x);
-      line.setAttribute('y1', nodePositions[from].y);
-      line.setAttribute('x2', nodePositions[to].x);
-      line.setAttribute('y2', nodePositions[to].y);
+      const pathData = getPathData(from, to);
+      path.setAttribute('d', pathData);
     }
   });
 }
