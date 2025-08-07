@@ -9,11 +9,12 @@
   <style>
     :root {
       --node-stroke: #444;
-      --edge-stroke: black; /* Default edge color is black */
-      --edge-highlight-stack: red; /* Edges in the call stack are red */
-      --edge-highlight-current: orange; /* Current edge being explored is orange */
-      --tree-edge: blue; /* Tree edges are blue */
-      --non-tree-edge: lightblue; /* Non-tree edges are light blue */
+      --edge-stroke: black;
+      --edge-highlight-stack: red;
+      --edge-highlight-current: orange;
+      --edge-highlight-current-under: gold; /* Highlight color for current edge (underlay) */
+      --tree-edge: blue;
+      --non-tree-edge: lightblue;
       --font-sans: sans-serif;
     }
     .graphNode circle {
@@ -33,15 +34,10 @@
     .graphNode .times { font-size: 14px; }
     #svg line { stroke: var(--edge-stroke); stroke-width: 3px; }
     #linkLayer line.active-stack-edge { stroke: var(--edge-highlight-stack); stroke-width: 4px; }
+    #linkLayer line.active-current-edge-under { stroke: var(--edge-highlight-current-under); stroke-width: 10px; opacity: 0.7; }
     #linkLayer line.active-current-edge { stroke: var(--edge-highlight-current); stroke-width: 4px; }
-    #linkLayer line.tree-edge {
-      stroke: var(--tree-edge); /* Tree edges are blue */
-      stroke-width: 4px;
-    }
-    #linkLayer line.non-tree-edge {
-      stroke: var(--non-tree-edge); /* Non-tree edges are light blue */
-      stroke-width: 3px;
-    }
+    #linkLayer line.tree-edge { stroke: var(--tree-edge); stroke-width: 4px; }
+    #linkLayer line.non-tree-edge { stroke: var(--non-tree-edge); stroke-width: 3px; }
     /*#linkLayer line.default-edge {
       display: none; 
    }*/
@@ -87,13 +83,12 @@
     .table-panel .legend { display:flex; flex-direction:column; align-items:flex-start; gap:0.5em; font-family:var(--font-sans); margin-top:1em; }
     .table-panel .legend-item { display:flex; align-items:center; gap:0.5em; }
     .legend-box { width:1em; height:1em; display:inline-block; }
-    .legend-line { width:1.5em; height:0.3em; display:inline-block; }
-    .legend-box.blue { background: lightblue; }
-    .legend-box.orange { background: orange; }
-    .legend-box.green { background: lightgreen; }
-    .legend-line.active { background: var(--edge-highlight); }
-    .legend-line.tree { background: #444; }
-    .legend-line.nontree { background: #999; }
+    .legend-line { width:2em; height:0.4em; display:inline-block; vertical-align:middle; border-radius: 4px; }
+    .legend-line.active-stack { background: var(--edge-highlight-stack); }
+    .legend-line.active-current-under { background: var(--edge-highlight-current-under); border: 2px solid var(--edge-highlight-current-under); }
+    .legend-line.active-current { background: var(--edge-highlight-current); }
+    .legend-line.tree { background: var(--tree-edge); }
+    .legend-line.nontree { background: var(--non-tree-edge); }
   </style>
   <!-- Google tag (gtag.js) -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-DQ5LVZVFDC"></script>
@@ -149,10 +144,22 @@
         <div class="legend-item"><span class="legend-box blue"></span><span class="legend-label">Unvisited</span></div>
         <div class="legend-item"><span class="legend-box orange"></span><span class="legend-label">Visiting</span></div>
         <div class="legend-item"><span class="legend-box green"></span><span class="legend-label">Finished</span></div>
-        <div class="legend-item"><span class="legend-line active-stack"></span><span class="legend-label">Active Edge in Call Stack (Red)</span></div>
-        <div class="legend-item"><span class="legend-line active-current"></span><span class="legend-label">Current Active Edge (Orange)</span></div>
-        <div class="legend-item"><span class="legend-line tree"></span><span class="legend-label">Tree Edge (Blue)</span></div>
-        <div class="legend-item"><span class="legend-line nontree"></span><span class="legend-label">Non-tree Edge (Light Blue)</span></div>
+        <div class="legend-item">
+          <span class="legend-line active-stack"></span>
+          <span class="legend-label">Active Edge in Call Stack (<span style="color:red">Red</span>)</span>
+        </div>
+        <div class="legend-item">
+          <span class="legend-line active-current-under"></span>
+          <span class="legend-label">Current Edge Being Explored (<span style="color:gold">Yellow, thick</span>)</span>
+        </div>
+        <div class="legend-item">
+          <span class="legend-line tree"></span>
+          <span class="legend-label">Tree Edge (<span style="color:blue">Blue</span>)</span>
+        </div>
+        <div class="legend-item">
+          <span class="legend-line nontree"></span>
+          <span class="legend-label">Non-tree Edge (<span style="color:lightblue">Light Blue</span>)</span>
+        </div>
       </div>
     </div>
   </div>
@@ -209,6 +216,7 @@ function renderGraph(ev) {
   linkLayer.innerHTML = '';
   nodeLayer.innerHTML = '';
 
+  // Draw base edges
   adjList.forEach((nbrs, i) => {
     nbrs.forEach(j => {
       if (i < j) {
@@ -219,12 +227,29 @@ function renderGraph(ev) {
         L.setAttribute('y1', p1.y);
         L.setAttribute('x2', p2.x);
         L.setAttribute('y2', p2.y);
-        L.classList.add('default-edge'); // Mark as default edge
+        L.classList.add('default-edge');
         linkLayer.appendChild(L);
       }
     });
   });
 
+  // Highlight the current edge being explored (yellow, thick, underlay)
+  if (ev.activeEdges.length > 0 && ev.current !== null) {
+    // Find the edge where from == ev.current
+    const currentEdge = ev.activeEdges.find(e => e.from === ev.current);
+    if (currentEdge) {
+      const p1 = nodePositions[currentEdge.from], p2 = nodePositions[currentEdge.to];
+      const L = document.createElementNS(svgNS, 'line');
+      L.setAttribute('x1', p1.x);
+      L.setAttribute('y1', p1.y);
+      L.setAttribute('x2', p2.x);
+      L.setAttribute('y2', p2.y);
+      L.classList.add('active-current-edge-under');
+      linkLayer.appendChild(L);
+    }
+  }
+
+  // Tree edges (blue)
   ev.treeEdges.forEach(({ from, to }) => {
     const p1 = nodePositions[from], p2 = nodePositions[to];
     const L = document.createElementNS(svgNS, 'line');
@@ -236,6 +261,7 @@ function renderGraph(ev) {
     linkLayer.appendChild(L);
   });
 
+  // Non-tree edges (light blue)
   ev.backEdges.forEach(({ from, to }) => {
     const p1 = nodePositions[from], p2 = nodePositions[to];
     const L = document.createElementNS(svgNS, 'line');
@@ -247,6 +273,7 @@ function renderGraph(ev) {
     linkLayer.appendChild(L);
   });
 
+  // Active edges (stack/red and current/orange)
   ev.activeEdges.forEach(({ from, to }) => {
     const p1 = nodePositions[from], p2 = nodePositions[to];
     const L = document.createElementNS(svgNS, 'line');
@@ -254,7 +281,11 @@ function renderGraph(ev) {
     L.setAttribute('y1', p1.y);
     L.setAttribute('x2', p2.x);
     L.setAttribute('y2', p2.y);
-    L.classList.add(from === ev.current ? 'active-current-edge' : 'active-stack-edge'); // Differentiate current and stack edges
+    if (from === ev.current) {
+      L.classList.add('active-current-edge');
+    } else {
+      L.classList.add('active-stack-edge');
+    }
     linkLayer.appendChild(L);
   });
 
