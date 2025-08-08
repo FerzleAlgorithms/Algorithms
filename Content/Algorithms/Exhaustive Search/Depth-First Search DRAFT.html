@@ -129,6 +129,9 @@ Let's see how the algorithm is different (and not) for directed graphs.
 
 
 <h3>Edge Classification in Directed Graphs</h3>
+<p>The first thing you should have noticed (assuming you ran the demo) is that for directed graphs, 
+  there are mode edge types. They are as follows:
+</p>
 <ul>
   <li><strong>Tree edge:</strong> Same as in the undirected case—\(v\) was first discovered via \((u, v)\). Must use <code>parent</code> array to identify.</li>
   <li><strong>Back edge:</strong> \(v\) is an ancestor of \(u\). These always indicate a cycle. Satisfies:<br>

@@ -95,7 +95,8 @@
         "Hoare Partition Demo.html",
         "Insertion Sort Demo.html",
         "QuickSelect Demo.html",
-        "Quickselect Simple Demo.html"
+        "Quickselect Simple Demo.html",
+        "Topological Sort Demo.html"
       ]
     },
     {
@@ -120,10 +121,11 @@
     {
       "Exhaustive Search": [
         "BFS Demo.html",
-        "DFS Demo (Directed).html",
+        "DFS (Directed) Demo.html",
         "DFS Demo.html",
         "N-Queens Demo.html",
-        "Subset Sum Demo.html"
+        "Subset Sum Demo.html",
+        "Topological Sort Demo.html"
       ]
     },
     {
