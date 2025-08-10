@@ -60,11 +60,11 @@ h1 {
 }
 h2 {
 	font-size: 1.25em;
-	margin-bottom: .25em;
+	margin-bottom: .125em;
 }
 h3 {
 	font-size: 1em;
-	margin-bottom: .25em;
+	margin-bottom: .125em;
 }
 
 /* 1) Site layout (only on <body class="mainSite">) */
