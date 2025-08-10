@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Topological Sort (Source Removal)</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js"></script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <script src="/Algorithms/scripts/chapterScripts.js"></script>
+  <link rel="stylesheet" href="/Algorithms/css/style.css">
+  <link rel="stylesheet" href="/Algorithms/css/chapter.css">
+</head>
+<body>
+<h1>Topological Sort (Source Removal)</h1>
+
+<section id="problem-solved">
+  <h2>Problem Solved</h2>
+  <p>
+    Topological Sort using Source Removal (Kahn's Algorithm) solves the
+    <a class="problem" href="?path=Problems%2FGraphs%2FTopological%20Sort">Topological Sort</a>
+    problem for directed acyclic graphs (DAGs).
+  </p>
+</section>
+
+<section id="design">
+  <h2>Design and Strategy</h2>
+  
+  <p>
+    Topological sorting produces a linear ordering of vertices in a directed acyclic graph (DAG) such that for every directed edge \((u, v)\), vertex \(u\) appears before vertex \(v\) in the ordering. The source removal approach is classified under <strong>Decrease-and-Conquer</strong> because it systematically reduces the problem size by repeatedly removing vertices with no incoming edges (sources) until the graph is empty.
+  </p>
+
+  <h3>Why This is Decrease-and-Conquer</h3>
+  <p>
+    The source removal algorithm exemplifies the decrease-and-conquer paradigm in several key ways:
+  </p>
+  <ul>
+    <li><strong>Problem Size Reduction:</strong> Each iteration removes at least one vertex (a source) from the graph, making the remaining problem strictly smaller</li>
+    <li><strong>Invariant Preservation:</strong> Removing sources preserves the DAG property and doesn't affect the relative ordering constraints of remaining vertices</li>
+    <li><strong>Sequential Processing:</strong> Unlike divide-and-conquer, we process one "layer" of sources at a time, maintaining a single active subproblem</li>
+    <li><strong>Natural Termination:</strong> The algorithm terminates when no vertices remain (successful) or no sources exist but vertices remain (cycle detected)</li>
+  </ul>
+
+  <h3>Core Insight: Sources Define Valid Starting Points</h3>
+  <p>
+    A vertex with in-degree 0 (a source) has no prerequisites and can safely be placed next in the topological ordering. After placing a source in the output, we "remove" it and all its outgoing edges, potentially creating new sources. This process continues until either all vertices are processed (successful topological sort) or we reach a state with no sources but remaining vertices (indicating a cycle).
+  </p>
+
+  <p>Consider this example DAG showing the source removal process:</p>
+  
+  <svg viewBox="0 0 700 350" width="700" height="350" xmlns="http://www.w3.org/2000/svg">
+    <!-- Background -->
+    <rect width="700" height="350" fill="#f9f9f9" stroke="#ddd"/>
+    
+    <!-- Step labels -->
+    <text x="20" y="30" font-size="16" font-weight="bold">Step 1: Initial Graph</text>
+    <text x="250" y="30" font-size="16" font-weight="bold">Step 2: Remove A</text>
+    <text x="480" y="30" font-size="16" font-weight="bold">Step 3: Remove B,C</text>
+    
+    <!-- Arrows (edges) for Step 1 -->
+    <defs>
+      <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+        <polygon points="0 0, 10 3.5, 0 7" fill="#333" />
+      </marker>
+      <marker id="arrowhead-gray" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+        <polygon points="0 0, 10 3.5, 0 7" fill="#999" />
+      </marker>
+    </defs>
+    
+    <!-- Step 1: Original graph -->
+    <g id="step1">
+      <line x1="60" y1="60" x2="60" y2="120" stroke="#333" stroke-width="2" marker-end="url(#arrowhead)"/>
+      <line x1="120" y1="60" x2="60" y2="120" stroke="#333" stroke-width="2" marker-end="url(#arrowhead)"/>
+      <line x1="120" y1="60" x2="120" y2="120" stroke="#333" stroke-width="2" marker-end="url(#arrowhead)"/>
+      <line x1="60" y1="140" x2="60" y2="180" stroke="#333" stroke-width="2" marker-end="url(#arrowhead)"/>
+      <line x1="120" y1="140" x2="60" y2="180" stroke="#333" stroke-width="2" marker-end="url(#arrowhead)"/>
+      <line x1="120" y1="140" x2="120" y2="180" stroke="#333" stroke-width="2" marker-end="url(#arrowhead)"/>
+      
+      <!-- Vertices Step 1 -->
+      <circle cx="60" cy="60" r="18" fill="#ffeb3b" stroke="#333" stroke-width="2"/>
+      <text x="60" y="65" font-size="14" text-anchor="middle" font-weight="bold">A</text>
+      <text x="60" y="45" font-size="10" text-anchor="middle" fill="#666">in:0</text>
+      
+      <circle cx="120" cy="60" r="18" fill="#ffeb3b" stroke="#333" stroke-width="2"/>
+      <text x="120" y="65" font-size="14" text-anchor="middle" font-weight="bold">B</text>
+      <text x="120" y="45" font-size="10" text-anchor="middle" fill="#666">in:0</text>
+      
+      <circle cx="60" cy="140" r="18" fill="#e0e0e0" stroke="#333" stroke-width="2"/>
+      <text x="60" y="145" font-size="14" text-anchor="middle" font-weight="bold">D</text>
+      <text x="60" y="125" font-size="10" text-anchor="middle" fill="#666">in:2</text>
+      
+      <circle cx="120" cy="140" r="18" fill="#e0e0e0" stroke="#333" stroke-width="2"/>
+      <text x="120" y="145" font-size="14" text-anchor="middle" font-weight="bold">E</text>
+      <text x="120" y="125" font-size="10" text-anchor="middle" fill="#666">in:1</text>
+      
+      <circle cx="60" cy="200" r="18" fill="#e0e0e0" stroke="#333" stroke-width="2"/>
+      <text x="60" y="205" font-size="14" text-anchor="middle" font-weight="bold">F</text>
+      <text x="60" y="185" font-size="10" text-anchor="middle" fill="#666">in:2</text>
+      
+      <circle cx="120" cy="200" r="18" fill="#e0e0e0" stroke="#333" stroke-width="2"/>
+      <text x="120" y="205" font-size="14" text-anchor="middle" font-weight="bold">G</text>
+      <text x="120" y="185" font-size="10" text-anchor="middle" fill="#666">in:1</text>
+      
+      <text x="90" y="250" font-size="12" fill="#ff9800" text-anchor="middle">Sources: A, B</text>
+    </g>
+    
+    <!-- Step 2: After removing A -->
+    <g id="step2">
+      <line x1="290" y1="60" x2="290" y2="120" stroke="#999" stroke-width="1" stroke-dasharray="5,5" marker-end="url(#arrowhead-gray)"/>
+      <line x1="350" y1="60" x2="290" y2="120" stroke="#333" stroke-width="2" marker-end="url(#arrowhead)"/>
+      <line x1="350" y1="60" x2="350" y2="120" stroke="#333" stroke-width="2" marker-end="url(#arrowhead)"/>
+      <line x1="290" y1="140" x2="290" y2="180" stroke="#999" stroke-width="1" stroke-dasharray="5,5" marker-end="url(#arrowhead-gray)"/>
+      <line x1="350" y1="140" x2="290" y2="180" stroke="#333" stroke-width="2" marker-end="url(#arrowhead)"/>
+      <line x1="350" y1="140" x2="350" y2="180" stroke="#333" stroke-width="2" marker-end="url(#arrowhead)"/>
+      
+      <!-- Vertices Step 2 -->
+      <circle cx="290" cy="60" r="18" fill="#c8e6c9" stroke="#333" stroke-width="2" stroke-dasharray="3,3"/>
+      <text x="290" y="65" font-size="14" text-anchor="middle" font-weight="bold" fill="#666">A</text>
+      
+      <circle cx="350" cy="60" r="18" fill="#ffeb3b" stroke="#333" stroke-width="2"/>
+      <text x="350" y="65" font-size="14" text-anchor="middle" font-weight="bold">B</text>
+      <text x="350" y="45" font-size="10" text-anchor="middle" fill="#666">in:0</text>
+      
+      <circle cx="290" cy="140" r="18" fill="#ffeb3b" stroke="#333" stroke-width="2"/>
+      <text x="290" y="145" font-size="14" text-anchor="middle" font-weight="bold">D</text>
+      <text x="290" y="125" font-size="10" text-anchor="middle" fill="#666">in:1</text>
+      
+      <circle cx="350" cy="140" r="18" fill="#e0e0e0" stroke="#333" stroke-width="2"/>
+      <text x="350" y="145" font-size="14" text-anchor="middle" font-weight="bold">E</text>
+      <text x="350" y="125" font-size="10" text-anchor="middle" fill="#666">in:1</text>
+      
+      <circle cx="290" cy="200" r="18" fill="#ffeb3b" stroke="#333" stroke-width="2"/>
+      <text x="290" y="205" font-size="14" text-anchor="middle" font-weight="bold">F</text>
+      <text x="290" y="185" font-size="10" text-anchor="middle" fill="#666">in:1</text>
+      
+      <circle cx="350" cy="200" r="18" fill="#e0e0e0" stroke="#333" stroke-width="2"/>
+      <text x="350" y="205" font-size="14" text-anchor="middle" font-weight="bold">G</text>
+      <text x="350" y="185" font-size="10" text-anchor="middle" fill="#666">in:1</text>
+      
+      <text x="320" y="250" font-size="12" fill="#ff9800" text-anchor="middle">Sources: B, D, F</text>
+    </g>
+    
+    <!-- Step 3: After removing B, C -->
+    <g id="step3">
+      <circle cx="520" cy="140" r="18" fill="#ffeb3b" stroke="#333" stroke-width="2"/>
+      <text x="520" y="145" font-size="14" text-anchor="middle" font-weight="bold">E</text>
+      <text x="520" y="125" font-size="10" text-anchor="middle" fill="#666">in:0</text>
+      
+      <circle cx="580" cy="200" r="18" fill="#ffeb3b" stroke="#333" stroke-width="2"/>
+      <text x="580" y="205" font-size="14" text-anchor="middle" font-weight="bold">G</text>
+      <text x="580" y="185" font-size="10" text-anchor="middle" fill="#666">in:0</text>
+      
+      <line x1="520" y1="160" x2="580" y2="180" stroke="#333" stroke-width="2" marker-end="url(#arrowhead)"/>
+      
+      <text x="550" y="250" font-size="12" fill="#ff9800" text-anchor="middle">Sources: E, G</text>
+    </g>
+    
+    <!-- Result -->
+    <text x="350" y="290" font-size="14" font-weight="bold" text-anchor="middle">Topological Order: A → B → D → F → E → G</text>
+    
+    <!-- Legend -->
+    <text x="20" y="320" font-size="12" fill="#666">
+      <tspan fill="#ffeb3b">●</tspan> Source (in-degree 0)  
+      <tspan fill="#e0e0e0">●</tspan> Has dependencies  
+      <tspan fill="#c8e6c9">●</tspan> Removed
+    </text>
+  </svg>
+
+  <h3>Algorithm: Source Removal (Kahn's Algorithm)</h3>
+  <p>The algorithm maintains a queue of source vertices and processes them iteratively:</p>
+  
+  <ol class="spaced">
+    <li><code>topologicalSort()</code>
+      <ol>
+        <li>Let <code>n</code> be the number of vertices in the graph.</li>
+        <li>Create data structures:
+          <ul>
+            <li><code>inDegree[0..n−1] = 0</code></li>
+            <li><span style="color: #4CAF50;">▶</span> <code>queue = empty</code></li>
+            <li><span style="color: #4CAF50;">▶</span> <code>result = empty list</code></li>
+          </ul>
+        </li>
+        <li><span style="color: #4CAF50;">▶</span> Calculate in-degree for each vertex:
+          <ul>
+            <li>For each edge <code>(u, v)</code>: increment <code>inDegree[v]</code></li>
+          </ul>
+        </li>
+        <li><span style="color: #4CAF50;">▶</span> Initialize queue with all sources:
+          <ul>
+            <li>For each vertex <code>v</code>: if <code>inDegree[v] = 0</code>, enqueue <code>v</code></li>
+          </ul>
+        </li>
+        <li><span style="color: #4CAF50;">▶</span> Process sources iteratively:
+          <ul>
+            <li>While <code>queue</code> is not empty:
+              <ol>
+                <li>Dequeue vertex <code>u</code></li>
+                <li>Add <code>u</code> to <code>result</code></li>
+                <li>For each neighbor <code>v</code> of <code>u</code>:
+                  <ul>
+                    <li>Decrement <code>inDegree[v]</code></li>
+                    <li>If <code>inDegree[v] = 0</code>, enqueue <code>v</code></li>
+                  </ul>
+                </li>
+              </ol>
+            </li>
+          </ul>
+        </li>
+        <li><span style="color: #2196F3;">▶</span> Check for cycles:
+          <ul>
+            <li>If <code>result.size() = n</code>, return <code>result</code></li>
+            <li>Else return "Graph has cycle - no topological sort exists"</li>
+          </ul>
+        </li>
+      </ol>
+    </li>
+  </ol>
+
+  <h4>Key Differences from DFS Approach</h4>
+  <div style="border-left: 4px solid #4CAF50; padding-left: 15px; margin: 15px 0;">
+    <p><strong><span style="color: #4CAF50;">▶</span> In-Degree Tracking:</strong> Instead of using DFS traversal, the algorithm explicitly computes and maintains in-degree counts for each vertex, directly identifying sources (vertices with in-degree 0).</p>
+  </div>
+  
+  <div style="border-left: 4px solid #4CAF50; padding-left: 15px; margin: 15px 0;">
+    <p><strong><span style="color: #4CAF50;">▶</span> Queue-Based Processing:</strong> Uses a queue to process sources in a breadth-first manner, rather than the depth-first recursive approach. This makes the algorithm naturally iterative.</p>
+  </div>
+
+  <div style="border-left: 4px solid #2196F3; padding-left: 15px; margin: 15px 0;">
+    <p><strong><span style="color: #2196F3;">▶</span> Cycle Detection by Counting:</strong> Detects cycles by checking if all vertices were processed. If fewer than n vertices are output, remaining vertices must be part of cycles (no sources left but vertices remain).</p>
+  </div>
+
+  <p>
+    <strong>Why This Works:</strong> At each step, removing sources and their edges cannot create new cycles—it only removes dependencies. 
+    If the graph is acyclic, this process will eventually eliminate all vertices. 
+    If cycles exist, we'll reach a state where no sources remain but vertices still exist, indicating the presence of cycles.
+  </p>
+
+  <h3>Demonstration</h3>
+  <p>The demo below shows the source removal process and cycle detection capabilities:</p>
+
+  <section id="demo">
+    <div class="embeddedDemoContainer">
+      <iframe class="embeddedDemo"
+              src="/Algorithms/Content/Demos/Decrease-and-Conquer/Topological%20Sort%20Demo.html"
+              allow="fullscreen"
+              name="topological-sort-demo">
+      </iframe>
+    </div>
+  </section>
+
+  <h4>Understanding the Output</h4>
+  <p>
+    The source removal approach produces a topological ordering by:
+  </p>
+  <ul>
+    <li><strong>Immediate output:</strong> Sources are added to the result as soon as they're identified and processed</li>
+    <li><strong>Dynamic source detection:</strong> New sources are created as vertices are removed and in-degrees are decremented</li>
+    <li><strong>Natural termination:</strong> The algorithm terminates when either all vertices are processed (success) or no sources remain but vertices exist (cycle detected)</li>
+  </ul>
+  <p>
+    Unlike DFS-based approaches that require post-processing (sorting by finish time or stack reversal), source removal directly constructs the topological order during execution.
+  </p>
+
+</section>
+
+<section id="code">
+  <h2>Implementation in Java, C++, Python</h2>
+  <p>These implementations show the source removal (Kahn's algorithm) approach using in-degree counting and queue-based processing.</p>
+  
+  <p><strong>Implementation Notes:</strong></p>
+  <ul>
+    <li><strong>In-Degree Computation:</strong> Initial pass through all edges to count incoming edges for each vertex</li>
+    <li><strong>Data Structures:</strong> 
+      <ul>
+        <li><strong>Java:</strong> 
+          <ul>
+            <li><strong>Adjacency List:</strong> <code>List&lt;Integer&gt;[]</code> array of lists for graph representation</li>
+            <li><strong>Queue:</strong> <code>Queue&lt;Integer&gt;</code> for processing sources</li>
+            <li><strong>Result:</strong> <code>ArrayList&lt;&gt;</code> for final topological ordering</li>
+          </ul>
+        </li>
+        <li><strong>C++:</strong> 
+          <ul>
+            <li><strong>Adjacency List:</strong> <code>vector&lt;int&gt; adj[]</code> array of vectors for graph representation</li>
+            <li><strong>Queue:</strong> <code>queue&lt;int&gt;</code> for processing sources</li>
+            <li><strong>Result:</strong> <code>vector&lt;int&gt;</code> for final topological ordering</li>
+          </ul>
+        </li>
+        <li><strong>Python:</strong> 
+          <ul>
+            <li><strong>Adjacency List:</strong> List of lists <code>adj</code> for graph representation</li>
+            <li><strong>Queue:</strong> <code>collections.deque</code> for efficient queue operations</li>
+            <li><strong>Result:</strong> <code>list</code> for final topological ordering</li>
+          </ul>
+        </li>
+      </ul>
+    </li>
+  </ul>
+  
+  <div class="tab-group">
+    <div class="tabs" role="tablist">
+      <button id="tab-java" class="tablink active" data-lang="java" role="tab" aria-controls="java" aria-selected="true">Java</button>
+      <button id="tab-cpp" class="tablink" data-lang="cpp" role="tab" aria-controls="cpp" aria-selected="false">C++</button>
+      <button id="tab-python" class="tablink" data-lang="python" role="tab" aria-controls="python" aria-selected="false">Python</button>
+    </div>
+    <div id="java" class="code-container active" role="tabpanel" aria-labelledby="tab-java">
+      <pre><code class="language-java">List&lt;Integer&gt; topologicalSort(List&lt;Integer&gt;[] adj, int n) {
+    int[] inDegree = new int[n];
+    
+    // Calculate in-degrees
+    for (int v = 0; v < n; v++) {
+        for (int u : adj[v]) {
+            inDegree[u]++;
+        }
+    }
+    
+    // Initialize queue with sources
+    Queue&lt;Integer&gt; queue = new LinkedList&lt;&gt;();
+    for (int v = 0; v < n; v++) {
+        if (inDegree[v] == 0) {
+            queue.offer(v);
+        }
+    }
+    
+    List&lt;Integer&gt; result = new ArrayList&lt;&gt;();
+    
+    // Process sources iteratively
+    while (!queue.isEmpty()) {
+        int u = queue.poll();
+        result.add(u);
+        
+        // Remove u and update in-degrees
+        for (int v : adj[u]) {
+            inDegree[v]--;
+            if (inDegree[v] == 0) {
+                queue.offer(v);
+            }
+        }
+    }
+    
+    // Check for cycles
+    if (result.size() != n) {
+        return null; // Cycle detected
+    }
+    
+    return result;
+}</code></pre>
+    </div>
+    <div id="cpp" class="code-container" role="tabpanel" aria-labelledby="tab-cpp">
+      <pre><code class="language-cpp">vector&lt;int&gt; topologicalSort(vector&lt;int&gt; adj[], int n) {
+    vector&lt;int&gt; inDegree(n, 0);
+    
+    // Calculate in-degrees
+    for (int v = 0; v < n; v++) {
+        for (int u : adj[v]) {
+            inDegree[u]++;
+        }
+    }
+    
+    // Initialize queue with sources
+    queue&lt;int&gt; q;
+    for (int v = 0; v < n; v++) {
+        if (inDegree[v] == 0) {
+            q.push(v);
+        }
+    }
+    
+    vector&lt;int&gt; result;
+    
+    // Process sources iteratively
+    while (!q.empty()) {
+        int u = q.front();
+        q.pop();
+        result.push_back(u);
+        
+        // Remove u and update in-degrees
+        for (int v : adj[u]) {
+            inDegree[v]--;
+            if (inDegree[v] == 0) {
+                q.push(v);
+            }
+        }
+    }
+    
+    // Check for cycles
+    if (result.size() != n) {
+        return {}; // Empty vector indicates cycle
+    }
+    
+    return result;
+}</code></pre>
+    </div>
+    <div id="python" class="code-container" role="tabpanel" aria-labelledby="tab-python">
+      <pre><code class="language-python">from collections import deque
+
+def topological_sort(adj, n):
+    in_degree = [0] * n
+    
+    # Calculate in-degrees
+    for v in range(n):
+        for u in adj[v]:
+            in_degree[u] += 1
+    
+    # Initialize queue with sources
+    queue = deque()
+    for v in range(n):
+        if in_degree[v] == 0:
+            queue.append(v)
+    
+    result = []
+    
+    # Process sources iteratively
+    while queue:
+        u = queue.popleft()
+        result.append(u)
+        
+        # Remove u and update in-degrees
+        for v in adj[u]:
+            in_degree[v] -= 1
+            if in_degree[v] == 0:
+                queue.append(v)
+    
+    # Check for cycles
+    if len(result) != n:
+        return None  # Cycle detected
+    
+    return result</code></pre>
+    </div>
+  </div>
+</section>
+
+<section id="analysis">
+  <h2>Time/Space Analysis</h2>
+  
+  <p>
+  <strong>Time Complexity:</strong>
+  The time complexity is \(O(V + E)\), optimal for topological sorting:</p>
+  <ul>
+    <li><strong>In-degree calculation:</strong> Each edge examined once: \(O(E)\)</li>
+    <li><strong>Initial queue setup:</strong> Each vertex examined once: \(O(V)\)</li>
+    <li><strong>Source processing:</strong> Each vertex dequeued exactly once: \(O(V)\)</li>
+    <li><strong>Edge removal:</strong> Each edge processed exactly once when source is removed: \(O(E)\)</li>
+  </ul>
+  
+  <p>
+  <strong>Space Complexity:</strong> 
+  Auxiliary space is \(O(V)\):</p>
+  <ul>
+    <li><strong>In-degree array:</strong> \(O(V)\) to track incoming edge counts</li>
+    <li><strong>Queue:</strong> \(O(V)\) in worst case (all vertices are sources initially)</li>
+    <li><strong>Result array:</strong> \(O(V)\) for output storage</li>
+  </ul>
+  <p>This matches the optimal complexity for topological sorting, as we must examine every vertex and edge.</p>
+
+  <h3>Comparison with DFS Approach</h3>
+  <ul>
+    <li><strong>Time:</strong> Both approaches are \(O(V + E)\)</li>
+    <li><strong>Space:</strong> Source removal uses \(O(V)\) auxiliary space vs. \(O(V)\) recursion depth for DFS</li>
+    <li><strong>Implementation:</strong> Source removal is iterative and easier to understand; DFS requires careful recursion management</li>
+    <li><strong>Output:</strong> Source removal produces ordering directly; DFS requires post-processing</li>
+  </ul>
+</section>
+
+<section id="variations">
+  <h2>Variations/Improvements</h2>
+  
+  <h3>Alternative Approaches</h3>
+  <ul>
+    <li><strong>DFS-Based Topological Sort:</strong> Uses depth-first traversal with finish times or stack-based collection. 
+      Better for detecting strongly connected components and analyzing graph structure.</li>
+    <li><strong>Parallel Processing:</strong> Multiple sources can be processed simultaneously since they have no dependencies on each other.</li>
+  </ul>
+
+  <h3>Enhanced Applications</h3>
+  <ul>
+    <li><strong>Lexicographically Smallest Order:</strong> Use a priority queue instead of regular queue to always process the smallest available source first. <em>Example: course scheduling with preference for lower-numbered courses.</em></li>
+    <li><strong>All Topological Orders:</strong> Modify the algorithm with backtracking to generate all possible valid orderings. <em>Example: finding all valid task schedules.</em></li>
+    <li><strong>Shortest/Longest Path in DAG:</strong> Use the topological ordering for efficient dynamic programming on DAGs. <em>Example: critical path analysis in project management.</em></li>
+    <li><strong>Cycle Detection with Reporting:</strong> Track which vertices remain when algorithm terminates to identify cycle participants. <em>Example: finding circular dependencies in build systems.</em></li>
+  </ul>
+
+  <h3>Practical Optimizations</h3>
+  <ul>
+    <li><strong>In-Place Processing:</strong> Reuse the in-degree array for queue operations to reduce space usage.</li>
+    <li><strong>Dynamic Updates:</strong> Efficiently maintain topological order when edges are added/removed dynamically.</li>
+    <li><strong>Priority-Based Selection:</strong> Use different criteria (priority, alphabetical, etc.) for source selection in practical applications.</li>
+  </ul>
+</section>
+
+<section id="links">
+  <h2>Links to Resources</h2>
+  <ul>
+    <li><a href="https://en.wikipedia.org/wiki/Topological_sorting" target="_blank">Topological sorting (Wikipedia)</a> - Comprehensive overview of topological sorting algorithms including both DFS and Kahn's approaches.</li>
+    <li><a href="https://visualgo.net/en/dfsbfs" target="_blank">DFS Visualization (VisuAlgo)</a> - Interactive DFS visualization that includes topological sorting demonstrations.</li>
+    <li><a href="https://www.geeksforgeeks.org/topological-sorting/" target="_blank">Topological Sorting (GeeksforGeeks)</a> - Programming tutorial with implementation examples and applications.</li>
+  </ul>
+</section>
+
+<section id="reading-questions">
+  <h2>Reading Comprehension Questions</h2>
+  <ol>
+    <li><strong>Decrease-and-Conquer Classification:</strong> Why is the source removal approach classified as decrease-and-conquer rather than other algorithmic paradigms?</li>
+    <li><strong>Source Identification:</strong> How does the algorithm identify sources, and why are vertices with in-degree 0 safe to remove first?</li>
+    <li><strong>Problem Size Reduction:</strong> How does removing a source vertex reduce the problem size while maintaining correctness?</li>
+    <li><strong>Cycle Detection Mechanism:</strong> How does counting processed vertices detect cycles, and why is this different from DFS-based cycle detection?</li>
+    <li><strong>Algorithm Termination:</strong> What are the two possible termination conditions, and what does each indicate about the graph structure?</li>
+    <li><strong>Comparison with DFS:</strong> What are the practical advantages and disadvantages of source removal versus DFS-based topological sorting?</li>
+  </ol>
+  <button id="toggleAnswers" class="show-answer" aria-expanded="false">Show Answers</button>
+  <div id="answers" class="answer" hidden>
+    <ol>
+      <li><strong>Answer:</strong> Source removal is decrease-and-conquer because it systematically reduces problem size by removing sources (vertices with no dependencies), making each subproblem strictly smaller while preserving the essential structure needed to solve the remaining problem.</li>
+      <li><strong>Answer:</strong> Sources are vertices with in-degree 0 (no incoming edges). They're safe to remove first because they have no prerequisites—their position in any valid topological ordering is unconstrained by other vertices, so they can appear anywhere appropriate in the final order.</li>
+      <li><strong>Answer:</strong> Removing a source and its outgoing edges eliminates one vertex and potentially creates new sources by reducing in-degrees of its neighbors. This maintains the DAG property while making the remaining problem smaller, preserving all necessary ordering constraints.</li>
+      <li><strong>Answer:</strong> If fewer than n vertices are processed, the remaining vertices must form cycles (no sources exist but vertices remain). This is different from DFS which detects cycles through back edges during traversal—source removal detects cycles through the impossibility of further progress.</li>
+      <li><strong>Answer:</strong> Success: all n vertices processed (valid topological order found). Failure: queue becomes empty but fewer than n vertices processed (cycles prevent completion). The second condition indicates remaining vertices are involved in dependency cycles.</li>
+      <li><strong>Answer:</strong> Source removal advantages: iterative (no recursion depth limits), direct output construction, intuitive decrease-and-conquer approach. DFS advantages: can provide additional graph analysis (finish times, edge classification), sometimes more space-efficient for sparse graphs with deep structures.</li>
+    </ol>
+  </div>
+</section>
+
+<section id="activities">
+  <h2>In-Class Activities</h2>
+  <ol>
+    <li><strong>Manual Source Removal:</strong> Hand-trace the source removal algorithm on a small DAG, showing how in-degrees change as sources are removed and new sources emerge.</li>
+
+    <li><strong>Decrease-and-Conquer Analysis:</strong> For a given DAG:
+      <ol type='a'>
+        <li>Identify how removing each source reduces the problem size</li>
+        <li>Show that the ordering constraints are preserved after source removal</li>
+        <li>Demonstrate why this fits the decrease-and-conquer paradigm better than divide-and-conquer</li>
+      </ol>
+    </li>
+
+    <li><strong>Cycle Detection Practice:</strong> Create directed graphs with and without cycles. Apply the source removal algorithm and observe how cycles prevent completion (no sources available but vertices remain).</li>
+
+    <li><strong>Algorithm Comparison:</strong> Compare source removal with DFS-based topological sorting on the same DAG:
+      <ol type='a'>
+        <li>Trace both algorithms step-by-step</li>
+        <li>Compare the resulting orderings (both should be valid)</li>
+        <li>Analyze the differences in approach and data structures used</li>
+      </ol>
+    </li>
+
+    <li><strong>Priority-Based Sorting:</strong> Modify the basic algorithm to use a priority queue instead of a regular queue, ensuring lexicographically smallest topological order when multiple valid orders exist.</li>
+
+    <li><strong>Real-World Modeling:</strong> Design dependency graphs for real scenarios (course prerequisites, build dependencies, project tasks) and apply source removal to find valid execution orders.</li>
+  </ol>
+</section>
+
+<section id="problems">
+  <h2>Homework Problems</h2>
+  <ol>
+    <li><strong>Decrease-and-Conquer Analysis:</strong>
+      <ol type='a'>
+        <li>Explain in detail why source removal fits the decrease-and-conquer paradigm</li>
+        <li>Compare this with how merge sort fits divide-and-conquer</li>
+        <li>Discuss what makes this approach "decrease" rather than "divide"</li>
+        <li>Analyze the invariant that is maintained as the problem size decreases</li>
+      </ol>
+    </li>
+
+    <li><strong>Implementation Comparison:</strong>
+      <ol type='a'>
+        <li>Implement both source removal and DFS-based topological sorting</li>
+        <li>Test both on the same set of DAGs and verify they produce valid orderings</li>
+        <li>Measure practical performance differences (time and memory usage)</li>
+        <li>Identify scenarios where each approach might be preferred</li>
+      </ol>
+    </li>
+
+    <li><strong>Lexicographic Ordering:</strong>
+      <ol type='a'>
+        <li>Modify the source removal algorithm to produce the lexicographically smallest topological order</li>
+        <li>Use a priority queue to always process the smallest available source</li>
+        <li>Test on DAGs with multiple valid topological orders</li>
+        <li>Analyze the impact on time complexity</li>
+      </ol>
+    </li>
+
+    <li><strong>Cycle Analysis Enhancement:</strong>
+      <ol type='a'>
+        <li>Modify the algorithm to identify which specific vertices are involved in cycles</li>
+        <li>When the algorithm terminates with remaining vertices, analyze their structure</li>
+        <li>Implement a function that reports the strongly connected components of remaining vertices</li>
+        <li>Test on graphs with different cycle structures</li>
+      </ol>
+    </li>
+
+    <li><strong>Dynamic Topological Sorting:</strong>
+      <ol type='a'>
+        <li>Design an algorithm for maintaining topological order when edges are dynamically added to a DAG</li>
+        <li>Handle the case where adding an edge creates a cycle</li>
+        <li>Optimize for scenarios where edges are frequently added but rarely removed</li>
+        <li>Analyze the amortized complexity of your dynamic solution</li>
+      </ol>
+    </li>
+  </ol>
+</section>
+
+</body>
+</html>
