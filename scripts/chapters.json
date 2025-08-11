@@ -95,7 +95,8 @@
         "Hoare Partition Demo.html",
         "Insertion Sort Demo.html",
         "QuickSelect Demo.html",
-        "Quickselect Simple Demo.html"
+        "Quickselect Simple Demo.html",
+        "Topological Sort Demo.html"
       ]
     },
     {
@@ -120,9 +121,11 @@
     {
       "Exhaustive Search": [
         "BFS Demo.html",
+        "DFS (Directed) Demo.html",
         "DFS Demo.html",
         "N-Queens Demo.html",
-        "Subset Sum Demo.html"
+        "Subset Sum Demo.html",
+        "Topological Sort Demo.html"
       ]
     },
     {
@@ -170,7 +173,11 @@
       "DRAFTS": [
         "Algorithms/Decrease-and-Conquer/Binary Search DRAFT.html",
         "Algorithms/Decrease-and-Conquer/Quickselect DRAFT.html",
+        "Algorithms/Decrease-and-Conquer/Topological Sort DRAFT.html",
+        "Algorithms/Divide-and-Conquer/Convex Hull DRAFT.html",
+        "Algorithms/Divide-and-Conquer/Matrix Multiplication DRAFT.html",
         "Algorithms/Exhaustive Search/Depth-First Search DRAFT.html",
+        "Algorithms/Exhaustive Search/Topological Sort (DFS) DRAFT.html",
         "Algorithms/Greedy/Fractional Knapsack DRAFT.html",
         "Algorithms/Greedy/Interval Scheduling DRAFT.html",
         "Algorithms/Space-Time Tradeoff/Boyer-Moore_DRAFT.html",

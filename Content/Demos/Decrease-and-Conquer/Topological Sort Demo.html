@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Topological Sort Demo (Source Removal)</title>
+  <script src="/Algorithms/scripts/demoScripts.js"></script>
+  <link rel="stylesheet" href="/Algorithms/css/style.css">
+  <link rel="stylesheet" href="/Algorithms/css/demo.css">
+  <style>
+    :root {
+      --node-stroke: #444;
+      --edge-stroke: black;
+      --edge-highlight-stack: red;
+      --edge-highlight-current: yellow;
+      --edge-highlight-current-under: yellow;
+      --tree-edge: blue;
+      --back-edge: #9933cc;
+      --font-sans: sans-serif;
+    }
+    .graphNode circle {
+      stroke: var(--node-stroke);
+      stroke-width: 1px;
+    }
+    .graphNode.blue circle   { fill: lightblue; }
+    .graphNode.orange circle { fill: orange; }
+    .graphNode.green circle  { fill: lightgreen; opacity: 0.2; }
+    .graphNode.highlighted circle { stroke-width: 4px; stroke: #00cc00; }
+    .graphNode.current circle { 
+      stroke-width: 4px !important; 
+      stroke: black !important;
+    }
+    .graphNode text {
+      text-anchor: middle;
+      dominant-baseline: middle;
+      fill: #202020;
+    }
+    .graphNode.green text { opacity: 0.3; }
+    .graphNode .label { font-size: 20px; }
+    .graphNode .times { font-size: 16px; }
+    #svg line { stroke: var(--edge-stroke); stroke-width: 3px; }
+    #svg path { stroke: var(--edge-stroke); stroke-width: 3px; fill: none; }
+    #linkLayer line.active-stack-edge, #linkLayer path.active-stack-edge { stroke: var(--edge-highlight-stack); stroke-width: 4px; }
+    #linkLayer line.active-current-edge-under, #linkLayer path.active-current-edge-under { stroke: black; stroke-width: 6px; }
+    #linkLayer line.active-current-edge, #linkLayer path.active-current-edge { stroke: var(--edge-highlight-current); stroke-width: 4px; }
+    #linkLayer line.neighbor-edge, #linkLayer path.neighbor-edge { stroke: #00cc00; stroke-width: 4px; }
+    #linkLayer line.tree-edge, #linkLayer path.tree-edge { stroke: var(--tree-edge); stroke-width: 4px; }
+    #linkLayer line.back-edge, #linkLayer path.back-edge { stroke: var(--back-edge); stroke-width: 4px; }
+    #linkLayer line.forward-edge, #linkLayer path.forward-edge { stroke: var(--forward-edge); stroke-width: 4px; }
+    #linkLayer line.cross-edge, #linkLayer path.cross-edge { stroke: var(--cross-edge); stroke-width: 4px; }
+    #state-table { width: 100%; border-collapse: collapse; font-family: var(--font-sans); }
+    #state-table th, #state-table td { border: 1px solid #ddd; padding: 0.3em; text-align: center; }
+    #state-table th { background: #f0f0f0; }
+    .highlighted-row { outline: 2px solid #000; }
+    .color-cell.blue   { background: lightblue;  }
+    .color-cell.orange { background: orange;     }
+    .color-cell.green  { background: lightgreen; opacity: 0.3; }
+    #structures {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 4px;
+      margin: 10px 0;
+      font-family: var(--font-sans);
+    }
+
+    #stack-container {
+      display: flex;
+      align-items: center;
+      column-gap: 8px;
+      height: auto;
+      justify-content: flex-start;
+      width: 100%;
+      min-height: 2em;
+    }
+
+    #topological-order-container {
+      display: flex;
+      align-items: center;
+      column-gap: 8px;
+      height: auto;
+      justify-content: flex-start;
+      width: 100%;
+      min-height: 2em;
+    }
+
+    #stack {
+      display: inline-flex;
+      align-items: center;
+      overflow-x: auto;
+      white-space: nowrap;
+      max-width: 750px;
+      min-height: 2em;
+    }
+    .queueNode { margin: 0 2px; flex: 0 0 auto; background: none; border: none; }
+    .queue-arrow { margin: 0 2px; flex: 0 0 auto; }
+    .panel { display:flex; flex-direction:column; align-items:center; }
+    .graph-panel { flex:1 1 auto; }
+    .graph-panel #structures { align-self: flex-start; }
+    .table-panel { flex:0 0 250px; margin-left:10px; }
+    #svg { 
+      width: 100%; 
+      height: auto; 
+      max-height: var(--svg-max-height, 500px);
+      background-color: #fff !important; 
+    }
+    #demo-wrapper { min-height:800px; display:flex; flex-direction:column; }
+    .table-panel .legend { display:flex; flex-direction:column; align-items:flex-start; gap:0.3em; font-family:var(--font-sans); margin-top:1em; }
+    .table-panel .legend-item { display:flex; align-items:center; gap:0.5em; }
+    .legend-box { width:1em; height:1em; display:inline-block; }
+    .legend-box.blue { background: lightblue; }
+    .legend-box.orange { background: orange; }
+    .legend-box.green { background: lightgreen; opacity: 0.3; }
+    .legend-line { width:2em; height:0.4em; display:inline-block; vertical-align:middle; border-radius: 4px; }
+    .legend-line.active-stack { background: var(--edge-highlight-stack); }
+    .legend-line.active-current-under { background: black; border: none; height: 0.6em; }
+    .legend-line.active-current { background: var(--edge-highlight-current); }
+    .legend-line.tree { background: var(--tree-edge); }
+    .legend-line.back { background: var(--back-edge); }
+    .legend-line.forward { background: var(--forward-edge); }
+    .legend-line.cross { background: var(--cross-edge); }
+    .legend-line.neighbors { background: #00cc00; }
+    
+    /* Reduce spacing before headings */
+    .graph-panel p { margin-top: 0; }
+    .table-panel h3 { margin-top: 0; }
+
+    #controls label {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    #controls input[type="range"] {
+      vertical-align: middle;
+    }
+
+    #topological-order {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      margin: 0;
+      font-family: var(--font-sans);
+      min-height: 2em;
+    }
+    .topo-node {
+      background: lightgreen;
+      border: 2px solid #444;
+      border-radius: 50%;
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      font-size: 14px;
+      flex-shrink: 0;
+    }
+    .cycle-detected {
+      color: red;
+      font-weight: bold;
+    }
+  </style>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DQ5LVZVFDC"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-DQ5LVZVFDC');
+  </script>
+</head>
+<body class="no-tooltips">
+<div id="demo-wrapper">
+  <h2>Topological Sort Demo (Source Removal)</h2>
+  <div id="controls">
+    <label>Vertices: <input id="graphSize" type="number" min="1" max="15" value="8" style="width:4em"></label>
+    <label>Edge %: <input id="edgeDensity" type="number" min="0" max="1" step="0.05" value="0.3" style="width:5em"></label>
+    <label><input id="dagCheckbox" type="checkbox"> DAG</label>
+    <button id="generateBtn">Generate</button>    
+    &nbsp; &nbsp;<label>Canvas Size: <input id="svgSize" type="range" min="250" max="1200" value="500" style="width:100px"></label>
+
+    <br>
+    <button id="prevBtn" disabled>Previous</button>
+    <button id="nextBtn" disabled>Next</button>
+    <button id="playBtn">Play</button>
+    <label for="speedSelect">Speed:</label>
+    <select id="speedSelect">
+      <option value="1">1×</option>
+      <option value="2">2×</option>
+      <option value="4">4×</option>
+      <option value="8">8×</option>
+    </select>
+  </div>
+  <div id="main-container" style="display:flex; align-items:flex-start; gap:10px;">
+    <div class="panel graph-panel">
+      <p><b>Graph</b> (Drag vertices to reposition them)</p>
+      <svg id="svg" viewBox="0 0 800 800" preserveAspectRatio="xMidYMid meet">
+        <defs>
+          <marker id="arrowhead" markerWidth="8" markerHeight="6" 
+                  refX="7" refY="3" orient="auto">
+            <polygon points="0 0, 8 3, 0 6" fill="black" />
+          </marker>
+          <marker id="arrowhead-red" markerWidth="8" markerHeight="6" 
+                  refX="7" refY="3" orient="auto">
+            <polygon points="0 0, 8 3, 0 6" fill="red" />
+          </marker>
+          <marker id="arrowhead-orange" markerWidth="8" markerHeight="6" 
+                  refX="7" refY="3" orient="auto">
+            <polygon points="0 0, 8 3, 0 6" fill="orange" />
+          </marker>
+          <marker id="arrowhead-green" markerWidth="8" markerHeight="6" 
+                  refX="7" refY="3" orient="auto">
+            <polygon points="0 0, 8 3, 0 6" fill="#00cc00" />
+          </marker>
+          <marker id="arrowhead-blue" markerWidth="8" markerHeight="6" 
+                  refX="7" refY="3" orient="auto">
+            <polygon points="0 0, 8 3, 0 6" fill="blue" />
+          </marker>
+          <marker id="arrowhead-purple" markerWidth="8" markerHeight="6" 
+                  refX="7" refY="3" orient="auto">
+            <polygon points="0 0, 8 3, 0 6" fill="purple" />
+          </marker>
+          <marker id="arrowhead-teal" markerWidth="8" markerHeight="6" 
+        refX="7" refY="3" orient="auto">
+          <polygon points="0 0, 8 3, 0 6" fill="#33cccc" />
+        </marker>
+        <marker id="arrowhead-grey" markerWidth="8" markerHeight="6" 
+                refX="7" refY="3" orient="auto">
+          <polygon points="0 0, 8 3, 0 6" fill="#888888" />
+        </marker>          
+        <marker id="arrowhead-yellow" markerWidth="8" markerHeight="6" 
+        refX="7" refY="3" orient="auto">
+          <polygon points="0 0, 8 3, 0 6" fill="yellow" stroke="black" stroke-width="0.2"/>
+        </marker>
+        <marker id="arrowhead-black" markerWidth="8" markerHeight="6" 
+        refX="7" refY="3" orient="auto" markerUnits="userSpaceOnUse">
+          <polygon points="0 0, 8 3, 0 6" fill="black"/>
+        </marker>
+        </defs>
+        <g id="linkLayer"></g>
+        <g id="nodeLayer"></g>
+      </svg>
+      <div id="structures">
+        <div id="topological-order-container"><strong>Topological Order:</strong> <span id="topological-order"></span></div>
+        <div id="commentary"></div>
+      </div>
+    </div>
+    <div class="panel table-panel">
+      <h3>Vertex Table</h3>
+      <table id="state-table">
+        <thead>
+          <tr>
+            <th>v</th>
+            <th>in-degree</th>
+            <th>status</th>
+          </tr>
+        </thead>
+        <tbody id="state-table-body"></tbody>
+      </table>
+      <div class="legend">
+        <strong>Legend</strong>
+        <div class="legend-item"><span class="legend-box blue"></span><span class="legend-label">Unprocessed</span></div>
+        <div class="legend-item"><span class="legend-box orange"></span><span class="legend-label">Available (in-degree 0)</span></div>
+        <div class="legend-item"><span class="legend-box green"></span><span class="legend-label">Removed</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+const width=800,height=800,radius=40,margin=10;
+const circleR=width/2-radius-margin;
+const centerX=width/2,centerY=height/2;
+let adjList,steps,stepIndex=0,nodePositions=[];
+
+function buildTopologicalSortSteps(adj){
+  const events = [];
+  const n = adj.length;
+  const topologicalOrder = [];
+  let cycleDetected = false;
+  
+  // Initialize in-degrees to zero
+  const inDegree = Array(n).fill(0);
+  
+  // Track vertex status: 'unprocessed', 'available', 'removed'
+  const status = Array(n).fill('unprocessed');
+  
+  function snapshot(desc, currentVertex = null, highlightedNodes = [], outgoingEdges = [], incrementingNodes = [], showIncrements = false, oldValues = null, isIncrement = true) {
+    events.push({
+      desc,
+      inDegree: inDegree.slice(),
+      status: status.slice(),
+      topologicalOrder: topologicalOrder.slice(),
+      current: currentVertex,
+      highlightedNodes,
+      outgoingEdges,
+      incrementingNodes,
+      showIncrements,
+      oldValues,
+      isIncrement,
+      cycleDetected
+    });
+  }
+  
+  // Initial step
+  snapshot('Topological Sort using Source Removal Algorithm - examine the graph structure');
+  
+  // Step 1: Compute in-degrees by iterating through all adjacency lists
+  snapshot('Step 1: Compute in-degrees - iterate through all adjacency lists');
+  
+  // Show in-degree computation for each vertex's adjacency list
+  for (let u = 0; u < n; u++) {
+    const outgoingEdges = adj[u].map(v => [u, v]);
+    
+    if (outgoingEdges.length > 0) {
+      const neighbors = adj[u];
+      
+      // Capture old values before incrementing
+      const oldValues = {};
+      neighbors.forEach(v => {
+        oldValues[v] = inDegree[v];
+      });
+      
+      snapshot(`Processing vertex ${u}: incrementing in-degree for ${neighbors.join(', ')}`, 
+               u, [], outgoingEdges, neighbors, true, oldValues, true);
+      
+      // Increment in-degree for each neighbor
+      adj[u].forEach(v => {
+        inDegree[v]++;
+      });
+      
+      // Show the result after incrementing
+      snapshot(`Vertex ${u} processed - in-degrees updated`, u, [], [], neighbors, false);
+    } else {
+      snapshot(`Processing vertex ${u}: no outgoing edges`, u, [], [], [], false);
+    }
+  }
+  
+  snapshot('In-degree computation complete - all vertices have their in-degrees calculated');
+  
+  // Find initial sources (vertices with in-degree 0)
+  const availableSources = [];
+  inDegree.forEach((degree, i) => {
+    if (degree === 0) {
+      availableSources.push(i);
+      status[i] = 'available';
+    }
+  });
+  
+  if (availableSources.length === 0) {
+    cycleDetected = true;
+    snapshot('<span class="cycle-detected">No sources found! Graph contains a cycle - topological sort is impossible!</span>');
+  } else {
+    snapshot(`Found initial sources (vertices with in-degree 0): ${availableSources.join(', ')}`);
+  }
+  
+  let processedCount = 0;
+  
+  while (availableSources.length > 0 && !cycleDetected) {
+    // Choose the first available source
+    const u = availableSources.shift();
+    status[u] = 'removed';
+    topologicalOrder.push(u);
+    processedCount++;
+    
+    snapshot(`Remove vertex ${u} and add it to topological order`, u, [u]);
+    
+    // Update in-degrees of neighbors
+    const affectedNeighbors = [];
+    const oldDecrementValues = {};
+    
+    adj[u].forEach(v => {
+      if (status[v] !== 'removed') {
+        oldDecrementValues[v] = inDegree[v]; // Capture old value before decrementing
+        inDegree[v]--;
+        affectedNeighbors.push(v);
+        if (inDegree[v] === 0) {
+          availableSources.push(v);
+          status[v] = 'available';
+        }
+      }
+    });
+    
+    if (affectedNeighbors.length > 0) {
+      const newSources = affectedNeighbors.filter(v => inDegree[v] === 0);
+      let desc = `Update in-degrees of ${u}'s neighbors: ${affectedNeighbors.join(', ')}`;
+      if (newSources.length > 0) {
+        desc += `<br>New sources found: ${newSources.join(', ')}`;
+      }
+      snapshot(desc, null, affectedNeighbors, [], affectedNeighbors, true, oldDecrementValues, false);
+    }
+  }
+  
+  if (processedCount < n && !cycleDetected) {
+    cycleDetected = true;
+    snapshot('<span class="cycle-detected">No more sources available but vertices remain! Graph contains a cycle - topological sort is impossible!</span>');
+  }
+  
+  if (cycleDetected) {
+    snapshot('<span class="cycle-detected">Topological sort failed - cycle detected in graph</span>');
+  } else {
+    snapshot(`Topological sort complete!<br>Topological order: ${topologicalOrder.join(' → ')}`);
+  }
+  
+  return events;
+}
+
+function generateGraph(n){
+  const adj=Array.from({length:n},()=>[]);
+  const forceDag = document.getElementById('dagCheckbox').checked;
+  
+  if (forceDag) {
+    // Generate a DAG by only adding edges from lower to higher numbered vertices
+    const edgeDensity = parseFloat(document.getElementById('edgeDensity').value) || 0.3;
+    for(let i = 0; i < n; i++) {
+      for(let j = i + 1; j < n; j++) {
+        if(Math.random() < edgeDensity) {
+          adj[i].push(j);
+        }
+      }
+    }
+  } else {
+    // Create a random directed graph without connectivity guarantees
+    const edgeDensity = parseFloat(document.getElementById('edgeDensity').value) || 0.3;
+    for(let i = 0; i < n; i++) {
+      for(let j = 0; j < n; j++) {
+        if(i !== j && Math.random() < edgeDensity) {
+          adj[i].push(j);
+        }
+      }
+    }
+  }
+  
+  return adj;
+}
+
+function layoutGraph(adj){return adj.map((_,i)=>{const t=2*Math.PI*i/adj.length-Math.PI/2;return{x:centerX+circleR*Math.cos(t),y:centerY+circleR*Math.sin(t)};});}
+
+function calculateCurvedPath(from, to) {
+  const p1 = nodePositions[from];
+  const p2 = nodePositions[to];
+  const dx = p2.x - p1.x;
+  const dy = p2.y - p1.y;
+  const distance = Math.sqrt(dx*dx + dy*dy);
+  const unitX = dx / distance;
+  const unitY = dy / distance;
+  
+  // Calculate start and end points at circle edges
+  const startX = p1.x + unitX * radius;
+  const startY = p1.y + unitY * radius;
+  const endX = p2.x - unitX * radius;
+  const endY = p2.y - unitY * radius;
+  
+  // Calculate control point for curve (bend to the right)
+  const midX = (startX + endX) / 2;
+  const midY = (startY + endY) / 2;
+  const perpX = -unitY; // Perpendicular to direction vector
+  const perpY = unitX;
+  const curvature = Math.min(distance * 0.2, 50); // Limit curve amount
+  const controlX = midX + perpX * curvature;
+  const controlY = midY + perpY * curvature;
+  
+  return `M ${startX} ${startY} Q ${controlX} ${controlY} ${endX} ${endY}`;
+}
+
+function calculateStraightPath(from, to) {
+  const p1 = nodePositions[from];
+  const p2 = nodePositions[to];
+  const dx = p2.x - p1.x;
+  const dy = p2.y - p1.y;
+  const distance = Math.sqrt(dx*dx + dy*dy);
+  const unitX = dx / distance;
+  const unitY = dy / distance;
+  
+  // Calculate start and end points at circle edges
+  const startX = p1.x + unitX * radius;
+  const startY = p1.y + unitY * radius;
+  const endX = p2.x - unitX * radius;
+  const endY = p2.y - unitY * radius;
+  
+  return `M ${startX} ${startY} L ${endX} ${endY}`;
+}
+
+function hasBidirectionalEdge(from, to) {
+  return adjList[from] && adjList[from].includes(to) && 
+         adjList[to] && adjList[to].includes(from);
+}
+
+function getPathData(from, to) {
+  return hasBidirectionalEdge(from, to) ? 
+    calculateCurvedPath(from, to) : 
+    calculateStraightPath(from, to);
+}
+
+function renderStep(){const ev=steps[stepIndex];document.getElementById('commentary').innerHTML=ev.desc;renderGraph(ev);renderTopologicalOrder(ev);renderTable(ev);updateButtons();}
+
+function renderGraph(ev) {
+  const svgNS = 'http://www.w3.org/2000/svg';
+  const linkLayer = document.getElementById('linkLayer');
+  const nodeLayer = document.getElementById('nodeLayer');
+  linkLayer.innerHTML = '';
+  nodeLayer.innerHTML = '';
+
+  // Check if this is the final step (algorithm complete)
+  const isFinalStep = ev.cycleDetected || (ev.topologicalOrder.length === adjList.length);
+
+  // Draw base edges with curved or straight paths
+  adjList.forEach((nbrs, i) => {
+    nbrs.forEach(j => {
+      const pathData = getPathData(i, j);
+      const path = document.createElementNS(svgNS, 'path');
+      path.setAttribute('id', `edge-${i}-${j}`);
+      path.setAttribute('d', pathData);
+      path.setAttribute('marker-end', 'url(#arrowhead)');
+      path.classList.add('default-edge');
+      
+      // Make edges connected to removed vertices much lighter, unless it's the final step
+      if (!isFinalStep && (ev.status[i] === 'removed' || ev.status[j] === 'removed')) {
+        path.style.opacity = '0.1';
+      }
+      
+      linkLayer.appendChild(path);
+    });
+  });
+
+  // Highlight outgoing edges during in-degree computation
+  if (ev.outgoingEdges && ev.outgoingEdges.length > 0) {
+    ev.outgoingEdges.forEach(([from, to]) => {
+      const pathData = getPathData(from, to);
+      const path = document.createElementNS(svgNS, 'path');
+      path.setAttribute('d', pathData);
+      path.setAttribute('marker-end', 'url(#arrowhead-green)');
+      path.setAttribute('data-from', from);
+      path.setAttribute('data-to', to);
+      path.classList.add('neighbor-edge');
+      linkLayer.appendChild(path);
+    });
+  }
+
+  // Highlight edges from current vertex being processed (not on final step)
+  if (!isFinalStep && ev.current !== null && ev.status[ev.current] === 'removed') {
+    adjList[ev.current].forEach(neighbor => {
+      if (ev.status[neighbor] !== 'removed') {
+        const pathData = getPathData(ev.current, neighbor);
+        const path = document.createElementNS(svgNS, 'path');
+        path.setAttribute('d', pathData);
+        path.setAttribute('marker-end', 'url(#arrowhead-red)');
+        path.setAttribute('data-from', ev.current);
+        path.setAttribute('data-to', neighbor);
+        path.classList.add('active-current-edge');
+        linkLayer.appendChild(path);
+      }
+    });
+  }
+
+  ev.status.forEach((stat, i) => {
+    const pos = nodePositions[i];
+    const g = document.createElementNS(svgNS, 'g');
+    g.dataset.id = i;
+    g.classList.add('graphNode');
+    
+    // Apply status-based styling, but show all as blue on final step
+    if (isFinalStep) {
+      g.classList.add('blue');
+    } else {
+      if (stat === 'unprocessed') g.classList.add('blue');
+      else if (stat === 'available') g.classList.add('orange');
+      else if (stat === 'removed') g.classList.add('green');
+    }
+    
+    if (!isFinalStep && ev.current === i) g.classList.add('current');
+    if (!isFinalStep && ev.highlightedNodes && ev.highlightedNodes.includes(i)) g.classList.add('highlighted');
+    
+    const circ = document.createElementNS(svgNS, 'circle');
+    circ.setAttribute('cx', pos.x);
+    circ.setAttribute('cy', pos.y);
+    circ.setAttribute('r', radius);
+    g.appendChild(circ);
+    
+    const label = document.createElementNS(svgNS, 'text');
+    label.classList.add('label');
+    label.setAttribute('x', pos.x);
+    label.setAttribute('y', pos.y - 5);
+    label.textContent = i;
+    g.appendChild(label);
+    
+    // Show in-degree below vertex (hide on final step if successful)
+    const degreeText = document.createElementNS(svgNS, 'text');
+    degreeText.classList.add('times');
+    degreeText.setAttribute('x', pos.x);
+    degreeText.setAttribute('y', pos.y + 20);
+    if (isFinalStep && !ev.cycleDetected) {
+      degreeText.textContent = '';
+    } else {
+      degreeText.textContent = `(${ev.inDegree[i]})`;
+    }
+    g.appendChild(degreeText);
+    
+    nodeLayer.appendChild(g);
+    addDragHandlers(g, i);
+  });
+}
+
+function renderTopologicalOrder(ev) {
+  const topoEl = document.getElementById('topological-order');
+  topoEl.innerHTML = '';
+  
+  if (ev.cycleDetected) {
+    topoEl.innerHTML = '<span class="cycle-detected">IMPOSSIBLE (Cycle Detected)</span>';
+    return;
+  }
+  
+  ev.topologicalOrder.forEach((node, i) => {
+    const nodeDiv = document.createElement('div');
+    nodeDiv.className = 'topo-node';
+    nodeDiv.textContent = node;
+    topoEl.appendChild(nodeDiv);
+    
+    if (i < ev.topologicalOrder.length - 1) {
+      const arrow = document.createElement('span');
+      arrow.textContent = '→';
+      arrow.style.fontSize = '16px';
+      arrow.style.fontWeight = 'bold';
+      topoEl.appendChild(arrow);
+    }
+  });
+  
+  if (ev.topologicalOrder.length === 0) {
+    topoEl.innerHTML = '<span style="color: #666;">(empty)</span>';
+  }
+}
+
+function renderTable(ev) {
+  const tbody = document.getElementById('state-table-body');
+  tbody.innerHTML = '';
+  
+  ev.status.forEach((stat, i) => {
+    const tr = document.createElement('tr');
+    
+    // Current vertex gets black border
+    if (ev.current === i) {
+      tr.classList.add('highlighted-row');
+    }
+    
+    // Vertices being incremented get yellow highlight
+    if (ev.incrementingNodes && ev.incrementingNodes.includes(i)) {
+      tr.style.backgroundColor = 'yellow';
+    }
+    
+    // Other highlighted nodes (for neighbor highlighting in main algorithm)
+    if (ev.current !== i && ev.highlightedNodes && ev.highlightedNodes.includes(i)) {
+      tr.classList.add('highlighted-row');
+    }
+
+    const statusText = stat === 'unprocessed' ? 'blue' : 
+                      stat === 'available' ? 'orange' : 'green';
+    const statusLabel = stat === 'unprocessed' ? 'unprocessed' :
+                       stat === 'available' ? 'available' : 'removed';
+    
+    // Show increment/decrement operation or final value in in-degree column
+    let inDegreeDisplay = ev.inDegree[i];
+    if (ev.showIncrements && ev.incrementingNodes && ev.incrementingNodes.includes(i) && ev.oldValues && ev.oldValues[i] !== undefined) {
+      const oldValue = ev.oldValues[i];
+      if (ev.isIncrement) {
+        // Incrementing during in-degree computation
+        inDegreeDisplay = `${oldValue}→${oldValue + 1}`;
+      } else {
+        // Decrementing during main algorithm
+        inDegreeDisplay = `${oldValue}→${ev.inDegree[i]}`;
+      }
+    }
+    
+    tr.innerHTML = `
+      <td>${i}</td>
+      <td>${inDegreeDisplay}</td>
+      <td class="color-cell ${statusText}">${statusLabel}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function updateNode(i){const g=document.querySelector(`g.graphNode[data-id='${i}']`);if(!g) return;const pos=nodePositions[i];g.querySelector('circle').setAttribute('cx',pos.x);g.querySelector('circle').setAttribute('cy',pos.y);g.querySelector('text.label').setAttribute('x',pos.x);g.querySelector('text.label').setAttribute('y',pos.y-10);g.querySelector('text.times').setAttribute('x',pos.x);g.querySelector('text.times').setAttribute('y',pos.y+14);}
+
+function updateEdges(i){
+  // Update base edges
+  adjList.forEach((nbrs, from) => {
+    nbrs.forEach(to => {
+      if (from === i || to === i) {
+        const basePath = document.getElementById(`edge-${from}-${to}`);
+        if(basePath) {
+          const pathData = getPathData(from, to);
+          basePath.setAttribute('d', pathData);
+        }
+      }
+    });
+  });
+  
+  // Update all highlighted edges connected to this node
+  document.querySelectorAll('#linkLayer path[data-from], #linkLayer path[data-to]').forEach(path => {
+    const from = parseInt(path.getAttribute('data-from'));
+    const to = parseInt(path.getAttribute('data-to'));
+    
+    if (from === i || to === i) {
+      const pathData = getPathData(from, to);
+      path.setAttribute('d', pathData);
+    }
+  });
+}
+
+function addDragHandlers(g,i){const svgEl=document.getElementById('svg');g.addEventListener('mousedown',e=>{e.preventDefault();const pt=svgEl.createSVGPoint();const ctmInv=svgEl.getScreenCTM().inverse();pt.x=e.clientX;pt.y=e.clientY;const start=pt.matrixTransform(ctmInv);const offsetX=start.x-nodePositions[i].x;const offsetY=start.y-nodePositions[i].y;function onMove(e2){pt.x=e2.clientX;pt.y=e2.clientY;const p=pt.matrixTransform(ctmInv);nodePositions[i].x=p.x-offsetX;nodePositions[i].y=p.y-offsetY;updateNode(i);updateEdges(i);}function onUp(){window.removeEventListener('mousemove',onMove);window.removeEventListener('mouseup',onUp);}window.addEventListener('mousemove',onMove);window.addEventListener('mouseup',onUp);});}
+function clampAllNodes(){const svgEl=document.getElementById('svg');const pt=svgEl.createSVGPoint();const ctmInv=svgEl.getScreenCTM().inverse();const rect=svgEl.getBoundingClientRect();const tl=new DOMPoint(rect.left+radius,rect.top+radius).matrixTransform(ctmInv);const br=new DOMPoint(rect.right-radius,rect.bottom-radius).matrixTransform(ctmInv);nodePositions.forEach((pos,i)=>{pos.x=Math.max(tl.x,Math.min(br.x,pos.x));pos.y=Math.max(tl.y,Math.min(br.y,pos.y));updateNode(i);updateEdges(i);});}
+window.addEventListener('resize',clampAllNodes);
+function nextStep(){if(stepIndex<steps.length-1){stepIndex++;renderStep();}}
+function prevStep(){if(stepIndex>0){stepIndex--;renderStep();}}
+function updateButtons(){document.getElementById('prevBtn').disabled=stepIndex===0;document.getElementById('nextBtn').disabled=stepIndex===steps.length-1;}
+function initializeDemo(){adjList=generateGraph(8);nodePositions=layoutGraph(adjList);steps=buildTopologicalSortSteps(adjList);stepIndex=0;document.getElementById('prevBtn').addEventListener('click',prevStep);document.getElementById('nextBtn').addEventListener('click',nextStep);renderStep();}
+
+document.getElementById('generateBtn').addEventListener('click',()=>{const rawSize=parseInt(document.getElementById('graphSize').value,10)||8;const n=Math.min(15,Math.max(1,rawSize));adjList=generateGraph(n);nodePositions=layoutGraph(adjList);steps=buildTopologicalSortSteps(adjList);stepIndex=0;renderStep();});
+
+let timer=null;const playBtn=document.getElementById('playBtn');const speedSelect=document.getElementById('speedSelect');playBtn.addEventListener('click',()=>{if(timer){clearInterval(timer);timer=null;playBtn.textContent='Play';}else{playBtn.textContent='Pause';timer=setInterval(()=>{if(stepIndex<steps.length-1)nextStep();else{clearInterval(timer);playBtn.textContent='Play';}},1000/parseInt(speedSelect.value,10));}});
+speedSelect.addEventListener('change',()=>{if(timer){clearInterval(timer);playBtn.textContent='Pause';timer=setInterval(()=>{if(stepIndex<steps.length-1)nextStep();else{clearInterval(timer);playBtn.textContent='Play';}},1000/parseInt(speedSelect.value,10));}});
+window.onload=initializeDemo;
+
+// SVG size control
+const svgSizeSlider = document.getElementById('svgSize');
+const svgElement = document.getElementById('svg');
+
+function updateSvgSize() {
+  const size = svgSizeSlider.value;
+  document.documentElement.style.setProperty('--svg-max-height', size + 'px');
+  
+  // Trigger a resize event to clamp nodes if needed
+  setTimeout(clampAllNodes, 100);
+}
+
+svgSizeSlider.addEventListener('input', updateSvgSize);
+
+// Initialize SVG size
+updateSvgSize();
+</script>
+</body>
+</html>
+

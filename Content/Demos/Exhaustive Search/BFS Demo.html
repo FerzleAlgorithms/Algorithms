@@ -109,7 +109,7 @@
   #state-table th,
   #state-table td {
     border: 1px solid #ddd;
-    padding: 0.5em;
+    padding: 0.3em;
     text-align: center;
   }
   #state-table th { background: #f0f0f0; }
@@ -123,7 +123,7 @@
     display: flex;
     flex-direction: column;
     align-items: flex-start;
-    gap: 0.5em;
+    gap: 0.3em;
     font-family: var(--font-sans);
     margin-top: 1em;
   }
@@ -142,23 +142,35 @@
   .legend-box.current { background: orange; }
   .legend-box.visited { background: lightgreen; }
 
+  /* Reduce spacing before headings */
+  .graph-panel p { margin-top: 0; }
+  .table-panel h3 { margin-top: 0; }
+
   .drag-note {
     font-size: 0.9em;
     font-style: italic;
     margin: 0.25em 0;
   }/* force our SVG to always have a white background */
   #svg {
-	  width: 100%;
-	  height: auto;
-	  max-height: 65vh;
-	  background-color: #fff !important;
-	}
+      width: 100%;
+      height: auto;
+      max-height: var(--svg-max-height, 500px);
+      background-color: #fff !important;
+    }
 #demo-wrapper {
   min-height: 800px;
   display: flex;
   flex-direction: column;
 }
 
+  #controls label {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    #controls input[type="range"] {
+      vertical-align: middle;
+    }
   </style>
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-DQ5LVZVFDC"></script>
@@ -178,17 +190,22 @@
   <div id="controls">
   <!-- 1) Graph size + generate graph immediately after -->
   <label>
-    Graph Size:
-    <input id="graphSize" type="number" min="1" max="15" value="8" style="width:4em">
+    Vertices:
+    <input id="graphSize" type="number" min="1" max="15" value="8" style="width:3.5em">
   </label>
-  <button id="generateBtn">Generate Graph</button>
+  <label>
+    Edge %:
+    <input id="edgeDensity" type="number" min="0" max="1" step="0.05" value="0.3" style="width:4.5em">
+  </label>
+  <button id="generateBtn">Generate</button>
 
   <!-- 2) Source node + its own button -->
   <label>
-    Source Node:
-    <input id="sourceNode" type="number" min="0" max="14" value="0" style="width:4em">
+    Source:
+    <input id="sourceNode" type="number" min="0" max="14" value="0" style="width:3.5em">
   </label>
-  <button id="generateSourceBtn">Change Source</button>
+  <button id="generateSourceBtn">Set</button>
+  &nbsp; &nbsp;<label>Canvas Size: <input id="svgSize" type="range" min="250" max="1200" value="500" style="width:100px"></label>
 
   <!-- 3) break before the traversal controls -->
   <br>
@@ -248,12 +265,11 @@ document.getElementById('generateSourceBtn').addEventListener('click', () => {
     <!-- remove the standalone SVG and the old #structures div entirely -->
 
 <!-- New -->
-<div id="main-container" style="display:flex; align-items:flex-start; gap:20px;">
+<div id="main-container" style="display:flex; align-items:flex-start; gap:10px;">
 
   <!-- Graph Panel -->
   <div class="panel graph-panel">
-    <h3>Graph</h3>
-    <p class="drag-note">Drag vertices to reposition them.</p>
+    <p><b>Graph</b> (Drag vertices to reposition them)</p>
     <!-- wrap the <g> layers _inside_ the svg -->
     <svg id="svg" viewBox="0 0 800 800" preserveAspectRatio="xMidYMid meet">
       <g id="linkLayer"></g>
@@ -320,20 +336,18 @@ const centerX = width  / 2,
     // Generate a random connected graph of n nodes
     function generateGraph(n) {
       const adj = Array.from({ length: n }, () => []);
-      // 1) Ensure a spanning tree (chain)
-      for (let i = 0; i < n - 1; i++) {
-        adj[i].push(i+1);
-        adj[i+1].push(i);
-      }
-      // 2) Add extra random edges
-      for (let i = 0; i < n; i++) {
-        for (let j = i + 2; j < n; j++) {
-          if (Math.random() < 0.3) {
+      
+      // Create a random undirected graph without connectivity guarantees
+      const edgeDensity = parseFloat(document.getElementById('edgeDensity').value) || 0.3;
+      for(let i = 0; i < n; i++) {
+        for(let j = i + 1; j < n; j++) {
+          if(Math.random() < edgeDensity) {
             adj[i].push(j);
             adj[j].push(i);
           }
         }
       }
+      
       return adj;
     }
 function layoutGraph(adj) {
@@ -965,6 +979,23 @@ speedSelect.addEventListener('change', () => {
 });
 
 window.onload = initializeDemo;
+
+// SVG size control
+const svgSizeSlider = document.getElementById('svgSize');
+const svgElement = document.getElementById('svg');
+
+function updateSvgSize() {
+  const size = svgSizeSlider.value;
+  document.documentElement.style.setProperty('--svg-max-height', size + 'px');
+  
+  // Trigger a resize event to clamp nodes if needed
+  setTimeout(clampAllNodes, 100);
+}
+
+svgSizeSlider.addEventListener('input', updateSvgSize);
+
+// Initialize SVG size
+updateSvgSize();
 </script>
 </body>
 </html>

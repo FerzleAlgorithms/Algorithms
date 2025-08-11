@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Topological Sort (DFS)</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js"></script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <script src="/Algorithms/scripts/chapterScripts.js"></script>
+  <link rel="stylesheet" href="/Algorithms/css/style.css">
+  <link rel="stylesheet" href="/Algorithms/css/chapter.css">
+</head>
+<body>
+<h1>Topological Sort (DFS)</h1>
+
+<section id="problem-solved">
+  <h2>Problem Solved</h2>
+  <p>
+    Topological Sort using DFS solves the
+    <a class="problem" href="?path=Problems%2FGraphs%2FTopological%20Sort">Topological Sort</a>
+    problem for directed acyclic graphs (DAGs).
+  </p>
+</section>
+
+<section id="design">
+  <h2>Design and Strategy</h2>
+  <p>
+    <strong>Prerequisites:</strong> If you have not read the <a href="?path=Algorithms%2FExhaustive%20Search%2FDepth-First%20Search">Depth-First Search</a> page, you should do so before continuing, as topological sorting via DFS builds directly upon the core DFS algorithm and concepts like discovery/finish times and edge classification.
+  </p>
+
+  <p>
+    Topological sorting produces a linear ordering of vertices in a directed acyclic graph (DAG) such that for every directed edge \((u, v)\), vertex \(u\) appears before vertex \(v\) in the ordering. This algorithm is classified under Exhaustive Search because it must examine every vertex and edge in the graph to ensure the complete ordering is correct and to detect any cycles that would make topological sorting impossible.
+  </p>
+
+  <p>
+    The DFS-based approach leverages the structure of depth-first traversal to naturally produce a topological ordering. The key insight is that when DFS finishes exploring a vertex (records its finish time), all of its descendants in the DFS tree have already been completely processed. This property allows us to construct a valid topological order using either finish times or an explicit stack.
+  </p>
+
+  <h3>Why DFS Works for Topological Sorting</h3>
+  <p>
+    DFS creates a natural topological ordering because of how it processes vertices. When a vertex \(v\) finishes (all its descendants are explored), any vertex \(u\) with an edge \((u, v)\) must either:
+  </p>
+  <ul>
+    <li>Still be in progress (gray), meaning \(u\) will finish after \(v\), or</li>
+    <li>Not yet be discovered, meaning \(u\) will be processed later</li>
+  </ul>
+  <p>
+    This ensures that vertices with no outgoing edges finish first, followed by vertices that depend only on already-finished vertices, creating a valid topological order when vertices are sorted by decreasing finish time.
+  </p>
+
+  <p>Consider this example DAG with DFS timestamps (Hopefully you can work through the example in your 
+    head and determine that this is how DFS might have progressed):</p>
+  
+  <svg viewBox="0 0 600 300" width="600" height="300" xmlns="http://www.w3.org/2000/svg">
+    <!-- Background -->
+    <rect width="600" height="300" fill="#f9f9f9" stroke="#ddd"/>
+    
+    <!-- Arrows (edges) -->
+    <defs>
+      <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+        <polygon points="0 0, 10 3.5, 0 7" fill="#333" />
+      </marker>
+    </defs>
+    
+    <!-- Task dependencies -->
+    <line x1="80" y1="60" x2="140" y2="140" stroke="#333" stroke-width="2" marker-end="url(#arrowhead)"/>
+    <line x1="80" y1="60" x2="200" y2="140" stroke="#333" stroke-width="2" marker-end="url(#arrowhead)"/>
+    <line x1="180" y1="60" x2="200" y2="140" stroke="#333" stroke-width="2" marker-end="url(#arrowhead)"/>
+    <line x1="280" y1="60" x2="200" y2="140" stroke="#333" stroke-width="2" marker-end="url(#arrowhead)"/>
+    <line x1="140" y1="160" x2="140" y2="220" stroke="#333" stroke-width="2" marker-end="url(#arrowhead)"/>
+    <line x1="200" y1="160" x2="140" y2="220" stroke="#333" stroke-width="2" marker-end="url(#arrowhead)"/>
+    <line x1="200" y1="160" x2="240" y2="220" stroke="#333" stroke-width="2" marker-end="url(#arrowhead)"/>
+    
+    <!-- Vertices with timestamps -->
+    <circle cx="80" cy="60" r="20" fill="#e6f3ff" stroke="#333" stroke-width="2"/>
+    <text x="80" y="65" font-size="14" text-anchor="middle" font-weight="bold">A</text>
+    <text x="80" y="35" font-size="12" text-anchor="middle" fill="#666">d:1 f:10</text>
+    
+    <circle cx="180" cy="60" r="20" fill="#e6f3ff" stroke="#333" stroke-width="2"/>
+    <text x="180" y="65" font-size="14" text-anchor="middle" font-weight="bold">B</text>
+    <text x="180" y="35" font-size="12" text-anchor="middle" fill="#666">d:11 f:12</text>
+    
+    <circle cx="280" cy="60" r="20" fill="#e6f3ff" stroke="#333" stroke-width="2"/>
+    <text x="280" y="65" font-size="14" text-anchor="middle" font-weight="bold">C</text>
+    <text x="280" y="35" font-size="12" text-anchor="middle" fill="#666">d:13 f:14</text>
+    
+    <circle cx="140" cy="160" r="20" fill="#fff2e6" stroke="#333" stroke-width="2"/>
+    <text x="140" y="165" font-size="14" text-anchor="middle" font-weight="bold">D</text>
+    <text x="90" y="160" font-size="12" text-anchor="middle" fill="#666">d:2 f:5</text>
+    
+    <circle cx="200" cy="160" r="20" fill="#fff2e6" stroke="#333" stroke-width="2"/>
+    <text x="200" y="165" font-size="14" text-anchor="middle" font-weight="bold">E</text>
+    <text x="250" y="160" font-size="12" text-anchor="middle" fill="#666">d:6 f:9</text>
+    
+    <circle cx="140" cy="240" r="20" fill="#f0fff0" stroke="#333" stroke-width="2"/>
+    <text x="140" y="245" font-size="14" text-anchor="middle" font-weight="bold">F</text>
+    <text x="100" y="270" font-size="12" text-anchor="middle" fill="#666">d:3 f:4</text>
+    
+    <circle cx="240" cy="240" r="20" fill="#f0fff0" stroke="#333" stroke-width="2"/>
+    <text x="240" y="245" font-size="14" text-anchor="middle" font-weight="bold">G</text>
+    <text x="280" y="270" font-size="12" text-anchor="middle" fill="#666">d:7 f:8</text>
+    
+    <!-- Legend -->
+    <text x="380" y="30" font-size="14" font-weight="bold">Finish Times:</text>
+    <text x="380" y="50" font-size="12">C: 14, B: 12, A: 10, E: 9</text>
+    <text x="380" y="65" font-size="12">G: 8, D: 5, F: 4</text>
+    
+    <text x="380" y="95" font-size="14" font-weight="bold">Topological Order:</text>
+    <text x="380" y="115" font-size="12" fill="#c00">C → B → A → E → G → D → F</text>
+    
+    <text x="380" y="150" font-size="12" fill="#666">Key insight: For every edge (u,v),</text>
+    <text x="380" y="165" font-size="12" fill="#666">finish[u] > finish[v]</text>
+    <text x="380" y="180" font-size="12" fill="#666">so u appears before v in ordering</text>
+    
+    <!-- Example verification -->
+    <text x="380" y="210" font-size="12" fill="#008000">Examples:</text>
+    <text x="380" y="225" font-size="12" fill="#008000">A→D: f[A]=10 > f[D]=5 ✓</text>
+    <text x="380" y="240" font-size="12" fill="#008000">E→G: f[E]=9 > f[G]=8 ✓</text>
+    <text x="380" y="255" font-size="12" fill="#008000">D→F: f[D]=5 > f[F]=4 ✓</text>
+  </svg>
+
+  <p>
+    The diagram shows how DFS timestamps naturally create a valid topological ordering. Notice that for every directed edge \((u, v)\), vertex \(u\) has a larger finish time than vertex \(v\). This happens because:
+  </p>
+  <ul>
+    <li>If \(v\) is discovered from \(u\), then \(v\) finishes before \(u\) (nested intervals)</li>
+    <li>If \(v\) is already finished when we explore edge \((u, v)\), then \(v\) finished before \(u\) even started</li>
+  </ul>
+  <p>
+    Therefore, sorting vertices by decreasing finish time automatically produces a valid topological order: G → C → B → A → D → E → F.
+  </p>
+
+  <h3>Two Implementation Approaches</h3>
+  <p>
+    There are two main ways to extract the topological ordering from DFS:
+  </p>
+  <ul>
+    <li><strong>Timestamp-based:</strong> Record finish times during DFS, then sort vertices by decreasing finish time</li>
+    <li><strong>Stack-based:</strong> Push vertices onto a stack when they finish, then pop to get the ordering</li>
+  </ul>
+
+  <h3>Essential: Cycle Detection</h3>
+  <p>
+    Topological sorting only works on directed acyclic graphs (DAGs). The algorithm must detect cycles and fail gracefully if any exist. DFS naturally detects cycles through back edges—edges that lead to vertices currently being processed (gray vertices). If any back edge is found, the graph contains a cycle and cannot be topologically sorted.
+  </p>
+
+  <h3>Algorithm: DFS-Based Topological Sort</h3>
+  <p>Here is the complete algorithm using the stack-based approach:</p>
+  
+  <ol class="spaced">
+    <li><code>topologicalSort()</code>
+      <ol>
+        <li>Let <code>n</code> be the number of vertices in the graph.</li>
+        <li>Create data structures:
+          <ul>
+            <li><code>color[0..n−1] = WHITE</code></li>
+            <li><span style="color: #4CAF50;">▶</span> <code>stack = empty</code></li>
+          </ul>
+        </li>
+        <li>For each vertex <code>v</code> from <code>0</code> to <code>n−1</code>:
+          <ul>
+            <li>If <code>color[v] = WHITE</code>:</li>
+            <li><span style="color: #2196F3;">▶</span> If <code>dfsVisit(v)</code> returns <code>true</code>, return "Graph has cycle - no topological sort exists"</li>
+          </ul>
+        </li>
+        <li><span style="color: #4CAF50;">▶</span> Pop all vertices from stack to get topological ordering</li>
+      </ol>
+    </li>
+    <li><code>dfsVisit(v)</code> → <code>boolean</code>
+      <ol>
+        <li>Set <code>color[v] = GRAY</code></li>
+        <li>For each neighbor <code>u</code> of <code>v</code>:
+          <ul>
+            <li>If <code>color[u] = WHITE</code>:</li>
+            <li style="margin-left: 20px;"><span style="color: #2196F3;">▶</span> If <code>dfsVisit(u)</code> returns <code>true</code>, return <code>true</code></li>
+            <li><span style="color: #2196F3;">▶</span> Else if <code>color[u] = GRAY</code>: return <code>true</code> <em>// Back edge - cycle detected</em></li>
+          </ul>
+        </li>
+        <li>Set <code>color[v] = BLACK</code></li>
+        <li><span style="color: #4CAF50;">▶</span> Push <code>v</code> onto <code>stack</code></li>
+        <li>Return <code>false</code> <em>// No cycle found</em></li>
+      </ol>
+    </li>
+  </ol>
+
+  <h4>Key Differences from Standard DFS</h4>
+  <div style="border-left: 4px solid #2196F3; padding-left: 15px; margin: 15px 0;">
+    <p><strong><span style="color: #2196F3;">▶</span> Cycle Detection:</strong> The algorithm includes explicit checking for back edges (edges to GRAY vertices) and terminates immediately if any cycle is detected, since topological sorting is impossible on cyclic graphs.</p>
+  </div>
+  
+  <div style="border-left: 4px solid #4CAF50; padding-left: 15px; margin: 15px 0;">
+    <p><strong><span style="color: #4CAF50;">▶</span> Stack-Based Output:</strong> Instead of just marking vertices as visited, the algorithm collects vertices in a stack as they finish. Popping the stack gives vertices in reverse finish-time order—exactly the topological ordering needed.</p>
+  </div>
+
+  <p>
+    <strong>Why This Works:</strong> When a vertex finishes in DFS, all vertices reachable from it have already finished. 
+    This means the vertex has no unprocessed dependencies, making it safe to place before all previously finished vertices in the final ordering.
+    The stack naturally produces this reverse-finish-time ordering.
+  </p>
+
+  <h3>Demonstration</h3>
+  <p>The demo below shows both the cycle detection and topological sorting capabilities of the DFS-based algorithm:</p>
+
+  <section id="demo">
+    <div class="embeddedDemoContainer">
+      <iframe class="embeddedDemo"
+              src="/Algorithms/Content/Demos/Exhaustive%20Search/Topological%20Sort%20Demo.html"
+              allow="fullscreen"
+              name="topological-sort-demo">
+      </iframe>
+    </div>
+  </section>
+
+  <h4>Understanding the Output</h4>
+  <p>
+    Both approaches produce the same result but in different ways:
+  </p>
+  <ul>
+    <li><strong>Timestamp approach:</strong> Vertices are ordered by decreasing finish time—those that finish last appear first in the topological order</li>
+    <li><strong>Stack approach:</strong> Vertices are pushed onto a stack as they finish, then popped to produce the ordering directly</li>
+  </ul>
+  <p>
+    If a cycle is detected (via a back edge to a gray vertex), both approaches immediately terminate and report that no topological ordering exists.
+  </p>
+
+</section>
+
+<section id="code">
+  <h2>Implementation in Java, C++, Python</h2>
+  <p>These implementations show the stack-based approach for topological sorting with cycle detection. The timestamp approach would require sorting vertices by finish time after DFS completes.</p>
+  
+  <p>Note that in this implementation, <code>dfsVisit</code> returns a boolean value: <code>true</code> 
+    if a cycle is detected during the traversal of that subgraph, <code>false</code> otherwise.
+  This allows us to quit the algorithm as soon as we detect a cycle.</p>
+  
+  <p><strong>Implementation Notes:</strong></p>
+  <ul>
+    <li><strong>Color Encoding:</strong> Colors are represented as integers: 0=WHITE (unvisited), 1=GRAY (currently processing), 2=BLACK (finished)</li>
+    <li><strong>Data Structures:</strong> 
+      <ul>
+        <li><strong>Java:</strong> 
+          <ul>
+            <li><strong>Adjacency List:</strong> <code>List&lt;Integer&gt;[]</code> array of lists for graph representation</li>
+            <li><strong>Stack:</strong> <code>Stack&lt;Integer&gt;</code> to collect vertices in finish order</li>
+            <li><strong>Result:</strong> <code>ArrayList&lt;&gt;</code> for final topological ordering</li>
+          </ul>
+        </li>
+        <li><strong>C++:</strong> 
+          <ul>
+            <li><strong>Adjacency List:</strong> <code>vector&lt;int&gt; adj[]</code> array of vectors for graph representation</li>
+            <li><strong>Stack:</strong> <code>stack&lt;int&gt;</code> to collect vertices in finish order</li>
+            <li><strong>Result:</strong> <code>vector&lt;int&gt;</code> for final topological ordering</li>
+          </ul>
+        </li>
+        <li><strong>Python:</strong> 
+          <ul>
+            <li><strong>Adjacency List:</strong> List of lists <code>adj</code> for graph representation</li>
+            <li><strong>Stack:</strong> Built-in <code>list</code> as stack to collect vertices in finish order</li>
+            <li><strong>Result:</strong> List slicing <code>[::-1]</code> to reverse for final ordering</li>
+          </ul>
+        </li>
+      </ul>
+    </li>
+  </ul>
+  
+  <div class="tab-group">
+    <div class="tabs" role="tablist">
+      <button id="tab-java" class="tablink active" data-lang="java" role="tab" aria-controls="java" aria-selected="true">Java</button>
+      <button id="tab-cpp" class="tablink" data-lang="cpp" role="tab" aria-controls="cpp" aria-selected="false">C++</button>
+      <button id="tab-python" class="tablink" data-lang="python" role="tab" aria-controls="python" aria-selected="false">Python</button>
+    </div>
+    <div id="java" class="code-container active" role="tabpanel" aria-labelledby="tab-java">
+      <pre><code class="language-java">List&lt;Integer&gt; topologicalSort(List&lt;Integer&gt;[] adj, int n) {
+    int[] color = new int[n]; // 0=WHITE, 1=GRAY, 2=BLACK
+    Stack&lt;Integer&gt; stack = new Stack&lt;&gt;();
+    
+    for (int v = 0; v < n; v++) {
+        if (color[v] == 0) { // WHITE
+            if (dfsVisit(v, adj, color, stack)) {
+                return null; // Cycle detected
+            }
+        }
+    }
+    
+    List&lt;Integer&gt; result = new ArrayList&lt;&gt;();
+    while (!stack.isEmpty()) {
+        result.add(stack.pop());
+    }
+    return result;
+}
+
+boolean dfsVisit(int v, List&lt;Integer&gt;[] adj, int[] color, 
+                 Stack&lt;Integer&gt; stack) {
+    color[v] = 1; // GRAY
+    
+    for (int u : adj[v]) {
+        if (color[u] == 0) { // WHITE
+            if (dfsVisit(u, adj, color, stack)) {
+                return true; // Cycle found in recursion
+            }
+        } else if (color[u] == 1) { // GRAY - back edge
+            return true; // Cycle detected
+        }
+        // BLACK vertices (color[u] == 2) are ignored
+    }
+    
+    color[v] = 2; // BLACK
+    stack.push(v);
+    return false; // No cycle found
+}</code></pre>
+    </div>
+    <div id="cpp" class="code-container" role="tabpanel" aria-labelledby="tab-cpp">
+      <pre><code class="language-cpp">vector&lt;int&gt; topologicalSort(vector&lt;int&gt; adj[], int n) {
+    vector&lt;int&gt; color(n, 0); // 0=WHITE, 1=GRAY, 2=BLACK
+    stack&lt;int&gt; stk;
+    
+    for (int v = 0; v < n; v++) {
+        if (color[v] == 0) { // WHITE
+            if (dfsVisit(v, adj, color, stk)) {
+                return {}; // Empty vector indicates cycle
+            }
+        }
+    }
+    
+    vector&lt;int&gt; result;
+    while (!stk.empty()) {
+        result.push_back(stk.top());
+        stk.pop();
+    }
+    return result;
+}
+
+bool dfsVisit(int v, vector&lt;int&gt; adj[], vector&lt;int&gt;& color,
+              stack&lt;int&gt;& stk) {
+    color[v] = 1; // GRAY
+    
+    for (int u : adj[v]) {
+        if (color[u] == 0) { // WHITE
+            if (dfsVisit(u, adj, color, stk)) {
+                return true; // Cycle found in recursion
+            }
+        } else if (color[u] == 1) { // GRAY - back edge
+            return true; // Cycle detected
+        }
+        // BLACK vertices (color[u] == 2) are ignored
+    }
+    
+    color[v] = 2; // BLACK
+    stk.push(v);
+    return false; // No cycle found
+}</code></pre>
+    </div>
+    <div id="python" class="code-container" role="tabpanel" aria-labelledby="tab-python">
+      <pre><code class="language-python">def topological_sort(adj, n):
+    color = [0] * n  # 0=WHITE, 1=GRAY, 2=BLACK
+    stack = []
+    
+    def dfs_visit(v):
+        color[v] = 1  # GRAY
+        
+        for u in adj[v]:
+            if color[u] == 0:  # WHITE
+                if dfs_visit(u):
+                    return True  # Cycle found in recursion
+            elif color[u] == 1:  # GRAY - back edge
+                return True  # Cycle detected
+            # BLACK vertices (color[u] == 2) are ignored
+        
+        color[v] = 2  # BLACK
+        stack.append(v)
+        return False  # No cycle found
+    
+    for v in range(n):
+        if color[v] == 0:  # WHITE
+            if dfs_visit(v):
+                return None  # Cycle detected
+    
+    return stack[::-1]  # Reverse to get correct order</code></pre>
+    </div>
+  </div>
+</section>
+
+<section id="analysis">
+  <h2>Time/Space Analysis</h2>
+  
+  <p>
+  <strong>Time Complexity:</strong>
+  The time complexity is \(O(V + E)\), identical to standard DFS:</p>
+  <ul>
+    <li><strong>Vertex processing:</strong> Each vertex is visited exactly once: \(O(V)\)</li>
+    <li><strong>Edge examination:</strong> Each edge is examined exactly once: \(O(E)\)</li>
+    <li><strong>Cycle detection:</strong> Performed during traversal with no additional cost</li>
+    <li><strong>Output construction:</strong> \(O(V)\) for stack operations</li>
+  </ul>
+  
+  <p>
+  <strong>Space Complexity:</strong> 
+  Auxiliary space is \(O(V)\):</p>
+  <ul>
+    <li><strong>Color array:</strong> \(O(V)\) to track vertex states</li>
+    <li><strong>Stack:</strong> \(O(V)\) for output construction</li>
+    <li><strong>Recursion stack:</strong> \(O(V)\) in worst case (linear graph)</li>
+  </ul>
+  <p>This is optimal for topological sorting since we must examine every vertex and edge to ensure correctness.</p>
+</section>
+
+<section id="variations">
+  <h2>Variations/Improvements</h2>
+  
+  <h3>Alternative Approaches</h3>
+  <ul>
+    <li><strong>Kahn's Algorithm:</strong> Uses in-degree counting and a queue instead of DFS. 
+      Better for detecting all cycles and providing more information about dependencies. </li>
+    <li><strong>Iterative DFS:</strong> Uses explicit stack to avoid recursion depth limits in very deep DAGs. 
+    </li>
+  </ul>
+
+  <h3>Enhanced Applications</h3>
+  <ul>
+    <li><strong>All Topological Orders:</strong> Modify the algorithm to find all possible topological orderings using backtracking. <em>Example: finding all valid task schedules.</em></li>
+    <li><strong>Longest Path in DAG:</strong> Use topological ordering for dynamic programming to find longest paths. <em>Example: critical path analysis in project management.</em></li>
+    <li><strong>Cycle Reporting:</strong> Enhance cycle detection to report the actual cycle vertices. <em>Example: identifying specific circular dependencies in build systems.</em></li>
+  </ul>
+
+  <h3>Practical Optimizations</h3>
+  <ul>
+    <li><strong>Early Termination:</strong> Stop as soon as any cycle is detected rather than completing the traversal.</li>
+    <li><strong>Incremental Updates:</strong> Efficiently update topological order when edges are added/removed dynamically.</li>
+  </ul>
+</section>
+
+<section id="links">
+  <h2>Links to Resources</h2>
+  <ul>
+    <li><a href="https://en.wikipedia.org/wiki/Topological_sorting" target="_blank">Topological sorting (Wikipedia)</a> - Comprehensive overview of topological sorting algorithms including both DFS and Kahn's approaches.</li>
+    <li><a href="https://visualgo.net/en/dfsbfs" target="_blank">DFS Visualization (VisuAlgo)</a> - Interactive DFS visualization that includes topological sorting demonstrations.</li>
+    <li><a href="https://www.geeksforgeeks.org/topological-sorting/" target="_blank">Topological Sorting (GeeksforGeeks)</a> - Programming tutorial with implementation examples and applications.</li>
+  </ul>
+</section>
+
+<section id="reading-questions">
+  <h2>Reading Comprehension Questions</h2>
+  <ol>
+    <li><strong>DFS Foundation:</strong> How does topological sorting build upon the core DFS algorithm, and why are finish times crucial?</li>
+    <li><strong>Exhaustive Search Classification:</strong> Why is topological sorting classified under Exhaustive Search rather than other algorithm categories?</li>
+    <li><strong>Two Approaches:</strong> What are the advantages and disadvantages of timestamp-based versus stack-based topological sorting?</li>
+    <li><strong>Cycle Detection:</strong> Why must topological sorting include cycle detection, and how do back edges reveal cycles?</li>
+    <li><strong>Edge Types:</strong> Which edge types from DFS are relevant for topological sorting, and why don't forward or cross edges indicate problems?</li>
+    <li><strong>Vertex States:</strong> How does the three-color scheme (white/gray/black) enable immediate cycle detection during traversal?</li>
+  </ol>
+  <button id="toggleAnswers" class="show-answer" aria-expanded="false">Show Answers</button>
+  <div id="answers" class="answer" hidden>
+    <ol>
+      <li><strong>Answer:</strong> Topological sorting uses DFS's discovery/finish time structure. Finish times naturally create the correct ordering because when a vertex finishes, all its dependencies have been processed, ensuring vertices appear in dependency order when sorted by decreasing finish time.</li>
+      <li><strong>Answer:</strong> It's classified as Exhaustive Search because the algorithm must examine every vertex and edge to construct the complete ordering and verify no cycles exist—there's no way to determine the topological order without exploring the entire graph structure.</li>
+      <li><strong>Answer:</strong> Timestamp approach requires sorting after DFS completes but provides more information (actual finish times). Stack approach produces results immediately during traversal but only gives the ordering. Both have the same time complexity.</li>
+      <li><strong>Answer:</strong> Topological sorting only works on DAGs. Back edges (leading to gray/currently-processing vertices) indicate cycles because they create paths back to ancestors, forming loops that make linear ordering impossible.</li>
+      <li><strong>Answer:</strong> Only back edges matter for topological sorting—they indicate cycles that prevent valid ordering. Tree edges build the DFS structure, while forward and cross edges don't affect the topological order since they don't create cycles in DAGs.</li>
+      <li><strong>Answer:</strong> Gray vertices are currently being processed (on the recursion stack). Any edge to a gray vertex is a back edge, immediately revealing a cycle. This allows instant cycle detection without waiting for the complete traversal.</li>
+    </ol>
+  </div>
+</section>
+
+<section id="activities">
+  <h2>In-Class Activities</h2>
+  <ol>
+    <li><strong>Manual Topological Sort:</strong> Hand-trace the DFS-based topological sort on a small DAG, recording finish times and demonstrating both the timestamp and stack approaches produce the same result.</li>
+
+    <li><strong>Timestamp-Based Approach:</strong> The pseudocode above shows the stack-based approach. Work out the details of the timestamp-based approach:
+      <ol type='a'>
+        <li>What additional data structures do you need beyond the stack?</li>
+        <li>Modify the pseudocode to record finish times instead of using a stack</li>
+        <li>How do you extract the topological ordering from the finish times?</li>
+        <li>Verify both approaches give the same result on a small DAG</li>
+      </ol>
+    </li>
+
+    <li><strong>Cycle Detection Practice:</strong> Create directed graphs with and without cycles. Use the DFS algorithm to detect cycles by identifying back edges to gray vertices. Verify your results using the demo.</li>
+
+    <li><strong>Compare Approaches:</strong> Implement both timestamp-based and stack-based topological sorting on the same DAG. Verify they produce equivalent orderings and discuss the trade-offs between approaches.</li>
+
+    <li><strong>Real-World Applications:</strong> Design a small dependency graph (course prerequisites, software build dependencies, or project tasks) and apply topological sorting to find a valid execution order.</li>
+
+    <li><strong>Algorithm Enhancement:</strong> Modify the basic algorithm to report the specific vertices involved in any detected cycle, not just that a cycle exists.</li>
+  </ol>
+</section>
+
+<section id="problems">
+  <h2>Homework Problems</h2>
+  <ol>
+    <li><strong>Timestamp-Based Topological Sort:</strong>
+      The pseudocode in class showed the stack-based approach. Implement the timestamp-based approach for comparison.
+      <ol type='a'>
+        <li>Write clear pseudocode for the timestamp-based approach that records finish times</li>
+        <li>Explain how to extract the topological ordering from finish times</li>
+        <li>Implement both approaches and test on the same DAG</li>
+        <li>Compare the practical advantages of each approach (memory usage, ease of implementation, etc.)</li>
+        <li>Verify both produce valid topological orderings and detect cycles correctly</li>
+      </ol>
+    </li>
+
+    <li><strong>Course Scheduling Problem:</strong>
+      Create a course prerequisite graph and use topological sorting to find a valid course sequence.
+      <ol type='a'>
+        <li>Design a DAG representing 8-10 courses with realistic prerequisite relationships</li>
+        <li>Apply DFS-based topological sorting to find a valid course order</li>
+        <li>Verify your ordering satisfies all prerequisites</li>
+        <li>Add one edge that creates a cycle and show how the algorithm detects it</li>
+      </ol>
+    </li>
+
+    <li><strong>Cycle Detection Enhancement:</strong>
+      Modify the topological sorting algorithm to report the actual cycle when one is detected.
+      <ol type='a'>
+        <li>Enhance the DFS to track the current path and identify cycle vertices</li>
+        <li>Test on graphs with different cycle structures</li>
+        <li>Analyze the additional space complexity of cycle reporting</li>
+      </ol>
+    </li>
+
+    <li><strong>Comparison with Kahn's Algorithm:</strong>
+      Research Kahn's algorithm (in-degree based) and compare it with the DFS approach.
+      <ol type='a'>
+        <li>Implement Kahn's algorithm for topological sorting</li>
+        <li>Compare time and space complexity with DFS-based approach</li>
+        <li>Identify scenarios where each algorithm might be preferable</li>
+        <li>Test both on the same graphs and verify they produce valid orderings</li>
+      </ol>
+    </li>
+
+    <li><strong>All Topological Orders:</strong>
+      Modify the algorithm to find all possible topological orderings of a DAG.
+      <ol type='a'>
+        <li>Use backtracking with the DFS framework to generate all valid orderings</li>
+        <li>Apply to a small DAG with multiple valid topological orders</li>
+        <li>Analyze the time complexity of finding all orderings</li>
+        <li>Discuss why this problem becomes computationally expensive for larger graphs</li>
+      </ol>
+    </li>
+  </ol>
+</section>
+
+</body>
+</html>
+</html>
