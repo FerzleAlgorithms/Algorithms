@@ -1618,5 +1618,72 @@
       "Uniformly at Random"
     ],
     "definition": "A selection method where each outcome in the sample space has an equal probability of being chosen. It is fundamental to probability theory and randomized algorithms. Uniform randomness ensures fairness and unpredictability in simulations and tests."
+  },
+  {
+    "variants": [
+      "Binary Mask",
+      "Bitmask",
+      "Bit Mask"
+    ],
+    "definition": "A sequence of bits used to selectively enable or disable certain bits in another binary value through bitwise operations. Commonly used in dynamic programming on subsets, where each bit represents whether an element is included. Also used for efficient storage and manipulation of boolean flags."
+  },
+  {
+    "variants": [
+      "Acyclic"
+    ],
+    "definition": "A property of a graph that contains no cycles, meaning there is no path that starts and ends at the same vertex without repeating edges. Trees and DAGs (Directed Acyclic Graphs) are examples of acyclic graphs. "
+  },
+  {
+    "variants": [
+      "Cycle",
+      "Cycles"
+    ],
+    "definition": "A path in a graph that starts and ends at the same vertex, with all edges being distinct. In undirected graphs, cycles must have at least 3 vertices to avoid trivial back-and-forth paths. In directed graphs, cycles can be more complex, involving directed paths that return to the starting vertex."
+  },
+  {
+    "variants": [
+      "Diameter"
+    ],
+    "definition": "The longest shortest path between any two vertices in a graph. It represents the maximum distance needed to travel between any pair of nodes using an optimal route."
+  },
+  {
+    "variants": [
+      "Parity"
+    ],
+    "definition": "A property that indicates whether an integer is even or odd. In algorithms, parity is often used for error detection, checksums, and optimization problems. It can be efficiently computed using the modulo operation or bitwise AND with 1."
+  },
+  {
+    "variants": [
+      "Pivot"
+    ],
+    "definition": "An element chosen as a reference point for partitioning or comparison operations. In Quicksort, the pivot divides the array into elements smaller and larger than itself. In Quickselect, the pivot helps narrow the search for the k-th order statistic. Pivot selection strategies significantly affect algorithm performance."
+  },
+  {
+    "variants": [
+      "Tree Edge",
+      "Tree Edges"
+    ],
+    "definition": "In graph traversal algorithms like BFS and DFS, edges that are part of the traversal tree structure. These edges connect a vertex to its parent or child in the BFS/DFS tree/forest. In connected graphs, tree edges form a spanning tree of the graph and are fundamental to understanding graph structure."
+  },
+  {
+    "variants": [
+      "Back Edge",
+      "Back Edges"
+    ],
+    "definition": "In BFS, back edges connect a vertex to a previously visited vertex in the same level or an earlier level, indicating a cycle. In DFS, back edges connect a vertex to one of its ancestors in the DFS tree, also indicating cycles. Back edges are crucial for cycle detection and understanding graph connectivity."
+  },
+  {
+    "variants": [
+      "Cross Edge",
+      "Cross Edges"
+    ],
+    "definition": "In DFS, cross edges connect vertices in different branches of the DFS tree, where neither vertex is an ancestor of the other. They indicate connections between separate components or subtrees in the DFS forest. Cross edges help classify the structure of directed graphs during traversal and can reveal additional relationships between vertices."
+  },
+  {
+    "variants": [
+      "Forward Edge",
+      "Forward Edges"
+    ],
+    "definition": "In DFS, edges that connect a vertex to one of its descendants in the DFS tree (but not directly to a child). Forward edges represent alternative paths to reach descendants and only occur in directed graphs during DFS classification."
   }
 ]
