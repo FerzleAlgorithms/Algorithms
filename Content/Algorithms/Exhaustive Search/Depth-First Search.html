@@ -133,7 +133,7 @@
             </li>
             <li>Else if <code>color[u] = GRAY</code>:
               <ul>
-                <li>Edge \((v, u)\) is a back edge</li>
+                <li>If <code>parent[v] ≠ u</code>: Edge \((v, u)\) is a back edge</li>
               </ul>
             </li>
             <li>Else if <code>color[u] = BLACK</code>:
@@ -151,6 +151,10 @@
 
   <p>
     <strong>Note:</strong> The edge classification comments in the pseudocode above (the "else if" clauses) are not always included in basic DFS implementations—they are shown here to illustrate how edge types can be identified during traversal. Many DFS-based algorithms (such as cycle detection, topological sorting, or finding strongly connected components) include this classification logic to perform their specific tasks, while a simple graph traversal might omit these checks.
+  </p>
+
+  <p>
+    <strong>Important for Undirected Graphs:</strong> In undirected graphs, the back edge detection condition should exclude the parent vertex to avoid false cycle detection. When examining edge \((v, u)\) from vertex \(v\), if \(u\) is gray but \(u = \text{parent}[v]\), this represents the edge we just traversed to reach \(v\), not a back edge indicating a cycle.
   </p>
 
   <h3>Demonstration: Undirected Graphs</h3>
@@ -180,7 +184,7 @@
 
   <h3>Directed Graphs: Added Complexity</h3>
   <p>
-    Directed graphs introduce additional complexity in edge classification. While the core DFS algorithm remains the same, directed graphs can exhibit four different types of edges, making the color-based vertex states especially useful for understanding the traversal structure.
+    Directed graphs introduce additional complexity in edge classification. While the core DFS algorithm remains the same, directed graphs can exhibit four different types of edges, making the color-based vertex states especially useful for understanding the traversal structure. Next we will see DFS in action on a directed graph.
   </p>
 
   <section id="demo">
@@ -209,7 +213,7 @@
 
   <h4>Post-Traversal Classification Using Timestamps</h4>
   <p>
-    After DFS completes, we can precisely classify all edges using the discovery and finish times. For an edge \((u, v):\)
+    After DFS of a directe graph completes, we can precisely classify all edges using the discovery and finish times. For an edge \((u, v):\)
   </p>
   <ul>
     <li><strong>Tree edge:</strong> Must check structural relationship: (timestamps alone are insufficient).<br>
@@ -224,27 +228,37 @@
 
   <h3>Applications of Edge Classification</h3>
   <p>
-    The timestamps and edge relationships play a central role in many graph algorithms:
+    The timestamps and edge relationships play a central role in many graph algorithms. The specific applications depend on whether the graph is directed or undirected:
   </p>
+
+  <h4>Applications for Both Directed and Undirected Graphs</h4>
   <ul>
     <li><strong>Tree edges</strong> define the DFS forest used in structure-sensitive algorithms</li>
     <li><strong>Back edges</strong> reveal cycles in both directed and undirected graphs—they are the <em>only</em> edge type that guarantees a cycle exists</li>
-    <li><strong>Forward edges</strong> can be used to identify shortcuts in directed graphs and help in path optimization problems</li>
+    <li><strong>Connected Component Detection:</strong> Each DFS call from the main loop identifies a separate connected component</li>
+    <li><strong>Timestamps</strong> support efficient identification of structural relationships and traversal order</li>
+  </ul>
+
+  <h4>Applications Specific to Directed Graphs</h4>
+  <ul>
+    <li><strong>Forward edges</strong> can be used to identify shortcuts and help in path optimization problems</li>
     <li><strong>Cross edges</strong> are crucial for:
       <ul>
-        <li>Topological sorting (their absence in certain orderings indicates a valid topological sort)</li>
+        <li>Topological sorting (their absence indicates a valid topological sort is possible)</li>
         <li>Strongly connected component algorithms (they help identify connections between different components)</li>
-        <li>Determining graph structure and connectivity patterns</li>
+        <li>Determining complex graph structure and connectivity patterns</li>
       </ul>
     </li>
-    <li><strong>Timestamps</strong> support efficient identification of:
-      <ul>
-        <li>Articulation points and bridges (undirected)</li>
-        <li>Strongly connected components (Tarjan's or Kosaraju's algorithm)</li>
-        <li>Topological sorts (in DAGs)</li>
-      </ul>
-    </li>
+    <li><strong>Topological Sorting:</strong> Sort vertices by decreasing finish time to obtain a topological order (DAGs only)</li>
+    <li><strong>Strongly Connected Components:</strong> Algorithms like Kosaraju's and Tarjan's use DFS timestamps and edge classification</li>
   </ul>
+
+  <h4>Applications Specific to Undirected Graphs</h4>
+  <ul>
+    <li><strong>Articulation Points and Bridges:</strong> Identify critical vertices/edges whose removal increases connected components</li>
+    <li><strong>Bipartiteness Testing:</strong> Use DFS with two-coloring to determine if the graph is bipartite</li>
+  </ul>
+
   <p>
     Important note on cycles: In directed graphs, only back edges guarantee the presence of a cycle. Forward and cross edges do <em>not</em> indicate cycles—they simply represent different structural relationships in the graph. A directed graph is acyclic (a DAG) if and only if its DFS produces no back edges.
   </p>
@@ -254,13 +268,14 @@
 
   <h3>Summary: Edge Classification Table</h3>
   <p>
-    The following table summarizes how DFS classifies edges based on the relationship between two vertices \( u \) and \( v \), where the edge \((u, v)\) is explored during the traversal of vertex \( u \). It compares the structural meaning of each edge type and explains how they are identified during and after traversal.
+    The following table summarizes how DFS classifies edges based on the relationship between two vertices \( u \) and \( v \), where the edge \((u, v)\) is explored during the traversal of vertex \( u \). <strong>Note:</strong> Forward and cross edges only exist in directed graphs—undirected graphs have only tree and back edges.
   </p>
 
   <table class="example-table left-align">
     <thead>
       <tr>
         <th>Edge Type</th>
+        <th>Graph Type</th>
         <th>Structural Meaning</th>
         <th>During Traversal</th>
         <th>After Traversal (Timestamps)</th>
@@ -269,6 +284,7 @@
     <tbody>
       <tr>
         <td><strong>Tree</strong></td>
+        <td>Both</td>
         <td>\(v\) was first discovered via edge \((u, v)\)<br> \(v\) becomes child of \(u\</td>
         <td>
           <ul>
@@ -283,11 +299,13 @@
       </tr>
       <tr>
         <td><strong>Back</strong></td>
+        <td>Both</td>
         <td>\(v\) is an ancestor of \(u\) in DFS tree</td>
         <td>
           <ul>
             <li><code>color[v] = GRAY</code></li>
             <li>Indicates cycle</li>
+            <li>Undirected: Must check <code>parent[u] ≠ v</code></li>
           </ul>
         </td>
         <td>
@@ -298,6 +316,7 @@
       </tr>
       <tr>
         <td><strong>Forward</strong></td>
+        <td>Directed only</td>
         <td>\(v\) is a descendant of \(u\), but already finished</td>
         <td>
           <ul>
@@ -314,6 +333,7 @@
       </tr>
       <tr>
         <td><strong>Cross</strong></td>
+        <td>Directed only</td>
         <td>\(v\) is in another subtree or component (no DFS tree relationship)</td>
         <td>
           <ul>
@@ -337,6 +357,8 @@
   <h2>Implementation in Java, C++, Python</h2>
   <p>Each implementation uses an adjacency list representation and tracks discovery and finish times. For simplicity, these implementations use a boolean visited array rather than the three-color scheme discussed earlier—the color approach is more useful when explicitly classifying edge types during traversal.</p>
   
+  <p>In these implementations, <code>time</code> is shown as a global variable for clarity and to match the pseudocode structure. In practice, you might prefer to encapsulate this within a class or pass it as a parameter to maintain better code organization, but the global approach keeps the focus on the algorithm itself.</p>
+  
   <p>The adjacency list representation varies by language:</p>
   <ul>
     <li><strong>Java:</strong> An array of <code>List&lt;Integer&gt;</code> objects</li>
@@ -351,7 +373,9 @@
       <button id="tab-python" class="tablink" data-lang="python" role="tab" aria-controls="python" aria-selected="false">Python</button>
     </div>
     <div id="java" class="code-container active" role="tabpanel" aria-labelledby="tab-java">
-      <pre><code class="language-java">void dfs(List&lt;Integer&gt;[] adj, int n) {
+      <pre><code class="language-java">int time = 0;
+
+void dfs(List&lt;Integer&gt;[] adj, int n) {
     boolean[] visited = new boolean[n];
     int[] discovery = new int[n];
     int[] finish = new int[n];
@@ -365,8 +389,6 @@
         }
     }
 }
-
-int time = 0;
 
 void dfsVisit(int v, List&lt;Integer&gt;[] adj, boolean[] visited,
               int[] discovery, int[] finish, int[] parent) {
@@ -386,7 +408,9 @@ void dfsVisit(int v, List&lt;Integer&gt;[] adj, boolean[] visited,
 }</code></pre>
     </div>
     <div id="cpp" class="code-container" role="tabpanel" aria-labelledby="tab-cpp">
-      <pre><code class="language-cpp">void dfs(vector&lt;int&gt; adj[], int n) {
+      <pre><code class="language-cpp">int time = 0;
+
+void dfs(vector&lt;int&gt; adj[], int n) {
     vector&lt;bool&gt; visited(n, false);
     vector&lt;int&gt; discovery(n), finish(n), parent(n, -1);
     time = 0;
@@ -397,8 +421,6 @@ void dfsVisit(int v, List&lt;Integer&gt;[] adj, boolean[] visited,
         }
     }
 }
-
-int time = 0;
 
 void dfsVisit(int v, vector&lt;int&gt; adj[], vector&lt;bool&gt;& visited,
               vector&lt;int&gt;& discovery, vector&lt;int&gt;& finish, vector&lt;int&gt;& parent) {
@@ -483,28 +505,21 @@ void dfsVisit(int v, vector&lt;int&gt; adj[], vector&lt;bool&gt;& visited,
   
   <h3>Algorithmic Variations</h3>
   <ul>
-    <li><strong>Iterative DFS:</strong> Uses an explicit stack instead of recursion to avoid stack overflow issues in deep graphs. <em>Example: traversing a web of millions of linked pages without risking recursion depth limits.</em></li>
+    <li><strong>Iterative DFS:</strong> Uses an explicit stack instead of recursion to avoid stack overflow issues in deep graphs.</li>
     <li><strong>Limited Depth DFS:</strong> Restricts traversal to a maximum depth, useful for exploring local neighborhoods or implementing depth-limited search strategies. <em>Example: searching a chess game tree only 5 moves ahead.</em></li>
     <li><strong>Iterative Deepening DFS (IDDFS):</strong> Runs DFS repeatedly with increasing depth limits. Combines DFS’s low memory usage with BFS’s completeness. <em>Example: solving puzzles like the 8-puzzle where the solution depth is unknown.</em></li>
   </ul>
 
   <h3>Graph Analysis Applications</h3>
   <ul>
-    <li><strong>Connected Component Detection:</strong> In <em>undirected</em> graphs, each DFS call from the main loop identifies a separate connected component. <em>Example: finding isolated subnetworks in a social graph.</em></li>
-    <li><strong>Cycle Detection:</strong> 
-      <ul>
-        <li>Undirected graphs: Look for back edges (edges to already-visited non-parent vertices). <em>Example: detecting loops in a network topology.</em></li>
-        <li>Directed graphs: Look for back edges (edges to vertices currently in the recursion stack). <em>Example: identifying circular dependencies in a build system.</em></li>
-      </ul>
-    </li>
-    <li><strong>2-Coloring / Bipartiteness Testing:</strong> Use DFS with two-coloring to determine if a graph is bipartite. <em>Example: checking if a friendship graph can be split into two groups with no intra-group friendships.</em></li>
-    <li><strong>Topological Sorting:</strong> For DAGs, vertices can be sorted by decreasing finish time to obtain a topological order. <em>Example: scheduling tasks with prerequisite constraints.</em></li>
+    <li><strong>Connected Component Detection:</strong> In <em>undirected</em> graphs, each DFS call from the main loop identifies a separate connected component.</li>
+    <li><strong>2-Coloring / Bipartiteness Testing:</strong> Use DFS with two-coloring to determine if a graph is bipartite.</li>
+    <li><strong>Topological Sorting:</strong> For DAGs, vertices can be sorted by decreasing finish time to obtain a topological order.</li>
     <li><strong>Strongly Connected Components (SCCs):</strong> 
       <ul>
         <li>Kosaraju's algorithm: Run DFS, then DFS on the transpose graph in reverse finish-time order.</li>
         <li>Tarjan's algorithm: Single-pass DFS with low-link values and explicit stack.</li>
       </ul>
-      <em>Example: detecting groups of mutually reachable pages on the web.</em>
     </li>
     <li><strong>Articulation Points and Bridges:</strong> Identify critical vertices/edges whose removal increases the number of connected components. <em>Example: finding single points of failure in a road network.</em></li>
     <li><strong>Planarity Testing:</strong> Advanced algorithms (e.g., Hopcroft–Tarjan) use DFS as a foundation for determining if a graph can be drawn without edge crossings. <em>Example: validating a printed circuit board layout.</em></li>
@@ -514,8 +529,8 @@ void dfsVisit(int v, vector&lt;int&gt; adj[], vector&lt;bool&gt;& visited,
   <ul>
     <li><strong>Tree Traversals:</strong> 
       <ul>
-        <li>Preorder: Process vertex before its children (equivalent to discovery time order in a tree). <em>Example: serializing a tree structure.</em></li>
-        <li>Postorder: Process vertex after its children (equivalent to finish time order in a tree). <em>Example: evaluating an expression tree.</em></li>
+        <li>Preorder: Process vertex before its children (equivalent to discovery time order in a tree).</li>
+        <li>Postorder: Process vertex after its children (equivalent to finish time order in a tree).</li>
       </ul>
     </li>
     <li><strong>Backtracking Algorithms:</strong> Use DFS structure to explore solution spaces with the ability to undo choices. <em>Example: solving the N-Queens problem.</em></li>
@@ -528,7 +543,7 @@ void dfsVisit(int v, vector&lt;int&gt; adj[], vector&lt;bool&gt;& visited,
     <li><strong>Early Termination:</strong> Stop traversal when specific conditions are met. <em>Example: halting once a target vertex is found.</em></li>
     <li><strong>Memory-Efficient Implementation:</strong> For very large graphs, use bit arrays for visited status or stream adjacency data from disk. <em>Example: crawling a massive dataset stored on disk.</em></li>
     <li><strong>Parallel DFS:</strong> Exploring different disconnected components in parallel is straightforward. <em>Example: processing separate subgraphs on different CPU cores.</em></li>
-    <li><strong>Cache-Friendly Ordering:</strong> Order adjacency lists to improve memory locality. <em>Example: rearranging vertex IDs to speed up large-scale graph traversal.</em></li>
+    <li><strong>Cache-Friendly Ordering:</strong> Order adjacency lists to improve memory locality.</li>
   </ul>
 
   <h3>Extensions for Weighted Graphs</h3>
@@ -561,7 +576,7 @@ void dfsVisit(int v, vector&lt;int&gt; adj[], vector&lt;bool&gt;& visited,
     <li><strong>Color-Based Classification:</strong> Why is the three-color scheme (white/gray/black) more useful than a simple visited boolean for edge classification during traversal?</li>
     <li><strong>Edge Types and Cycles:</strong> In a directed graph, which edge type(s) guarantee the presence of a cycle, and why don't the other edge types indicate cycles?</li>
     <li><strong>Timestamp Analysis:</strong> Given timestamps for vertices u and v, how would you determine if edge (u,v) is a forward edge versus a cross edge?</li>
-    <li><strong>Applications and Edge Types:</strong> Why are cross edges particularly important for topological sorting algorithms, while back edges are crucial for cycle detection?</li>
+    <li><strong>Applications by Graph Type:</strong> Why are cross edges particularly important for directed graph algorithms like topological sorting, while back edges are crucial for cycle detection in both directed and undirected graphs?</li>
     <li><strong>Space Complexity Trade-offs:</strong> Under what graph conditions might DFS be preferable to BFS in terms of space usage, and when might the opposite be true?</li>
   </ol>
   <button id="toggleAnswers" class="show-answer" aria-expanded="false">Show Answers</button>
@@ -574,7 +589,7 @@ void dfsVisit(int v, vector&lt;int&gt; adj[], vector&lt;bool&gt;& visited,
       <li><strong>Answer:</strong> The three-color scheme distinguishes between unvisited (white), currently being processed (gray), and completely finished (black) vertices. This allows immediate edge classification during traversal—white leads to tree edges, gray to back edges, and black to forward/cross edges—whereas a boolean only distinguishes visited from unvisited.</li>
       <li><strong>Answer:</strong> Only back edges guarantee cycles in directed graphs. Back edges connect to vertices currently on the recursion stack (gray vertices), creating a path back to an ancestor and thus forming a cycle. Forward edges connect to finished descendants, and cross edges connect to unrelated finished vertices, neither of which creates cycles.</li>
       <li><strong>Answer:</strong> Both forward and cross edges have the target vertex completely finished (f[v] < f[u]). To distinguish them: if d[u] < d[v] (u discovered before v), it's a forward edge; if f[v] < d[u] (v completely finished before u was even discovered), it's a cross edge. Additionally, check if v is a descendant of u using the parent array.</li>
-      <li><strong>Answer:</strong> Cross edges connect vertices in different subtrees or components, providing information about the global graph structure needed for topological ordering. Back edges indicate cycles because they connect to ancestors still on the recursion stack, making them essential for detecting whether a directed graph is acyclic (a prerequisite for topological sorting).</li>
+      <li><strong>Answer:</strong> Cross edges connect vertices in different subtrees or components, providing information about the global graph structure needed for topological ordering in directed graphs. Back edges indicate cycles because they connect to ancestors still on the recursion stack, making them essential for detecting whether any graph (directed or undirected) contains cycles—a key property for many algorithms.</li>
       <li><strong>Answer:</strong> DFS uses O(V) stack space proportional to the maximum depth, making it better for wide, shallow graphs. BFS uses O(V) queue space proportional to the maximum breadth, making it better for narrow, deep graphs. Very deep graphs might cause DFS stack overflow, while very wide graphs might use more memory in BFS's queue.</li>
     </ol>
   </div>
@@ -615,7 +630,8 @@ void dfsVisit(int v, vector&lt;int&gt; adj[], vector&lt;bool&gt;& visited,
   <h2>Homework Problems</h2>
   <ol>
     <li><strong>DFS Tree Construction with Timestamps:</strong>  
-      Consider the graph shown below. Run DFS starting from vertex <code>A</code>.
+      Consider the graph shown below. Run DFS starting from vertex <code>A</code>
+      (Process all vertex lists in alphabetic order).
       For each vertex <code>v</code>, record its discovery time <code>d[v]</code>, finish time <code>f[v]</code>, and parent <code>parent[v]</code> in the resulting DFS tree (use <code>None</code> or <code>-</code> for the root).
       Submit both your completed arrays and a drawing of the DFS tree that shows how the vertices are connected.
       <br>
@@ -686,8 +702,9 @@ void dfsVisit(int v, vector&lt;int&gt; adj[], vector&lt;bool&gt;& visited,
     </li>
 
     <li><strong>Compare DFS and BFS Tree Structures:</strong>  
-      Use the graph below and simulate both DFS and BFS starting from vertex <code>A</code>.  
-      For each traversal, construct the resulting tree and analyze the differences.
+      Use the graph below and simulate both DFS and BFS starting from vertex <code>A</code>
+      (Process all vertex lists in alphabetic order).  
+      For each traversal, construct the resulting tree and discuss the differences.
       <br><br>
 
       <svg viewBox="20 20 460 240" width="500" height="240" xmlns="http://www.w3.org/2000/svg">

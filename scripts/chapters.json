@@ -26,6 +26,7 @@
     {
       "Exhaustive Search": [
         "Breadth-First Search.html",
+        "Depth-First Search.html",
         "N-Queens.html",
         "Subset Sum.html"
       ]
@@ -102,7 +103,7 @@
     {
       "Divide-and-Conquer": [
         "Exponentiation Demo.html",
-        "Matrix Multiplcation Demo.html",
+        "Matrix Multiplication Demo.html",
         "Merge Sort Demo.html",
         "QuickSort Demo.html"
       ]
@@ -177,7 +178,6 @@
         "Algorithms/Decrease-and-Conquer/Topological Sort DRAFT.html",
         "Algorithms/Divide-and-Conquer/Convex Hull DRAFT.html",
         "Algorithms/Divide-and-Conquer/Matrix Multiplication DRAFT.html",
-        "Algorithms/Exhaustive Search/Depth-First Search DRAFT.html",
         "Algorithms/Exhaustive Search/Topological Sort (DFS) DRAFT.html",
         "Algorithms/Greedy/Fractional Knapsack DRAFT.html",
         "Algorithms/Greedy/Interval Scheduling DRAFT.html",
