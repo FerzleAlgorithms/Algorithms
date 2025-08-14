@@ -6,7 +6,19 @@
   <script src="/Algorithms/scripts/demoScripts.js"></script>
   <link rel="stylesheet" href="/Algorithms/css/style.css">
   <link rel="stylesheet" href="/Algorithms/css/demo.css">
+  <!-- Add MathJax -->
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['\\(', '\\)']],
+        displayMath: [['\\[', '\\]']]
+      }
+    };
+  </script>
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 
+  <style>
 
 <style>
   /* style.css (≈150 lines) */
@@ -884,34 +896,29 @@
     }
   }
 
-  // Helper functions
-  function formatComment(text, useLatex = true) {
-    if (!useLatex || !window.MathJax) return text;
-    
-    return text.replace(/([ABC])(₁₁|₁₂|₂₁|₂₂)/g, (match, letter, subscript) => {
-      const subMap = {
-        '₁₁': '11', '₁₂': '12', '₂₁': '21', '₂₂': '22'
-      };
-      return `\\(${letter}_{${subMap[subscript]}}\\)`;
-    });
-  }
+function formatComment(text, useLatex = true) {
+  if (!useLatex || !window.MathJax) return text;
+  
+  // Replace the regex to handle plain numbers instead of Unicode:
+  return text.replace(/([ABC])(11|12|21|22)/g, (match, letter, subscript) => {
+    return `\\(${letter}_{${subscript}}\\)`;
+  });
+}
 
-  function formatEquation(quadrant, term1Desc, term2Desc) {
-    const latexFormat = (text) => {
-      return text.replace(/([ABC])(₁₁|₁₂|₂₁|₂₂)/g, (match, letter, subscript) => {
-        const subMap = {
-          '₁₁': '11', '₁₂': '12', '₂₁': '21', '₂₂': '22'
-        };
-        return `${letter}_{${subMap[subscript]}}`;
-      });
-    };
-    
-    if (window.MathJax) {
-      return `\\(${latexFormat(quadrant)} = ${latexFormat(term1Desc)} + ${latexFormat(term2Desc)}\\)`;
-    } else {
-      return `${quadrant} = ${term1Desc} + ${term2Desc}`;
-    }
+function formatEquation(quadrant, term1Desc, term2Desc) {
+  const latexFormat = (text) => {
+    // Replace the regex:
+    return text.replace(/([ABC])(11|12|21|22)/g, (match, letter, subscript) => {
+      return `${letter}_{${subscript}}`;
+    });
+  };
+  
+  if (window.MathJax) {
+    return `\\(${latexFormat(quadrant)} = ${latexFormat(term1Desc)} + ${latexFormat(term2Desc)}\\)`;
+  } else {
+    return `${quadrant} = ${term1Desc} + ${term2Desc}`;
   }
+}
 
   function op(symbol) {
     const s = document.createElement('span');
@@ -920,32 +927,33 @@
     s.style.fontSize = '1.1em';
     return s;
   }
-
-  function wrapMatrixWithLabel(matrixNode, label, termClass = null) {
-    const wrapper = document.createElement('div');
-    wrapper.className = 'matrix-with-label';
-    
-    wrapper.appendChild(matrixNode);
-    
-    const labelDiv = document.createElement('div');
-    labelDiv.className = 'small-matrix-label';
-    if (termClass) labelDiv.classList.add(termClass);
-    
-    if (window.MathJax && /[₁₂]/.test(label)) {
-      const latexLabel = label.replace(/([ABC])(₁₁|₁₂|₂₁|₂₂)/g, (match, letter, subscript) => {
-        const subMap = {
-          '₁₁': '11', '₁₂': '12', '₂₁': '21', '₂₂': '22'
-        };
-        return `${letter}_{${subMap[subscript]}}`;
-      });
-      labelDiv.innerHTML = `\\(${latexLabel}\\)`;
-    } else {
-      labelDiv.textContent = label;
-    }
-    
-    wrapper.appendChild(labelDiv);
-    return wrapper;
+function wrapMatrixWithLabel(matrixNode, label, termClass = null) {
+  const wrapper = document.createElement('div');
+  wrapper.className = 'matrix-with-label';
+  
+  wrapper.appendChild(matrixNode);
+  
+  const labelDiv = document.createElement('div');
+  labelDiv.className = 'small-matrix-label';
+  if (termClass) labelDiv.classList.add(termClass);
+  
+  // Replace the regex check:
+  if (window.MathJax && /[0-9]/.test(label)) {
+    const latexLabel = label.replace(/([ABC])(11|12|21|22)/g, (match, letter, subscript) => {
+      return `${letter}_{${subscript}}`;
+    });
+    labelDiv.innerHTML = `\\(${latexLabel}\\)`;
+  } else {
+    labelDiv.textContent = label;
   }
+  
+  wrapper.appendChild(labelDiv);
+    // Add MathJax processing
+  if (window.MathJax && labelDiv.innerHTML.includes('\\(')) {
+    MathJax.typesetPromise([labelDiv]).catch(err => console.log('MathJax error:', err));
+  }
+  return wrapper;
+}
 
   function showOverlay(container, size, activeQuadrant = null, termColors = null) {
     hideOverlay(container);
@@ -964,7 +972,7 @@
       prefix = 'C';
     }
     
-    const labels = ['₁₁','₁₂','₂₁','₂₂'];
+    const labels = ['11','12','21','22'];
     
     labels.forEach(lbl => {
       const div = document.createElement('div');
@@ -983,11 +991,18 @@
       if (activeQuadrant && quadrantName === activeQuadrant) {
         div.classList.add('active');
       }
-      
-      div.textContent = quadrantName;
+    
+      if (window.MathJax) {
+      div.innerHTML = `\\(${prefix}_{${lbl}}\\)`;
+    } else {
+      div.textContent = prefix + '11'.replace('11', lbl); // fallback
+    }
       overlay.appendChild(div);
     });
-    container.appendChild(overlay);
+    container.appendChild(overlay);  
+    if (window.MathJax) {
+    MathJax.typesetPromise([overlay]).catch(err => console.log('MathJax error:', err));
+  }
   }
 
   function hideOverlay(container) {
@@ -1050,7 +1065,7 @@
     term1Container.className = 'term-container';
     
     if (computationState[stateKey].term1Computed) {
-      term1Container.appendChild(wrapMatrixWithLabel(renderSmallMatrix(event.term1.result, event.term1.result.length, 'term1'), 'R₁', 'term1'));
+      term1Container.appendChild(wrapMatrixWithLabel(renderSmallMatrix(event.term1.result, event.term1.result.length, 'term1'), 'R1', 'term1'));
     } else {
       const buttonContainer = document.createElement('div');
       buttonContainer.className = 'term-buttons';
@@ -1068,7 +1083,7 @@
       showBtn.textContent = 'Show Computation';
       showBtn.className = 'term-show-btn';
       showBtn.addEventListener('click', () => {
-        showSubDemo(event.term1, event.quadrant, 'R₁', () => {
+        showSubDemo(event.term1, event.quadrant, 'R1', () => {
           computationState[stateKey].term1Computed = true;
           computationState[stateKey].term1Result = event.term1.result;
           showInteractiveComputation(event);
@@ -1080,7 +1095,7 @@
       
       const placeholder = document.createElement('div');
       placeholder.className = 'result-placeholder';
-      placeholder.textContent = 'R₁';
+      placeholder.textContent = 'R1';
       placeholder.appendChild(buttonContainer);
       term1Container.appendChild(placeholder);
     }
@@ -1093,7 +1108,7 @@
     term2Container.className = 'term-container';
     
     if (computationState[stateKey].term2Computed) {
-      term2Container.appendChild(wrapMatrixWithLabel(renderSmallMatrix(event.term2.result, event.term2.result.length, 'term2'), 'R₂', 'term2'));
+      term2Container.appendChild(wrapMatrixWithLabel(renderSmallMatrix(event.term2.result, event.term2.result.length, 'term2'), 'R2', 'term2'));
     } else {
       const buttonContainer = document.createElement('div');
       buttonContainer.className = 'term-buttons';
@@ -1111,7 +1126,7 @@
       showBtn.textContent = 'Show Computation';
       showBtn.className = 'term-show-btn';
       showBtn.addEventListener('click', () => {
-        showSubDemo(event.term2, event.quadrant, 'R₂', () => {
+        showSubDemo(event.term2, event.quadrant, 'R2', () => {
           computationState[stateKey].term2Computed = true;
           computationState[stateKey].term2Result = event.term2.result;
           showInteractiveComputation(event);
@@ -1123,7 +1138,7 @@
       
       const placeholder = document.createElement('div');
       placeholder.className = 'result-placeholder';
-      placeholder.textContent = 'R₂';
+      placeholder.textContent = 'R2';
       placeholder.appendChild(buttonContainer);
       term2Container.appendChild(placeholder);
     }
@@ -1440,18 +1455,18 @@
       case 'start_quadrant':
         const termColors = { term1: [], term2: [] };
         
-        if (event.quadrant === 'C₁₁') {
-          termColors.term1 = ['A₁₁', 'B₁₁'];
-          termColors.term2 = ['A₁₂', 'B₂₁'];
-        } else if (event.quadrant === 'C₁₂') {
-          termColors.term1 = ['A₁₁', 'B₁₂'];
-          termColors.term2 = ['A₁₂', 'B₂₂'];
-        } else if (event.quadrant === 'C₂₁') {
-          termColors.term1 = ['A₂₁', 'B₁₁'];
-          termColors.term2 = ['A₂₂', 'B₂₁'];
-        } else if (event.quadrant === 'C₂₂') {
-          termColors.term1 = ['A₂₁', 'B₁₂'];
-          termColors.term2 = ['A₂₂', 'B₂₂'];
+        if (event.quadrant === 'C11') {
+          termColors.term1 = ['A11', 'B11'];
+          termColors.term2 = ['A12', 'B21'];
+        } else if (event.quadrant === 'C12') {
+          termColors.term1 = ['A11', 'B12'];
+          termColors.term2 = ['A12', 'B22'];
+        } else if (event.quadrant === 'C21') {
+          termColors.term1 = ['A21', 'B11'];
+          termColors.term2 = ['A22', 'B21'];
+        } else if (event.quadrant === 'C22') {
+          termColors.term1 = ['A21', 'B12'];
+          termColors.term2 = ['A22', 'B22'];
         }
 
         renderMatrix(matA, A);
@@ -1476,18 +1491,18 @@
         
         const interactiveTermColors = { term1: [], term2: [] };
         
-        if (event.quadrant === 'C₁₁') {
-          interactiveTermColors.term1 = ['A₁₁', 'B₁₁'];
-          interactiveTermColors.term2 = ['A₁₂', 'B₂₁'];
-        } else if (event.quadrant === 'C₁₂') {
-          interactiveTermColors.term1 = ['A₁₁', 'B₁₂'];
-          interactiveTermColors.term2 = ['A₁₂', 'B₂₂'];
-        } else if (event.quadrant === 'C₂₁') {
-          interactiveTermColors.term1 = ['A₂₁', 'B₁₁'];
-          interactiveTermColors.term2 = ['A₂₂', 'B₂₁'];
-        } else if (event.quadrant === 'C₂₂') {
-          interactiveTermColors.term1 = ['A₂₁', 'B₁₂'];
-          interactiveTermColors.term2 = ['A₂₂', 'B₂₂'];
+        if (event.quadrant === 'C11') {
+          interactiveTermColors.term1 = ['A11', 'B11'];
+          interactiveTermColors.term2 = ['A12', 'B21'];
+        } else if (event.quadrant === 'C12') {
+          interactiveTermColors.term1 = ['A11', 'B12'];
+          interactiveTermColors.term2 = ['A12', 'B22'];
+        } else if (event.quadrant === 'C21') {
+          interactiveTermColors.term1 = ['A21', 'B11'];
+          interactiveTermColors.term2 = ['A22', 'B21'];
+        } else if (event.quadrant === 'C22') {
+          interactiveTermColors.term1 = ['A21', 'B12'];
+          interactiveTermColors.term2 = ['A22', 'B22'];
         }
         
         showOverlay(matA, A.length, null, interactiveTermColors);
@@ -1551,8 +1566,8 @@
   function getQuadrantLabel(r, c, n) {
     if (n === 2) return '';
     const mid = n / 2;
-    const row = r < mid ? '₁' : '₂';
-    const col = c < mid ? '₁' : '₂';
+    const row = r < mid ? '1' : '2';
+    const col = c < mid ? '1' : '2';
     return row + col;
   }
 
@@ -1568,10 +1583,10 @@
     // Process each quadrant
     const size = n / 2;
     const quadrants = [
-      { name: 'C₁₁', ar: 0, ac: 0, br: 0, bc: 0, rr: 0, rc: 0 },
-      { name: 'C₁₂', ar: 0, ac: 0, br: 0, bc: size, rr: 0, rc: size },
-      { name: 'C₂₁', ar: size, ac: 0, br: 0, bc: 0, rr: size, rc: 0 },
-      { name: 'C₂₂', ar: size, ac: 0, br: 0, bc: size, rr: size, rc: size }
+      { name: 'C11', ar: 0, ac: 0, br: 0, bc: 0, rr: 0, rc: 0 },
+      { name: 'C12', ar: 0, ac: 0, br: 0, bc: size, rr: 0, rc: size },
+      { name: 'C21', ar: size, ac: 0, br: 0, bc: 0, rr: size, rc: 0 },
+      { name: 'C22', ar: size, ac: 0, br: 0, bc: size, rr: size, rc: size }
     ];
 
     for (const quad of quadrants) {
@@ -1674,18 +1689,18 @@
           
           const termColors = { term1: [], term2: [] };
           
-          if (event.quadrant === 'C₁₁') {
-            termColors.term1 = ['A₁₁', 'B₁₁'];
-            termColors.term2 = ['A₁₂', 'B₂₁'];
-          } else if (event.quadrant === 'C₁₂') {
-            termColors.term1 = ['A₁₁', 'B₁₂'];
-            termColors.term2 = ['A₁₂', 'B₂₂'];
-          } else if (event.quadrant === 'C₂₁') {
-            termColors.term1 = ['A₂₁', 'B₁₁'];
-            termColors.term2 = ['A₂₂', 'B₂₁'];
-          } else if (event.quadrant === 'C₂₂') {
-            termColors.term1 = ['A₂₁', 'B₁₂'];
-            termColors.term2 = ['A₂₂', 'B₂₂'];
+          if (event.quadrant === 'C11') {
+            termColors.term1 = ['A11', 'B11'];
+            termColors.term2 = ['A12', 'B21'];
+          } else if (event.quadrant === 'C12') {
+            termColors.term1 = ['A11', 'B12'];
+            termColors.term2 = ['A12', 'B22'];
+          } else if (event.quadrant === 'C21') {
+            termColors.term1 = ['A21', 'B11'];
+            termColors.term2 = ['A22', 'B21'];
+          } else if (event.quadrant === 'C22') {
+            termColors.term1 = ['A21', 'B12'];
+            termColors.term2 = ['A22', 'B22'];
           }
 
           renderMatrix(subMatA, A4x4);
@@ -1709,18 +1724,18 @@
           
           const interactiveTermColors = { term1: [], term2: [] };
           
-          if (event.quadrant === 'C₁₁') {
-            interactiveTermColors.term1 = ['A₁₁', 'B₁₁'];
-            interactiveTermColors.term2 = ['A₁₂', 'B₂₁'];
-          } else if (event.quadrant === 'C₁₂') {
-            interactiveTermColors.term1 = ['A₁₁', 'B₁₂'];
-            interactiveTermColors.term2 = ['A₁₂', 'B₂₂'];
-          } else if (event.quadrant === 'C₂₁') {
-            interactiveTermColors.term1 = ['A₂₁', 'B₁₁'];
-            interactiveTermColors.term2 = ['A₂₂', 'B₂₁'];
-          } else if (event.quadrant === 'C₂₂') {
-            interactiveTermColors.term1 = ['A₂₁', 'B₁₂'];
-            interactiveTermColors.term2 = ['A₂₂', 'B₂₂'];
+          if (event.quadrant === 'C11') {
+            interactiveTermColors.term1 = ['A11', 'B11'];
+            interactiveTermColors.term2 = ['A12', 'B21'];
+          } else if (event.quadrant === 'C12') {
+            interactiveTermColors.term1 = ['A11', 'B12'];
+            interactiveTermColors.term2 = ['A12', 'B22'];
+          } else if (event.quadrant === 'C21') {
+            interactiveTermColors.term1 = ['A21', 'B11'];
+            interactiveTermColors.term2 = ['A22', 'B21'];
+          } else if (event.quadrant === 'C22') {
+            interactiveTermColors.term1 = ['A21', 'B12'];
+            interactiveTermColors.term2 = ['A22', 'B22'];
           }
           
           showOverlay(subMatA, A4x4.length, null, interactiveTermColors);
@@ -1767,7 +1782,10 @@
           renderMatrix(subMatB, B4x4);
           renderMatrix(subMatR, event.result);
           subComment.textContent = `${A4x4.length}×${A4x4.length} computation complete!`;
-          setTimeout(onComplete, 1500);
+          
+          // Replace next button with finish button
+          subNextBtn.textContent = 'Finish';
+          subNextBtn.onclick = onComplete;
           break;
 
         default:
@@ -1776,7 +1794,12 @@
       }
 
       subPrevBtn.disabled = (subPtr <= 0);
-      subNextBtn.disabled = (subPtr >= subEvents.length - 1);
+      // Only disable next button if not at the end
+      if (subPtr >= subEvents.length - 1 && subEvents[subPtr].type !== 'done') {
+        subNextBtn.disabled = true;
+      } else {
+        subNextBtn.disabled = false;
+      }
     }
 
     // Sub-demo version of interactive computation (auto-computes both terms)
@@ -1828,9 +1851,9 @@
       line.appendChild(op('='));
       
       // Show results directly (no buttons needed in sub-demo)
-      line.appendChild(wrapMatrixWithLabel(renderSmallMatrix(event.term1.result, event.term1.result.length, 'term1'), 'R₁', 'term1'));
+      line.appendChild(wrapMatrixWithLabel(renderSmallMatrix(event.term1.result, event.term1.result.length, 'term1'), 'R1', 'term1'));
       line.appendChild(op('+'));
-      line.appendChild(wrapMatrixWithLabel(renderSmallMatrix(event.term2.result, event.term2.result.length, 'term2'), 'R₂', 'term2'));
+      line.appendChild(wrapMatrixWithLabel(renderSmallMatrix(event.term2.result, event.term2.result.length, 'term2'), 'R2', 'term2'));
       line.appendChild(op('='));
       line.appendChild(wrapMatrixWithLabel(renderSmallMatrix(event.final, event.final.length, 'result'), event.quadrant, 'result'));
 
@@ -1926,18 +1949,18 @@
       case 'start_quadrant':
         const termColors = { term1: [], term2: [] };
         
-        if (event.quadrant === 'C₁₁') {
-          termColors.term1 = ['A₁₁', 'B₁₁'];
-          termColors.term2 = ['A₁₂', 'B₂₁'];
-        } else if (event.quadrant === 'C₁₂') {
-          termColors.term1 = ['A₁₁', 'B₁₂'];
-          termColors.term2 = ['A₁₂', 'B₂₂'];
-        } else if (event.quadrant === 'C₂₁') {
-          termColors.term1 = ['A₂₁', 'B₁₁'];
-          termColors.term2 = ['A₂₂', 'B₂₁'];
-        } else if (event.quadrant === 'C₂₂') {
-          termColors.term1 = ['A₂₁', 'B₁₂'];
-          termColors.term2 = ['A₂₂', 'B₂₂'];
+        if (event.quadrant === 'C11') {
+          termColors.term1 = ['A11', 'B11'];
+          termColors.term2 = ['A12', 'B21'];
+        } else if (event.quadrant === 'C12') {
+          termColors.term1 = ['A11', 'B12'];
+          termColors.term2 = ['A12', 'B22'];
+        } else if (event.quadrant === 'C21') {
+          termColors.term1 = ['A21', 'B11'];
+          termColors.term2 = ['A22', 'B21'];
+        } else if (event.quadrant === 'C22') {
+          termColors.term1 = ['A21', 'B12'];
+          termColors.term2 = ['A22', 'B22'];
         }
 
         renderMatrix(matA, A);
@@ -1962,18 +1985,18 @@
         
         const interactiveTermColors = { term1: [], term2: [] };
         
-        if (event.quadrant === 'C₁₁') {
-          interactiveTermColors.term1 = ['A₁₁', 'B₁₁'];
-          interactiveTermColors.term2 = ['A₁₂', 'B₂₁'];
-        } else if (event.quadrant === 'C₁₂') {
-          interactiveTermColors.term1 = ['A₁₁', 'B₁₂'];
-          interactiveTermColors.term2 = ['A₁₂', 'B₂₂'];
-        } else if (event.quadrant === 'C₂₁') {
-          interactiveTermColors.term1 = ['A₂₁', 'B₁₁'];
-          interactiveTermColors.term2 = ['A₂₂', 'B₂₁'];
-        } else if (event.quadrant === 'C₂₂') {
-          interactiveTermColors.term1 = ['A₂₁', 'B₁₂'];
-          interactiveTermColors.term2 = ['A₂₂', 'B₂₂'];
+        if (event.quadrant === 'C11') {
+          interactiveTermColors.term1 = ['A11', 'B11'];
+          interactiveTermColors.term2 = ['A12', 'B21'];
+        } else if (event.quadrant === 'C12') {
+          interactiveTermColors.term1 = ['A11', 'B12'];
+          interactiveTermColors.term2 = ['A12', 'B22'];
+        } else if (event.quadrant === 'C21') {
+          interactiveTermColors.term1 = ['A21', 'B11'];
+          interactiveTermColors.term2 = ['A22', 'B21'];
+        } else if (event.quadrant === 'C22') {
+          interactiveTermColors.term1 = ['A21', 'B12'];
+          interactiveTermColors.term2 = ['A22', 'B22'];
         }
         
         showOverlay(matA, A.length, null, interactiveTermColors);
@@ -2037,8 +2060,8 @@
   function getQuadrantLabel(r, c, n) {
     if (n === 2) return '';
     const mid = n / 2;
-    const row = r < mid ? '₁' : '₂';
-    const col = c < mid ? '₁' : '₂';
+    const row = r < mid ? '1' : '2';
+    const col = c < mid ? '1' : '2';
     return row + col;
   }
 
@@ -2054,10 +2077,10 @@
     // Process each quadrant
     const size = n / 2;
     const quadrants = [
-      { name: 'C₁₁', ar: 0, ac: 0, br: 0, bc: 0, rr: 0, rc: 0 },
-      { name: 'C₁₂', ar: 0, ac: 0, br: 0, bc: size, rr: 0, rc: size },
-      { name: 'C₂₁', ar: size, ac: 0, br: 0, bc: 0, rr: size, rc: 0 },
-      { name: 'C₂₂', ar: size, ac: 0, br: 0, bc: size, rr: size, rc: size }
+      { name: 'C11', ar: 0, ac: 0, br: 0, bc: 0, rr: 0, rc: 0 },
+      { name: 'C12', ar: 0, ac: 0, br: 0, bc: size, rr: 0, rc: size },
+      { name: 'C21', ar: size, ac: 0, br: 0, bc: 0, rr: size, rc: 0 },
+      { name: 'C22', ar: size, ac: 0, br: 0, bc: size, rr: size, rc: size }
     ];
 
     for (const quad of quadrants) {
