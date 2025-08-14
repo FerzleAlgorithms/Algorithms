@@ -534,7 +534,73 @@
   background: #ffe6cc;
 }
 
-/* ...existing CSS... */
+/* Add to your <style> section: */
+
+/* 2x2 Demo specific styles */
+.demo-overlay .matrix-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.demo-overlay .matrix-label {
+  margin-top: 0.4em;
+  font-weight: bold;
+}
+
+.demo-overlay .matrix-op {
+  font-size: 1.5em;
+  font-weight: bold;
+  align-self: center;
+  user-select: none;
+}
+
+.base-case-explanation {
+  text-align: center;
+  margin-bottom: 1em;
+  padding: 0.5em;
+  background: rgba(240, 248, 255, 0.8);
+  border-radius: 4px;
+}
+
+.computation-steps {
+  margin-top: 1em;
+  padding: 1em;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 6px;
+  border: 1px solid #ddd;
+}
+
+.current-computation h4 {
+  margin-bottom: 0.5em;
+  color: #333;
+}
+
+.formula, .calculation, .result {
+  margin: 0.25em 0;
+  font-family: monospace;
+  font-size: 1.1em;
+}
+
+.formula {
+  color: #666;
+}
+
+.calculation {
+  color: #0066cc;
+}
+
+.result {
+  color: #cc0000;
+  font-weight: bold;
+}
+
+/* Highlight element in 2x2 demo */
+.demo-overlay .matrix-element.highlight-element {
+  background: rgba(255, 215, 0, 0.8) !important;
+  border: 2px solid #ffeb3b !important;
+  box-shadow: 0 0 8px 2px rgba(255,215,0,0.6);
+}
 </style>
 
 <!-- Google tag (gtag.js) -->
@@ -565,14 +631,6 @@
       <div class="step-controls">
       <button id="prev-btn" disabled>Previous</button>
       <button id="next-btn" disabled>Next</button>
-      <label for="speed-select">Speed:
-        <select id="speed-select">
-          <option value="1">1×</option>
-          <option value="2">2×</option>
-          <option value="4">4×</option>
-        </select
-      </label>
-      <button id="play-btn" disabled>Play</button>
     </div>
     </div>
 
@@ -605,7 +663,6 @@
 (() => {
   // Globals
   let A = [], B = [], events = [], ptr = -1, timer = null;
-  let playing = false, speed = 1;
   let computationState = {}; // Track which terms have been computed
 
   // DOM elements
@@ -613,8 +670,6 @@
   const genBtn = document.getElementById('gen-btn');
   const prevBtn = document.getElementById('prev-btn');
   const nextBtn = document.getElementById('next-btn');
-  const playBtn = document.getElementById('play-btn');
-  const speedSelect = document.getElementById('speed-select');
   const matA = document.getElementById('matrix-a');
   const matB = document.getElementById('matrix-b');
   const matR = document.getElementById('matrix-res');
@@ -1185,6 +1240,42 @@ function wrapMatrixWithLabel(matrixNode, label, termClass = null) {
     
     const computation = multiply2x2WithSteps(termData.matrixA, termData.matrixB);
     
+      overlay.innerHTML = `
+    <button class="close-overlay">Close & Compute</button>
+    <div class="demo-container">
+      <div class="overlay-title">Computing ${termLabel} for ${parentQuadrant}: ${termData.description}</div>
+      
+       <div class="controls">
+          <div class="step-controls">
+            <button id="step-prev-btn" disabled>Previous</button>
+            <button id="step-next-btn">Next</button>
+            <button id="complete-btn" style="display:none;">Complete</button>
+          </div>
+      <div class="step-by-step-computation">
+        <div id="matrices-display" style="display: flex; justify-content: center; align-items: center; gap: 1em; margin-bottom: 1em;">
+          <div class="matrix-panel">
+            <div id="demo-matrix-a" class="matrix-container"></div>
+            <div class="matrix-label">A</div>
+          </div>
+          <div class="matrix-op">×</div>
+          <div class="matrix-panel">
+            <div id="demo-matrix-b" class="matrix-container"></div>
+            <div class="matrix-label">B</div>
+          </div>
+          <div class="matrix-op">=</div>
+          <div class="matrix-panel">
+            <div id="demo-matrix-result" class="matrix-container"></div>
+            <div class="matrix-label">Result</div>
+          </div>
+        </div>
+        
+        <div class="computation-steps" id="computation-steps"></div>
+        
+       
+      </div>
+    </div>
+  `;
+  /*
     overlay.innerHTML = `
       <button class="close-overlay">Close & Compute</button>
       <div class="demo-container">
@@ -1222,7 +1313,7 @@ function wrapMatrixWithLabel(matrixNode, label, termClass = null) {
           </div>
         </div>
       </div>
-    `;
+    `;*/
 
     document.body.appendChild(overlay);
 
@@ -1308,7 +1399,39 @@ function wrapMatrixWithLabel(matrixNode, label, termClass = null) {
 
     updateStep();
   }
+    // Replace the renderComputationMatrix function:
+  function renderComputationMatrix(container, matrix) {
+    container.innerHTML = '';
+    container.className = 'matrix-container'; // Use same class as main demo
+    container.style.display = 'grid';
+    container.style.gridTemplateColumns = 'repeat(2, 1fr)';
+    container.style.gridTemplateRows = 'repeat(2, 1fr)';
+    container.style.gap = '4px';
+    container.style.padding = '6px';
+    container.style.border = '1px solid #999';
+    container.style.borderRadius = '6px';
+    container.style.background = 'rgba(208, 231, 255, 0.3)'; // Light blue like matrix A
+    
+    for (let i = 0; i < 2; i++) {
+      for (let j = 0; j < 2; j++) {
+        const cell = document.createElement('div');
+        cell.className = 'matrix-element';
+        cell.style.width = '30px';
+        cell.style.height = '30px';
+        cell.style.display = 'flex';
+        cell.style.alignItems = 'center';
+        cell.style.justifyContent = 'center';
+        cell.style.border = '1px solid #777';
+        cell.style.fontFamily = 'monospace';
+        cell.style.fontSize = '1em';
+        cell.style.background = 'rgba(208, 231, 255, 0.3)';
+        cell.textContent = matrix[i][j];
+        container.appendChild(cell);
+      }
+    }
+  }
 
+/*
   // Helper function to render matrices in computation demo
   function renderComputationMatrix(container, matrix) {
     container.innerHTML = '';
@@ -1337,6 +1460,7 @@ function wrapMatrixWithLabel(matrixNode, label, termClass = null) {
       }
     }
   }
+  */
 
   // Renamed original showSubDemo to showRecursiveSubDemo
   function showRecursiveSubDemo(termData, parentQuadrant, termLabel, onComplete) {
@@ -1559,7 +1683,6 @@ function wrapMatrixWithLabel(matrixNode, label, termClass = null) {
     if (event.type !== 'show_interactive_computation') {
       nextBtn.disabled = (ptr >= events.length - 1);
     }
-    playBtn.disabled = (ptr >= events.length - 1);
   }
 
   // Add: quadrant label helper used in processQuadrant descriptions
@@ -2053,7 +2176,6 @@ function wrapMatrixWithLabel(matrixNode, label, termClass = null) {
     if (event.type !== 'show_interactive_computation') {
       nextBtn.disabled = (ptr >= events.length - 1);
     }
-    playBtn.disabled = (ptr >= events.length - 1);
   }
 
   // Add: quadrant label helper used in processQuadrant descriptions
@@ -2102,8 +2224,6 @@ function wrapMatrixWithLabel(matrixNode, label, termClass = null) {
     ptr = 0;
     rebuild();
     clearTimer();
-    playing = false;
-    playBtn.textContent = 'Play';
   });
 
   nextBtn.addEventListener('click', () => {
@@ -2117,36 +2237,6 @@ function wrapMatrixWithLabel(matrixNode, label, termClass = null) {
     if (ptr > 0) {
       ptr--;
       rebuild();
-    }
-  });
-
-  playBtn.addEventListener('click', () => {
-    if (!playing) {
-      playing = true;
-      playBtn.textContent = 'Pause';
-      timer = setInterval(() => {
-        if (ptr < events.length - 1) {
-          ptr++;
-          rebuild();
-        } else {
-          clearTimer();
-          playing = false;
-          playBtn.textContent = 'Play';
-          playBtn.disabled = true;
-        }
-      }, 1200 / speed);
-    } else {
-      clearTimer();
-      playing = false;
-      playBtn.textContent = 'Play';
-    }
-  });
-
-  speedSelect.addEventListener('change', () => {
-    speed = parseInt(speedSelect.value, 10) || 1;
-    if (playing) {
-      clearTimer();
-      playBtn.click();
     }
   });
 
