@@ -269,15 +269,15 @@
 .small-matrix {
   /* ...existing code... */
   display: inline-grid;        /* prevent full-width expansion */
-  grid-auto-rows: 30px;        /* fixed row height */
+  grid-auto-rows: 25px;        /* fixed row height */
   gap: 2px;
   background: #fff;
   border: 1px solid #999;
   padding: 2px;
 }
 .small-matrix-element {
-  width: 30px;
-  height: 30px;
+  width: 25px;
+  height: 25px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -388,6 +388,141 @@
   align-self: center; /* Back to center */
   margin-bottom: 25px; /* Nudge down 10px from center */
 }
+
+/* Full demo overlay for recursive sub-computations */
+.demo-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(240, 248, 255, 0.95);
+  backdrop-filter: blur(5px);
+  z-index: 1000;
+  overflow-y: auto;
+  padding: 20px;
+}
+
+.demo-overlay .demo-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+}
+
+.demo-overlay .overlay-title {
+  text-align: center;
+  font-size: 1.5em;
+  font-weight: bold;
+  margin-bottom: 20px;
+  color: #333;
+}
+
+.demo-overlay .close-overlay {
+  position: absolute;
+  top: 30px;
+  right: 40px;
+  background: #007acc;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.demo-overlay .close-overlay:hover {
+  background: #005999;
+}
+
+/* Scale down matrices in overlay for better fit */
+.demo-overlay .matrix-element {
+  width: 25px;
+  height: 25px;
+  font-size: 0.8em;
+}
+
+.demo-overlay .small-matrix-element {
+  width: 25px;
+  height: 25px;
+  font-size: 0.7em;
+}
+/* Style for sub-demo matrix row */
+#sub-matrix-row {
+  display: flex;
+  justify-content: flex-start;
+  gap: .25em;
+  margin-bottom: 1em;
+}
+
+/* Also fix the computation area operator alignment in demo overlay */
+.demo-overlay .matrix-computation > span {
+  margin-bottom: 0 !important;
+  align-self: center;
+}
+
+/* Interactive computation styles */
+.interactive-computation {
+  background: rgba(240, 248, 255, 0.9);
+  border-left: 4px solid #007acc;
+  padding: 1em;
+}
+
+.matrix-computation.interactive {
+  align-items: flex-start;
+  gap: 0.8em;
+}
+
+.term-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5em;
+}
+
+.result-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5em;
+  padding: 0.5em;
+  border: 2px dashed #999;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.8);
+  min-width: 60px;
+  min-height: 60px;
+  justify-content: center;
+}
+
+.term-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3em;
+}
+
+.term-compute-btn, .term-show-btn {
+  padding: 0.3em 0.6em;
+  border: 1px solid #007acc;
+  background: #e6f3ff;
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 0.8em;
+  transition: background 0.2s;
+}
+
+.term-compute-btn:hover {
+  background: #cce6ff;
+}
+
+.term-show-btn {
+  border-color: #ff6600;
+  background: #fff0e6;
+}
+
+.term-show-btn:hover {
+  background: #ffe6cc;
+}
+
+/* ...existing CSS... */
 </style>
 
 <!-- Google tag (gtag.js) -->
@@ -459,6 +594,7 @@
   // Globals
   let A = [], B = [], events = [], ptr = -1, timer = null;
   let playing = false, speed = 1;
+  let computationState = {}; // Track which terms have been computed
 
   // DOM elements
   const dimInput = document.getElementById('dim-input');
@@ -488,6 +624,11 @@
   }
 
   function extractSubmatrix(M, r, c, size) {
+    // Handle 1x1 extraction (returns the scalar value)
+    if (size === 1) {
+      return M[r][c];
+    }
+    
     const sub = [];
     for (let i = 0; i < size; i++) {
       sub[i] = [];
@@ -499,6 +640,14 @@
   }
 
   function multiply2x2(A, B) {
+    // Handle scalar multiplication (1x1 case)
+    if (typeof A === 'number' || (Array.isArray(A) && A.length === 1 && typeof A[0] === 'number')) {
+      const aVal = typeof A === 'number' ? A : A[0];
+      const bVal = typeof B === 'number' ? B : B[0];
+      return aVal * bVal;
+    }
+    
+    // Handle 2x2 case
     const result = [[0,0],[0,0]];
     for (let i = 0; i < 2; i++) {
       for (let j = 0; j < 2; j++) {
@@ -511,6 +660,14 @@
   }
 
   function addMatrices(A, B) {
+    // Handle scalar addition (1x1 case)  
+    if (typeof A === 'number' || (Array.isArray(A) && A.length === 1 && typeof A[0] === 'number')) {
+      const aVal = typeof A === 'number' ? A : A[0];
+      const bVal = typeof B === 'number' ? B : B[0];
+      return aVal + bVal;
+    }
+    
+    // Handle matrix addition
     const result = [];
     for (let i = 0; i < A.length; i++) {
       result[i] = [];
@@ -521,7 +678,885 @@
     return result;
   }
 
-  // Event generation - remove redundant show_formula step
+  // Replace naive multiply with true divide-and-conquer to base case
+  function dncMultiply(A, B) {
+    const n = A.length;
+    if (n === 1) {
+      // Base case: 1x1 matrices (scalars)
+      return A[0][0] * B[0][0];
+    }
+    if (n === 2) {
+      return multiply2x2(A, B);
+    }
+    
+    const m = n >> 1;
+
+    const A11 = extractSubmatrix(A, 0,   0,   m);
+    const A12 = extractSubmatrix(A, 0,   m,   m);
+    const A21 = extractSubmatrix(A, m,   0,   m);
+    const A22 = extractSubmatrix(A, m,   m,   m);
+
+    const B11 = extractSubmatrix(B, 0,   0,   m);
+    const B12 = extractSubmatrix(B, 0,   m,   m);
+    const B21 = extractSubmatrix(B, m,   0,   m);
+    const B22 = extractSubmatrix(B, m,   m,   m);
+
+    // C blocks - handle both scalar and matrix cases
+    const C11 = addMatrices(dncMultiply1D(A11, B11), dncMultiply1D(A12, B21));
+    const C12 = addMatrices(dncMultiply1D(A11, B12), dncMultiply1D(A12, B22));
+    const C21 = addMatrices(dncMultiply1D(A21, B11), dncMultiply1D(A22, B21));
+    const C22 = addMatrices(dncMultiply1D(A21, B12), dncMultiply1D(A22, B22));
+
+    // stitch results back together
+    const C = initZeroMatrix(n);
+    
+    // Handle scalar results (when m=1)
+    if (m === 1) {
+      C[0][0] = C11;
+      C[0][1] = C12;
+      C[1][0] = C21;
+      C[1][1] = C22;
+    } else {
+      // Handle matrix results
+      for (let i = 0; i < m; i++) {
+        for (let j = 0; j < m; j++) {
+          C[i][j]           = C11[i][j];
+          C[i][j+m]         = C12[i][j];
+          C[i+m][j]         = C21[i][j];
+          C[i+m][j+m]       = C22[i][j];
+        }
+      }
+    }
+    return C;
+  }
+
+  // Helper function to handle both scalar and matrix multiplication
+  function dncMultiply1D(A, B) {
+    if (typeof A === 'number' && typeof B === 'number') {
+      return A * B;
+    } else if (Array.isArray(A) && Array.isArray(B)) {
+      if (A.length === 1) {
+        return A[0][0] * B[0][0];
+      } else if (A.length === 2) {
+        return multiply2x2(A, B);
+      } else {
+        return dncMultiply(A, B);
+      }
+    }
+    // Mixed case shouldn't happen in our context
+    return 0;
+  }
+
+  function processQuadrant(A, B, quad, result, events, n) {
+    const size = n / 2;
+    events.push({ type: 'start_quadrant', quadrant: quad.name });
+
+    const A1 = extractSubmatrix(A, quad.ar, quad.ac, size);
+    const B1 = extractSubmatrix(B, quad.br, quad.bc, size);
+    
+    const A2 = extractSubmatrix(A, quad.ar, quad.ac + size, size);
+    const B2 = extractSubmatrix(B, quad.br + size, quad.bc, size);
+
+    // Compute both terms - handle 2x2 base case with steps
+    let R1, R2;
+    let term1Steps = null, term2Steps = null;
+    
+    if (size === 1) {
+      R1 = A1 * B1;
+      R2 = A2 * B2;
+    } else if (size === 2) {
+      const computation1 = multiply2x2WithSteps(A1, B1);
+      const computation2 = multiply2x2WithSteps(A2, B2);
+      R1 = computation1.result;
+      R2 = computation2.result;
+      term1Steps = computation1.steps;
+      term2Steps = computation2.steps;
+    } else {
+      R1 = dncMultiply(A1, B1);
+      R2 = dncMultiply(A2, B2);
+    }
+    
+    const final = addMatrices(R1, R2);
+
+    // Show interactive computation event with steps if available
+    events.push({
+      type: 'show_interactive_computation',
+      quadrant: quad.name,
+      term1: {
+        matrixA: A1,
+        matrixB: B1,
+        result: R1,
+        steps: term1Steps,
+        description: `A${getQuadrantLabel(quad.ar, quad.ac, n)} × B${getQuadrantLabel(quad.br, quad.bc, n)}`
+      },
+      term2: {
+        matrixA: A2,
+        matrixB: B2,
+        result: R2,
+        steps: term2Steps,
+        description: `A${getQuadrantLabel(quad.ar, quad.ac + size, n)} × B${getQuadrantLabel(quad.br + size, quad.bc, n)}`
+      },
+      final
+    });
+
+    // Copy to result matrix - handle scalar case
+    if (size === 1) {
+      result[quad.rr][quad.rc] = final;
+    } else {
+      for (let i = 0; i < size; i++) {
+        for (let j = 0; j < size; j++) {
+          result[quad.rr + i][quad.rc + j] = final[i][j];
+        }
+      }
+    }
+    events.push({ type: 'copy_result', quadrant: quad.name, final, targetR: quad.rr, targetC: quad.rc });
+  }
+
+  // Clear work area completely when starting fresh
+  function clearWorkArea() {
+    const work = document.getElementById('work-area');
+    if (work) work.remove();
+  }
+
+  // Create or reuse work area
+  function getOrCreateWorkArea(clearSummaries = false) {
+    let work = document.getElementById('work-area');
+    if (!work) {
+      work = document.createElement('div');
+      work.id = 'work-area';
+      const matrixRow = document.getElementById('matrix-row');
+      matrixRow.parentNode.insertBefore(work, matrixRow.nextSibling);
+    } else if (clearSummaries) {
+      work.querySelectorAll('.result-summary').forEach(s => s.remove());
+    }
+    return work;
+  }
+
+  // Enhanced renderSmallMatrix to handle scalars
+  function renderSmallMatrix(matrix, size, termClass = null) {
+    const container = document.createElement('div');
+    container.className = 'small-matrix';
+    if (termClass) container.classList.add(termClass);
+    
+    const cell = 25;
+    container.style.gridTemplateColumns = `repeat(${size}, ${cell}px)`;
+    container.style.gridAutoRows = `${cell}px`;
+
+    // Handle scalar case (size 1)
+    if (size === 1) {
+      const cellDiv = document.createElement('div');
+      cellDiv.className = 'small-matrix-element';
+      cellDiv.textContent = typeof matrix === 'number' ? matrix : matrix;
+      container.appendChild(cellDiv);
+    } else {
+      // Handle matrix case
+      for (let i = 0; i < size; i++) {
+        for (let j = 0; j < size; j++) {
+          const cellDiv = document.createElement('div');
+          cellDiv.className = 'small-matrix-element';
+          cellDiv.textContent = matrix[i][j];
+          container.appendChild(cellDiv);
+        }
+      }
+    }
+    return container;
+  }
+
+  // Enhanced renderMatrix with optional highlighting
+  function renderMatrix(container, M, highlightRegion = null) {
+    container.innerHTML = '';
+    const n = M.length;
+    container.style.gridTemplateColumns = `repeat(${n}, 1fr)`;
+    for (let i = 0; i < n; i++) {
+      for (let j = 0; j < n; j++) {
+        const cell = document.createElement('div');
+        cell.className = 'matrix-element';
+        
+        if (highlightRegion && 
+            i >= highlightRegion.r && i < highlightRegion.r + highlightRegion.size &&
+            j >= highlightRegion.c && j < highlightRegion.c + highlightRegion.size) {
+          cell.classList.add('copied-highlight');
+        }
+        
+        cell.textContent = M[i][j];
+        container.appendChild(cell);
+      }
+    }
+  }
+
+  // Helper functions
+  function formatComment(text, useLatex = true) {
+    if (!useLatex || !window.MathJax) return text;
+    
+    return text.replace(/([ABC])(₁₁|₁₂|₂₁|₂₂)/g, (match, letter, subscript) => {
+      const subMap = {
+        '₁₁': '11', '₁₂': '12', '₂₁': '21', '₂₂': '22'
+      };
+      return `\\(${letter}_{${subMap[subscript]}}\\)`;
+    });
+  }
+
+  function formatEquation(quadrant, term1Desc, term2Desc) {
+    const latexFormat = (text) => {
+      return text.replace(/([ABC])(₁₁|₁₂|₂₁|₂₂)/g, (match, letter, subscript) => {
+        const subMap = {
+          '₁₁': '11', '₁₂': '12', '₂₁': '21', '₂₂': '22'
+        };
+        return `${letter}_{${subMap[subscript]}}`;
+      });
+    };
+    
+    if (window.MathJax) {
+      return `\\(${latexFormat(quadrant)} = ${latexFormat(term1Desc)} + ${latexFormat(term2Desc)}\\)`;
+    } else {
+      return `${quadrant} = ${term1Desc} + ${term2Desc}`;
+    }
+  }
+
+  function op(symbol) {
+    const s = document.createElement('span');
+    s.textContent = symbol;
+    s.style.fontWeight = 'bold';
+    s.style.fontSize = '1.1em';
+    return s;
+  }
+
+  function wrapMatrixWithLabel(matrixNode, label, termClass = null) {
+    const wrapper = document.createElement('div');
+    wrapper.className = 'matrix-with-label';
+    
+    wrapper.appendChild(matrixNode);
+    
+    const labelDiv = document.createElement('div');
+    labelDiv.className = 'small-matrix-label';
+    if (termClass) labelDiv.classList.add(termClass);
+    
+    if (window.MathJax && /[₁₂]/.test(label)) {
+      const latexLabel = label.replace(/([ABC])(₁₁|₁₂|₂₁|₂₂)/g, (match, letter, subscript) => {
+        const subMap = {
+          '₁₁': '11', '₁₂': '12', '₂₁': '21', '₂₂': '22'
+        };
+        return `${letter}_{${subMap[subscript]}}`;
+      });
+      labelDiv.innerHTML = `\\(${latexLabel}\\)`;
+    } else {
+      labelDiv.textContent = label;
+    }
+    
+    wrapper.appendChild(labelDiv);
+    return wrapper;
+  }
+
+  function showOverlay(container, size, activeQuadrant = null, termColors = null) {
+    hideOverlay(container);
+    const overlay = document.createElement('div');
+    overlay.className = 'matrix-overlay';
+    overlay.style.gridTemplateColumns = '1fr 1fr';
+    overlay.style.gridTemplateRows = '1fr 1fr';
+
+    // Fix: Check both main demo containers AND sub-demo containers
+    let prefix;
+    if (container === matA || container.id === 'sub-matrix-a') {
+      prefix = 'A';
+    } else if (container === matB || container.id === 'sub-matrix-b') {
+      prefix = 'B'; 
+    } else {
+      prefix = 'C';
+    }
+    
+    const labels = ['₁₁','₁₂','₂₁','₂₂'];
+    
+    labels.forEach(lbl => {
+      const div = document.createElement('div');
+      div.className = 'overlay-label';
+      
+      const quadrantName = prefix + lbl;
+      
+      if (termColors) {
+        if (termColors.term1.includes(quadrantName)) {
+          div.classList.add('term1');
+        } else if (termColors.term2.includes(quadrantName)) {
+          div.classList.add('term2');
+        }
+      }
+      
+      if (activeQuadrant && quadrantName === activeQuadrant) {
+        div.classList.add('active');
+      }
+      
+      div.textContent = quadrantName;
+      overlay.appendChild(div);
+    });
+    container.appendChild(overlay);
+  }
+
+  function hideOverlay(container) {
+    const existing = container.querySelector('.matrix-overlay');
+    if (existing) existing.remove();
+  }
+
+  // Create interactive computation area with buttons
+  function showInteractiveComputation(event) {
+    const work = getOrCreateWorkArea(true);
+    const oldComp = work.querySelector('.computation-area');
+    if (oldComp) oldComp.remove();
+
+    // Initialize computation state for this quadrant
+    const stateKey = event.quadrant;
+    if (!computationState[stateKey]) {
+      computationState[stateKey] = {
+        term1Computed: false,
+        term2Computed: false,
+        term1Result: null,
+        term2Result: null
+      };
+    }
+
+    const compArea = document.createElement('div');
+    compArea.className = 'computation-area';
+
+    const step = document.createElement('div');
+    step.className = 'computation-step interactive-computation';
+
+    const title = document.createElement('div');
+    title.className = 'step-title';
+    title.innerHTML = formatComment(`Computing ${event.quadrant}`);
+    step.appendChild(title);
+
+    const equation = document.createElement('div');
+    equation.className = 'equation-line';
+    const formattedEq = formatEquation(event.quadrant, event.term1.description, event.term2.description);
+    equation.innerHTML = formattedEq;
+    step.appendChild(equation);
+
+    // Interactive computation line
+    const line = document.createElement('div');
+    line.className = 'matrix-computation interactive';
+
+    // Term 1: A1 × B1
+    line.appendChild(wrapMatrixWithLabel(renderSmallMatrix(event.term1.matrixA, event.term1.matrixA.length, 'term1'), event.term1.description.split(' × ')[0], 'term1'));
+    line.appendChild(op('×'));
+    line.appendChild(wrapMatrixWithLabel(renderSmallMatrix(event.term1.matrixB, event.term1.matrixB.length, 'term1'), event.term1.description.split(' × ')[1], 'term1'));
+    line.appendChild(op('+'));
+    
+    // Term 2: A2 × B2
+    line.appendChild(wrapMatrixWithLabel(renderSmallMatrix(event.term2.matrixA, event.term2.matrixA.length, 'term2'), event.term2.description.split(' × ')[0], 'term2'));
+    line.appendChild(op('×'));
+    line.appendChild(wrapMatrixWithLabel(renderSmallMatrix(event.term2.matrixB, event.term2.matrixB.length, 'term2'), event.term2.description.split(' × ')[1], 'term2'));
+    line.appendChild(op('='));
+    
+    // Results: R1 (with buttons) + R2 (with buttons) = Final
+    const term1Container = document.createElement('div');
+    term1Container.className = 'term-container';
+    
+    if (computationState[stateKey].term1Computed) {
+      term1Container.appendChild(wrapMatrixWithLabel(renderSmallMatrix(event.term1.result, event.term1.result.length, 'term1'), 'R₁', 'term1'));
+    } else {
+      const buttonContainer = document.createElement('div');
+      buttonContainer.className = 'term-buttons';
+      
+      const computeBtn = document.createElement('button');
+      computeBtn.textContent = 'Compute';
+      computeBtn.className = 'term-compute-btn';
+      computeBtn.addEventListener('click', () => {
+        computationState[stateKey].term1Computed = true;
+        computationState[stateKey].term1Result = event.term1.result;
+        showInteractiveComputation(event);
+      });
+      
+      const showBtn = document.createElement('button');
+      showBtn.textContent = 'Show Computation';
+      showBtn.className = 'term-show-btn';
+      showBtn.addEventListener('click', () => {
+        showSubDemo(event.term1, event.quadrant, 'R₁', () => {
+          computationState[stateKey].term1Computed = true;
+          computationState[stateKey].term1Result = event.term1.result;
+          showInteractiveComputation(event);
+        });
+      });
+      
+      buttonContainer.appendChild(computeBtn);
+      buttonContainer.appendChild(showBtn);
+      
+      const placeholder = document.createElement('div');
+      placeholder.className = 'result-placeholder';
+      placeholder.textContent = 'R₁';
+      placeholder.appendChild(buttonContainer);
+      term1Container.appendChild(placeholder);
+    }
+    
+    line.appendChild(term1Container);
+    line.appendChild(op('+'));
+    
+    // Similar for term 2
+    const term2Container = document.createElement('div');
+    term2Container.className = 'term-container';
+    
+    if (computationState[stateKey].term2Computed) {
+      term2Container.appendChild(wrapMatrixWithLabel(renderSmallMatrix(event.term2.result, event.term2.result.length, 'term2'), 'R₂', 'term2'));
+    } else {
+      const buttonContainer = document.createElement('div');
+      buttonContainer.className = 'term-buttons';
+      
+      const computeBtn = document.createElement('button');
+      computeBtn.textContent = 'Compute';
+      computeBtn.className = 'term-compute-btn';
+      computeBtn.addEventListener('click', () => {
+        computationState[stateKey].term2Computed = true;
+        computationState[stateKey].term2Result = event.term2.result;
+        showInteractiveComputation(event);
+      });
+      
+      const showBtn = document.createElement('button');
+      showBtn.textContent = 'Show Computation';
+      showBtn.className = 'term-show-btn';
+      showBtn.addEventListener('click', () => {
+        showSubDemo(event.term2, event.quadrant, 'R₂', () => {
+          computationState[stateKey].term2Computed = true;
+          computationState[stateKey].term2Result = event.term2.result;
+          showInteractiveComputation(event);
+        });
+      });
+      
+      buttonContainer.appendChild(computeBtn);
+      buttonContainer.appendChild(showBtn);
+      
+      const placeholder = document.createElement('div');
+      placeholder.className = 'result-placeholder';
+      placeholder.textContent = 'R₂';
+      placeholder.appendChild(buttonContainer);
+      term2Container.appendChild(placeholder);
+    }
+    
+    line.appendChild(term2Container);
+    
+    // Show final result only when both terms are computed
+    if (computationState[stateKey].term1Computed && computationState[stateKey].term2Computed) {
+      line.appendChild(op('='));
+      line.appendChild(wrapMatrixWithLabel(renderSmallMatrix(event.final, event.final.length, 'result'), event.quadrant, 'result'));
+      
+      // Enable next button
+      nextBtn.disabled = false;
+    } else {
+      // Disable next button until both terms computed
+      nextBtn.disabled = true;
+    }
+
+    step.appendChild(line);
+    compArea.appendChild(step);
+    work.appendChild(compArea);
+
+    // Process with MathJax if available
+    if (window.MathJax) {
+      MathJax.typesetPromise([compArea]).catch(err => console.log('MathJax error:', err));
+    }
+  }
+
+  // Show sub-demo for individual term computation
+  function showSubDemo(termData, parentQuadrant, termLabel, onComplete) {
+    // Check if this is a 2x2 computation that can be shown step-by-step
+    if (termData.matrixA.length === 2 && termData.matrixB.length === 2) {
+      show2x2Demo(termData, parentQuadrant, termLabel, onComplete);
+    } else {
+      // Use the regular recursive demo for larger matrices
+      showRecursiveSubDemo(termData, parentQuadrant, termLabel, onComplete);
+    }
+  }
+
+  // New function for 2x2 step-by-step demonstration
+  function show2x2Demo(termData, parentQuadrant, termLabel, onComplete) {
+    const overlay = document.createElement('div');
+    overlay.className = 'demo-overlay';
+    
+    const computation = multiply2x2WithSteps(termData.matrixA, termData.matrixB);
+    
+    overlay.innerHTML = `
+      <button class="close-overlay">Close & Compute</button>
+      <div class="demo-container">
+        <div class="overlay-title">Computing ${termLabel} for ${parentQuadrant}: ${termData.description}</div>
+        <div class="base-case-explanation">
+          <p>Base case: 2×2 matrix multiplication using standard formula</p>
+        </div>
+        
+        <div class="step-by-step-computation">
+          <div class="matrices-display">
+            <div class="matrix-with-label">
+              <div class="computation-matrix" id="demo-matrix-a"></div>
+              <div class="small-matrix-label">A</div>
+            </div>
+            <div class="matrix-op">×</div>
+            <div class="matrix-with-label">
+              <div class="computation-matrix" id="demo-matrix-b"></div>
+              <div class="small-matrix-label">B</div>
+            </div>
+            <div class="matrix-op">=</div>
+            <div class="matrix-with-label">
+              <div class="computation-matrix" id="demo-matrix-result"></div>
+              <div class="small-matrix-label">Result</div>
+            </div>
+          </div>
+          
+          <div class="computation-steps" id="computation-steps"></div>
+          
+          <div class="controls">
+            <div class="step-controls">
+              <button id="step-prev-btn" disabled>Previous</button>
+              <button id="step-next-btn">Next</button>
+              <button id="complete-btn" style="display:none;">Complete</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(overlay);
+
+    // Initialize the demonstration
+    let currentStep = -1;
+    const steps = computation.steps;
+    
+    // Render initial matrices
+    renderComputationMatrix(overlay.querySelector('#demo-matrix-a'), termData.matrixA);
+    renderComputationMatrix(overlay.querySelector('#demo-matrix-b'), termData.matrixB);
+    renderComputationMatrix(overlay.querySelector('#demo-matrix-result'), [[0,0],[0,0]]);
+    
+    const stepPrevBtn = overlay.querySelector('#step-prev-btn');
+    const stepNextBtn = overlay.querySelector('#step-next-btn');
+    const completeBtn = overlay.querySelector('#complete-btn');
+    const stepsContainer = overlay.querySelector('#computation-steps');
+
+    function updateStep() {
+      // Clear previous highlighting
+      overlay.querySelectorAll('.highlight-element').forEach(el => el.classList.remove('highlight-element'));
+      
+      if (currentStep >= 0 && currentStep < steps.length) {
+        const step = steps[currentStep];
+        const [i, j] = step.position;
+        
+        // Highlight current computation
+        const resultMatrix = overlay.querySelector('#demo-matrix-result');
+        const resultCells = resultMatrix.querySelectorAll('.matrix-element');
+        resultCells[i * 2 + j].classList.add('highlight-element');
+        resultCells[i * 2 + j].textContent = step.result;
+        
+        // Show computation details
+        stepsContainer.innerHTML = `
+          <div class="current-computation">
+            <h4>Computing element [${i+1}, ${j+1}]:</h4>
+            <div class="formula">${step.formula}</div>
+            <div class="calculation">= ${step.calculation}</div>
+            <div class="result">= ${step.result}</div>
+          </div>
+        `;
+      } else {
+        stepsContainer.innerHTML = '<p>Click "Next" to start the step-by-step computation</p>';
+      }
+      
+      // Update button states
+      stepPrevBtn.disabled = currentStep <= -1;
+      stepNextBtn.disabled = currentStep >= steps.length - 1;
+      
+      if (currentStep >= steps.length - 1) {
+        stepNextBtn.style.display = 'none';
+        completeBtn.style.display = 'inline-block';
+      } else {
+        stepNextBtn.style.display = 'inline-block';
+        completeBtn.style.display = 'none';
+      }
+    }
+
+    // Event handlers
+    stepNextBtn.addEventListener('click', () => {
+      if (currentStep < steps.length - 1) {
+        currentStep++;
+        updateStep();
+      }
+    });
+
+    stepPrevBtn.addEventListener('click', () => {
+      if (currentStep > -1) {
+        currentStep--;
+        updateStep();
+      }
+    });
+
+    completeBtn.addEventListener('click', () => {
+      document.body.removeChild(overlay);
+      onComplete();
+    });
+
+    const closeBtn = overlay.querySelector('.close-overlay');
+    closeBtn.addEventListener('click', () => {
+      document.body.removeChild(overlay);
+      onComplete();
+    });
+
+    updateStep();
+  }
+
+  // Helper function to render matrices in computation demo
+  function renderComputationMatrix(container, matrix) {
+    container.innerHTML = '';
+    container.className = 'computation-matrix';
+    container.style.display = 'inline-grid';
+    container.style.gridTemplateColumns = 'repeat(2, 40px)';
+    container.style.gridTemplateRows = 'repeat(2, 40px)';
+    container.style.gap = '2px';
+    container.style.padding = '4px';
+    container.style.border = '1px solid #999';
+    
+    for (let i = 0; i < 2; i++) {
+      for (let j = 0; j < 2; j++) {
+        const cell = document.createElement('div');
+        cell.className = 'matrix-element';
+        cell.style.width = '40px';
+        cell.style.height = '40px';
+        cell.style.display = 'flex';
+        cell.style.alignItems = 'center';
+        cell.style.justifyContent = 'center';
+        cell.style.border = '1px solid #ccc';
+        cell.style.fontFamily = 'monospace';
+        cell.style.fontSize = '1em';
+        cell.textContent = matrix[i][j];
+        container.appendChild(cell);
+      }
+    }
+  }
+
+  // Renamed original showSubDemo to showRecursiveSubDemo
+  function showRecursiveSubDemo(termData, parentQuadrant, termLabel, onComplete) {
+    const overlay = document.createElement('div');
+    overlay.className = 'demo-overlay';
+    
+    overlay.innerHTML = `
+      <button class="close-overlay">Close & Compute</button>
+      <div class="demo-container">
+        <div class="overlay-title">Computing ${termLabel} for ${parentQuadrant}: ${termData.description}</div>
+        
+        <div class="controls">
+          <div class="step-controls">
+            <button id="sub-prev-btn" disabled>Previous</button>
+            <button id="sub-next-btn" disabled>Next</button>
+          </div>
+        </div>
+        
+        <div id="sub-matrix-row">
+          <div class="matrix-panel">
+            <div id="sub-matrix-a" class="matrix-container"></div>
+            <div class="matrix-label">A</div>
+          </div>
+          <div class="matrix-op">×</div>
+          <div class="matrix-panel">
+            <div id="sub-matrix-b" class="matrix-container"></div>
+            <div class="matrix-label">B</div>
+          </div>
+          <div class="matrix-op">=</div>
+          <div class="matrix-panel">
+            <div id="sub-matrix-res" class="matrix-container"></div>
+            <div class="matrix-label">Result</div>
+          </div>
+        </div>
+        
+        <div id="sub-comment" class="comment">Computing ${termData.description}...</div>
+      </div>
+    `;
+
+    document.body.appendChild(overlay);
+
+    // Initialize sub-demo
+    initSubDemo(overlay, termData.matrixA, termData.matrixB, () => {
+      document.body.removeChild(overlay);
+      onComplete();
+    });
+
+    // Close button functionality
+    const closeBtn = overlay.querySelector('.close-overlay');
+    closeBtn.addEventListener('click', () => {
+      document.body.removeChild(overlay);
+      onComplete();
+    });
+  }
+
+  // Enhanced 2x2 multiplication that shows step-by-step computation
+  function multiply2x2WithSteps(A, B) {
+    // For 2x2 matrices, show the actual scalar computations
+    const steps = [];
+    const result = [[0,0],[0,0]];
+    
+    // Compute each element step by step
+    for (let i = 0; i < 2; i++) {
+      for (let j = 0; j < 2; j++) {
+        const computation = {
+          position: [i, j],
+          formula: `(${A[i][0]} × ${B[0][j]}) + (${A[i][1]} × ${B[1][j]})`,
+          calculation: `${A[i][0] * B[0][j]} + ${A[i][1] * B[1][j]}`,
+          result: A[i][0] * B[0][j] + A[i][1] * B[1][j]
+        };
+        steps.push(computation);
+        result[i][j] = computation.result;
+      }
+    }
+    
+    return { result, steps };
+  }
+
+  // Main rebuild function
+  function rebuild() {
+    const event = events[ptr];
+    if (!event) return;
+
+    const currentResult = initZeroMatrix(A.length);
+    for (let i = 1; i <= ptr; i++) {
+      const ev = events[i];
+      if (ev.type === 'copy_result') {
+        const size = A.length / 2;
+        for (let r = 0; r < size; r++) {
+          for (let c = 0; c < size; c++) {
+            currentResult[ev.targetR + r][ev.targetC + c] = ev.final[r][c];
+          }
+        }
+      }
+    }
+
+    switch (event.type) {
+      case 'init':
+        clearWorkArea();
+        renderMatrix(matA, A);
+        renderMatrix(matB, B);
+        renderMatrix(matR, currentResult);
+        commentBox.textContent = 'Starting divide-and-conquer matrix multiplication...';
+        break;
+
+      case 'show_partition':
+        renderMatrix(matA, A);
+        renderMatrix(matB, B);
+        renderMatrix(matR, currentResult);
+        showOverlay(matA, event.size);
+        showOverlay(matB, event.size);
+        showOverlay(matR, event.size);
+        commentBox.textContent = `Partitioning ${event.size}×${event.size} matrices into ${event.size/2}×${event.size/2} blocks`;
+        break;
+
+      case 'start_quadrant':
+        const termColors = { term1: [], term2: [] };
+        
+        if (event.quadrant === 'C₁₁') {
+          termColors.term1 = ['A₁₁', 'B₁₁'];
+          termColors.term2 = ['A₁₂', 'B₂₁'];
+        } else if (event.quadrant === 'C₁₂') {
+          termColors.term1 = ['A₁₁', 'B₁₂'];
+          termColors.term2 = ['A₁₂', 'B₂₂'];
+        } else if (event.quadrant === 'C₂₁') {
+          termColors.term1 = ['A₂₁', 'B₁₁'];
+          termColors.term2 = ['A₂₂', 'B₂₁'];
+        } else if (event.quadrant === 'C₂₂') {
+          termColors.term1 = ['A₂₁', 'B₁₂'];
+          termColors.term2 = ['A₂₂', 'B₂₂'];
+        }
+
+        renderMatrix(matA, A);
+        renderMatrix(matB, B);
+        renderMatrix(matR, currentResult);
+        
+        showOverlay(matA, A.length, null, termColors);
+        showOverlay(matB, B.length, null, termColors);
+        showOverlay(matR, A.length, event.quadrant);
+        
+        const formula = `${event.quadrant} = ${termColors.term1[0]}×${termColors.term1[1]} + ${termColors.term2[0]}×${termColors.term2[1]}`;
+        const startComment = formatComment(`Computing  ${formula}`);
+        commentBox.innerHTML = startComment;
+        if (window.MathJax) {
+          MathJax.typesetPromise([commentBox]).catch(err => console.log('MathJax error:', err));
+        }
+        break;
+
+      case 'show_interactive_computation':
+        showInteractiveComputation(event);
+        renderMatrix(matR, currentResult);
+        
+        const interactiveTermColors = { term1: [], term2: [] };
+        
+        if (event.quadrant === 'C₁₁') {
+          interactiveTermColors.term1 = ['A₁₁', 'B₁₁'];
+          interactiveTermColors.term2 = ['A₁₂', 'B₂₁'];
+        } else if (event.quadrant === 'C₁₂') {
+          interactiveTermColors.term1 = ['A₁₁', 'B₁₂'];
+          interactiveTermColors.term2 = ['A₁₂', 'B₂₂'];
+        } else if (event.quadrant === 'C₂₁') {
+          interactiveTermColors.term1 = ['A₂₁', 'B₁₁'];
+          interactiveTermColors.term2 = ['A₂₂', 'B₂₁'];
+        } else if (event.quadrant === 'C₂₂') {
+          interactiveTermColors.term1 = ['A₂₁', 'B₁₂'];
+          interactiveTermColors.term2 = ['A₂₂', 'B₂₂'];
+        }
+        
+        showOverlay(matA, A.length, null, interactiveTermColors);
+        showOverlay(matB, B.length, null, interactiveTermColors);
+        showOverlay(matR, A.length, event.quadrant);
+        
+        const interactiveComment = formatComment(`Interactive computation for ${event.quadrant}. Choose "Compute" for direct calculation or "Show Computation" for step-by-step demo.`);
+        commentBox.innerHTML = interactiveComment;
+        if (window.MathJax) {
+          MathJax.typesetPromise([commentBox]).catch(err => console.log('MathJax error:', err));
+        }
+        break;
+
+      case 'copy_result':
+        const highlightRegion = {
+          r: event.targetR,
+          c: event.targetC,
+          size: A.length / 2
+        };
+        
+        renderMatrix(matA, A);
+        renderMatrix(matB, B);
+        renderMatrix(matR, currentResult, highlightRegion);
+        
+        hideOverlay(matA);
+        hideOverlay(matB);
+        hideOverlay(matR);
+        
+        const copyComment = formatComment(`${event.quadrant} computation complete and copied to result matrix`);
+        commentBox.innerHTML = copyComment;
+        if (window.MathJax) {
+          MathJax.typesetPromise([commentBox]).catch(err => console.log('MathJax error:', err));
+        }
+        break;
+
+      case 'done':
+        hideOverlay(matA);
+        hideOverlay(matB);
+        hideOverlay(matR);
+        
+        const work = getOrCreateWorkArea();
+        const oldComp = work.querySelector('.computation-area');
+        if (oldComp) oldComp.remove();
+        
+        renderMatrix(matA, A);
+        renderMatrix(matB, B);
+        renderMatrix(matR, event.result);
+        commentBox.textContent = `Complete! Matrix multiplication finished.`;
+        break;
+    }
+
+    // Update button states
+    prevBtn.disabled = (ptr <= 0);
+    if (event.type !== 'show_interactive_computation') {
+      nextBtn.disabled = (ptr >= events.length - 1);
+    }
+    playBtn.disabled = (ptr >= events.length - 1);
+  }
+
+  // Add: quadrant label helper used in processQuadrant descriptions
+  function getQuadrantLabel(r, c, n) {
+    if (n === 2) return '';
+    const mid = n / 2;
+    const row = r < mid ? '₁' : '₂';
+    const col = c < mid ? '₁' : '₂';
+    return row + col;
+  }
+
+  // Event generation - modified to include interactive computation events
   function buildEvents(A, B) {
     const n = A.length;
     const events = [{ type: 'init' }];
@@ -543,257 +1578,315 @@
       processQuadrant(A, B, quad, result, events, n);
     }
 
-    // Combine hide_partition and done into single completion step
     events.push({ type: 'done', result });
     return events;
   }
 
-  function processQuadrant(A, B, quad, result, events, n) {
-    const size = n / 2;
-    events.push({ type: 'start_quadrant', quadrant: quad.name });
+  // Enhanced initSubDemo to reuse main demo logic
+  function initSubDemo(overlay, A4x4, B4x4, onComplete) {
+    // Get sub-demo DOM elements
+    const subMatA = overlay.querySelector('#sub-matrix-a');
+    const subMatB = overlay.querySelector('#sub-matrix-b');
+    const subMatR = overlay.querySelector('#sub-matrix-res');
+    const subComment = overlay.querySelector('#sub-comment');
+    const subPrevBtn = overlay.querySelector('#sub-prev-btn');
+    const subNextBtn = overlay.querySelector('#sub-next-btn');
 
-    const A1 = extractSubmatrix(A, quad.ar,            quad.ac,            size);
-    const B1 = extractSubmatrix(B, quad.br,            quad.bc,            size);
-    const R1 = size === 2 ? multiply2x2(A1, B1) : dncMultiply(A1, B1);
+    // Generate events for recursive computation
+    const subEvents = buildEvents(A4x4, B4x4);
+    let subPtr = 0;
+    let subComputationState = {}; // Track computation state for sub-demo
 
-    const A2 = extractSubmatrix(A, quad.ar,            quad.ac + size,     size);
-    const B2 = extractSubmatrix(B, quad.br + size,     quad.bc,            size);
-    const R2 = size === 2 ? multiply2x2(A2, B2) : dncMultiply(A2, B2);
-
-    const final = addMatrices(R1, R2);
-
-    // Operation counts for this whole step (both terms + combine)
-    const innerAdds   = size === 2 ? 8 : size*size*(size-1)*2;
-    const combineAdds = size*size;
-    const mults       = size === 2 ? 16 : size*size*size*2;
-
-    events.push({
-      type: 'compute_both_terms',
-      quadrant: quad.name,
-      term1: {
-        matrixA: A1,
-        matrixB: B1,
-        result: R1,
-        description: `A${getQuadrantLabel(quad.ar, quad.ac, n)} × B${getQuadrantLabel(quad.br, quad.bc, n)}`
-      },
-      term2: {
-        matrixA: A2,
-        matrixB: B2,
-        result: R2,
-        description: `A${getQuadrantLabel(quad.ar, quad.ac + size, n)} × B${getQuadrantLabel(quad.br + size, quad.bc, n)}`
-      },
-      final,                               // include final so we can show it now
-      multiplications: mults,
-      additions: innerAdds + combineAdds   // show total adds used in this step
-    });
-
-    // Copy to result matrix immediately after the one-line computation
-    for (let i = 0; i < size; i++) {
-      for (let j = 0; j < size; j++) {
-        result[quad.rr + i][quad.rc + j] = final[i][j];
+    // Create a work area for the sub-demo
+    function getOrCreateSubWorkArea() {
+      let work = overlay.querySelector('#sub-work-area');
+      if (!work) {
+        work = document.createElement('div');
+        work.id = 'sub-work-area';
+        work.style.marginTop = '1em';
+        work.style.display = 'flex';
+        work.style.flexDirection = 'column';
+        work.style.gap = '0.75em';
+        const subMatrixRow = overlay.querySelector('#sub-matrix-row');
+        subMatrixRow.parentNode.insertBefore(work, subMatrixRow.nextSibling);
       }
+      return work;
     }
-    events.push({ type: 'copy_result', quadrant: quad.name, final, targetR: quad.rr, targetC: quad.rc });
-  }
 
-  // Replace naive multiply with true divide-and-conquer to 2×2 base
-  function dncMultiply(A, B) {
-    const n = A.length;
-    if (n === 2) return multiply2x2(A, B);
-    const m = n >> 1;
+    // Enhanced sub-demo rebuild function that reuses main logic
+    function rebuildSubDemo() {
+      const event = subEvents[subPtr];
+      if (!event) return;
 
-    const A11 = extractSubmatrix(A, 0,   0,   m);
-    const A12 = extractSubmatrix(A, 0,   m,   m);
-    const A21 = extractSubmatrix(A, m,   0,   m);
-    const A22 = extractSubmatrix(A, m,   m,   m);
-
-    const B11 = extractSubmatrix(B, 0,   0,   m);
-    const B12 = extractSubmatrix(B, 0,   m,   m);
-    const B21 = extractSubmatrix(B, m,   0,   m);
-    const B22 = extractSubmatrix(B, m,   m,   m);
-
-    // C blocks
-    const C11 = addMatrices(dncMultiply(A11, B11), dncMultiply(A12, B21));
-    const C12 = addMatrices(dncMultiply(A11, B12), dncMultiply(A12, B22));
-    const C21 = addMatrices(dncMultiply(A21, B11), dncMultiply(A22, B21));
-    const C22 = addMatrices(dncMultiply(A21, B12), dncMultiply(A22, B22));
-
-    // stitch
-    const C = initZeroMatrix(n);
-    for (let i = 0; i < m; i++) {
-      for (let j = 0; j < m; j++) {
-        C[i][j]           = C11[i][j];
-        C[i][j+m]         = C12[i][j];
-        C[i+m][j]         = C21[i][j];
-        C[i+m][j+m]       = C22[i][j];
+      const currentResult = initZeroMatrix(A4x4.length);
+      for (let i = 1; i <= subPtr; i++) {
+        const ev = subEvents[i];
+        if (ev.type === 'copy_result') {
+          const size = A4x4.length / 2;
+          if (typeof ev.final === 'number') {
+            currentResult[ev.targetR][ev.targetC] = ev.final;
+          } else {
+            for (let r = 0; r < size; r++) {
+              for (let c = 0; c < size; c++) {
+                currentResult[ev.targetR + r][ev.targetC + c] = ev.final[r][c];
+              }
+            }
+          }
+        }
       }
-    }
-    return C;
-  }
 
-  // Add: quadrant label helper used in processQuadrant descriptions
-  function getQuadrantLabel(r, c, n) {
-    if (n === 2) return '';
-    const mid = n / 2;
-    const row = r < mid ? '₁' : '₂';
-    const col = c < mid ? '₁' : '₂';
-    return row + col;
-  }
+      switch (event.type) {
+        case 'init':
+          // Clear any previous computation displays
+          const work = getOrCreateSubWorkArea();
+          work.innerHTML = '';
+          
+          renderMatrix(subMatA, A4x4);
+          renderMatrix(subMatB, B4x4);
+          renderMatrix(subMatR, currentResult);
+          subComment.innerHTML = formatComment(`Starting ${A4x4.length}×${A4x4.length} divide-and-conquer multiplication...`);
+          if (window.MathJax) {
+            MathJax.typesetPromise([subComment]).catch(err => console.log('MathJax error:', err));
+          }
+          break;
 
-  // Clear work area completely when starting fresh
-  function clearWorkArea() {
-    const work = document.getElementById('work-area');
-    if (work) work.remove();
-  }
+        case 'show_partition':
+          // Clear computation area when showing partition
+          const workPartition = getOrCreateSubWorkArea();
+          workPartition.innerHTML = '';
+          
+          renderMatrix(subMatA, A4x4);
+          renderMatrix(subMatB, B4x4);
+          renderMatrix(subMatR, currentResult);
+          showOverlay(subMatA, event.size);
+          showOverlay(subMatB, event.size);
+          showOverlay(subMatR, event.size);
+          subComment.innerHTML = formatComment(`Partitioning ${event.size}×${event.size} matrices into ${event.size/2}×${event.size/2} blocks`);
+          if (window.MathJax) {
+            MathJax.typesetPromise([subComment]).catch(err => console.log('MathJax error:', err));
+          }
+          break;
 
-  // Create or reuse work area (modified to clear summaries when needed)
-  function getOrCreateWorkArea(clearSummaries = false) {
-    let work = document.getElementById('work-area');
-    if (!work) {
-      work = document.createElement('div');
-      work.id = 'work-area';
-      const matrixRow = document.getElementById('matrix-row');
-      matrixRow.parentNode.insertBefore(work, matrixRow.nextSibling);
-    } else if (clearSummaries) {
-      // Clear existing summaries when going back/forth
-      work.querySelectorAll('.result-summary').forEach(s => s.remove());
-    }
-    return work;
-  }
+        case 'start_quadrant':
+          // Clear computation area when starting new quadrant
+          const workStart = getOrCreateSubWorkArea();
+          workStart.innerHTML = '';
+          
+          const termColors = { term1: [], term2: [] };
+          
+          if (event.quadrant === 'C₁₁') {
+            termColors.term1 = ['A₁₁', 'B₁₁'];
+            termColors.term2 = ['A₁₂', 'B₂₁'];
+          } else if (event.quadrant === 'C₁₂') {
+            termColors.term1 = ['A₁₁', 'B₁₂'];
+            termColors.term2 = ['A₁₂', 'B₂₂'];
+          } else if (event.quadrant === 'C₂₁') {
+            termColors.term1 = ['A₂₁', 'B₁₁'];
+            termColors.term2 = ['A₂₂', 'B₂₁'];
+          } else if (event.quadrant === 'C₂₂') {
+            termColors.term1 = ['A₂₁', 'B₁₂'];
+            termColors.term2 = ['A₂₂', 'B₂₂'];
+          }
 
-  // Enhanced renderSmallMatrix with color coding
-  function renderSmallMatrix(matrix, size, termClass = null) {
-    const container = document.createElement('div');
-    container.className = 'small-matrix';
-    if (termClass) container.classList.add(termClass);
-    
-    const cell = 30; // px, matches CSS
-    container.style.gridTemplateColumns = `repeat(${size}, ${cell}px)`;
-    container.style.gridAutoRows = `${cell}px`;
+          renderMatrix(subMatA, A4x4);
+          renderMatrix(subMatB, B4x4);
+          renderMatrix(subMatR, currentResult);
+          
+          showOverlay(subMatA, A4x4.length, null, termColors);
+          showOverlay(subMatB, B4x4.length, null, termColors);
+          showOverlay(subMatR, A4x4.length, event.quadrant);
+          
+          const formula = `${event.quadrant} = ${termColors.term1[0]}×${termColors.term1[1]} + ${termColors.term2[0]}×${termColors.term2[1]}`;
+          subComment.innerHTML = formatComment(`Computing ${formula}`);
+          if (window.MathJax) {
+            MathJax.typesetPromise([subComment]).catch(err => console.log('MathJax error:', err));
+          }
+          break;
 
-    for (let i = 0; i < size; i++) {
-      for (let j = 0; j < size; j++) {
-        const cellDiv = document.createElement('div');
-        cellDiv.className = 'small-matrix-element';
-        cellDiv.textContent = matrix[i][j];
-        container.appendChild(cellDiv);
+        case 'show_interactive_computation':
+          showSubInteractiveComputation(event, overlay, subComputationState);
+          renderMatrix(subMatR, currentResult);
+          
+          const interactiveTermColors = { term1: [], term2: [] };
+          
+          if (event.quadrant === 'C₁₁') {
+            interactiveTermColors.term1 = ['A₁₁', 'B₁₁'];
+            interactiveTermColors.term2 = ['A₁₂', 'B₂₁'];
+          } else if (event.quadrant === 'C₁₂') {
+            interactiveTermColors.term1 = ['A₁₁', 'B₁₂'];
+            interactiveTermColors.term2 = ['A₁₂', 'B₂₂'];
+          } else if (event.quadrant === 'C₂₁') {
+            interactiveTermColors.term1 = ['A₂₁', 'B₁₁'];
+            interactiveTermColors.term2 = ['A₂₂', 'B₂₁'];
+          } else if (event.quadrant === 'C₂₂') {
+            interactiveTermColors.term1 = ['A₂₁', 'B₁₂'];
+            interactiveTermColors.term2 = ['A₂₂', 'B₂₂'];
+          }
+          
+          showOverlay(subMatA, A4x4.length, null, interactiveTermColors);
+          showOverlay(subMatB, B4x4.length, null, interactiveTermColors);
+          showOverlay(subMatR, A4x4.length, event.quadrant);
+          
+          subComment.innerHTML = formatComment(`Interactive computation for ${event.quadrant} in sub-demo. Both terms computed automatically.`);
+          if (window.MathJax) {
+            MathJax.typesetPromise([subComment]).catch(err => console.log('MathJax error:', err));
+          }
+          break;
+
+        case 'copy_result':
+          const highlightRegion = {
+            r: event.targetR,
+            c: event.targetC,
+            size: A4x4.length / 2
+          };
+          
+          renderMatrix(subMatA, A4x4);
+          renderMatrix(subMatB, B4x4);
+          renderMatrix(subMatR, currentResult, highlightRegion);
+          
+          hideOverlay(subMatA);
+          hideOverlay(subMatB);
+          hideOverlay(subMatR);
+          
+          subComment.innerHTML = formatComment(`${event.quadrant} computation complete and copied to result matrix`);
+          if (window.MathJax) {
+            MathJax.typesetPromise([subComment]).catch(err => console.log('MathJax error:', err));
+          }
+          break;
+
+        case 'done':
+          hideOverlay(subMatA);
+          hideOverlay(subMatB);
+          hideOverlay(subMatR);
+          
+          const workDone = getOrCreateSubWorkArea();
+          const oldComp = workDone.querySelector('.computation-area');
+          if (oldComp) oldComp.remove();
+          
+          renderMatrix(subMatA, A4x4);
+          renderMatrix(subMatB, B4x4);
+          renderMatrix(subMatR, event.result);
+          subComment.textContent = `${A4x4.length}×${A4x4.length} computation complete!`;
+          setTimeout(onComplete, 1500);
+          break;
+
+        default:
+          renderMatrix(subMatR, currentResult);
+          subComment.textContent = `Computing ${event.quadrant || 'step'}...`;
       }
-    }
-    return container;
-  }
 
-  // Add missing formatComment function
-  function formatComment(text, useLatex = true) {
-    if (!useLatex || !window.MathJax) return text;
-    
-    // Convert Unicode subscripts to LaTeX in comment text
-    return text.replace(/([ABC])(₁₁|₁₂|₂₁|₂₂)/g, (match, letter, subscript) => {
-      const subMap = {
-        '₁₁': '11',
-        '₁₂': '12', 
-        '₂₁': '21',
-        '₂₂': '22'
+      subPrevBtn.disabled = (subPtr <= 0);
+      subNextBtn.disabled = (subPtr >= subEvents.length - 1);
+    }
+
+    // Sub-demo version of interactive computation (auto-computes both terms)
+    function showSubInteractiveComputation(event, overlay, subComputationState) {
+      const work = getOrCreateSubWorkArea();
+      const oldComp = work.querySelector('.computation-area');
+      if (oldComp) oldComp.remove();
+
+      // Auto-mark both terms as computed for sub-demo
+      const stateKey = event.quadrant;
+      subComputationState[stateKey] = {
+        term1Computed: true,
+        term2Computed: true,
+        term1Result: event.term1.result,
+        term2Result: event.term2.result
       };
-      return `\\(${letter}_{${subMap[subscript]}}\\)`;
+
+      const compArea = document.createElement('div');
+      compArea.className = 'computation-area';
+
+      const step = document.createElement('div');
+      step.className = 'computation-step interactive-computation';
+
+      const title = document.createElement('div');
+      title.className = 'step-title';
+      title.innerHTML = formatComment(`Computing ${event.quadrant}`);
+      step.appendChild(title);
+
+      const equation = document.createElement('div');
+      equation.className = 'equation-line';
+      const formattedEq = formatEquation(event.quadrant, event.term1.description, event.term2.description);
+      equation.innerHTML = formattedEq;
+      step.appendChild(equation);
+
+      // Show completed computation
+      const line = document.createElement('div');
+      line.className = 'matrix-computation interactive';
+
+      // Term 1: A1 × B1
+      line.appendChild(wrapMatrixWithLabel(renderSmallMatrix(event.term1.matrixA, event.term1.matrixA.length, 'term1'), event.term1.description.split(' × ')[0], 'term1'));
+      line.appendChild(op('×'));
+      line.appendChild(wrapMatrixWithLabel(renderSmallMatrix(event.term1.matrixB, event.term1.matrixB.length, 'term1'), event.term1.description.split(' × ')[1], 'term1'));
+      line.appendChild(op('+'));
+      
+      // Term 2: A2 × B2
+      line.appendChild(wrapMatrixWithLabel(renderSmallMatrix(event.term2.matrixA, event.term2.matrixA.length, 'term2'), event.term2.description.split(' × ')[0], 'term2'));
+      line.appendChild(op('×'));
+      line.appendChild(wrapMatrixWithLabel(renderSmallMatrix(event.term2.matrixB, event.term2.matrixB.length, 'term2'), event.term2.description.split(' × ')[1], 'term2'));
+      line.appendChild(op('='));
+      
+      // Show results directly (no buttons needed in sub-demo)
+      line.appendChild(wrapMatrixWithLabel(renderSmallMatrix(event.term1.result, event.term1.result.length, 'term1'), 'R₁', 'term1'));
+      line.appendChild(op('+'));
+      line.appendChild(wrapMatrixWithLabel(renderSmallMatrix(event.term2.result, event.term2.result.length, 'term2'), 'R₂', 'term2'));
+      line.appendChild(op('='));
+      line.appendChild(wrapMatrixWithLabel(renderSmallMatrix(event.final, event.final.length, 'result'), event.quadrant, 'result'));
+
+      step.appendChild(line);
+      compArea.appendChild(step);
+      work.appendChild(compArea);
+
+      // Process with MathJax if available
+      if (window.MathJax) {
+        MathJax.typesetPromise([compArea]).catch(err => console.log('MathJax error:', err));
+      }
+    }
+
+    // Sub-demo event handlers (removed play button functionality)
+    subNextBtn.addEventListener('click', () => {
+      if (subPtr < subEvents.length - 1) {
+        subPtr++;
+        rebuildSubDemo();
+      }
     });
+
+    subPrevBtn.addEventListener('click', () => {
+      if (subPtr > 0) {
+        subPtr--;
+        rebuildSubDemo();
+      }
+    });
+
+    // Initialize sub-demo
+    rebuildSubDemo();
   }
 
-  // Simplified wrapper without brackets
-  function wrapMatrixWithLabel(matrixNode, label, termClass = null) {
-    const wrapper = document.createElement('div');
-    wrapper.className = 'matrix-with-label';
+  // Enhanced 2x2 multiplication that shows step-by-step computation
+  function multiply2x2WithSteps(A, B) {
+    // For 2x2 matrices, show the actual scalar computations
+    const steps = [];
+    const result = [[0,0],[0,0]];
     
-    wrapper.appendChild(matrixNode);
-    
-    const labelDiv = document.createElement('div');
-    labelDiv.className = 'small-matrix-label';
-    if (termClass) labelDiv.classList.add(termClass);
-    
-    // Clean label formatting - don't use formatEquation which adds extra chars
-    if (window.MathJax && /[₁₂]/.test(label)) {
-      // Convert Unicode subscripts to LaTeX only for labels with subscripts
-      const latexLabel = label.replace(/([ABC])(₁₁|₁₂|₂₁|₂₂)/g, (match, letter, subscript) => {
-        const subMap = {
-          '₁₁': '11',
-          '₁₂': '12', 
-          '₂₁': '21',
-          '₂₂': '22'
+    // Compute each element step by step
+    for (let i = 0; i < 2; i++) {
+      for (let j = 0; j < 2; j++) {
+        const computation = {
+          position: [i, j],
+          formula: `(${A[i][0]} × ${B[0][j]}) + (${A[i][1]} × ${B[1][j]})`,
+          calculation: `${A[i][0] * B[0][j]} + ${A[i][1] * B[1][j]}`,
+          result: A[i][0] * B[0][j] + A[i][1] * B[1][j]
         };
-        return `${letter}_{${subMap[subscript]}}`;
-      });
-      labelDiv.innerHTML = `\\(${latexLabel}\\)`;
-    } else {
-      labelDiv.textContent = label;
+        steps.push(computation);
+        result[i][j] = computation.result;
+      }
     }
     
-    wrapper.appendChild(labelDiv);
-    return wrapper;
+    return { result, steps };
   }
 
-  // Enhanced computation area with proper operator alignment
-  function updateComputationArea(event) {
-    const work = getOrCreateWorkArea(true);
-    const oldComp = work.querySelector('.computation-area');
-    if (oldComp) oldComp.remove();
-
-    if (!event || event.type !== 'compute_both_terms') return;
-
-    const compArea = document.createElement('div');
-    compArea.className = 'computation-area';
-
-    const step = document.createElement('div');
-    step.className = 'computation-step both-terms';
-
-    const title = document.createElement('div');
-    title.className = 'step-title';
-    title.innerHTML = formatComment(`Computing ${event.quadrant}`);
-    step.appendChild(title);
-
-    const equation = document.createElement('div');
-    equation.className = 'equation-line';
-    const formattedEq = formatEquation(event.quadrant, event.term1.description, event.term2.description);
-    equation.innerHTML = formattedEq;
-    step.appendChild(equation);
-
-    // One line: A1×B1 + A2×B2 = R1 + R2 = Final
-    const line = document.createElement('div');
-    line.className = 'matrix-computation';
-
-    // Term 1: A1 × B1 (Yellow matrices)
-    line.appendChild(wrapMatrixWithLabel(renderSmallMatrix(event.term1.matrixA, event.term1.matrixA.length, 'term1'), event.term1.description.split(' × ')[0], 'term1'));
-    line.appendChild(op('×'));
-    line.appendChild(wrapMatrixWithLabel(renderSmallMatrix(event.term1.matrixB, event.term1.matrixB.length, 'term1'), event.term1.description.split(' × ')[1], 'term1'));
-    line.appendChild(op('+'));
-    
-    // Term 2: A2 × B2 (Blue matrices)
-    line.appendChild(wrapMatrixWithLabel(renderSmallMatrix(event.term2.matrixA, event.term2.matrixA.length, 'term2'), event.term2.description.split(' × ')[0], 'term2'));
-    line.appendChild(op('×'));
-    line.appendChild(wrapMatrixWithLabel(renderSmallMatrix(event.term2.matrixB, event.term2.matrixB.length, 'term2'), event.term2.description.split(' × ')[1], 'term2'));
-    line.appendChild(op('='));
-    
-    // Results: R1 + R2 = Final (Color-coded results)
-    line.appendChild(wrapMatrixWithLabel(renderSmallMatrix(event.term1.result, event.term1.result.length, 'term1'), 'R₁', 'term1'));
-    line.appendChild(op('+'));
-    line.appendChild(wrapMatrixWithLabel(renderSmallMatrix(event.term2.result, event.term2.result.length, 'term2'), 'R₂', 'term2'));
-    line.appendChild(op('='));
-    line.appendChild(wrapMatrixWithLabel(renderSmallMatrix(event.final, event.final.length, 'result'), event.quadrant, 'result'));
-
-    step.appendChild(line);
-
-    //const counts = document.createElement('div');
-    //counts.className = 'operation-counts';
-    //counts.textContent = `Operations: ${event.multiplications} multiplications, ${event.additions} additions`;
-    //step.appendChild(counts);
-
-    compArea.appendChild(step);
-    work.appendChild(compArea);
-
-    // Process with MathJax if available
-    if (window.MathJax) {
-      MathJax.typesetPromise([compArea]).catch(err => console.log('MathJax error:', err));
-    }
-  }
-
+  // Main rebuild function
   function rebuild() {
     const event = events[ptr];
     if (!event) return;
@@ -811,19 +1904,9 @@
       }
     }
 
-    // Update counters - removed counter display, just track internally
-    let totalMults = 0, totalAdds = 0;
-    for (let i = 1; i <= ptr; i++) {
-      const e = events[i];
-      if (e.type === 'compute_both_terms') {
-        totalMults += e.multiplications;
-        totalAdds  += e.additions;
-      }
-    }
-
     switch (event.type) {
       case 'init':
-        clearWorkArea(); // Clear everything when initializing
+        clearWorkArea();
         renderMatrix(matA, A);
         renderMatrix(matB, B);
         renderMatrix(matR, currentResult);
@@ -841,13 +1924,8 @@
         break;
 
       case 'start_quadrant':
-        // Extract term information for color coding
-        const termColors = {
-          term1: [], 
-          term2: []
-        };
+        const termColors = { term1: [], term2: [] };
         
-        // Determine which A/B quadrants are involved for this C quadrant
         if (event.quadrant === 'C₁₁') {
           termColors.term1 = ['A₁₁', 'B₁₁'];
           termColors.term2 = ['A₁₂', 'B₂₁'];
@@ -862,21 +1940,14 @@
           termColors.term2 = ['A₂₂', 'B₂₂'];
         }
 
-        // Render matrices without highlighting from previous step
         renderMatrix(matA, A);
         renderMatrix(matB, B);
-        renderMatrix(matR, currentResult);  // Remove any previous orange highlighting
-        
-        // Clear previous computation area when starting new quadrant
-        const work = getOrCreateWorkArea();
-        const oldComp = work.querySelector('.computation-area');
-        if (oldComp) oldComp.remove();
+        renderMatrix(matR, currentResult);
         
         showOverlay(matA, A.length, null, termColors);
         showOverlay(matB, B.length, null, termColors);
         showOverlay(matR, A.length, event.quadrant);
         
-        // Show formula in the comment for this quadrant
         const formula = `${event.quadrant} = ${termColors.term1[0]}×${termColors.term1[1]} + ${termColors.term2[0]}×${termColors.term2[1]}`;
         const startComment = formatComment(`Computing  ${formula}`);
         commentBox.innerHTML = startComment;
@@ -885,43 +1956,38 @@
         }
         break;
 
-      case 'compute_both_terms':
-        updateComputationArea(event);
+      case 'show_interactive_computation':
+        showInteractiveComputation(event);
         renderMatrix(matR, currentResult);
         
-        // Keep color-coded overlays during computation
-        const computeTermColors = {
-          term1: [], 
-          term2: []
-        };
+        const interactiveTermColors = { term1: [], term2: [] };
         
         if (event.quadrant === 'C₁₁') {
-          computeTermColors.term1 = ['A₁₁', 'B₁₁'];
-          computeTermColors.term2 = ['A₁₂', 'B₂₁'];
+          interactiveTermColors.term1 = ['A₁₁', 'B₁₁'];
+          interactiveTermColors.term2 = ['A₁₂', 'B₂₁'];
         } else if (event.quadrant === 'C₁₂') {
-          computeTermColors.term1 = ['A₁₁', 'B₁₂'];
-          computeTermColors.term2 = ['A₁₂', 'B₂₂'];
+          interactiveTermColors.term1 = ['A₁₁', 'B₁₂'];
+          interactiveTermColors.term2 = ['A₁₂', 'B₂₂'];
         } else if (event.quadrant === 'C₂₁') {
-          computeTermColors.term1 = ['A₂₁', 'B₁₁'];
-          computeTermColors.term2 = ['A₂₂', 'B₂₁'];
+          interactiveTermColors.term1 = ['A₂₁', 'B₁₁'];
+          interactiveTermColors.term2 = ['A₂₂', 'B₂₁'];
         } else if (event.quadrant === 'C₂₂') {
-          computeTermColors.term1 = ['A₂₁', 'B₁₂'];
-          computeTermColors.term2 = ['A₂₂', 'B₂₂'];
+          interactiveTermColors.term1 = ['A₂₁', 'B₁₂'];
+          interactiveTermColors.term2 = ['A₂₂', 'B₂₂'];
         }
         
-        showOverlay(matA, A.length, null, computeTermColors);
-        showOverlay(matB, B.length, null, computeTermColors);
+        showOverlay(matA, A.length, null, interactiveTermColors);
+        showOverlay(matB, B.length, null, interactiveTermColors);
         showOverlay(matR, A.length, event.quadrant);
         
-        const computeComment = formatComment(`Computing both terms for ${event.quadrant} (${event.multiplications} mults, ${event.additions} adds)`);
-        commentBox.innerHTML = computeComment;
+        const interactiveComment = formatComment(`Interactive computation for ${event.quadrant}. Choose "Compute" for direct calculation or "Show Computation" for step-by-step demo.`);
+        commentBox.innerHTML = interactiveComment;
         if (window.MathJax) {
           MathJax.typesetPromise([commentBox]).catch(err => console.log('MathJax error:', err));
         }
         break;
 
-      case 'copy_result': {
-        // Highlight the copied submatrix instead of showing overlays
+      case 'copy_result':
         const highlightRegion = {
           r: event.targetR,
           c: event.targetC,
@@ -930,25 +1996,11 @@
         
         renderMatrix(matA, A);
         renderMatrix(matB, B);
-        renderMatrix(matR, currentResult, highlightRegion);  // Highlight the copied region
+        renderMatrix(matR, currentResult, highlightRegion);
         
-        // Remove overlays entirely for this step
         hideOverlay(matA);
         hideOverlay(matB);
         hideOverlay(matR);
-        
-        //const work = getOrCreateWorkArea();
-        //const existingSummary = Array.from(work.querySelectorAll('.result-summary')).find(s => 
-        //  s.textContent.includes(event.quadrant)
-        //);
-        //
-        //if (!existingSummary) {
-        //  const summary = document.createElement('div');
-        //  summary.className = 'result-summary';
-        //  summary.textContent = `✓ ${event.quadrant} completed and copied to result matrix`;
-        //  summary.dataset.quadrant = event.quadrant;
-        //  work.appendChild(summary);
-        //}
         
         const copyComment = formatComment(`${event.quadrant} computation complete and copied to result matrix`);
         commentBox.innerHTML = copyComment;
@@ -956,133 +2008,70 @@
           MathJax.typesetPromise([commentBox]).catch(err => console.log('MathJax error:', err));
         }
         break;
-      }
 
-      case 'done': {
-        // Hide overlays, clear computation area, and show final result
+      case 'done':
         hideOverlay(matA);
         hideOverlay(matB);
         hideOverlay(matR);
         
-        // Reuse existing work variable instead of redeclaring
-        let work = getOrCreateWorkArea();
-        let oldComp = work.querySelector('.computation-area');
+        const work = getOrCreateWorkArea();
+        const oldComp = work.querySelector('.computation-area');
         if (oldComp) oldComp.remove();
         
         renderMatrix(matA, A);
         renderMatrix(matB, B);
         renderMatrix(matR, event.result);
-        commentBox.textContent = `Complete! Total: ${totalMults} multiplications, ${totalAdds} additions`;
+        commentBox.textContent = `Complete! Matrix multiplication finished.`;
         break;
-      }
     }
 
     // Update button states
     prevBtn.disabled = (ptr <= 0);
-    nextBtn.disabled = (ptr >= events.length - 1);
+    if (event.type !== 'show_interactive_computation') {
+      nextBtn.disabled = (ptr >= events.length - 1);
+    }
     playBtn.disabled = (ptr >= events.length - 1);
   }
 
-  // Enhanced renderMatrix with optional highlighting for copied submatrix
-  function renderMatrix(container, M, highlightRegion = null) {
-    container.innerHTML = '';
-    const n = M.length;
-    container.style.gridTemplateColumns = `repeat(${n}, 1fr)`;
-    for (let i = 0; i < n; i++) {
-      for (let j = 0; j < n; j++) {
-        const cell = document.createElement('div');
-        cell.className = 'matrix-element';
-        
-        // Add highlight class if this cell is in the highlight region
-        if (highlightRegion && 
-            i >= highlightRegion.r && i < highlightRegion.r + highlightRegion.size &&
-            j >= highlightRegion.c && j < highlightRegion.c + highlightRegion.size) {
-          cell.classList.add('copied-highlight');
-        }
-        
-        cell.textContent = M[i][j];
-        container.appendChild(cell);
-      }
-    }
+  // Add: quadrant label helper used in processQuadrant descriptions
+  function getQuadrantLabel(r, c, n) {
+    if (n === 2) return '';
+    const mid = n / 2;
+    const row = r < mid ? '₁' : '₂';
+    const col = c < mid ? '₁' : '₂';
+    return row + col;
   }
 
-  // Fixed equation rendering with proper LaTeX subscript conversion
-  function formatEquation(quadrant, term1Desc, term2Desc) {
-    // Convert Unicode subscripts to LaTeX format
-    const latexFormat = (text) => {
-      return text.replace(/([ABC])(₁₁|₁₂|₂₁|₂₂)/g, (match, letter, subscript) => {
-        const subMap = {
-          '₁₁': '11',
-          '₁₂': '12', 
-          '₂₁': '21',
-          '₂₂': '22'
-        };
-        return `${letter}_{${subMap[subscript]}}`;
-      });
-    };
+  // Event generation - modified to include interactive computation events
+  function buildEvents(A, B) {
+    const n = A.length;
+    const events = [{ type: 'init' }];
+    const result = initZeroMatrix(n);
     
-    // Try to use MathJax if available, otherwise use HTML entities
-    if (window.MathJax) {
-      return `\\(${latexFormat(quadrant)} = ${latexFormat(term1Desc)} + ${latexFormat(term2Desc)}\\)`;
-    } else {
-      // Fallback to original Unicode subscripts
-      return `${quadrant} = ${term1Desc} + ${term2Desc}`;
+    // Show partition overlay
+    events.push({ type: 'show_partition', size: n });
+
+    // Process each quadrant
+    const size = n / 2;
+    const quadrants = [
+      { name: 'C₁₁', ar: 0, ac: 0, br: 0, bc: 0, rr: 0, rc: 0 },
+      { name: 'C₁₂', ar: 0, ac: 0, br: 0, bc: size, rr: 0, rc: size },
+      { name: 'C₂₁', ar: size, ac: 0, br: 0, bc: 0, rr: size, rc: 0 },
+      { name: 'C₂₂', ar: size, ac: 0, br: 0, bc: size, rr: size, rc: size }
+    ];
+
+    for (const quad of quadrants) {
+      processQuadrant(A, B, quad, result, events, n);
     }
+
+    events.push({ type: 'done', result });
+    return events;
   }
 
-  // Add back missing helper functions
-  function op(symbol) {
-    const s = document.createElement('span');
-    s.textContent = symbol;
-    s.style.fontWeight = 'bold';
-    s.style.fontSize = '1.1em';
-    return s;
-  }
-
-  function showOverlay(container, size, activeQuadrant = null, termColors = null) {
-    hideOverlay(container);
-    const overlay = document.createElement('div');
-    overlay.className = 'matrix-overlay';
-    overlay.style.gridTemplateColumns = '1fr 1fr';
-    overlay.style.gridTemplateRows = '1fr 1fr';
-
-    const prefix = container === matA ? 'A' : container === matB ? 'B' : 'C';
-    const labels = ['₁₁','₁₂','₂₁','₂₂'];
-    
-    labels.forEach(lbl => {
-      const div = document.createElement('div');
-      div.className = 'overlay-label';
-      
-      const quadrantName = prefix + lbl;
-      
-      // Add color coding for terms
-      if (termColors) {
-        if (termColors.term1.includes(quadrantName)) {
-          div.classList.add('term1');
-        } else if (termColors.term2.includes(quadrantName)) {
-          div.classList.add('term2');
-        }
-      }
-      
-      // Highlight active result quadrant
-      if (activeQuadrant && quadrantName === activeQuadrant) {
-        div.classList.add('active');
-      }
-      
-      div.textContent = quadrantName;
-      overlay.appendChild(div);
-    });
-    container.appendChild(overlay);
-  }
-
-  function hideOverlay(container) {
-    const existing = container.querySelector('.matrix-overlay');
-    if (existing) existing.remove();
-  }
-
-  // Event handlers - clear work area on new generation
+  // Event handlers
   genBtn.addEventListener('click', () => {
     clearWorkArea();
+    computationState = {};
     const n = parseInt(dimInput.value, 10);
     A = genRandomMatrix(n);
     B = genRandomMatrix(n);
@@ -1141,15 +2130,4 @@
   // Initialize
   genBtn.click();
 })();
-</script>
-
-<!-- Add MathJax for LaTeX rendering -->
-<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-<script>
-window.MathJax = {
-  tex: {
-    inlineMath: [['\\(', '\\)']],
-    displayMath: [['\\[', '\\]']]
-  }
-};
 </script>
