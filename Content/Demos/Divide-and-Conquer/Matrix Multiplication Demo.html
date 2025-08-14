@@ -15,10 +15,7 @@
       }
     };
   </script>
-  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
   <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-
-  <style>
 
 <style>
   /* style.css (≈150 lines) */
@@ -1332,25 +1329,58 @@ function wrapMatrixWithLabel(matrixNode, label, termClass = null) {
     const stepsContainer = overlay.querySelector('#computation-steps');
 
     function updateStep() {
-      // Clear previous highlighting
-      overlay.querySelectorAll('.highlight-element').forEach(el => el.classList.remove('highlight-element'));
+      // Clear previous highlighting and reset all cell styles
+      overlay.querySelectorAll('.matrix-element').forEach(el => {
+        el.classList.remove('highlight-element');
+        // Reset to original colors based on container
+        const container = el.closest('.matrix-container');
+        if (container.id === 'demo-matrix-a') {
+          el.style.background = 'rgba(208, 231, 255, 0.3)'; // Light blue for A
+          el.style.border = '1px solid #777';
+        } else if (container.id === 'demo-matrix-b') {
+          el.style.background = 'rgba(255, 208, 208, 0.3)'; // Light pink for B  
+          el.style.border = '1px solid #777';
+        } else if (container.id === 'demo-matrix-result') {
+          el.style.background = 'rgba(208, 255, 208, 0.3)'; // Light green for result
+          el.style.border = '1px solid #777';
+        }
+      });
       
       if (currentStep >= 0 && currentStep < steps.length) {
         const step = steps[currentStep];
         const [i, j] = step.position;
         
-        // Highlight current computation
+        // Update result cell content and highlight in orange
         const resultMatrix = overlay.querySelector('#demo-matrix-result');
         const resultCells = resultMatrix.querySelectorAll('.matrix-element');
-        resultCells[i * 2 + j].classList.add('highlight-element');
         resultCells[i * 2 + j].textContent = step.result;
+        resultCells[i * 2 + j].style.background = 'rgba(255, 165, 0, 0.8)'; // Orange
+        resultCells[i * 2 + j].style.border = '2px solid #ff6600';
+        
+        // Highlight first multiplication pair (A[i,0] * B[0,j]) in YELLOW
+        const matrixA = overlay.querySelector('#demo-matrix-a');
+        const matrixB = overlay.querySelector('#demo-matrix-b');
+        const aCells = matrixA.querySelectorAll('.matrix-element');
+        const bCells = matrixB.querySelectorAll('.matrix-element');
+        
+        // First pair: A[i,0] and B[0,j] - YELLOW
+        aCells[i * 2 + 0].style.background = 'rgba(255, 235, 59, 0.8)'; // Yellow
+        aCells[i * 2 + 0].style.border = '2px solid #ffeb3b';
+        bCells[0 * 2 + j].style.background = 'rgba(255, 235, 59, 0.8)'; // Yellow
+        bCells[0 * 2 + j].style.border = '2px solid #ffeb3b';
+        
+        // Second pair: A[i,1] and B[1,j] - BLUE
+        aCells[i * 2 + 1].style.background = 'rgba(33, 150, 243, 0.8)'; // Blue
+        aCells[i * 2 + 1].style.border = '2px solid #0277bd';
+        bCells[1 * 2 + j].style.background = 'rgba(33, 150, 243, 0.8)'; // Blue
+        bCells[1 * 2 + j].style.border = '2px solid #0277bd';
         
         // Show computation details
         stepsContainer.innerHTML = `
           <div class="current-computation">
             <h4>Computing element [${i+1}, ${j+1}]:</h4>
-            <div class="formula">${step.formula}</div>
-            <div class="calculation">= ${step.calculation}</div>
+            <div class="formula">(<span style="color: #ffeb3b; font-weight: bold;">${A[i][0]} × ${B[0][j]}</span>) + (<span style="color: #0277bd; font-weight: bold;">${A[i][1]} × ${B[1][j]}</span>)</div>
+            <div class="calculation">= <span style="color: #ffeb3b; font-weight: bold;">${A[i][0] * B[0][j]}</span> + <span style="color: #0277bd; font-weight: bold;">${A[i][1] * B[1][j]}</span></div>
             <div class="result">= ${step.result}</div>
           </div>
         `;
@@ -1410,7 +1440,17 @@ function wrapMatrixWithLabel(matrixNode, label, termClass = null) {
     container.style.padding = '6px';
     container.style.border = '1px solid #999';
     container.style.borderRadius = '6px';
-    container.style.background = 'rgba(208, 231, 255, 0.3)'; // Light blue like matrix A
+    
+    // Determine matrix type based on container ID and apply appropriate background
+    if (container.id === 'demo-matrix-a') {
+      container.style.background = 'rgba(208, 231, 255, 0.3)'; // Light blue for A
+    } else if (container.id === 'demo-matrix-b') {
+      container.style.background = 'rgba(255, 208, 208, 0.3)'; // Light pink for B
+    } else if (container.id === 'demo-matrix-result') {
+      container.style.background = 'rgba(208, 255, 208, 0.3)'; // Light green for result
+    } else {
+      container.style.background = 'rgba(208, 231, 255, 0.3)'; // Default to light blue
+    }
     
     for (let i = 0; i < 2; i++) {
       for (let j = 0; j < 2; j++) {
@@ -1424,7 +1464,18 @@ function wrapMatrixWithLabel(matrixNode, label, termClass = null) {
         cell.style.border = '1px solid #777';
         cell.style.fontFamily = 'monospace';
         cell.style.fontSize = '1em';
-        cell.style.background = 'rgba(208, 231, 255, 0.3)';
+        
+        // Apply same background color as container to individual cells
+        if (container.id === 'demo-matrix-a') {
+          cell.style.background = 'rgba(208, 231, 255, 0.3)'; // Light blue for A
+        } else if (container.id === 'demo-matrix-b') {
+          cell.style.background = 'rgba(255, 208, 208, 0.3)'; // Light pink for B
+        } else if (container.id === 'demo-matrix-result') {
+          cell.style.background = 'rgba(208, 255, 208, 0.3)'; // Light green for result
+        } else {
+          cell.style.background = 'rgba(208, 231, 255, 0.3)'; // Default to light blue
+        }
+        
         cell.textContent = matrix[i][j];
         container.appendChild(cell);
       }
@@ -1539,6 +1590,168 @@ function wrapMatrixWithLabel(matrixNode, label, termClass = null) {
     return { result, steps };
   }
 
+  function rebuild() {
+  const event = events[ptr];
+  if (!event) return;
+
+  const currentResult = initZeroMatrix(A.length);
+  for (let i = 1; i <= ptr; i++) {
+    const ev = events[i];
+    if (ev.type === 'copy_result') {
+      const size = A.length / 2;
+      for (let r = 0; r < size; r++) {
+        for (let c = 0; c < size; c++) {
+          currentResult[ev.targetR + r][ev.targetC + c] = ev.final[r][c];
+        }
+      }
+    }
+  }
+
+  switch (event.type) {
+    case 'init':
+      clearWorkArea();
+      renderMatrix(matA, A);
+      renderMatrix(matB, B);
+      renderMatrix(matR, currentResult);
+      commentBox.textContent = 'Starting divide-and-conquer matrix multiplication...';
+      break;
+
+    case 'show_partition':
+      clearWorkArea();
+      // Clear work area when showing partition
+      const work1 = getOrCreateWorkArea();
+      const oldComp1 = work1.querySelector('.computation-area');
+      if (oldComp1) oldComp1.remove();
+      
+      renderMatrix(matA, A);
+      renderMatrix(matB, B);
+      renderMatrix(matR, currentResult);
+      showOverlay(matA, event.size);
+      showOverlay(matB, event.size);
+      showOverlay(matR, event.size);
+      commentBox.textContent = `Partitioning ${event.size}×${event.size} matrices into ${event.size/2}×${event.size/2} blocks`;
+      break;
+
+    case 'start_quadrant':
+      clearWorkArea();
+      // Clear work area when starting new quadrant
+      const work2 = getOrCreateWorkArea();
+      const oldComp2 = work2.querySelector('.computation-area');
+      if (oldComp2) oldComp2.remove();
+      
+      const termColors = { term1: [], term2: [] };
+      
+      if (event.quadrant === 'C11') {
+        termColors.term1 = ['A11', 'B11'];
+        termColors.term2 = ['A12', 'B21'];
+      } else if (event.quadrant === 'C12') {
+        termColors.term1 = ['A11', 'B12'];
+        termColors.term2 = ['A12', 'B22'];
+      } else if (event.quadrant === 'C21') {
+        termColors.term1 = ['A21', 'B11'];
+        termColors.term2 = ['A22', 'B21'];
+      } else if (event.quadrant === 'C22') {
+        termColors.term1 = ['A21', 'B12'];
+        termColors.term2 = ['A22', 'B22'];
+      }
+
+      renderMatrix(matA, A);
+      renderMatrix(matB, B);
+      renderMatrix(matR, currentResult);
+      
+      showOverlay(matA, A.length, null, termColors);
+      showOverlay(matB, B.length, null, termColors);
+      showOverlay(matR, A.length, event.quadrant);
+      
+      const formula = `${event.quadrant} = ${termColors.term1[0]}×${termColors.term1[1]} + ${termColors.term2[0]}×${termColors.term2[1]}`;
+      const startComment = formatComment(`Computing  ${formula}`);
+      commentBox.innerHTML = startComment;
+      if (window.MathJax) {
+        MathJax.typesetPromise([commentBox]).catch(err => console.log('MathJax error:', err));
+      }
+      break;
+
+    case 'show_interactive_computation':
+      showInteractiveComputation(event);
+      renderMatrix(matR, currentResult);
+      
+      const interactiveTermColors = { term1: [], term2: [] };
+      
+      if (event.quadrant === 'C11') {
+        interactiveTermColors.term1 = ['A11', 'B11'];
+        interactiveTermColors.term2 = ['A12', 'B21'];
+      } else if (event.quadrant === 'C12') {
+        interactiveTermColors.term1 = ['A11', 'B12'];
+        interactiveTermColors.term2 = ['A12', 'B22'];
+      } else if (event.quadrant === 'C21') {
+        interactiveTermColors.term1 = ['A21', 'B11'];
+        interactiveTermColors.term2 = ['A22', 'B21'];
+      } else if (event.quadrant === 'C22') {
+        interactiveTermColors.term1 = ['A21', 'B12'];
+        interactiveTermColors.term2 = ['A22', 'B22'];
+      }
+      
+      showOverlay(matA, A.length, null, interactiveTermColors);
+      showOverlay(matB, B.length, null, interactiveTermColors);
+      showOverlay(matR, A.length, event.quadrant);
+      
+      const interactiveComment = formatComment(`Interactive computation for ${event.quadrant}. Choose "Compute" for direct calculation or "Show Computation" for step-by-step demo.`);
+      commentBox.innerHTML = interactiveComment;
+      if (window.MathJax) {
+        MathJax.typesetPromise([commentBox]).catch(err => console.log('MathJax error:', err));
+      }
+      break;
+
+    case 'copy_result':
+      // Clear work area when copying result
+      const work3 = getOrCreateWorkArea();
+      const oldComp3 = work3.querySelector('.computation-area');
+      if (oldComp3) oldComp3.remove();
+      
+      const highlightRegion = {
+        r: event.targetR,
+        c: event.targetC,
+        size: A.length / 2
+      };
+      
+      renderMatrix(matA, A);
+      renderMatrix(matB, B);
+      renderMatrix(matR, currentResult, highlightRegion);
+      
+      hideOverlay(matA);
+      hideOverlay(matB);
+      hideOverlay(matR);
+      
+      const copyComment = formatComment(`${event.quadrant} computation complete and copied to result matrix`);
+      commentBox.innerHTML = copyComment;
+      if (window.MathJax) {
+        MathJax.typesetPromise([commentBox]).catch(err => console.log('MathJax error:', err));
+      }
+      break;
+
+    case 'done':
+      hideOverlay(matA);
+      hideOverlay(matB);
+      hideOverlay(matR);
+      
+      const work = getOrCreateWorkArea();
+      const oldComp = work.querySelector('.computation-area');
+      if (oldComp) oldComp.remove();
+      
+      renderMatrix(matA, A);
+      renderMatrix(matB, B);
+      renderMatrix(matR, event.result);
+      commentBox.textContent = `Complete! Matrix multiplication finished.`;
+      break;
+  }
+
+  // Update button states
+  prevBtn.disabled = (ptr <= 0);
+  if (event.type !== 'show_interactive_computation') {
+    nextBtn.disabled = (ptr >= events.length - 1);
+  }
+}
+/*
   // Main rebuild function
   function rebuild() {
     const event = events[ptr];
@@ -1684,6 +1897,7 @@ function wrapMatrixWithLabel(matrixNode, label, termClass = null) {
       nextBtn.disabled = (ptr >= events.length - 1);
     }
   }
+    */
 
   // Add: quadrant label helper used in processQuadrant descriptions
   function getQuadrantLabel(r, c, n) {
@@ -2060,6 +2274,7 @@ function wrapMatrixWithLabel(matrixNode, label, termClass = null) {
         break;
 
       case 'show_partition':
+        clearWorkArea();
         renderMatrix(matA, A);
         renderMatrix(matB, B);
         renderMatrix(matR, currentResult);
@@ -2070,6 +2285,7 @@ function wrapMatrixWithLabel(matrixNode, label, termClass = null) {
         break;
 
       case 'start_quadrant':
+        clearWorkArea();
         const termColors = { term1: [], term2: [] };
         
         if (event.quadrant === 'C11') {
