@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Strassen's Algorithm Demo</title>
+  <script src="/Algorithms/scripts/demoScripts.js"></script>
+  <link rel="stylesheet" href="/Algorithms/css/style.css">
+  <link rel="stylesheet" href="/Algorithms/css/demo.css">
+  
+  <!-- Add MathJax -->
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['\\(', '\\)']],
+        displayMath: [['\\[', '\\]']]
+      }
+    };
+  </script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+  <!-- Load refactored JavaScript modules -->
+  <script src="/Algorithms/scripts/Strassen/DemoConfig.js"></script>
+  <script src="/Algorithms/scripts/Strassen/MatrixUtils.js"></script>
+  <script src="/Algorithms/scripts/Strassen/MatrixRenderer.js"></script>
+  <script src="/Algorithms/scripts/Strassen/OverlayManager.js"></script>
+  <script src="/Algorithms/scripts/Strassen/TextFormatter.js"></script>
+  <script src="/Algorithms/scripts/Strassen/InteractiveComputation.js"></script>
+  <script src="/Algorithms/scripts/Strassen/EventHandlers.js"></script>
+  <script src="/Algorithms/scripts/Strassen/EventBuilder.js"></script>
+  <script src="/Algorithms/scripts/Strassen/SubDemoManager.js"></script>
+  <script src="/Algorithms/scripts/Strassen/DemoManager.js"></script>
+
+<style>
+  /* style.css (≈150 lines) */
+
+/* New */
+.controls {
+  display: flex;
+  flex-direction: row;       /* ← put them side by side */
+  align-items: center;       /* ← vertically center all buttons/labels */
+  gap: 1.5em;                /* ← a bit more breathing room */
+  margin-bottom: 1.25em;
+}
+.overlay-controls {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;   /* Center horizontally */
+  gap: 1.5em;
+  margin-bottom: 1.25em;
+}
+.input-row, .step-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.75em;
+  justify-content: flex-start;
+}
+.input-row label span {
+  font-size: 0.9em;
+  color: #666;
+}
+.step-controls button, .input-row button, .step-controls select {
+  padding: 0.4em 0.8em;
+  border: 1px solid #888;
+  background: #eee;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.step-controls button:disabled, .input-row button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+.step-controls button:hover:not(:disabled), .input-row button:hover:not(:disabled) {
+  background: #ddd;
+}
+.legend {
+  display: flex;
+  justify-content: flex-start;
+  gap: 1.5em;
+  margin-bottom: 1em;
+}
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.4em;
+}
+/* ── New ── */
+/* ── New ── */
+.legend .legend-box {
+  display: inline-block;    /* make the span respect width/height */
+  width: 16px;
+  height: 16px;
+  border: 1px solid #000;   /* pure black outline */
+  margin-right: 0.4em;      /* small gap before the label text */
+  box-sizing: border-box;   /* ensure border doesn’t add to the box size */
+}
+
+.legend-box.a { background: #d0e7ff; }
+.legend-box.b { background: #ffd0d0; }
+.legend-box.res { background: #d0ffd0; }
+.matrix-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.matrix-label {
+  margin-top: 0.4em;
+  font-weight: bold;
+}
+.matrix-op {
+  font-size: 1.5em;
+  font-weight: bold;
+  align-self: center; /* Back to center */
+  margin-bottom: 30px; /* Nudge down 10px from center */
+  user-select: none;
+}
+#matrix-row {
+  display: flex;
+  justify-content: flex-start;  /* pack everything to the left */
+  gap: .25em;
+  margin-bottom: 1em;
+}
+.matrix-container {
+  display: grid;
+  gap: 4px;
+  background: transparent;
+  padding: 6px;
+  border-radius: 6px;
+  position: relative; /* anchor overlay to the grid only */
+}
+
+/* color each entire matrix per the legend */
+#matrix-a.matrix-container {
+  background: rgba(208, 231, 255, 0.3);
+}
+
+#matrix-b.matrix-container {
+  background: rgba(255, 208, 208, 0.3);
+}
+
+#matrix-res.matrix-container {
+  background: rgba(208, 255, 208, 0.3);
+}
+.matrix-element {
+  width: 30px;
+  height: 30px;
+  background: transparent;    /* clear the default white */
+  border: 1px solid #777;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-family: monospace;
+  position: relative;
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+
+/* now color each element per the legend */
+#matrix-a.matrix-container .matrix-element {
+  background: rgba(208, 231, 255, 0.3);
+}
+#matrix-b.matrix-container .matrix-element {
+  background: rgba(255, 208, 208, 0.3);
+}
+#matrix-res.matrix-container .matrix-element {
+  background: rgba(208, 255, 208, 0.3);
+}
+
+.matrix-element.block-highlight {
+  /* thin orange outline */
+  box-shadow: 0 0 0 2px rgba(255,165,0,0.8);
+}
+
+/* Orange block: thin outline */
+.matrix-element.block-highlight {
+  box-shadow: 0 0 0 2px rgba(255,165,0,0.8);
+}
+
+/* Yellow flash: atomic multiplication highlight */
+.matrix-element.highlight {
+  box-shadow: 0 0 8px 2px rgba(255,215,0,0.8);
+}
+
+.matrix-element.a-highlight { background: #d0e7ff; }
+.matrix-element.b-highlight { background: #ffd0d0; }
+.matrix-element.res-highlight { background: #d0ffd0; }
+.comment {
+  text-align: left;
+  font-style: italic;
+  min-height: 1.5em;
+  margin-top: 10px;
+}
+
+/* demo.css (≈100 lines) - extra animations & responsive tweaks */
+@media (max-width: 768px) {
+  .matrix-element { width: 40px; height: 40px; font-size: 0.9em; }
+}
+@keyframes slide-to-res {
+  0% { transform: translateY(0) scale(1); opacity: 1; }
+  50% { transform: translateY(-1em) scale(1.1); opacity: 0.8; }
+  100% { transform: translateY(0) scale(1); opacity: 1; }
+}
+.animate-slide {
+  animation: slide-to-res 0.6s forwards;
+}
+
+
+/* New: */
+.matrix-clone {
+  position: absolute;
+  display: grid;
+  gap: 4px;
+  /* make grid same size as your matrices: we'll set --grid-size inline */
+  grid-template-columns: repeat(var(--grid-size), 1fr);
+  grid-template-rows:    repeat(var(--grid-size), 1fr);
+  transition: transform 0.6s ease, opacity 0.6s ease;
+  z-index: 1000;
+}
+.matrix-clone .matrix-element {
+  /* keep the same cell styling */
+  border: 1px solid #777;
+  background: inherit;
+}
+
+/* New */
+.matrix-element.highlight {
+  /* yellow flash for individual cell multiplies */
+  box-shadow: 0 0 8px 2px rgba(255,215,0,0.8);
+}
+
+/* 2) Even more specific by targeting the legend container: */
+#legend .legend-box {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  box-sizing: border-box;
+  border: 2px solid #000;      /* match the Merge demo’s bold look */
+  margin-right: 0.4em;
+}
+
+
+/* Matrix overlay system - FIXED */
+.matrix-overlay {
+  position: absolute;
+  top: 2px; left: 2px; right: 2px; bottom: 2px; /* fill the grid container */
+  display: grid;
+  gap: 2px;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.overlay-label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 0.9em;
+  color: #000;
+  background: rgba(255,255,255,0.6);
+  border: 2px solid rgba(51,51,51,0.7);
+  border-radius: 4px;
+}
+
+/* Enhanced computation area */
+.computation-step.both-terms {
+  background: rgba(240,248,255,0.8);
+  border-left: 4px solid #007acc;
+}
+
+.equation-line {
+  font-family: 'Courier New', monospace;
+  font-size: 1.1em;
+  margin: 0.5em 0;
+  text-align: center;
+}
+
+.operation-counts {
+  margin-top: 0.5em;
+  font-size: 0.9em;
+  color: #666;
+  font-style: italic;
+}
+
+/* NEW: dedicated area for computations/summaries to keep layout tidy */
+#work-area {
+  margin-top: 1em;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75em;
+}
+.result-summary {
+  margin-top: 0.25em;
+  padding: 0.5em;
+  background: #e8f5e8;
+  border-left: 4px solid #4caf50;
+  font-style: italic;
+}
+
+.small-matrix {
+  /* ...existing code... */
+  display: inline-grid;        /* prevent full-width expansion */
+  grid-auto-rows: 25px;        /* fixed row height */
+  gap: 2px;
+  background: #fff;
+  border: 1px solid #999;
+  padding: 2px;
+}
+.small-matrix-element {
+  width: 25px;
+  height: 25px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #ccc;
+  background: #fff;
+  font-size: 0.85em;
+  font-family: monospace;
+}
+
+/* New: one-line computation layout + matrix brackets */
+.matrix-computation {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2em;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  padding: 0.25em 0;
+}
+
+/* Remove matrix brackets completely */
+.matrix-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  padding: 0; /* Remove padding for brackets */
+}
+/* Remove all bracket pseudo-elements */
+.matrix-wrap::before,
+.matrix-wrap::after {
+  display: none;
+}
+
+/* Color-coded small matrices in computation area */
+.small-matrix.term1 {
+  border: 2px solid #ffeb3b;  /* Changed from #f57f17 to yellow */
+  background: rgba(255, 235, 59, 0.1);
+}
+.small-matrix.term2 {
+  border: 2px solid #0277bd;
+  background: rgba(33, 150, 243, 0.1);
+}
+.small-matrix.result {
+  border: 2px solid #ff6600;
+  background: rgba(255, 165, 0, 0.1);
+}
+
+/* Enhanced overlay highlighting for active quadrants */
+.overlay-label.active {
+  background: rgba(255, 165, 0, 0.9);  /* Orange for active */
+  border: 2px solid #ff6600;
+  color: #fff;
+  font-weight: bold;
+}
+
+/* Color-coded term highlighting - use yellow everywhere for term1 */
+.overlay-label.term1 {
+  background: rgba(255, 235, 59, 0.7);  /* Yellow for first term */
+  border: 2px solid #ffeb3b;
+  color: #333;
+}
+.overlay-label.term2 {
+  background: rgba(33, 150, 243, 0.7);  /* Blue for second term */
+  border: 2px solid #0277bd;
+  color: #fff;
+}
+
+/* Matrix labels for small matrices in computation */
+.matrix-with-label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25em;
+}
+.small-matrix-label {
+  font-size: 0.8em;
+  font-weight: bold;
+  color: #333;
+  font-family: monospace;
+}
+.small-matrix-label.term1 {
+  color: #f57f17;
+  background: rgba(255, 235, 59, 0.2);
+  padding: 2px 4px;
+  border-radius: 2px;
+}
+.small-matrix-label.term2 {
+  color: #0277bd;
+  background: rgba(33, 150, 243, 0.2);
+  padding: 2px 4px;
+  border-radius: 2px;
+}
+.small-matrix-label.result {
+  color: #ff6600;
+  background: rgba(255, 165, 0, 0.2);
+  padding: 2px 4px;
+  border-radius: 2px;
+}
+
+/* New: highlight copied submatrix */
+.matrix-element.copied-highlight {
+  background: rgba(255, 165, 0, 0.8) !important;  /* Orange highlight for copied elements */
+  border: 2px solid #ff6600 !important;
+  box-shadow: 0 0 8px 2px rgba(255,165,0,0.6);
+}
+
+/* Fix computation area operator alignment */
+.matrix-computation > span {
+  align-self: center; /* Back to center */
+  margin-bottom: 25px; /* Nudge down 10px from center */
+}
+.demo-overlay .matrix-computation.interactive > span {
+  align-self: center;
+  margin-bottom: 0;
+  /* Optionally nudge up: */
+  margin-top: -4px; /* Adjust as needed */
+}
+
+/* Full demo overlay for recursive sub-computations */
+.demo-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(240, 248, 255, 0.95);
+  backdrop-filter: blur(5px);
+  z-index: 1000;
+  overflow-y: auto;
+  padding: 20px;
+}
+
+.demo-overlay .demo-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+}
+
+.demo-overlay .overlay-title {
+  text-align: center;
+  font-size: 1.5em;
+  font-weight: bold;
+  margin-bottom: 20px;
+  color: #333;
+}
+
+.demo-overlay .close-overlay {
+  position: absolute;
+  top: 30px;
+  right: 40px;
+  background: #007acc;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.demo-overlay .close-overlay:hover {
+  background: #005999;
+}
+
+/* Scale down matrices in overlay for better fit */
+.demo-overlay .matrix-element {
+  width: 25px;
+  height: 25px;
+  font-size: 0.8em;
+}
+
+.demo-overlay .small-matrix-element {
+  width: 25px;
+  height: 25px;
+  font-size: 0.7em;
+}
+/* Style for sub-demo matrix row */
+#sub-matrix-row {
+  display: flex;
+  justify-content: flex-start;
+  gap: .1em;
+  margin-bottom: 1em;
+}
+
+/* Also fix the computation area operator alignment in demo overlay */
+.demo-overlay .matrix-computation > span {
+  margin-bottom: 0 !important;
+  align-self: center;
+}
+
+/* Interactive computation styles */
+.interactive-computation {
+  background: rgba(240, 248, 255, 0.9);
+  border-left: 4px solid #007acc;
+  padding: 1em;
+}
+
+.matrix-computation.interactive {
+  align-items: center;
+  gap: 0.2em;
+}
+
+.term-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5em;
+}
+
+.result-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5em;
+  padding: 0.5em;
+  border: 2px dashed #999;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.8);
+  min-width: 60px;
+  min-height: 60px;
+  justify-content: center;
+}
+
+.term-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3em;
+}
+
+.term-compute-btn, .term-show-btn {
+  padding: 0.3em 0.6em;
+  border: 1px solid #007acc;
+  background: #e6f3ff;
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 0.8em;
+  transition: background 0.2s;
+}
+
+.term-compute-btn:hover {
+  background: #cce6ff;
+}
+
+.term-show-btn {
+  border-color: #ff6600;
+  background: #fff0e6;
+}
+
+.term-show-btn:hover {
+  background: #ffe6cc;
+}
+
+/* Add to your <style> section: */
+
+/* 2x2 Demo specific styles */
+.demo-overlay .matrix-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.demo-overlay .matrix-label {
+  margin-top: 0.4em;
+  font-weight: bold;
+}
+
+.demo-overlay .matrix-op {
+  font-size: 1.5em;
+  font-weight: bold;
+  align-self: center;
+  user-select: none;
+}
+
+.base-case-explanation {
+  text-align: center;
+  margin-bottom: 1em;
+  padding: 0.5em;
+  background: rgba(240, 248, 255, 0.8);
+  border-radius: 4px;
+}
+
+.computation-steps {
+  margin-top: 1em;
+  padding: 1em;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 6px;
+  border: 1px solid #ddd;
+}
+
+.current-computation h4 {
+  margin-bottom: 0.5em;
+  color: #333;
+}
+
+.formula, .calculation, .result {
+  margin: 0.25em 0;
+  font-family: monospace;
+  font-size: 1.1em;
+}
+
+.formula {
+  color: #666;
+}
+
+.calculation {
+  color: #0066cc;
+}
+
+.result {
+  color: #cc0000;
+  font-weight: bold;
+}
+
+/* Highlight element in 2x2 demo */
+.demo-overlay .matrix-element.highlight-element {
+  background: rgba(255, 215, 0, 0.8) !important;
+  border: 2px solid #ffeb3b !important;
+  box-shadow: 0 0 8px 2px rgba(255,215,0,0.6);
+}
+
+.subdemo-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 16px;
+}
+</style>
+
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DQ5LVZVFDC"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-DQ5LVZVFDC');
+  </script>
+</head>
+<body>
+  <div class="demo-container">
+    <h2>Strassen's Algorithm Demo</h2>
+    
+    <!-- Controls -->
+    <div class="controls">
+      <div class="input-row">
+        <label>n:
+          <select id="dim-input">
+            <option value="4">4</option>
+            <option value="8">8</option>
+          </select>
+        </label>
+        <button id="gen-btn">Generate</button>
+      </div>
+      <div class="step-controls">
+        <button id="prev-btn" disabled>Previous</button>
+        <button id="next-btn" disabled>Next</button>
+      </div>
+    </div>
+
+    <!-- Matrices -->
+    <div id="matrix-row">
+      <div class="matrix-panel">
+        <div id="matrix-a" class="matrix-container"></div>
+        <div class="matrix-label">A</div>
+      </div>
+      <div class="matrix-op">×</div>
+      <div class="matrix-panel">
+        <div id="matrix-b" class="matrix-container"></div>
+        <div class="matrix-label">B</div>
+      </div>
+      <div class="matrix-op">=</div>
+      <div class="matrix-panel">
+        <div id="matrix-res" class="matrix-container"></div>
+        <div class="matrix-label">Result</div>
+      </div>
+    </div>
+
+    <!-- Strassen Computations List -->
+    <div id="strassen-computations" style="max-height: 350px; overflow-y: auto; margin: 1em 0;">
+      <!-- Dynamically filled by JS: 7 computations, each with buttons -->
+    </div>
+
+    <!-- Comment Box -->
+    <div id="comment" class="comment">Initialize to begin...</div>
+  </div>
+
+  <!-- Overlay for subproblem computation -->
+  <div id="strassen-overlay" class="demo-overlay" style="display:none;">
+    <div class="demo-container">
+      <button class="close-overlay" onclick="OverlayManager.closeOverlay()">Close</button>
+      <div id="overlay-content"></div>
+    </div>
+  </div>
+
+  <script>
+    // Initialize the demo when the page loads
+    document.addEventListener('DOMContentLoaded', () => {
+      const containers = {
+        matA: document.getElementById('matrix-a'),
+        matB: document.getElementById('matrix-b'),
+        matR: document.getElementById('matrix-res'),
+        commentBox: document.getElementById('comment'),
+        computations: document.getElementById('strassen-computations'),
+        overlay: document.getElementById('strassen-overlay'),
+        overlayContent: document.getElementById('overlay-content')
+      };
+      
+      const buttons = {
+        generate: document.getElementById('gen-btn'),
+        next: document.getElementById('next-btn'),
+        prev: document.getElementById('prev-btn')
+      };
+
+      const demo = new DemoManager(containers, buttons, containers.commentBox);
+      
+      // Initialize with first demo
+      demo.generateNewDemo();
+      
+      // Make demo globally available for debugging
+      window.demo = demo;
+    });
+  </script>
+</body>
+</html>
