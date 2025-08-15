@@ -134,7 +134,7 @@ class MatrixRenderer {
     if (termClass) labelDiv.classList.add(termClass);
     
     if (window.MathJax && /[0-9]/.test(label)) {
-      const latexLabel = label.replace(/([ABC])(11|12|21|22)/g, (match, letter, subscript) => {
+      const latexLabel = label.replace(/([ABCR])(11|12|21|22|1|2)/g, (match, letter, subscript) => {
         return `${letter}_{${subscript}}`;
       });
       labelDiv.innerHTML = `\\(${latexLabel}\\)`;

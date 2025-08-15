@@ -22,10 +22,10 @@ class InteractiveComputation {
 
   render() {
     const work = this.getOrCreateWorkArea(true);
-    console.log('[InteractiveComputation] Rendering into work area:', work, 'ID:', work.id);
+    //console.log('[InteractiveComputation] Rendering into work area:', work, 'ID:', work.id);
     const oldComp = work.querySelector('.computation-area');
     if (oldComp) {
-      console.log('[InteractiveComputation] Removing old computation area');
+      //console.log('[InteractiveComputation] Removing old computation area');
       oldComp.remove();
     }
 
@@ -139,7 +139,7 @@ class InteractiveComputation {
   createTermButtons(termKey, termLabel) {
     const placeholder = document.createElement('div');
     placeholder.className = 'result-placeholder';
-    placeholder.textContent = termLabel;
+    placeholder.innerHTML = termLabel;
     
     const buttonContainer = document.createElement('div');
     buttonContainer.className = 'term-buttons';
@@ -190,7 +190,16 @@ class InteractiveComputation {
         MatrixRenderer.renderSmallMatrix(this.event.final, this.event.final.length, 'result'),
         this.event.quadrant, 'result'
       ));
-      
+
+      // Update the main comment area below the computation box
+      const commentBox = document.getElementById('comment-box');
+      if (commentBox) {
+        commentBox.innerHTML = TextFormatter.formatComment(`Computation complete for ${this.event.quadrant}.`);
+        if (window.MathJax && window.MathJax.typesetPromise) {
+          MathJax.typesetPromise([commentBox]).catch(err => console.log('MathJax error:', err));
+        }
+      }
+
       // Enable next button
       if (this.onStateChange) {
         setTimeout(() => this.onStateChange(), 0);
@@ -214,7 +223,7 @@ class InteractiveComputation {
     if (clearSummaries && work) {
       work.querySelectorAll('.result-summary').forEach(s => s.remove());
     }
-    console.log('[InteractiveComputation] getOrCreateWorkArea returns:', work, 'ID:', work.id);
+    //console.log('[InteractiveComputation] getOrCreateWorkArea returns:', work, 'ID:', work.id);
     return work;
   }
 }

@@ -27,7 +27,7 @@ class SubDemoManager {
       <div class="demo-container">
         <div class="overlay-title">Computing ${termLabel} for ${parentQuadrant}: ${description}</div>
         
-        <div class="controls">
+        <div class="overlay-controls">
           <div class="step-controls">
             <button id="step-prev-btn" disabled>Previous</button>
             <button id="step-next-btn">Next</button>
@@ -207,7 +207,7 @@ class SubDemoManager {
       <div class="demo-container">
         <div class="overlay-title">Computing ${termLabel} for ${parentQuadrant}: ${description}</div>
         
-        <div class="controls">
+        <div class="overlay-controls">
           <div class="step-controls">
             <button id="sub-prev-btn" disabled>Previous</button>
             <button id="sub-next-btn" disabled>Next</button>

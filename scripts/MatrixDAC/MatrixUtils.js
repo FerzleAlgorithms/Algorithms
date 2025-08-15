@@ -29,20 +29,16 @@ class MatrixUtils {
   }
 
   static addMatrices(A, B) {
-    if (typeof A === 'number' || (Array.isArray(A) && A.length === 1 && typeof A[0] === 'number')) {
-      const aVal = typeof A === 'number' ? A : A[0];
-      const bVal = typeof B === 'number' ? B : B[0];
-      return aVal + bVal;
-    }
-    
-    const result = [];
-    for (let i = 0; i < A.length; i++) {
-      result[i] = [];
-      for (let j = 0; j < A[0].length; j++) {
+    let n = A.length;
+    let result = MatrixUtils.initZeroMatrix(n);
+    let addCount = 0;
+    for (let i = 0; i < n; i++) {
+      for (let j = 0; j < n; j++) {
         result[i][j] = A[i][j] + B[i][j];
+        addCount++;
       }
     }
-    return result;
+    return { result, addCount };
   }
 
   static multiply2x2(A, B) {
@@ -64,6 +60,7 @@ class MatrixUtils {
   }
 
   static multiply2x2WithSteps(A, B) {
+    let addCount = 0, mulCount = 0;
     const steps = [];
     const result = [[0,0],[0,0]];
     
@@ -77,21 +74,28 @@ class MatrixUtils {
         };
         steps.push(computation);
         result[i][j] = computation.result;
+        mulCount += 2; // Two multiplications for each 2x2 multiplication
+        addCount++;    // One addition for each 2x2 multiplication
       }
     }
     
-    return { result, steps };
+    return { result, steps, addCount, mulCount };
   }
 
   static dncMultiply(A, B) {
     const n = A.length;
     if (n === 1) {
-      return A[0][0] * B[0][0];
+      return {
+        result: [[A[0][0] * B[0][0]]],
+        addCount: 0,
+        mulCount: 1
+      };
     }
     if (n === 2) {
-      return this.multiply2x2(A, B);
+      const { result, addCount, mulCount } = this.multiply2x2WithSteps(A, B);
+      return { result, addCount, mulCount };
     }
-    
+
     const m = n >> 1;
 
     const A11 = this.extractSubmatrix(A, 0, 0, m);
@@ -104,44 +108,40 @@ class MatrixUtils {
     const B21 = this.extractSubmatrix(B, m, 0, m);
     const B22 = this.extractSubmatrix(B, m, m, m);
 
-    const C11 = this.addMatrices(this.dncMultiply1D(A11, B11), this.dncMultiply1D(A12, B21));
-    const C12 = this.addMatrices(this.dncMultiply1D(A11, B12), this.dncMultiply1D(A12, B22));
-    const C21 = this.addMatrices(this.dncMultiply1D(A21, B11), this.dncMultiply1D(A22, B21));
-    const C22 = this.addMatrices(this.dncMultiply1D(A21, B12), this.dncMultiply1D(A22, B22));
+    // Recursively multiply and accumulate operation counts
+    const M1 = this.dncMultiply(A11, B11);
+    const M2 = this.dncMultiply(A12, B21);
+    const M3 = this.dncMultiply(A11, B12);
+    const M4 = this.dncMultiply(A12, B22);
+    const M5 = this.dncMultiply(A21, B11);
+    const M6 = this.dncMultiply(A22, B21);
+    const M7 = this.dncMultiply(A21, B12);
+    const M8 = this.dncMultiply(A22, B22);
+
+    // Add matrices and accumulate addCounts
+    const add11 = this.addMatrices(M1.result, M2.result);
+    const add12 = this.addMatrices(M3.result, M4.result);
+    const add21 = this.addMatrices(M5.result, M6.result);
+    const add22 = this.addMatrices(M7.result, M8.result);
 
     const C = this.initZeroMatrix(n);
-    
-    if (m === 1) {
-      C[0][0] = C11;
-      C[0][1] = C12;
-      C[1][0] = C21;
-      C[1][1] = C22;
-    } else {
-      for (let i = 0; i < m; i++) {
-        for (let j = 0; j < m; j++) {
-          C[i][j] = C11[i][j];
-          C[i][j+m] = C12[i][j];
-          C[i+m][j] = C21[i][j];
-          C[i+m][j+m] = C22[i][j];
-        }
+    for (let i = 0; i < m; i++) {
+      for (let j = 0; j < m; j++) {
+        C[i][j] = add11.result[i][j];
+        C[i][j+m] = add12.result[i][j];
+        C[i+m][j] = add21.result[i][j];
+        C[i+m][j+m] = add22.result[i][j];
       }
     }
-    return C;
-  }
 
-  static dncMultiply1D(A, B) {
-    if (typeof A === 'number' && typeof B === 'number') {
-      return A * B;
-    } else if (Array.isArray(A) && Array.isArray(B)) {
-      if (A.length === 1) {
-        return A[0][0] * B[0][0];
-      } else if (A.length === 2) {
-        return this.multiply2x2(A, B);
-      } else {
-        return this.dncMultiply(A, B);
-      }
-    }
-    return 0;
+    // Sum all operation counts
+    const addCount = M1.addCount + M2.addCount + M3.addCount + M4.addCount +
+                     M5.addCount + M6.addCount + M7.addCount + M8.addCount +
+                     add11.addCount + add12.addCount + add21.addCount + add22.addCount;
+    const mulCount = M1.mulCount + M2.mulCount + M3.mulCount + M4.mulCount +
+                     M5.mulCount + M6.mulCount + M7.mulCount + M8.mulCount;
+
+    return { result: C, addCount, mulCount };
   }
 
   static getQuadrantLabel(r, c, n) {

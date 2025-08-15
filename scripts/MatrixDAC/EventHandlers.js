@@ -32,7 +32,7 @@ class EventHandler {
 
 class InitHandler extends EventHandler {
   handle(event, currentResult) {
-    this.clearWorkArea();
+    //this.clearWorkArea();
     this.updateMatrices(this.demoManager.A, this.demoManager.B, currentResult);
     this.updateComment('Starting divide-and-conquer matrix multiplication...');
   }
@@ -40,7 +40,7 @@ class InitHandler extends EventHandler {
 
 class PartitionHandler extends EventHandler {
   handle(event, currentResult) {
-    this.clearWorkArea();
+    //this.clearWorkArea();
     this.updateMatrices(this.demoManager.A, this.demoManager.B, currentResult);
     
     const { matA, matB, matR } = this.demoManager.containers;
@@ -54,8 +54,8 @@ class PartitionHandler extends EventHandler {
 
 class QuadrantStartHandler extends EventHandler {
   handle(event, currentResult) {
-    this.clearWorkArea(); // <-- Add this line
-    console.log('QuadrantStartHandler event:', event);
+    //this.clearWorkArea(); // <-- Add this line
+    //console.log('QuadrantStartHandler event:', event);
     const termColors = DemoConfig.TERM_COLORS[event.quadrant];
     const { matA, matB, matR } = this.demoManager.containers;
 
@@ -73,11 +73,14 @@ class QuadrantStartHandler extends EventHandler {
 class InteractiveComputationHandler extends EventHandler {
   handle(event, currentResult) {  
     const state = this.demoManager.computationState[event.quadrant];
+    // Always update the comment to reflect the current computation state
     if (state && state.term1Computed && state.term2Computed) {
-      return;
+      this.updateComment(`Computation complete for ${event.quadrant}. You may proceed to the next step.`);
+    } else {
+      this.updateComment(`Interactive computation for ${event.quadrant}. Choose "Compute" for direct calculation or "Show Computation" for step-by-step demo.`);
     }
 
-    console.log('InteractiveComputationHandler event:', event);
+    //console.log('InteractiveComputationHandler event:', event);
 
     // Do NOT render or clear computation area here
 
@@ -90,8 +93,6 @@ class InteractiveComputationHandler extends EventHandler {
     OverlayManager.showOverlay(matA, this.demoManager.A.length, { termColors });
     OverlayManager.showOverlay(matB, this.demoManager.B.length, { termColors });
     OverlayManager.showOverlay(matR, this.demoManager.A.length, { activeQuadrant: event.quadrant });
-    
-    this.updateComment(`Interactive computation for ${event.quadrant}. Choose "Compute" for direct calculation or "Show Computation" for step-by-step demo.`);
   }
 }
 
@@ -110,7 +111,8 @@ class CopyResultHandler extends EventHandler {
     OverlayManager.hideOverlay(matA);
     OverlayManager.hideOverlay(matB);
     OverlayManager.hideOverlay(matR);
-    this.updateComment(`${event.quadrant} computation complete and copied to result matrix`);
+    // Updated comment for computation complete
+    this.updateComment(`${event.quadrant} computation complete and copied to result matrix.`);
   }
 }
 
@@ -129,7 +131,16 @@ class DoneHandler extends EventHandler {
     }
 
     this.updateMatrices(this.demoManager.A, this.demoManager.B, event.result);
-    this.updateComment('Complete! Matrix multiplication finished.');
+
+    // --- Add operation counts to the final comment if present ---
+    let opCounts = '';
+    if (event.addCount !== undefined || event.mulCount !== undefined) {
+      opCounts = '<br><span class="operation-counts">';
+      if (event.addCount !== undefined) opCounts += `Additions: ${event.addCount} `;
+      if (event.mulCount !== undefined) opCounts += `Multiplications: ${event.mulCount}`;
+      opCounts += '</span>';
+    }
+    this.updateComment('Complete! Matrix multiplication finished.' + opCounts);
   }
 }
 

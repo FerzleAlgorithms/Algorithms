@@ -67,8 +67,6 @@ class DemoManager {
   }
 
   rebuild() {
-    this.clearWorkArea(); // Always clear before handling new event
-
     const event = this.events[this.ptr];
     if (!event) return;
 
@@ -82,14 +80,28 @@ class DemoManager {
   }
 
   updateComputationArea(event) {
-    if (event.type === 'show_interactive_computation') {
-      // Pass a callback to update buttons after each computation step
+    //console.log('updateComputationArea event.type:', event.type);
+    if (event.type === 'show_interactive_computation' || event.type === 'copy_result') {
+      // Pass a callback to update buttons and comment after each computation step
       new InteractiveComputation(
         event,
         this.computationState,
-        () => { this.updateButtons(); }, // update buttons on state change
+        () => {
+          this.updateButtons();
+          // Also update the comment to reflect computation state
+          if (event.type === 'show_interactive_computation') {
+            const state = this.computationState[event.quadrant];
+            if (state && state.term1Computed && state.term2Computed) {
+              this.eventHandlers['show_interactive_computation'].updateComment(
+                `Computation complete for ${event.quadrant}. You may proceed to the next step.`
+              );
+            }
+          }
+        },
         this.workArea
       ).render();
+    } else {
+       this.clearWorkArea(); // Always clear before handling new event
     }
     // For all other steps, clear the computation area (already done in rebuild)
   }
@@ -136,10 +148,15 @@ class DemoManager {
   }
 
   clearWorkArea() {
-    // Remove only the work area for this instance
+    // Only look up #work-area if this.workArea is not already set (main demo)
+    if (!this.workArea) {
+      this.workArea = document.getElementById('work-area');
+    }
     if (this.workArea) {
-      console.log('[DemoManager] Clearing work area:', this.workArea, 'ID:', this.workArea.id);
+      //console.log('[DemoManager] Clearing work area:', this.workArea, 'ID:', this.workArea.id);
       this.workArea.innerHTML = '';
+    } else {
+      //console.warn('[DemoManager] No work area found to clear!');
     }
   }
 
