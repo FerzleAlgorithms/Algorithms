@@ -24,9 +24,6 @@
   <script src="/Algorithms/scripts/Strassen/MatrixRenderer.js"></script>
   <script src="/Algorithms/scripts/Strassen/OverlayManager.js"></script>
   <script src="/Algorithms/scripts/Strassen/TextFormatter.js"></script>
-  <script src="/Algorithms/scripts/Strassen/InteractiveComputation.js"></script>
-  <script src="/Algorithms/scripts/Strassen/EventHandlers.js"></script>
-  <script src="/Algorithms/scripts/Strassen/EventBuilder.js"></script>
   <script src="/Algorithms/scripts/Strassen/SubDemoManager.js"></script>
   <script src="/Algorithms/scripts/Strassen/DemoManager.js"></script>
 
@@ -658,10 +655,6 @@
         </label>
         <button id="gen-btn">Generate</button>
       </div>
-      <div class="step-controls">
-        <button id="prev-btn" disabled>Previous</button>
-        <button id="next-btn" disabled>Next</button>
-      </div>
     </div>
 
     <!-- Matrices -->
@@ -691,14 +684,6 @@
     <div id="comment" class="comment">Initialize to begin...</div>
   </div>
 
-  <!-- Overlay for subproblem computation -->
-  <div id="strassen-overlay" class="demo-overlay" style="display:none;">
-    <div class="demo-container">
-      <button class="close-overlay" onclick="OverlayManager.closeOverlay()">Close</button>
-      <div id="overlay-content"></div>
-    </div>
-  </div>
-
   <script>
     // Initialize the demo when the page loads
     document.addEventListener('DOMContentLoaded', () => {
@@ -707,24 +692,15 @@
         matB: document.getElementById('matrix-b'),
         matR: document.getElementById('matrix-res'),
         commentBox: document.getElementById('comment'),
-        computations: document.getElementById('strassen-computations'),
-        overlay: document.getElementById('strassen-overlay'),
-        overlayContent: document.getElementById('overlay-content')
-      };
-      
-      const buttons = {
-        generate: document.getElementById('gen-btn'),
-        next: document.getElementById('next-btn'),
-        prev: document.getElementById('prev-btn')
+        computations: document.getElementById('strassen-computations')
       };
 
-      const demo = new DemoManager(containers, buttons, containers.commentBox);
-      
-      // Initialize with first demo
+      const buttons = {
+        generate: document.getElementById('gen-btn')
+      };
+
+      const demo = new DemoManager(containers, buttons);
       demo.generateNewDemo();
-      
-      // Make demo globally available for debugging
-      window.demo = demo;
     });
   </script>
 </body>

@@ -41,6 +41,19 @@ class MatrixUtils {
     return { result, addCount };
   }
 
+  static subtractMatrices(A, B) {
+    let n = A.length;
+    let result = MatrixUtils.initZeroMatrix(n);
+    let addCount = 0;
+    for (let i = 0; i < n; i++) {
+      for (let j = 0; j < n; j++) {
+        result[i][j] = A[i][j] - B[i][j];
+        addCount++;
+      }
+    }
+    return { result, addCount };
+  }
+
   static multiply2x2(A, B) {
     if (typeof A === 'number' || (Array.isArray(A) && A.length === 1 && typeof A[0] === 'number')) {
       const aVal = typeof A === 'number' ? A : A[0];
@@ -82,7 +95,7 @@ class MatrixUtils {
     return { result, steps, addCount, mulCount };
   }
 
-  static dncMultiply(A, B) {
+  static strassenMultiply(A, B) {
     const n = A.length;
     if (n === 1) {
       return {
@@ -108,38 +121,61 @@ class MatrixUtils {
     const B21 = this.extractSubmatrix(B, m, 0, m);
     const B22 = this.extractSubmatrix(B, m, m, m);
 
-    // Recursively multiply and accumulate operation counts
-    const M1 = this.dncMultiply(A11, B11);
-    const M2 = this.dncMultiply(A12, B21);
-    const M3 = this.dncMultiply(A11, B12);
-    const M4 = this.dncMultiply(A12, B22);
-    const M5 = this.dncMultiply(A21, B11);
-    const M6 = this.dncMultiply(A22, B21);
-    const M7 = this.dncMultiply(A21, B12);
-    const M8 = this.dncMultiply(A22, B22);
+    const S1 = this.addMatrices(A11, A22);
+    const S2 = this.addMatrices(B11, B22);
+    const S3 = this.addMatrices(A21, A22);
+    const S4 = this.subtractMatrices(B12, B22);
+    const S5 = this.subtractMatrices(B21, B11);
+    const S6 = this.addMatrices(A11, A12);
+    const S7 = this.subtractMatrices(A21, A11);
+    const S8 = this.addMatrices(B11, B12);
+    const S9 = this.subtractMatrices(A12, A22);
+    const S10 = this.addMatrices(B21, B22);
 
-    // Add matrices and accumulate addCounts
-    const add11 = this.addMatrices(M1.result, M2.result);
-    const add12 = this.addMatrices(M3.result, M4.result);
-    const add21 = this.addMatrices(M5.result, M6.result);
-    const add22 = this.addMatrices(M7.result, M8.result);
+    const M1 = this.strassenMultiply(S1.result, S2.result);
+    const M2 = this.strassenMultiply(S3.result, B11);
+    const M3 = this.strassenMultiply(A11, S4.result);
+    const M4 = this.strassenMultiply(A22, S5.result);
+    const M5 = this.strassenMultiply(S6.result, B22);
+    const M6 = this.strassenMultiply(S7.result, S8.result);
+    const M7 = this.strassenMultiply(S9.result, S10.result);
+
+    const C11 = this.addMatrices(
+      this.subtractMatrices(
+        this.addMatrices(M1.result, M4.result).result,
+        M5.result
+      ).result,
+      M7.result
+    );
+    const C12 = this.addMatrices(M3.result, M5.result);
+    const C21 = this.addMatrices(M2.result, M4.result);
+    const C22 = this.addMatrices(
+      this.addMatrices(
+        this.subtractMatrices(M1.result, M2.result).result,
+        M3.result
+      ).result,
+      M6.result
+    );
 
     const C = this.initZeroMatrix(n);
     for (let i = 0; i < m; i++) {
       for (let j = 0; j < m; j++) {
-        C[i][j] = add11.result[i][j];
-        C[i][j+m] = add12.result[i][j];
-        C[i+m][j] = add21.result[i][j];
-        C[i+m][j+m] = add22.result[i][j];
+        C[i][j] = C11.result[i][j];
+        C[i][j + m] = C12.result[i][j];
+        C[i + m][j] = C21.result[i][j];
+        C[i + m][j + m] = C22.result[i][j];
       }
     }
 
-    // Sum all operation counts
-    const addCount = M1.addCount + M2.addCount + M3.addCount + M4.addCount +
-                     M5.addCount + M6.addCount + M7.addCount + M8.addCount +
-                     add11.addCount + add12.addCount + add21.addCount + add22.addCount;
-    const mulCount = M1.mulCount + M2.mulCount + M3.mulCount + M4.mulCount +
-                     M5.mulCount + M6.mulCount + M7.mulCount + M8.mulCount;
+    const addCount =
+      S1.addCount + S2.addCount + S3.addCount + S4.addCount + S5.addCount +
+      S6.addCount + S7.addCount + S8.addCount + S9.addCount + S10.addCount +
+      M1.addCount + M2.addCount + M3.addCount + M4.addCount +
+      M5.addCount + M6.addCount + M7.addCount +
+      C11.addCount + C12.addCount + C21.addCount + C22.addCount;
+    const mulCount =
+      M1.mulCount + M2.mulCount + M3.mulCount + M4.mulCount +
+      M5.mulCount + M6.mulCount + M7.mulCount;
 
     return { result: C, addCount, mulCount };
   }
