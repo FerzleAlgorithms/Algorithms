@@ -1,0 +1,917 @@
+<!-- index.html (≈200 lines) -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Matrix Multiplication Divide-and-Conquer (Inplace) Demo</title>
+  <script src="/Algorithms/scripts/demoScripts.js"></script>
+  <link rel="stylesheet" href="/Algorithms/css/style.css">
+  <link rel="stylesheet" href="/Algorithms/css/demo.css">
+
+
+<style>
+h2 {
+  text-align: left;
+  margin-bottom: 1em;
+}
+
+/* New */
+.controls {
+  display: flex;
+  flex-direction: row;       /* ← put them side by side */
+  align-items: center;       /* ← vertically center all buttons/labels */
+  gap: 1.5em;                /* ← a bit more breathing room */
+  margin-bottom: 1.25em;
+}
+.input-row, .step-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.75em;
+  justify-content: flex-start;
+}
+.input-row label span {
+  font-size: 0.9em;
+  color: #666;
+}
+.step-controls button, .input-row button, .step-controls select {
+  padding: 0.4em 0.8em;
+  border: 1px solid #888;
+  background: #eee;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.step-controls button:disabled, .input-row button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+.step-controls button:hover:not(:disabled), .input-row button:hover:not(:disabled) {
+  background: #ddd;
+}
+.legend {
+  display: flex;
+  justify-content: flex-start;
+  gap: 1.5em;
+  margin-bottom: 1em;
+}
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.4em;
+}
+/* ── New ── */
+/* ── New ── */
+.legend .legend-box {
+  display: inline-block;    /* make the span respect width/height */
+  width: 16px;
+  height: 16px;
+  border: 1px solid #000;   /* pure black outline */
+  margin-right: 0.4em;      /* small gap before the label text */
+  box-sizing: border-box;   /* ensure border doesn’t add to the box size */
+}
+
+
+
+.legend-box.a { background: #d0e7ff; }
+.legend-box.b { background: #ffd0d0; }
+.legend-box.res { background: #d0ffd0; }
+.matrix-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.matrix-label {
+  margin-top: 0.4em;
+  font-weight: bold;
+}
+.matrix-op {
+  font-size: 1.5em;
+  font-weight: bold;
+  align-self: center;
+  user-select: none;
+}
+#matrix-row {
+  display: flex;
+  justify-content: flex-start;  /* pack everything to the left */
+  gap: 1em;
+  margin-bottom: 1em;
+}
+.matrix-container {
+  display: grid;
+  gap: 4px;
+  /* remove the generic grey background */
+  background: transparent;
+  padding: 6px;
+  border-radius: 6px;
+}
+
+/* color each entire matrix per the legend */
+#matrix-a.matrix-container {
+  background: rgba(208, 231, 255, 0.3);
+}
+
+#matrix-b.matrix-container {
+  background: rgba(255, 208, 208, 0.3);
+}
+
+#matrix-res.matrix-container {
+  background: rgba(208, 255, 208, 0.3);
+}
+.matrix-element {
+  width: 30px;
+  height: 30px;
+  background: transparent;    /* clear the default white */
+  border: 1px solid #777;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-family: monospace;
+  position: relative;
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+
+/* now color each element per the legend */
+#matrix-a.matrix-container .matrix-element {
+  background: rgba(208, 231, 255, 0.3);
+}
+#matrix-b.matrix-container .matrix-element {
+  background: rgba(255, 208, 208, 0.3);
+}
+#matrix-res.matrix-container .matrix-element {
+  background: rgba(208, 255, 208, 0.3);
+}
+
+.matrix-element.block-highlight {
+  /* thin orange outline */
+  box-shadow: 0 0 0 2px rgba(255,165,0,0.8);
+}
+
+/* Orange block: thin outline */
+.matrix-element.block-highlight {
+  box-shadow: 0 0 0 2px rgba(255,165,0,0.8);
+}
+
+/* Yellow flash: atomic multiplication highlight */
+.matrix-element.highlight {
+  box-shadow: 0 0 8px 2px rgba(255,215,0,0.8);
+}
+
+.matrix-element.a-highlight { background: #d0e7ff; }
+.matrix-element.b-highlight { background: #ffd0d0; }
+.matrix-element.res-highlight { background: #d0ffd0; }
+.comment {
+  text-align: left;
+  font-style: italic;
+  min-height: 1.5em;
+}
+
+/* demo.css (≈100 lines) - extra animations & responsive tweaks */
+@media (max-width: 768px) {
+  .matrix-element { width: 40px; height: 40px; font-size: 0.9em; }
+}
+@keyframes slide-to-res {
+  0% { transform: translateY(0) scale(1); opacity: 1; }
+  50% { transform: translateY(-1em) scale(1.1); opacity: 0.8; }
+  100% { transform: translateY(0) scale(1); opacity: 1; }
+}
+.animate-slide {
+  animation: slide-to-res 0.6s forwards;
+}
+
+
+/* New: */
+.matrix-clone {
+  position: absolute;
+  display: grid;
+  gap: 4px;
+  /* make grid same size as your matrices: we'll set --grid-size inline */
+  grid-template-columns: repeat(var(--grid-size), 1fr);
+  grid-template-rows:    repeat(var(--grid-size), 1fr);
+  transition: transform 0.6s ease, opacity 0.6s ease;
+  z-index: 1000;
+}
+.matrix-clone .matrix-element {
+  /* keep the same cell styling */
+  border: 1px solid #777;
+  background: inherit;
+}
+
+/* New */
+.matrix-element.highlight {
+  /* yellow flash for individual cell multiplies */
+  box-shadow: 0 0 8px 2px rgba(255,215,0,0.8);
+}
+
+/* 2) Even more specific by targeting the legend container: */
+#legend .legend-box {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  box-sizing: border-box;
+  border: 2px solid #000;      /* match the Merge demo’s bold look */
+  margin-right: 0.4em;
+}
+
+
+</style>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-DQ5LVZVFDC"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-DQ5LVZVFDC');
+</script>
+</head>
+<body>
+  <div class="demo-container">
+    <h2>Matrix Multiplication Divide-and-Conquer (Inplace) Demo</h2>
+
+    <!-- Controls -->
+    <div class="controls">
+      <div class="input-row">
+        <label>n:
+          <select id="dim-input">
+            <option value="4">4</option>
+            <option value="8">8</option>
+          </select>
+        </label>
+        <button id="gen-btn">Generate</button>
+      </div>
+      <div class="step-controls">
+      <button id="prev-btn" disabled>Previous</button>
+      <button id="next-btn" disabled>Next</button>
+      <label for="speed-select">Speed:
+        <select id="speed-select">
+          <option value="1">1×</option>
+          <option value="2">2×</option>
+          <option value="4">4×</option>
+        </select
+      </label>
+      <button id="play-btn" disabled>Play</button>
+    </div>
+    </div>
+
+    <!-- Counters -->
+    <div class="counters" style="display:flex; gap:2em; margin-bottom:1em;">
+      <div>Multiplications: <span id="mult-count">0</span></div>
+      <div>Additions: <span id="add-count">0</span></div>
+    </div>
+
+    <!-- Matrices -->
+    <div id="matrix-row">
+      <div class="matrix-panel">
+        <div id="matrix-a" class="matrix-container"></div>
+        <div class="matrix-label">A</div>
+      </div>
+      <div class="matrix-op">×</div>
+      <div class="matrix-panel">
+        <div id="matrix-b" class="matrix-container"></div>
+        <div class="matrix-label">B</div>
+      </div>
+      <div class="matrix-op">=</div>
+      <div class="matrix-panel">
+        <div id="matrix-res" class="matrix-container"></div>
+        <div class="matrix-label">Result</div>
+      </div>
+    </div>
+
+    <!-- Comment Box -->
+    <div id="comment" class="comment">Initialize to begin...</div>
+  </div>
+
+</body>
+</html>
+
+<script>
+// demoScripts.js (≈350–400 lines)
+(() => {
+
+  // --- Globals & DOM refs ---
+// New
+let A = [], B = [], events = [], ptr = -1, timer = null;
+let playing = false, speed = 1;
+// ← add this line:
+let lastDirection = 'next';
+
+
+  const dimInput    = document.getElementById('dim-input');
+  const genBtn      = document.getElementById('gen-btn');
+  const prevBtn     = document.getElementById('prev-btn');
+  const nextBtn     = document.getElementById('next-btn');
+  const playBtn     = document.getElementById('play-btn');
+  const speedSelect = document.getElementById('speed-select');
+  const matA        = document.getElementById('matrix-a');
+  const matB        = document.getElementById('matrix-b');
+  const matR        = document.getElementById('matrix-res');
+  const commentBox  = document.getElementById('comment');
+
+  // counter elements & state
+  const multCountEl  = document.getElementById('mult-count');
+  const addCountEl   = document.getElementById('add-count');
+  let   multCount    = 0;
+  let   addCount     = 0;
+
+  // --- Utilities ---
+  const randInt = max => Math.floor(Math.random()*max);
+  function clearIntervalSafe() {
+    if (timer) { clearInterval(timer); timer = null; }
+  }
+
+  // Deep clone 2D array
+  function clone2D(arr) { return arr.map(r => r.slice()); }
+
+  // Build random n×n matrix filled 0–9
+  function genRandomMatrix(n) {
+    const M = [];
+    for (let i=0; i<n; i++) {
+      M[i] = [];
+      for (let j=0; j<n; j++) {
+        M[i][j] = randInt(10);
+      }
+    }
+    return M;
+  }
+
+  // Render matrix into a container
+// New
+// New
+function renderMatrix(container, M, highlight=null) {
+   // ── update op counters based on how many dot events have fired ──
+   // ── update op counters ──
+  // multiplications = total dot‐events processed
+  // additions = total atomic adds minus one per cell (i.e. dotOps − #cells)
+  // ── update op counters ──
+// multiplications = total dot‐events processed
+// additions       = one per contiguous dot‐block (i.e. per 2×2 half)
+// ── update op counters ──
+// — replace with this at the top of renderMatrix —  
+// New
+// New
+// Simple distinct-set version
+const dots = events.slice(1, ptr+1).filter(ev => ev.type === 'dot');
+const multOps = dots.length;
+const cells   = new Set(dots.map(ev => `${ev.i},${ev.j}`));
+const addOps  = multOps - cells.size;
+
+multCountEl.textContent = multOps;
+addCountEl.textContent  = addOps;
+
+
+
+  const e = events[ptr];
+
+  container.innerHTML = '';
+  const n = M.length;
+  container.style.gridTemplateColumns = `repeat(${n},1fr)`;
+  container.style.gridTemplateRows    = `repeat(${n},1fr)`;
+
+  for (let i = 0; i < n; i++) {
+    for (let j = 0; j < n; j++) {
+      const div = document.createElement('div');
+      div.className = 'matrix-element';
+      div.textContent = M[i][j];
+
+      // existing A/B highlights…
+        // ← build an array of 1+ highlights
+    const highlightsList = [];
+    if (highlight) {
+      if (Array.isArray(highlight)) highlightsList.push(...highlight);
+      else                              highlightsList.push(highlight);
+    }
+
+    // apply each highlight in turn
+    for (const h of highlightsList) {
+      if (h.type === 'A'     && i === h.i      && j === h.k) {
+        div.classList.add('highlight','a-highlight');
+      }
+      if (h.type === 'B'     && i === h.k      && j === h.j) {
+        div.classList.add('highlight','b-highlight');
+      }
+      if (h.type === 'res'   && i === h.i      && j === h.j) {
+        div.classList.add('highlight','res-highlight');
+      }
+      if (h.type === 'block' &&
+          i >= h.i && i < h.i + h.size &&
+          j >= h.j && j < h.j + h.size) {
+        div.classList.add('block-highlight');
+      }
+    }
+
+      container.appendChild(div);
+    }
+  }
+}
+
+
+  // Initialize the result grid to zeros
+  function initResult(n) {
+    const R = [];
+    for (let i=0; i<n; i++) {
+      R[i] = [];
+      for (let j=0; j<n; j++) {
+        R[i][j] = 0;
+      }
+    }
+    return R;
+  }
+
+  // Build the full event list: each dot-product step
+// New
+function buildEvents(A, B) {
+  const n = A.length;
+  const ev = [{ type: 'init', size: n }];
+  const R = Array.from({ length: n }, () => Array(n).fill(0));
+  dncMultiply(A, B, 0, 0, 0, 0, n, R, ev);
+  ev.push({ type: 'done', result: R });
+  return ev;
+}
+
+function dncMultiply(A, B, aR, aC, bR, bC, size, R, ev) {
+  // New: compute the full dot-product for C[aR][bC] in one go
+// ——————— New ———————
+if (size === 1) {
+  const a = A[aR][aC];
+  const b = B[bR][bC];
+  R[aR][bC] += a * b;
+  ev.push({
+    type:   'dot',
+    i:      aR,      // row in R
+    j:      bC,      // col in R
+    k:      aC,      // the “k” index (col in A / row in B)
+    valA:   a,       // the A–value
+    valB:   b,       // the B–value
+    result: R[aR][bC]
+  });
+}
+
+ else {
+    const m = size >> 1;
+    ev.push({ type: 'split', aR, aC, bR, bC, size });
+    // C11
+    dncMultiply(A, B, aR,        aC,        bR,        bC,        m, R, ev);
+    dncMultiply(A, B, aR,        aC + m,    bR + m,    bC,        m, R, ev);
+    // C12
+    dncMultiply(A, B, aR,        aC,        bR,        bC + m,    m, R, ev);
+    dncMultiply(A, B, aR,        aC + m,    bR + m,    bC + m,    m, R, ev);
+    // C21
+    dncMultiply(A, B, aR + m,    aC,        bR,        bC,        m, R, ev);
+    dncMultiply(A, B, aR + m,    aC + m,    bR + m,    bC,        m, R, ev);
+    // C22
+    dncMultiply(A, B, aR + m,    aC,        bR,        bC + m,    m, R, ev);
+    dncMultiply(A, B, aR + m,    aC + m,    bR + m,    bC + m,    m, R, ev);
+    ev.push({ type: 'merge', aR, aC, bR, bC, size });
+  }
+}
+
+
+  // Rebuild UI based on current event
+// New
+function rebuild() {
+  const e = events[ptr];
+  if (!e) return;
+  const n = A.length;
+
+  // 1) Figure out which submatrix is “active” (orange outline)
+  const stack = [];
+  for (let k = 1; k <= ptr; k++) {
+    const ev2 = events[k];
+    if (ev2.type === 'split')   stack.push(ev2);
+    else if (ev2.type === 'merge') stack.pop();
+  }
+  const currentBlock = stack[stack.length - 1] || null;
+
+  // 2) Build up-to-date result matrix
+  const currentR = initResult(n);
+  for (let k = 1; k <= ptr; k++) {
+    const ev2 = events[k];
+    if (ev2.type === 'dot') {
+      currentR[ev2.i][ev2.j] = ev2.result;
+    }
+  }
+
+  // 3) DOT-CASE: highlight only the *new* partials + the result cell
+    // DOT‐CASE: highlight A & B, then smash into R
+  if (e.type === 'dot') {
+    // 1) orange outline for the active submatrix
+    const blockA = currentBlock && {
+      type: 'block', i: currentBlock.aR, j: currentBlock.aC, size: currentBlock.size
+    };
+    const blockB = currentBlock && {
+      type: 'block', i: currentBlock.bR, j: currentBlock.bC, size: currentBlock.size
+    };
+
+    // 2) gather all partial‐product events for R[i][j]
+    const allPartials = events.filter((ev2, idx) =>
+      idx <= ptr && ev2.type === 'dot' && ev2.i === e.i && ev2.j === e.j
+    );
+
+    // decide which ones to flash (you can reuse your existing logic here)
+    const newPartials = allPartials.length > 2
+  ? allPartials.slice(allPartials.length >> 1)
+  : allPartials;
+
+
+    // 3) highlight A & B entries
+    const aHighlights = blockA ? [blockA] : [];
+    const bHighlights = blockB ? [blockB] : [];
+    newPartials.forEach(ev2 => {
+      aHighlights.push({ type: 'A', i: ev2.i, k: ev2.k });
+      bHighlights.push({ type: 'B', k: ev2.k, j: ev2.j });
+    });
+        // render the A & B highlights immediately
+    renderMatrix(matA, A, aHighlights);
+    renderMatrix(matB, B, bHighlights);
+
+    // now smash only the cells in newPartials into the result‐cell
+        // … render A & B highlights above …
+
+    const cells      = matR.querySelectorAll('.matrix-element');
+    const targetCell = cells[e.i * n + e.j];
+
+    if (lastDirection === 'next') {
+      // forward step: smash the new partials into the result
+      smashClone(
+        matA, matB, targetCell, e.i, e.j, newPartials,
+        () => {
+          // only re-highlight if we're still sitting on this exact dot event
+          const cur = events[ptr];
+          if (cur && cur.type === 'dot' && cur.i === e.i && cur.j === e.j) {
+            renderMatrix(matR, currentR, { type: 'res', i: e.i, j: e.j });
+          }
+        }
+      );
+    } else {
+      // backward step: reverse‐smash just those same partials back out
+      reverseSmashClone(
+        matA, matB, targetCell, e.i, e.j, newPartials,
+        () => {
+          const cur = events[ptr];
+          if (cur && cur.type === 'dot' && cur.i === e.i && cur.j === e.j) {
+            renderMatrix(matR, currentR, { type: 'res', i: e.i, j: e.j });
+          }
+        }
+      );
+
+    }
+
+    
+    // 5) update the comment and enable controls
+    const terms = allPartials.map(ev2 => `${ev2.valA}*${ev2.valB}`);
+    commentBox.textContent = 
+      `R[${e.i}][${e.j}] = ${terms.join(' + ')} = ${e.result}`;
+    prevBtn.disabled = nextBtn.disabled = playBtn.disabled = false;
+    return;
+  }
+
+
+  // 4) FALL BACK to your existing branches
+   if (e.type === 'init') {
+    // clear everything and show the empty result
+    renderMatrix(matA, A);
+    renderMatrix(matB, B);
+    initEmptyResult();                // renders R as all zeros, no highlights
+    commentBox.textContent = 'Initialization complete — ready to compute.';
+    prevBtn.disabled = true;
+    nextBtn.disabled = playBtn.disabled = false;
+    return;
+  } else if (e.type === 'split') {
+    // clear all highlights
+    renderMatrix(matA, A);
+    renderMatrix(matB, B);
+    renderMatrix(matR, currentR);
+
+    commentBox.textContent = `Divide block at (${e.aR},${e.aC}), size ${e.size}`;
+    prevBtn.disabled = nextBtn.disabled = playBtn.disabled = false;
+
+  } else if (e.type === 'merge') {
+    // clear all highlights
+    renderMatrix(matA, A);
+    renderMatrix(matB, B);
+    renderMatrix(matR, currentR);
+
+    commentBox.textContent = `Merge block at (${e.aR},${e.aC}), size ${e.size}`;
+    prevBtn.disabled = nextBtn.disabled = playBtn.disabled = false;
+
+
+  }// ── New: explicitly render with no highlights ──
+ else if (e.type === 'done') {
+  // 1) Re-draw A & B with no highlights
+  renderMatrix(matA, A);
+  renderMatrix(matB, B);
+
+  // 2) Draw the final result with an empty highlight list
+  //    (so nothing ever flashes or stays outlined)
+  renderMatrix(matR, e.result, []);
+
+  // 3) Update comment and controls
+  commentBox.textContent = 'Done! Final result matrix assembled.';
+  prevBtn.disabled = false;
+  nextBtn.disabled = playBtn.disabled = true;
+  return;
+}
+
+
+
+}
+
+  function initEmptyResult() {
+    const n = A.length;
+    const zeros = initResult(n);
+    renderMatrix(matR, zeros);
+  }
+
+  function fillZerosThenRow(rowIdx, rowData) {
+  const n = rowData.length;
+  const R = initResult(n);
+  R[rowIdx] = rowData.slice();
+  return R;
+}
+
+// New
+function smashClone(srcA, srcB, targetCell, rowIdx, colIdx, partials, onComplete) {
+  const n      = A.length;
+  const cellsA = srcA.querySelectorAll('.matrix-element');
+  const cellsB = srcB.querySelectorAll('.matrix-element');
+  // extract just the k-indices we want to animate
+  const ks = partials.map(ev => ev.k);
+
+  // build a horizontal clone of A[rowIdx,k…]
+  const cloneRow = document.createElement('div');
+  cloneRow.classList.add('matrix-clone');
+  cloneRow.style.gridTemplateColumns = `repeat(${ks.length},1fr)`;
+  cloneRow.style.gridTemplateRows    = `1fr`;
+  ks.forEach(k => cloneRow.appendChild(cellsA[rowIdx * n + k].cloneNode(true)));
+  document.body.appendChild(cloneRow);
+  const r1 = cellsA[rowIdx * n + ks[0]].getBoundingClientRect();
+  const r2 = cellsA[rowIdx * n + ks[ks.length-1]].getBoundingClientRect();
+  cloneRow.style.left   = `${r1.left}px`;
+  cloneRow.style.top    = `${r1.top}px`;
+  cloneRow.style.width  = `${r2.right - r1.left}px`;
+  cloneRow.style.height = `${r1.height}px`;
+
+  // build a vertical clone of B[k…,colIdx]
+  const cloneCol = document.createElement('div');
+  cloneCol.classList.add('matrix-clone');
+  cloneCol.style.gridTemplateColumns = `1fr`;
+  cloneCol.style.gridTemplateRows    = `repeat(${ks.length},1fr)`;
+  ks.forEach(k => cloneCol.appendChild(cellsB[k * n + colIdx].cloneNode(true)));
+  document.body.appendChild(cloneCol);
+  const c1 = cellsB[ks[0] * n + colIdx].getBoundingClientRect();
+  const c2 = cellsB[ks[ks.length-1] * n + colIdx].getBoundingClientRect();
+  cloneCol.style.left   = `${c1.left}px`;
+  cloneCol.style.top    = `${c1.top}px`;
+  cloneCol.style.width  = `${c1.width}px`;
+  cloneCol.style.height = `${c2.bottom - c1.top}px`;
+
+  // force reflow so transitions apply
+  cloneRow.getBoundingClientRect();
+  cloneCol.getBoundingClientRect();
+
+  // compute translation to target cell center
+  const tgt = targetCell.getBoundingClientRect();
+  const rr  = cloneRow.getBoundingClientRect();
+  const cr  = cloneCol.getBoundingClientRect();
+  const dxR = (tgt.left + tgt.width/2)  - (rr.left + rr.width/2);
+  const dyR = (tgt.top  + tgt.height/2) - (rr.top  + rr.height/2);
+  const dxC = (tgt.left + tgt.width/2)  - (cr.left + cr.width/2);
+  const dyC = (tgt.top  + tgt.height/2) - (cr.top  + cr.height/2);
+
+  // animate them flying in
+  cloneRow.style.transform = `translate(${dxR}px, ${dyR}px) scale(0.3)`;
+  cloneCol.style.transform = `translate(${dxC}px, ${dyC}px) scale(0.3)`;
+  cloneRow.style.opacity   = '0.5';
+  cloneCol.style.opacity   = '0.5';
+
+  // cleanup + callback
+  cloneRow.addEventListener('transitionend', () => {
+    cloneRow.remove();
+    cloneCol.remove();
+    onComplete();
+  }, { once: true });
+}
+
+// 1) Helper: add this right after initResult()
+function fillZerosThenCell(i, j, value) {
+  const R = initResult(A.length);
+  R[i][j] = value;
+  return R}
+
+
+  // New: animate row+col back out of the result cell
+function reverseSmashClone(srcA, srcB, targetCell, rowIdx, colIdx, partials, onComplete) {
+  const n      = A.length;
+  const cellsA = srcA.querySelectorAll('.matrix-element');
+  const cellsB = srcB.querySelectorAll('.matrix-element');
+  const ks     = partials.map(ev => ev.k);
+
+  // 1) Figure out the original bounding boxes for those A- and B-cells
+  const r0 = cellsA[rowIdx * n + ks[0]].getBoundingClientRect();
+  const r1 = cellsA[rowIdx * n + ks[ks.length-1]].getBoundingClientRect();
+  const c0 = cellsB[ks[0] * n + colIdx].getBoundingClientRect();
+  const c1 = cellsB[ks[ks.length-1] * n + colIdx].getBoundingClientRect();
+
+  const rowWidth  = r1.right - r0.left;
+  const rowHeight = r0.height;
+  const colWidth  = c0.width;
+  const colHeight = c1.bottom - c0.top;
+
+  // 2) Build the clones (sized for the ORIGINAL positions)
+  const cloneRow = document.createElement('div');
+  cloneRow.classList.add('matrix-clone');
+  cloneRow.style.gridTemplateColumns = `repeat(${ks.length},1fr)`;
+  cloneRow.style.gridTemplateRows    = `1fr`;
+  ks.forEach(k => cloneRow.appendChild(
+    cellsA[rowIdx * n + k].cloneNode(true)
+  ));
+  document.body.appendChild(cloneRow);
+
+  const cloneCol = document.createElement('div');
+  cloneCol.classList.add('matrix-clone');
+  cloneCol.style.gridTemplateColumns = `1fr`;
+  cloneCol.style.gridTemplateRows    = `repeat(${ks.length},1fr)`;
+  ks.forEach(k => cloneCol.appendChild(
+    cellsB[k * n + colIdx].cloneNode(true)
+  ));
+  document.body.appendChild(cloneCol);
+
+  // 3) Initially position them AT the RESULT cell
+  const tgt = targetCell.getBoundingClientRect();
+  const initRowLeft = tgt.left + tgt.width/2 - rowWidth/2;
+  const initRowTop  = tgt.top  + tgt.height/2 - rowHeight/2;
+  const initColLeft = tgt.left + tgt.width/2 - colWidth/2;
+  const initColTop  = tgt.top  + tgt.height/2 - colHeight/2;
+
+  cloneRow.style.left   = `${initRowLeft}px`;
+  cloneRow.style.top    = `${initRowTop}px`;
+  cloneRow.style.width  = `${rowWidth}px`;
+  cloneRow.style.height = `${rowHeight}px`;
+  cloneRow.style.transform = 'scale(0.3)';
+  cloneRow.style.opacity   = '0.5';
+
+  cloneCol.style.left   = `${initColLeft}px`;
+  cloneCol.style.top    = `${initColTop}px`;
+  cloneCol.style.width  = `${colWidth}px`;
+  cloneCol.style.height = `${colHeight}px`;
+  cloneCol.style.transform = 'scale(0.3)';
+  cloneCol.style.opacity   = '0.5';
+
+  // 4) Force reflow so our transitions will run
+  cloneRow.getBoundingClientRect();
+  cloneCol.getBoundingClientRect();
+
+  // 5) Animate back to the ORIGINAL positions
+  const dxRow = r0.left - initRowLeft;
+  const dyRow = r0.top  - initRowTop;
+  const dxCol = c0.left - initColLeft;
+  const dyCol = c0.top  - initColTop;
+
+  cloneRow.style.transform = `translate(${dxRow}px, ${dyRow}px) scale(1)`;
+  cloneCol.style.transform = `translate(${dxCol}px, ${dyCol}px) scale(1)`;
+  cloneRow.style.opacity   = '1';
+  cloneCol.style.opacity   = '1';
+
+  // 6) Cleanup & redraw when done
+  cloneRow.addEventListener('transitionend', () => {
+    cloneRow.remove();
+    cloneCol.remove();
+    onComplete();
+  }, { once: true });
+}
+
+
+// New
+genBtn.addEventListener('click', () => {
+  // 1) just read it—it's guaranteed to be "4" or "8"
+  const n = parseInt(dimInput.value, 10);
+
+  // 2) proceed exactly as before
+  A = genRandomMatrix(n);
+  B = genRandomMatrix(n);
+  renderMatrix(matA, A);
+  renderMatrix(matB, B);
+  initEmptyResult();
+  multCount = addCount = 0;
+  multCountEl.textContent = addCountEl.textContent = 0;
+  events = buildEvents(A, B);
+  ptr = 0;
+  rebuild();
+  clearIntervalSafe();
+  playing = false;
+
+
+  // now n is guaranteed between 1 and 8
+
+  // 2) proceed as before
+  A = genRandomMatrix(n);
+  B = genRandomMatrix(n);
+  renderMatrix(matA, A);
+  renderMatrix(matB, B);
+  initEmptyResult();
+
+  multCount = addCount = 0;
+  multCountEl.textContent = addCountEl.textContent = 0;
+
+  events = buildEvents(A, B);
+  ptr    = 0;
+  rebuild();
+
+  clearIntervalSafe();
+  playing = false;
+});
+
+
+// ─── Next ───
+nextBtn.addEventListener('click', () => {
+  if (ptr < events.length - 1) {
+    lastDirection = 'next';
+    ptr++;
+    // skip all dot-events for this same (i,j)
+    if (events[ptr].type === 'dot') {
+      while (
+        ptr < events.length - 1 &&
+        events[ptr+1].type === 'dot' &&
+        events[ptr+1].i === events[ptr].i &&
+        events[ptr+1].j === events[ptr].j
+      ) {
+        ptr++;
+      }
+    }
+    rebuild();
+  }
+});
+
+// ─── Prev ───
+prevBtn.addEventListener('click', () => {
+  if (ptr > 0) {
+    lastDirection = 'prev';
+    ptr--;
+    // back up past all dot-events for this same (i,j)
+    if (events[ptr].type === 'dot') {
+      const { i: cellI, j: cellJ } = events[ptr];
+      while (
+        ptr > 0 &&
+        events[ptr].type === 'dot' &&
+        events[ptr].i === cellI &&
+        events[ptr].j === cellJ
+      ) {
+        ptr--;
+      }
+    }
+    rebuild();
+  }
+});
+
+// ─── Play/Pause ───
+playBtn.addEventListener('click', () => {
+  if (!playing) {
+    lastDirection = 'next';
+    playing = true;
+    playBtn.textContent = 'Pause';
+    timer = setInterval(() => {
+      if (ptr < events.length - 1) {
+        lastDirection = 'next';
+        ptr++;
+        // same grouping in autoplay
+        if (events[ptr].type === 'dot') {
+          while (
+            ptr < events.length - 1 &&
+            events[ptr+1].type === 'dot' &&
+            events[ptr+1].i === events[ptr].i &&
+            events[ptr+1].j === events[ptr].j
+          ) {
+            ptr++;
+          }
+        }
+        rebuild();
+      } else {
+        clearIntervalSafe();
+        playing = false;
+        playBtn.textContent = 'Play';
+        playBtn.disabled = true;
+      }
+    }, 700 / speed);
+  } else {
+    clearIntervalSafe();
+    playing = false;
+    playBtn.textContent = 'Play';
+  }
+});
+
+
+
+  speedSelect.addEventListener('change', () => {
+    speed = parseInt(speedSelect.value,10) || 1;
+    if (playing) {
+      clearIntervalSafe();
+      playBtn.dispatchEvent(new Event('click'));
+    }
+  });
+
+  // initialize on load
+  genBtn.click();
+
+})();
+</script>
+</body>
+</html>
