@@ -1,5 +1,12 @@
 class SubDemoManager {
   static showSubDemo(matA, matB, label, expr, onComplete) {
+    // If the subproblem is 1×1, there's nothing to visualize—compute directly.
+    if (matA.length === 1) {
+      const res = MatrixUtils.strassenMultiply(matA, matB).result;
+      if (typeof onComplete === 'function') onComplete(res);
+      return;
+    }
+
     const overlay = document.createElement('div');
     overlay.className = 'demo-overlay';
 

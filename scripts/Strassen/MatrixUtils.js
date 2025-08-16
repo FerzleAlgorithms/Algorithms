@@ -15,7 +15,9 @@ class MatrixUtils {
 
   static extractSubmatrix(M, r, c, size) {
     if (size === 1) {
-      return M[r][c];
+      // Always return a 1×1 matrix so downstream operations can
+      // treat submatrices uniformly without checking for scalars.
+      return [[M[r][c]]];
     }
     
     const sub = [];
