@@ -801,6 +801,26 @@
   margin: 0.25em 0;
 }
 
+.demo-overlay .demo-container {
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 80px); /* adjust header/footer offset */
+  overflow: hidden;           /* keep scrolling inside children */
+}
+
+/* Sub-computations pane inside overlay: take available space and scroll */
+.demo-overlay #sub-computations,
+.demo-overlay .computations {
+  flex: 1 1 auto;             /* grow to fill overlay column */
+  min-height: 0;              /* critical for flex children to allow scrolling */
+  overflow-y: auto !important;/* ensure internal scrollbar */
+  max-height: none !important;/* override any inline max-height */
+  border: 1px solid #d0d0d0;  /* match main-screen border */
+  background: #fff;
+  padding: 0.5rem;
+  border-radius: 6px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
   </style>
   <!-- Google tag (gtag.js) -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-DQ5LVZVFDC"></script>

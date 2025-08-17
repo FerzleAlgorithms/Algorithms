@@ -154,7 +154,10 @@ class DemoManager {
 
     const container = this.containers.computations;
     if (!container) return;
-
+    container.classList.add('fill-and-scroll');
+    container.style.maxHeight = '';
+    container.style.minHeight = '';
+    container.style.overflowY = '';
     // Stabilize container layout so it won't collapse
     //container.style.display = container.style.display || 'flex';
     //container.style.flexDirection = container.style.flexDirection || 'column';
