@@ -1,3 +1,4 @@
+
 class DemoManager {
   constructor(containers, buttons = {}) {
     this.containers = containers;
@@ -36,16 +37,14 @@ class DemoManager {
     this.B = B;
     this.n = A.length;
     this.M = {};
-    // Do not set a zero matrix here — leave null until computation completes.
-    // This prevents subdemos closed early from returning an uncomputed zero matrix.
     this.finalResult = null;
+    this.computationsBuilt = false;
+    this.nextComputeIndex = 0;
 
-    // Hide any old overlays first to guarantee Step 0 view
+    // Hide overlays and disallow at Step 0
     OverlayManager.hideOverlay(this.containers.matA);
     OverlayManager.hideOverlay(this.containers.matB);
     OverlayManager.hideOverlay(this.containers.matR);
-
-    // Disallow overlays at Step 0
     this.containers.matA.dataset.overlayAllowed = 'false';
     this.containers.matB.dataset.overlayAllowed = 'false';
     this.containers.matR.dataset.overlayAllowed = 'false';
@@ -56,31 +55,23 @@ class DemoManager {
 
     // Start at Step 0
     this.step = 0;
-    this.computationsBuilt = false;
-    this.nextComputeIndex = 0; // reset sequential progression
     this.updateStepUI();
   }
 
-  // Navigation
-  prevStep() {
-    this.setStep(this.step - 1);
-  }
-  nextStep() {
-    this.setStep(this.step + 1);
-  }
+  // Navigation helpers
+  prevStep() { this.setStep(this.step - 1); }
+  nextStep() { this.setStep(this.step + 1); }
   setStep(s) {
     this.step = Math.max(0, Math.min(this.maxStep, s));
     this.updateStepUI();
   }
 
   updateStepUI() {
-    // Enable/disable nav buttons
     if (this.buttons.prev) this.buttons.prev.disabled = this.step === 0;
     if (this.buttons.next) this.buttons.next.disabled = this.step === this.maxStep;
 
     // Step 0: matrices only
     if (this.step === 0) {
-      // Disallow overlays and ensure they’re hidden
       this.containers.matA.dataset.overlayAllowed = 'false';
       this.containers.matB.dataset.overlayAllowed = 'false';
       this.containers.matR.dataset.overlayAllowed = 'false';
@@ -94,7 +85,6 @@ class DemoManager {
 
     // Step 1: show overlays
     if (this.step === 1) {
-      // Only show overlays for sizes > 2 (2x2 overlays hide numbers)
       if (this.n > 2) {
         this.containers.matA.dataset.overlayAllowed = 'true';
         this.containers.matB.dataset.overlayAllowed = 'true';
@@ -110,7 +100,6 @@ class DemoManager {
 
     // Step 2: show computations list (build once)
     if (this.step === 2) {
-      // Only show overlays for sizes > 2
       if (this.n > 2) {
         this.containers.matA.dataset.overlayAllowed = 'true';
         this.containers.matB.dataset.overlayAllowed = 'true';
@@ -123,7 +112,7 @@ class DemoManager {
         this.buildComputationList();
         this.computationsBuilt = true;
       }
-      if (this.containers.commentBox) this.containers.commentBox.textContent = 'Compute the seven products.';
+      if (this.containers.commentBox) this.containers.commentBox.textContent = 'Compute the seven products. Do each +/- operation first, then click Compute/Show Computation to calculate the product.';
     }
   }
 
@@ -139,7 +128,6 @@ class DemoManager {
     const B21 = MatrixUtils.extractSubmatrix(this.B, m, 0, m);
     const B22 = MatrixUtils.extractSubmatrix(this.B, m, m, m);
 
-    // Define each M_i with actual submatrices for each term
     const defs = [
       { key: 'M1',
         left:  { type: 'op', op: '+', left: { label: 'A11', M: A11 }, right: { label: 'A22', M: A22 } },
@@ -165,37 +153,39 @@ class DemoManager {
     ];
 
     const container = this.containers.computations;
-    if (container) {
-      container.innerHTML = '';
-      this.nextComputeIndex = 0; // reset sequence
-      defs.forEach((def, idx) => this.addComputationRow(container, def, idx));
-      // attempt to enable the first row if ready
-      this.enableRowIfReady(0);
-    }
+    if (!container) return;
+
+    // Stabilize container layout so it won't collapse
+    container.style.display = container.style.display || 'flex';
+    container.style.flexDirection = container.style.flexDirection || 'column';
+    container.style.flex = container.style.flex || '1 1 auto';
+    container.style.minHeight = container.style.minHeight || '400px';
+    container.style.overflowY = container.style.overflowY || 'auto';
+
+    container.innerHTML = '';
+    this.nextComputeIndex = 0;
+    defs.forEach((def, idx) => this.addComputationRow(container, def, idx));
+    this.enableRowIfReady(0);
   }
 
   addComputationRow(container, def, idx) {
-    const self = this; // keep class context for closures
+    const self = this;
 
     const row = document.createElement('div');
     row.className = 'strassen-row';
 
-    // Inline computation layout
     const mc = document.createElement('div');
     mc.className = 'matrix-computation';
 
-    // Add product key label (e.g. "M1 =") at the start
     const keyLabel = document.createElement('span');
     keyLabel.className = 'formula';
     keyLabel.textContent = `${def.key} = `;
     mc.appendChild(keyLabel);
 
-    // Track readiness of both terms
     let leftReady = false, rightReady = false;
     let leftResult = null, rightResult = null;
 
-    // --- create action buttons early so renderTerm/onComputed can safely call updateControls ---
-    let computeBtn = document.createElement('button');
+    const computeBtn = document.createElement('button');
     computeBtn.textContent = 'Compute';
     computeBtn.disabled = true;
     computeBtn.dataset.rowIndex = idx;
@@ -204,7 +194,7 @@ class DemoManager {
       this.storeResult(def.key, result, resultSpan, computeBtn, showBtn);
     });
 
-    let showBtn = document.createElement('button');
+    const showBtn = document.createElement('button');
     showBtn.textContent = 'Show Computation';
     showBtn.disabled = true;
     showBtn.dataset.rowIndex = idx;
@@ -214,17 +204,13 @@ class DemoManager {
         this.storeResult(def.key, res, resultSpan, computeBtn, showBtn);
       });
     });
-    // --- end early creation ---
 
-    // If this is a 2x2 demo (subdemo base case), hide the Show Computation button
     if (this.n === 2) {
       showBtn.style.display = 'none';
     }
 
-    // pass idx so renderTerm can attach dataset/index if needed
     const leftNode = this.renderTerm(def.left, 'term1', (res) => {
       leftResult = res; leftReady = true; updateControls();
-      // If rendered term updated readiness, attempt to enable current sequential row
       self.enableRowIfReady(idx);
     });
     const times = MatrixRenderer.createOperator('×');
@@ -246,241 +232,21 @@ class DemoManager {
     mc.appendChild(equals);
     mc.appendChild(resultSpan);
 
-    // Insert controls immediately after the result inside the computation area
     const controlsWrap = document.createElement('div');
     controlsWrap.className = 'term-buttons';
     controlsWrap.appendChild(computeBtn);
     controlsWrap.appendChild(showBtn);
-
-    // Put the controls beside the result (inside mc) so they stay next to the result.
     mc.appendChild(controlsWrap);
 
     row.appendChild(mc);
     container.appendChild(row);
 
-    // Initialize readiness for plain terms (renderTerm will call onComputed)
-    // leftResult/rightResult will be set by callbacks above when ready
     updateControls();
 
     function updateControls() {
       const ready = leftReady && rightReady;
-      // Only allow compute/show for the current sequential index
       const allowedBySequence = idx === self.nextComputeIndex;
-      // computeBtn/showBtn were created early so they exist here
       computeBtn.disabled = !(ready && allowedBySequence);
-      // ensure showBtn follows same rules if visible
-      if (showBtn.style.display !== 'none') showBtn.disabled = !(ready && allowedBySequence);
-    }
-  }
-
-  // Navigation
-  prevStep() {
-    this.setStep(this.step - 1);
-  }
-  nextStep() {
-    this.setStep(this.step + 1);
-  }
-  setStep(s) {
-    this.step = Math.max(0, Math.min(this.maxStep, s));
-    this.updateStepUI();
-  }
-
-  updateStepUI() {
-    // Enable/disable nav buttons
-    if (this.buttons.prev) this.buttons.prev.disabled = this.step === 0;
-    if (this.buttons.next) this.buttons.next.disabled = this.step === this.maxStep;
-
-    // Step 0: matrices only
-    if (this.step === 0) {
-      // Disallow overlays and ensure they’re hidden
-      this.containers.matA.dataset.overlayAllowed = 'false';
-      this.containers.matB.dataset.overlayAllowed = 'false';
-      this.containers.matR.dataset.overlayAllowed = 'false';
-      OverlayManager.hideOverlay(this.containers.matA);
-      OverlayManager.hideOverlay(this.containers.matB);
-      OverlayManager.hideOverlay(this.containers.matR);
-      if (this.containers.computations) this.containers.computations.innerHTML = '';
-      if (this.containers.commentBox) this.containers.commentBox.textContent = 'Matrices ready. Click Next to show quadrants.';
-      return;
-    }
-
-    // Step 1: show overlays
-    if (this.step === 1) {
-      // Only show overlays for sizes > 2 (2x2 overlays hide numbers)
-      if (this.n > 2) {
-        this.containers.matA.dataset.overlayAllowed = 'true';
-        this.containers.matB.dataset.overlayAllowed = 'true';
-        this.containers.matR.dataset.overlayAllowed = 'true';
-        OverlayManager.showOverlay(this.containers.matA, this.n);
-        OverlayManager.showOverlay(this.containers.matB, this.n);
-        OverlayManager.showOverlay(this.containers.matR, this.n);
-      }
-      if (this.containers.computations) this.containers.computations.innerHTML = '';
-      if (this.containers.commentBox) this.containers.commentBox.textContent = 'Quadrants shown. Click Next to set up Strassen products.';
-      return;
-    }
-
-    // Step 2: show computations list (build once)
-    if (this.step === 2) {
-      // Only show overlays for sizes > 2
-      if (this.n > 2) {
-        this.containers.matA.dataset.overlayAllowed = 'true';
-        this.containers.matB.dataset.overlayAllowed = 'true';
-        this.containers.matR.dataset.overlayAllowed = 'true';
-        OverlayManager.showOverlay(this.containers.matA, this.n);
-        OverlayManager.showOverlay(this.containers.matB, this.n);
-        OverlayManager.showOverlay(this.containers.matR, this.n);
-      }
-      if (!this.computationsBuilt) {
-        this.buildComputationList();
-        this.computationsBuilt = true;
-      }
-      if (this.containers.commentBox) this.containers.commentBox.textContent = 'Compute the seven products.';
-    }
-  }
-
-  buildComputationList() {
-    const m = this.n / 2;
-    const A11 = MatrixUtils.extractSubmatrix(this.A, 0, 0, m);
-    const A12 = MatrixUtils.extractSubmatrix(this.A, 0, m, m);
-    const A21 = MatrixUtils.extractSubmatrix(this.A, m, 0, m);
-    const A22 = MatrixUtils.extractSubmatrix(this.A, m, m, m);
-
-    const B11 = MatrixUtils.extractSubmatrix(this.B, 0, 0, m);
-    const B12 = MatrixUtils.extractSubmatrix(this.B, 0, m, m);
-    const B21 = MatrixUtils.extractSubmatrix(this.B, m, 0, m);
-    const B22 = MatrixUtils.extractSubmatrix(this.B, m, m, m);
-
-    // Define each M_i with actual submatrices for each term
-    const defs = [
-      { key: 'M1',
-        left:  { type: 'op', op: '+', left: { label: 'A11', M: A11 }, right: { label: 'A22', M: A22 } },
-        right: { type: 'op', op: '+', left: { label: 'B11', M: B11 }, right: { label: 'B22', M: B22 } } },
-      { key: 'M2',
-        left:  { type: 'op', op: '+', left: { label: 'A21', M: A21 }, right: { label: 'A22', M: A22 } },
-        right: { type: 'matrix', label: 'B11', M: B11 } },
-      { key: 'M3',
-        left:  { type: 'matrix', label: 'A11', M: A11 },
-        right: { type: 'op', op: '-', left: { label: 'B12', M: B12 }, right: { label: 'B22', M: B22 } } },
-      { key: 'M4',
-        left:  { type: 'matrix', label: 'A22', M: A22 },
-        right: { type: 'op', op: '-', left: { label: 'B21', M: B21 }, right: { label: 'B11', M: B11 } } },
-      { key: 'M5',
-        left:  { type: 'op', op: '+', left: { label: 'A11', M: A11 }, right: { label: 'A12', M: A12 } },
-        right: { type: 'matrix', label: 'B22', M: B22 } },
-      { key: 'M6',
-        left:  { type: 'op', op: '-', left: { label: 'A21', M: A21 }, right: { label: 'A11', M: A11 } },
-        right: { type: 'op', op: '+', left: { label: 'B11', M: B11 }, right: { label: 'B12', M: B12 } } },
-      { key: 'M7',
-        left:  { type: 'op', op: '-', left: { label: 'A12', M: A12 }, right: { label: 'A22', M: A22 } },
-        right: { type: 'op', op: '+', left: { label: 'B21', M: B21 }, right: { label: 'B22', M: B22 } } }
-    ];
-
-    const container = this.containers.computations;
-    if (container) {
-      container.innerHTML = '';
-      this.nextComputeIndex = 0; // reset sequence
-      defs.forEach((def, idx) => this.addComputationRow(container, def, idx));
-      // attempt to enable the first row if ready
-      this.enableRowIfReady(0);
-    }
-  }
-
-  addComputationRow(container, def, idx) {
-    const self = this; // keep class context for closures
-
-    const row = document.createElement('div');
-    row.className = 'strassen-row';
-
-    // Inline computation layout
-    const mc = document.createElement('div');
-    mc.className = 'matrix-computation';
-
-    // Add product key label (e.g. "M1 =") at the start
-    const keyLabel = document.createElement('span');
-    keyLabel.className = 'formula';
-    keyLabel.textContent = `${def.key} = `;
-    mc.appendChild(keyLabel);
-
-    // Track readiness of both terms
-    let leftReady = false, rightReady = false;
-    let leftResult = null, rightResult = null;
-
-    // --- create action buttons early so renderTerm/onComputed can safely call updateControls ---
-    let computeBtn = document.createElement('button');
-    computeBtn.textContent = 'Compute';
-    computeBtn.disabled = true;
-    computeBtn.dataset.rowIndex = idx;
-    computeBtn.addEventListener('click', () => {
-      const { result } = MatrixUtils.strassenMultiply(leftResult, rightResult);
-      this.storeResult(def.key, result, resultSpan, computeBtn, showBtn);
-    });
-
-    let showBtn = document.createElement('button');
-    showBtn.textContent = 'Show Computation';
-    showBtn.disabled = true;
-    showBtn.dataset.rowIndex = idx;
-    showBtn.addEventListener('click', () => {
-      const exprText = `${this.termExpr(def.left)} × ${this.termExpr(def.right)}`;
-      SubDemoManager.showSubDemo(leftResult, rightResult, def.key, exprText, (res) => {
-        this.storeResult(def.key, res, resultSpan, computeBtn, showBtn);
-      });
-    });
-    // --- end early creation ---
-
-    // If this is a 2x2 demo (subdemo base case), hide the Show Computation button
-    if (this.n === 2) {
-      showBtn.style.display = 'none';
-    }
-
-    // pass idx so renderTerm can attach dataset/index if needed
-    const leftNode = this.renderTerm(def.left, 'term1', (res) => {
-      leftResult = res; leftReady = true; updateControls();
-      // If rendered term updated readiness, attempt to enable current sequential row
-      self.enableRowIfReady(idx);
-    });
-    const times = MatrixRenderer.createOperator('×');
-    const rightNode = this.renderTerm(def.right, 'term2', (res) => {
-      rightResult = res; rightReady = true; updateControls();
-      self.enableRowIfReady(idx);
-    });
-    const equals = MatrixRenderer.createOperator('=');
-
-    const resultSpan = document.createElement('span');
-    resultSpan.className = 'result';
-    const resultHolder = document.createElement('div');
-    resultHolder.className = 'result-placeholder';
-    resultSpan.appendChild(resultHolder);
-
-    mc.appendChild(leftNode);
-    mc.appendChild(times);
-    mc.appendChild(rightNode);
-    mc.appendChild(equals);
-    mc.appendChild(resultSpan);
-
-    // Insert controls immediately after the result inside the computation area
-    const controlsWrap = document.createElement('div');
-    controlsWrap.className = 'term-buttons';
-    controlsWrap.appendChild(computeBtn);
-    controlsWrap.appendChild(showBtn);
-
-    // Put the controls beside the result (inside mc) so they stay next to the result.
-    mc.appendChild(controlsWrap);
-
-    row.appendChild(mc);
-    container.appendChild(row);
-
-    // Initialize readiness for plain terms (renderTerm will call onComputed)
-    // leftResult/rightResult will be set by callbacks above when ready
-    updateControls();
-
-    function updateControls() {
-      const ready = leftReady && rightReady;
-      // Only allow compute/show for the current sequential index
-      const allowedBySequence = idx === self.nextComputeIndex;
-      // computeBtn/showBtn were created early so they exist here
-      computeBtn.disabled = !(ready && allowedBySequence);
-      // ensure showBtn follows same rules if visible
       if (showBtn.style.display !== 'none') showBtn.disabled = !(ready && allowedBySequence);
     }
   }
@@ -493,17 +259,14 @@ class DemoManager {
     if (!row) return;
     const mc = row.querySelector('.matrix-computation');
     if (!mc) return;
-    // find term wrappers inside mc
     const termWrappers = mc.querySelectorAll('.term-container');
     let allReady = true;
-    termWrappers.forEach(w => {
-      if (w.dataset.ready !== 'true') allReady = false;
-    });
+    termWrappers.forEach(w => { if (w.dataset.ready !== 'true') allReady = false; });
     const computeBtn = row.querySelector('button:nth-of-type(1)');
     const showBtn = row.querySelector('button:nth-of-type(2)');
-    if (computeBtn && showBtn && allReady && Number(computeBtn.dataset.rowIndex) === this.nextComputeIndex) {
+    if (computeBtn && allReady && Number(computeBtn.dataset.rowIndex) === this.nextComputeIndex) {
       computeBtn.disabled = false;
-      showBtn.disabled = false;
+      if (showBtn && showBtn.style.display !== 'none') showBtn.disabled = false;
     }
   }
 
@@ -516,41 +279,35 @@ class DemoManager {
       const small = MatrixRenderer.renderSmallMatrix(term.M, term.M.length, termClass);
       const labeled = MatrixRenderer.wrapMatrixWithLabel(small, term.label, termClass);
       wrapper.appendChild(labeled);
-      // mark ready and attach matrix reference
       wrapper.dataset.ready = 'true';
       wrapper.__matrix = term.M;
-      // Immediately inform ready state
       if (onComputed) onComputed(term.M);
       return wrapper;
     }
 
-    // type === 'op'
+    // term.type === 'op'
     const expr = document.createElement('div');
     expr.className = 'matrix-computation';
+    expr.classList.add('paren-wrap');
 
     const leftSmall = MatrixRenderer.renderSmallMatrix(term.left.M, term.left.M.length, termClass);
     const leftLabeled = MatrixRenderer.wrapMatrixWithLabel(leftSmall, term.left.label, termClass);
-    const opNode = MatrixRenderer.createOperator(term.op === '+' ? '+' : '−');
     const rightSmall = MatrixRenderer.renderSmallMatrix(term.right.M, term.right.M.length, termClass);
     const rightLabeled = MatrixRenderer.wrapMatrixWithLabel(rightSmall, term.right.label, termClass);
 
-    expr.appendChild(leftLabeled);
-    expr.appendChild(opNode);
-    expr.appendChild(rightLabeled);
+    const opBtn = document.createElement('button');
+    opBtn.className = 'op-btn';
+    opBtn.type = 'button';
+    opBtn.textContent = term.op === '+' ? '+' : '−';
 
-    const btn = document.createElement('button');
-    btn.className = 'term-compute-btn';
-    btn.textContent = term.op === '+' ? 'Perform addition' : 'Perform subtraction';
-    btn.addEventListener('click', () => {
+    opBtn.addEventListener('click', () => {
       const opRes = term.op === '+'
         ? MatrixUtils.addMatrices(term.left.M, term.right.M).result
         : MatrixUtils.subtractMatrices(term.left.M, term.right.M).result;
 
-      // mark ready and attach matrix reference so outer enable checks can see it
       wrapper.dataset.ready = 'true';
       wrapper.__matrix = opRes;
 
-      // Replace expression with the computed term (labeled)
       wrapper.innerHTML = '';
       const computedSmall = MatrixRenderer.renderSmallMatrix(opRes, opRes.length, termClass);
       const computedLabel = term.op === '+'
@@ -562,8 +319,11 @@ class DemoManager {
       if (onComputed) onComputed(opRes);
     });
 
+    expr.appendChild(leftLabeled);
+    expr.appendChild(opBtn);
+    expr.appendChild(rightLabeled);
+
     wrapper.appendChild(expr);
-    wrapper.appendChild(btn);
     return wrapper;
   }
 
@@ -574,20 +334,14 @@ class DemoManager {
   }
 
   storeResult(key, result, resultSpan, computeBtn, showBtn) {
-    // store result
     this.M[key] = result;
 
-    // show result in the result placeholder (left side of the row)
     resultSpan.innerHTML = '';
     resultSpan.appendChild(MatrixRenderer.renderSmallMatrix(result, result.length, 'result'));
 
-    // Remove the buttons area entirely (do not duplicate the result where buttons were)
     const controlsWrap = (computeBtn && computeBtn.parentElement) || (showBtn && showBtn.parentElement);
-    if (controlsWrap) {
-      controlsWrap.remove();
-    }
+    if (controlsWrap) controlsWrap.remove();
 
-    // mark buttons disabled (in case)
     if (computeBtn) computeBtn.disabled = true;
     if (showBtn) showBtn.disabled = true;
 
@@ -595,7 +349,6 @@ class DemoManager {
       this.containers.commentBox.textContent = `${key} computed.`;
     }
 
-    // advance sequential index and try enabling next row
     let rowIdx = null;
     if (computeBtn && computeBtn.dataset && computeBtn.dataset.rowIndex !== undefined) {
       rowIdx = Number(computeBtn.dataset.rowIndex);
@@ -604,7 +357,6 @@ class DemoManager {
     }
     if (rowIdx !== null) {
       this.nextComputeIndex = Math.max(this.nextComputeIndex, rowIdx + 1);
-      // enable next row if it's ready
       this.enableRowIfReady(this.nextComputeIndex);
     }
 
@@ -618,7 +370,6 @@ class DemoManager {
   }
 
   combineResults() {
-    // compute quadrant matrices from M1..M7
     const { M1, M2, M3, M4, M5, M6, M7 } = this.M;
     const m = this.n / 2;
 
@@ -639,7 +390,6 @@ class DemoManager {
       M6
     ).result;
 
-    // store quadrants and full result (but do not render full result yet)
     this._finalQuadrants = { C11, C12, C21, C22 };
     this.finalResult = MatrixUtils.initZeroMatrix(this.n);
     for (let i = 0; i < m; i++) {
@@ -651,11 +401,10 @@ class DemoManager {
       }
     }
 
-    // Show M1..M7 first and then the final quadrant formulas and result
     this.showFinalComputationsWithMs();
   }
 
-  // New: show M1..M7 inline, then step through quadrant formulas and final render
+  // Show M1..M7 then step through quadrant formulas and final render
   showFinalComputationsWithMs() {
     const container = this.containers.computations;
     if (!container) {
@@ -667,7 +416,6 @@ class DemoManager {
 
     container.innerHTML = '';
 
-    // 1) Show M1..M7 inline
     const mRow = document.createElement('div');
     mRow.className = 'final-ms-row';
     const ms = ['M1','M2','M3','M4','M5','M6','M7'];
@@ -684,7 +432,6 @@ class DemoManager {
     });
     container.appendChild(mRow);
 
-    // 2) Prepare formula area to step through C11..C22
     const formulaWrap = document.createElement('div');
     formulaWrap.className = 'final-formulas';
     container.appendChild(formulaWrap);
@@ -700,7 +447,6 @@ class DemoManager {
     quadArea.className = 'final-quad-area';
     formulaWrap.appendChild(quadArea);
 
-    // control buttons for stepping through the 4 formulas
     const btnRow = document.createElement('div');
     btnRow.className = 'subdemo-buttons';
     const nextBtn = document.createElement('button');
@@ -716,11 +462,9 @@ class DemoManager {
     const renderQuadFormula = (i) => {
       quadArea.innerHTML = '';
       const info = quads[i];
-      // formula text
       const formulaText = document.createElement('div');
       formulaText.className = 'formula';
       formulaText.textContent = `${info.name} = ${info.formula}`;
-      // matrix result
       const matrixNode = MatrixRenderer.renderSmallMatrix(info.mat, info.mat.length, 'result');
       const wrapped = MatrixRenderer.wrapMatrixWithLabel(matrixNode, info.name, 'result');
 
@@ -746,32 +490,27 @@ class DemoManager {
     });
 
     finishBtn.addEventListener('click', () => {
-      // render full final result into main result matrix and clear computations area
       MatrixRenderer.renderMatrix(this.containers.matR, this.finalResult);
       OverlayManager.hideOverlay(this.containers.matR);
       if (this.containers.commentBox) {
         this.containers.commentBox.textContent = 'Strassen computation complete.';
       }
-      // Optionally show a summary and then clear
       container.innerHTML = '';
     });
 
-    // start by showing the first quad formula
     renderQuadFormula(0);
   }
 
-  // Present the 4 quadrant results sequentially inside the computations pane.
+  // Alternate final-view flow (kept for compatibility)
   showFinalComputations() {
     const container = this.containers.computations;
     if (!container) {
-      // fallback: render full result immediately
       MatrixRenderer.renderMatrix(this.containers.matR, this.finalResult);
       OverlayManager.hideOverlay(this.containers.matR);
       if (this.containers.commentBox) this.containers.commentBox.textContent = 'Strassen computation complete.';
       return;
     }
 
-    // Clear computations and prepare final UI
     container.innerHTML = '';
     const finalWrap = document.createElement('div');
     finalWrap.className = 'final-computations';
@@ -811,12 +550,10 @@ class DemoManager {
       quadArea.appendChild(label);
       quadArea.appendChild(wrapped);
 
-      // update comment
       if (this.containers.commentBox) {
         this.containers.commentBox.textContent = `Showing ${quads[i]}. Click Next to continue.`;
       }
 
-      // Show finish on last
       if (i === quads.length - 1) {
         nextBtn.style.display = 'none';
         doneBtn.style.display = 'inline-block';
@@ -832,15 +569,12 @@ class DemoManager {
     });
 
     doneBtn.addEventListener('click', () => {
-      // render full final result into the main result matrix, remove final UI
       MatrixRenderer.renderMatrix(this.containers.matR, this.finalResult);
       OverlayManager.hideOverlay(this.containers.matR);
       if (this.containers.commentBox) this.containers.commentBox.textContent = 'Strassen computation complete.';
       finalWrap.remove();
     });
 
-    // start at first quadrant
     renderQuad(0);
   }
 }
-

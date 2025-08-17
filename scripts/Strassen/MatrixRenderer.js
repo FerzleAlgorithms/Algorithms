@@ -147,7 +147,7 @@ class MatrixRenderer {
     } else {
       labelDiv.textContent = label;
     }
-    
+
     wrapper.appendChild(labelDiv);
     
     if (window.MathJax && labelDiv.innerHTML.includes('\\(')) {

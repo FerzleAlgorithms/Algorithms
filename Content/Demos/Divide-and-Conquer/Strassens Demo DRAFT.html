@@ -35,7 +35,7 @@
   flex-direction: row;       /* ← put them side by side */
   align-items: center;       /* ← vertically center all buttons/labels */
   gap: 1.5em;                /* ← a bit more breathing room */
-  margin-bottom: 1.25em;
+  margin-bottom: .25em;
 }
 .overlay-controls {
   display: flex;
@@ -646,22 +646,136 @@
   gap: 12px;
 }
 
-/* Allow the computations pane to expand and scroll */
+/* New: ensure the computations pane can scroll reliably and never collapse */
 #strassen-computations {
-  flex: 1 1 auto;
-  overflow-y: auto;
+  display: flex;
+  flex-direction: column;   /* keep internal content stacked */
+  flex: 1 1 auto;           /* allow grow/shrink inside demo container */
+  min-height: 400px;        /* enforce minimum height requested */
+  height: auto;             /* prefer auto so content or flex controls height */
+  overflow: auto;           /* allow both vertical and horizontal scrolling when needed */
   margin: 1em 0;
-  /* remove any hard max-height so it can grow */
-  max-height: none;
+  max-height: 60vh;         /* optional cap to avoid huge growth on very tall screens */
+  box-sizing: border-box;   /* include padding/border in min-height */
 }
 
-/* Keep existing subdemo button styles steady */
-.final-computations .final-quad-area {
-  display: flex;
-  align-items: center;
-  gap: 0.75em;
-  padding: 0.5em 0;
+/* New: ensure overlay demo container scrolls when content is tall */
+.demo-overlay .demo-container {
+  max-height: calc(100vh - 80px);
+  overflow: auto; /* enable scrolling inside the overlay */
 }
+
+/* New: horizontally align the M1..M7 row */
+.final-ms-row {
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+  align-items: flex-start;
+  flex-wrap: wrap; /* allow wrapping on narrow screens */
+  margin-bottom: 12px;
+}
+.final-ms-row .matrix-with-label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+/* New: used-add / used-sub highlighting for M boxes shown when forming quadrants */
+.m-box { transition: transform 0.25s, box-shadow 0.25s, border-color 0.25s; }
+.m-box.used-add .small-matrix-element {
+  box-shadow: 0 0 10px 3px rgba(76,175,80,0.25);
+  border-color: #4caf50;
+  background: rgba(76,175,80,0.06);
+}
+.m-box.used-sub .small-matrix-element {
+  box-shadow: 0 0 10px 3px rgba(244,67,54,0.18);
+  border-color: #f44336;
+  background: rgba(244,67,54,0.04);
+}
+/* also highlight the label to make sign obvious */
+.m-box.used-add .small-matrix-label { border-color: #4caf50; color: #2e7d32; }
+.m-box.used-sub .small-matrix-label { border-color: #f44336; color: #c62828; }
+
+.paren-wrap {
+  position: relative;          /* required for absolutely-positioned paren pseudos */
+  display: inline-flex;        /* allow children to define height */
+  align-items: stretch;        /* make pseudos match child height */
+  gap: 6px;
+  color: #333;
+  padding: 0 10px;
+}
+
+/* pseudo glyphs that scale to container height */
+.paren-wrap::before,
+.paren-wrap::after {
+  content: "";
+  display: inline-block;
+  position: absolute;
+  top: 0;
+  height: calc(100% - 20px);
+  width: 0.6em;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: auto 100%;
+  pointer-events: none;
+}
+
+/* left / right SVG (thin stroke) */
+.paren-wrap::before {
+  left: 0;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 100' preserveAspectRatio='xMidYMid meet'><path d='M14,4 C6,30 6,70 14,96' fill='none' stroke='%23333' stroke-width='2.0' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+}
+.paren-wrap::after {
+  right: 0;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 100' preserveAspectRatio='xMidYMid meet'><path d='M6,4 C14,30 14,70 6,96' fill='none' stroke='%23333' stroke-width='2.0' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+}
+
+/* New: inline operator button used inside expressions to compute +/- without changing vertical layout */
+.op-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 28px;
+  height: 28px;
+  padding: 0.4em 0.8em;           /* match other control buttons */
+  margin: 0px 0px 20px 0px;
+  border: 1px solid #888;        /* same border as other buttons */
+  background: #eee;              /* same background as other buttons */
+  border-radius: 4px;
+  font-weight: bold;
+  cursor: pointer;
+  position: relative;
+  line-height: 1;
+  transition: background 0.2s, transform 0.12s, box-shadow 0.12s;
+}
+.op-btn:hover:not(:disabled) {
+  background: #ddd;              /* same hover as other buttons */
+}
+.op-btn:active { transform: translateY(1px); }
+.op-btn:disabled {
+  opacity: 0.5;                  /* same disabled look as other buttons */
+  cursor: default;
+}
+
+/* Arrow hint ABOVE the operator, larger and centered */
+/*
+.op-btn::before {
+  content: '▼';
+  font-size: 1.1em;
+  line-height: 1;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: calc(100%);
+  color: rgba(0,0,0,0.65);
+  pointer-events: none;
+  user-select: none;
+}*/
+
+/* ensure inline operator doesn't force vertical spacing in term container */
+.term-container .matrix-computation .matrix-with-label { margin: 0; }
+
   </style>
   <!-- Google tag (gtag.js) -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-DQ5LVZVFDC"></script>
@@ -712,14 +826,15 @@
       </div>
     </div>
 
+    <!-- Comment Box -->
+    <div id="comment" class="comment">Initialize to begin...</div>
+
     <!-- Strassen Computations List -->
     <div id="strassen-computations">
       <!-- Dynamically filled by JS: 7 computations, each with buttons -->
     </div>
-
-    <!-- Comment Box -->
-    <div id="comment" class="comment">Initialize to begin...</div>
   </div>
+
 
   <script>
     // Initialize the demo when the page loads
