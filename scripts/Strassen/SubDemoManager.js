@@ -47,7 +47,9 @@ class SubDemoManager {
 
     const demo = new DemoManager(containers, {});
     demo.generateDemoFromMatrices(matA, matB);
-    // Jump directly to computations step in sub-demo
+    // For subdemos with 2x2 matrices avoid overlays (they hide numbers).
+    // DemoManager.updateStepUI already checks this.n > 2 before showing overlays,
+    // so simply set step to computations and rely on that condition.
     if (typeof demo.setStep === 'function') demo.setStep(2);
 
     overlay.querySelector('.close-overlay').addEventListener('click', () => {

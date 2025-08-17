@@ -1,5 +1,10 @@
 class OverlayManager {
   static showOverlay(container, size, options = {}) {
+    // Respect "overlay allowed" unless explicitly forced
+    if (!options.force) {
+      const allowed = container?.dataset?.overlayAllowed === 'true';
+      if (!allowed) return;
+    }
     this.hideOverlay(container);
     
     const overlay = document.createElement('div');

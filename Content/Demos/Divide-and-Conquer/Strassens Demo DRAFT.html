@@ -26,8 +26,7 @@
   <script src="/Algorithms/scripts/Strassen/TextFormatter.js"></script>
   <script src="/Algorithms/scripts/Strassen/SubDemoManager.js"></script>
   <script src="/Algorithms/scripts/Strassen/DemoManager.js"></script>
-
-<style>
+  <style>
   /* style.css (≈150 lines) */
 
 /* New */
@@ -526,33 +525,23 @@
   justify-content: center;
 }
 
+/* Place action buttons immediately beside the result; center them vertically.
+     Do not force a wide min-width so layout is compact on wide screens. */
 .term-buttons {
   display: flex;
   flex-direction: column;
   gap: 0.3em;
+  align-items: center;
+  justify-content: center;
+  /* allow to size naturally next to result */
+  min-width: 0;
 }
 
-.term-compute-btn, .term-show-btn {
-  padding: 0.3em 0.6em;
-  border: 1px solid #007acc;
-  background: #e6f3ff;
-  border-radius: 3px;
-  cursor: pointer;
-  font-size: 0.8em;
-  transition: background 0.2s;
-}
-
-.term-compute-btn:hover {
-  background: #cce6ff;
-}
-
-.term-show-btn {
-  border-color: #ff6600;
-  background: #fff0e6;
-}
-
-.term-show-btn:hover {
-  background: #ffe6cc;
+.computed-result {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
 }
 
 /* Add to your <style> section: */
@@ -629,8 +618,51 @@
   gap: 10px;
   margin-top: 16px;
 }
-</style>
 
+/* Layout for each Strassen computation row: computation on the left, controls on the right */
+.strassen-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between; /* push controls to the right */
+  gap: 1em;
+  margin: 0.5em 0;
+}
+
+.strassen-row .matrix-computation {
+  flex: 1 1 auto; /* allow computation area to grow */
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5em;
+  overflow: auto;
+}
+
+/* Make demo container a column so the computations area can grow */
+.demo-container {
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 40px); /* give it most of the viewport; adjust as needed */
+  box-sizing: border-box;
+  padding: 12px;
+  gap: 12px;
+}
+
+/* Allow the computations pane to expand and scroll */
+#strassen-computations {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  margin: 1em 0;
+  /* remove any hard max-height so it can grow */
+  max-height: none;
+}
+
+/* Keep existing subdemo button styles steady */
+.final-computations .final-quad-area {
+  display: flex;
+  align-items: center;
+  gap: 0.75em;
+  padding: 0.5em 0;
+}
+  </style>
   <!-- Google tag (gtag.js) -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-DQ5LVZVFDC"></script>
   <script>
@@ -681,7 +713,7 @@
     </div>
 
     <!-- Strassen Computations List -->
-    <div id="strassen-computations" style="max-height: 350px; overflow-y: auto; margin: 1em 0;">
+    <div id="strassen-computations">
       <!-- Dynamically filled by JS: 7 computations, each with buttons -->
     </div>
 
@@ -707,7 +739,9 @@
       };
 
       const demo = new DemoManager(containers, buttons);
-      demo.generateNewDemo(); // Step 0 (matrices only)
+      demo.generateNewDemo();
+      // Also enforce Step 0 after everything else has run
+      window.addEventListener('load', () => demo.setStep(0));
     });
   </script>
 </body>
