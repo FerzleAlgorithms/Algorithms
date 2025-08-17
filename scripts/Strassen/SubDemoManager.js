@@ -47,6 +47,8 @@ class SubDemoManager {
 
     const demo = new DemoManager(containers, {});
     demo.generateDemoFromMatrices(matA, matB);
+    // Jump directly to computations step in sub-demo
+    if (typeof demo.setStep === 'function') demo.setStep(2);
 
     overlay.querySelector('.close-overlay').addEventListener('click', () => {
       document.body.removeChild(overlay);

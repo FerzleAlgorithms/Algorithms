@@ -7,8 +7,19 @@ class DemoManager {
     this.M = {};
     this.finalResult = null;
 
+    // Step state
+    this.step = 0;        // 0: matrices only, 1: overlays, 2: computations
+    this.maxStep = 2;
+    this.computationsBuilt = false;
+
     if (this.buttons.generate) {
       this.buttons.generate.addEventListener('click', () => this.generateNewDemo());
+    }
+    if (this.buttons.prev) {
+      this.buttons.prev.addEventListener('click', () => this.prevStep());
+    }
+    if (this.buttons.next) {
+      this.buttons.next.addEventListener('click', () => this.nextStep());
     }
   }
 
@@ -26,18 +37,69 @@ class DemoManager {
     this.M = {};
     this.finalResult = MatrixUtils.initZeroMatrix(this.n);
 
+    // Hide any old overlays first to guarantee Step 0 view
+    OverlayManager.hideOverlay(this.containers.matA);
+    OverlayManager.hideOverlay(this.containers.matB);
+    OverlayManager.hideOverlay(this.containers.matR);
+
     MatrixRenderer.renderMatrix(this.containers.matA, A);
     MatrixRenderer.renderMatrix(this.containers.matB, B);
     MatrixRenderer.renderMatrix(this.containers.matR, MatrixUtils.initZeroMatrix(this.n));
-    OverlayManager.showOverlay(this.containers.matA, this.n);
-    OverlayManager.showOverlay(this.containers.matB, this.n);
-    OverlayManager.showOverlay(this.containers.matR, this.n);
 
-    if (this.containers.commentBox) {
-      this.containers.commentBox.textContent = 'Compute the seven products.';
+    // Start at Step 0: no overlays, no computations
+    this.step = 0;
+    this.computationsBuilt = false;
+    this.updateStepUI();
+  }
+
+  // Navigation
+  prevStep() {
+    this.setStep(this.step - 1);
+  }
+  nextStep() {
+    this.setStep(this.step + 1);
+  }
+  setStep(s) {
+    this.step = Math.max(0, Math.min(this.maxStep, s));
+    this.updateStepUI();
+  }
+
+  updateStepUI() {
+    // Enable/disable nav buttons
+    if (this.buttons.prev) this.buttons.prev.disabled = this.step === 0;
+    if (this.buttons.next) this.buttons.next.disabled = this.step === this.maxStep;
+
+    // Step 0: matrices only
+    if (this.step === 0) {
+      OverlayManager.hideOverlay(this.containers.matA);
+      OverlayManager.hideOverlay(this.containers.matB);
+      OverlayManager.hideOverlay(this.containers.matR);
+      if (this.containers.computations) this.containers.computations.innerHTML = '';
+      if (this.containers.commentBox) this.containers.commentBox.textContent = 'Matrices ready. Click Next to show quadrants.';
+      return;
     }
 
-    this.buildComputationList();
+    // Step 1: show overlays
+    if (this.step === 1) {
+      OverlayManager.showOverlay(this.containers.matA, this.n);
+      OverlayManager.showOverlay(this.containers.matB, this.n);
+      OverlayManager.showOverlay(this.containers.matR, this.n);
+      if (this.containers.computations) this.containers.computations.innerHTML = '';
+      if (this.containers.commentBox) this.containers.commentBox.textContent = 'Quadrants shown. Click Next to set up Strassen products.';
+      return;
+    }
+
+    // Step 2: show computations list (build once)
+    if (this.step === 2) {
+      OverlayManager.showOverlay(this.containers.matA, this.n);
+      OverlayManager.showOverlay(this.containers.matB, this.n);
+      OverlayManager.showOverlay(this.containers.matR, this.n);
+      if (!this.computationsBuilt) {
+        this.buildComputationList();
+        this.computationsBuilt = true;
+      }
+      if (this.containers.commentBox) this.containers.commentBox.textContent = 'Compute the seven products.';
+    }
   }
 
   buildComputationList() {
@@ -52,14 +114,22 @@ class DemoManager {
     const B21 = MatrixUtils.extractSubmatrix(this.B, m, 0, m);
     const B22 = MatrixUtils.extractSubmatrix(this.B, m, m, m);
 
+    // Define each M_i with actual submatrices for each term
     const defs = [
-      { key: 'M1', expr: '(A11 + A22) × (B11 + B22)', a: MatrixUtils.addMatrices(A11, A22).result, b: MatrixUtils.addMatrices(B11, B22).result },
-      { key: 'M2', expr: '(A21 + A22) × B11',          a: MatrixUtils.addMatrices(A21, A22).result, b: B11 },
-      { key: 'M3', expr: 'A11 × (B12 - B22)',          a: A11, b: MatrixUtils.subtractMatrices(B12, B22).result },
-      { key: 'M4', expr: 'A22 × (B21 - B11)',          a: A22, b: MatrixUtils.subtractMatrices(B21, B11).result },
-      { key: 'M5', expr: '(A11 + A12) × B22',          a: MatrixUtils.addMatrices(A11, A12).result, b: B22 },
-      { key: 'M6', expr: '(A21 - A11) × (B11 + B12)',  a: MatrixUtils.subtractMatrices(A21, A11).result, b: MatrixUtils.addMatrices(B11, B12).result },
-      { key: 'M7', expr: '(A12 - A22) × (B21 + B22)',  a: MatrixUtils.subtractMatrices(A12, A22).result, b: MatrixUtils.addMatrices(B21, B22).result }
+      { key: 'M1', left: { type: 'op', op: '+', left: { label: 'A11', M: A11 }, right: { label: 'A22', M: A22 } },
+               right: { type: 'op', op: '+', left: { label: 'B11', M: B11 }, right: { label: 'B22', M: B22 } } },
+      { key: 'M2', left: { type: 'op', op: '+', left: { label: 'A21', M: A21 }, right: { label: 'A22', M: A22 } },
+               right: { type: 'matrix', label: 'B11', M: B11 } },
+      { key: 'M3', left: { type: 'matrix', label: 'A11', M: A11 },
+               right: { type: 'op', op: '-', left: { label: 'B12', M: B12 }, right: { label: 'B22', M: B22 } } },
+      { key: 'M4', left: { type: 'matrix', label: 'A22', M: A22 },
+               right: { type: 'op', op: '-', left: { label: 'B21', M: B21 }, right: { label: 'B11', M: B11 } } },
+      { key: 'M5', left: { type: 'op', op: '+', left: { label: 'A11', M: A11 }, right: { label: 'A12', M: A12 } },
+               right: { type: 'matrix', label: 'B22', M: B22 } },
+      { key: 'M6', left: { type: 'op', op: '-', left: { label: 'A21', M: A21 }, right: { label: 'A11', M: A11 } },
+               right: { type: 'op', op: '+', left: { label: 'B11', M: B11 }, right: { label: 'B12', M: B12 } } },
+      { key: 'M7', left: { type: 'op', op: '-', left: { label: 'A12', M: A12 }, right: { label: 'A22', M: A22 } },
+               right: { type: 'op', op: '+', left: { label: 'B21', M: B21 }, right: { label: 'B22', M: B22 } } }
     ];
 
     const container = this.containers.computations;
@@ -73,34 +143,132 @@ class DemoManager {
     const row = document.createElement('div');
     row.className = 'strassen-row';
 
-    const formula = document.createElement('span');
-    formula.className = 'formula';
-    formula.textContent = `${def.key} = ${def.expr} = `;
-    row.appendChild(formula);
+    // Inline computation layout
+    const mc = document.createElement('div');
+    mc.className = 'matrix-computation';
+
+    // Track readiness of both terms
+    let leftReady = false, rightReady = false;
+    let leftResult = null, rightResult = null;
+
+    const leftNode = this.renderTerm(def.left, 'term1', (res) => {
+      leftResult = res; leftReady = true; updateControls();
+    });
+    const times = MatrixRenderer.createOperator('×');
+    const rightNode = this.renderTerm(def.right, 'term2', (res) => {
+      rightResult = res; rightReady = true; updateControls();
+    });
+    const equals = MatrixRenderer.createOperator('=');
 
     const resultSpan = document.createElement('span');
     resultSpan.className = 'result';
-    row.appendChild(resultSpan);
+    const resultHolder = document.createElement('div');
+    resultHolder.className = 'result-placeholder';
+    resultSpan.appendChild(resultHolder);
 
+    mc.appendChild(leftNode);
+    mc.appendChild(times);
+    mc.appendChild(rightNode);
+    mc.appendChild(equals);
+    mc.appendChild(resultSpan);
+
+    // Action buttons
     const computeBtn = document.createElement('button');
     computeBtn.textContent = 'Compute';
+    computeBtn.disabled = true;
     computeBtn.addEventListener('click', () => {
-      const { result } = MatrixUtils.strassenMultiply(def.a, def.b);
+      const { result } = MatrixUtils.strassenMultiply(leftResult, rightResult);
       this.storeResult(def.key, result, resultSpan, computeBtn, showBtn);
     });
 
     const showBtn = document.createElement('button');
     showBtn.textContent = 'Show Computation';
+    showBtn.disabled = true;
     showBtn.addEventListener('click', () => {
-      SubDemoManager.showSubDemo(def.a, def.b, def.key, def.expr, (res) => {
+      const exprText = `${this.termExpr(def.left)} × ${this.termExpr(def.right)}`;
+      SubDemoManager.showSubDemo(leftResult, rightResult, def.key, exprText, (res) => {
         this.storeResult(def.key, res, resultSpan, computeBtn, showBtn);
       });
     });
 
-    row.appendChild(computeBtn);
-    row.appendChild(showBtn);
+    const controlsWrap = document.createElement('div');
+    controlsWrap.className = 'term-buttons';
+    controlsWrap.appendChild(computeBtn);
+    controlsWrap.appendChild(showBtn);
 
+    row.appendChild(mc);
+    row.appendChild(controlsWrap);
     container.appendChild(row);
+
+    // Initialize readiness for plain terms
+    if (def.left.type === 'matrix') { leftResult = def.left.M; leftReady = true; }
+    if (def.right.type === 'matrix') { rightResult = def.right.M; rightReady = true; }
+    updateControls();
+
+    function updateControls() {
+      const ready = leftReady && rightReady;
+      computeBtn.disabled = !ready;
+      showBtn.disabled = !ready;
+    }
+  }
+
+  // Render a term: either a single submatrix or an op of two submatrices with a button
+  renderTerm(term, termClass, onComputed) {
+    const wrapper = document.createElement('div');
+    wrapper.className = 'term-container';
+
+    if (term.type === 'matrix') {
+      const small = MatrixRenderer.renderSmallMatrix(term.M, term.M.length, termClass);
+      const labeled = MatrixRenderer.wrapMatrixWithLabel(small, term.label, termClass);
+      wrapper.appendChild(labeled);
+      // Immediately inform ready state
+      if (onComputed) onComputed(term.M);
+      return wrapper;
+    }
+
+    // type === 'op'
+    const expr = document.createElement('div');
+    expr.className = 'matrix-computation';
+
+    const leftSmall = MatrixRenderer.renderSmallMatrix(term.left.M, term.left.M.length, termClass);
+    const leftLabeled = MatrixRenderer.wrapMatrixWithLabel(leftSmall, term.left.label, termClass);
+    const opNode = MatrixRenderer.createOperator(term.op === '+' ? '+' : '−');
+    const rightSmall = MatrixRenderer.renderSmallMatrix(term.right.M, term.right.M.length, termClass);
+    const rightLabeled = MatrixRenderer.wrapMatrixWithLabel(rightSmall, term.right.label, termClass);
+
+    expr.appendChild(leftLabeled);
+    expr.appendChild(opNode);
+    expr.appendChild(rightLabeled);
+
+    const btn = document.createElement('button');
+    btn.className = 'term-compute-btn';
+    btn.textContent = term.op === '+' ? 'Perform addition' : 'Perform subtraction';
+    btn.addEventListener('click', () => {
+      const opRes = term.op === '+'
+        ? MatrixUtils.addMatrices(term.left.M, term.right.M).result
+        : MatrixUtils.subtractMatrices(term.left.M, term.right.M).result;
+
+      // Replace expression with the computed term (labeled as term1/term2)
+      wrapper.innerHTML = '';
+      const computedSmall = MatrixRenderer.renderSmallMatrix(opRes, opRes.length, termClass);
+      const computedLabel = term.op === '+'
+        ? `(${term.left.label}+${term.right.label})`
+        : `(${term.left.label}-${term.right.label})`;
+      const computedWrapped = MatrixRenderer.wrapMatrixWithLabel(computedSmall, computedLabel, termClass);
+      wrapper.appendChild(computedWrapped);
+
+      if (onComputed) onComputed(opRes);
+    });
+
+    wrapper.appendChild(expr);
+    wrapper.appendChild(btn);
+    return wrapper;
+  }
+
+  termExpr(term) {
+    if (term.type === 'matrix') return term.label;
+    const sym = term.op === '+' ? '+' : '-';
+    return `(${term.left.label} ${sym} ${term.right.label})`;
   }
 
   storeResult(key, result, resultSpan, computeBtn, showBtn) {

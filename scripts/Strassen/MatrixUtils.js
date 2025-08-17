@@ -57,12 +57,20 @@ class MatrixUtils {
   }
 
   static multiply2x2(A, B) {
-    if (typeof A === 'number' || (Array.isArray(A) && A.length === 1 && typeof A[0] === 'number')) {
-      const aVal = typeof A === 'number' ? A : A[0];
-      const bVal = typeof B === 'number' ? B : B[0];
-      return aVal * bVal;
+    // Gracefully handle scalar-like inputs: number | [x] | [[x]]
+    const getScalar = (X) => {
+      if (typeof X === 'number') return X;
+      if (Array.isArray(X)) {
+        if (Array.isArray(X[0])) return X[0][0];
+        return X[0];
+      }
+      return Number(X);
+    };
+    if ((typeof A === 'number' || (Array.isArray(A) && A.length === 1)) &&
+        (typeof B === 'number' || (Array.isArray(B) && B.length === 1))) {
+      return getScalar(A) * getScalar(B);
     }
-    
+
     const result = [[0,0],[0,0]];
     for (let i = 0; i < 2; i++) {
       for (let j = 0; j < 2; j++) {

@@ -45,7 +45,13 @@ class MatrixRenderer {
   static addScalarCell(container, matrix) {
     const cellDiv = document.createElement('div');
     cellDiv.className = 'small-matrix-element';
-    cellDiv.textContent = typeof matrix === 'number' ? matrix : matrix;
+    // Robustly extract a scalar from number | [x] | [[x]]
+    const val =
+      typeof matrix === 'number' ? matrix :
+      (Array.isArray(matrix) && Array.isArray(matrix[0])) ? matrix[0][0] :
+      (Array.isArray(matrix)) ? matrix[0] :
+      matrix;
+    cellDiv.textContent = val;
     container.appendChild(cellDiv);
   }
 

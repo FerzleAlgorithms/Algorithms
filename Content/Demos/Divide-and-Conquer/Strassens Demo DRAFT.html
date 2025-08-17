@@ -655,6 +655,11 @@
         </label>
         <button id="gen-btn">Generate</button>
       </div>
+      <!-- New step controls -->
+      <div class="step-controls">
+        <button id="prev-btn">Previous</button>
+        <button id="next-btn">Next</button>
+      </div>
     </div>
 
     <!-- Matrices -->
@@ -696,11 +701,13 @@
       };
 
       const buttons = {
-        generate: document.getElementById('gen-btn')
+        generate: document.getElementById('gen-btn'),
+        prev: document.getElementById('prev-btn'),
+        next: document.getElementById('next-btn')
       };
 
       const demo = new DemoManager(containers, buttons);
-      demo.generateNewDemo();
+      demo.generateNewDemo(); // Step 0 (matrices only)
     });
   </script>
 </body>
