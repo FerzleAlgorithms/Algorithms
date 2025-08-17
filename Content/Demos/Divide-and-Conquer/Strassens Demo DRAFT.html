@@ -35,15 +35,15 @@
   flex-direction: row;       /* ← put them side by side */
   align-items: center;       /* ← vertically center all buttons/labels */
   gap: 1.5em;                /* ← a bit more breathing room */
-  margin-bottom: .25em;
+  margin-bottom: .1em;
 }
 .overlay-controls {
   display: flex;
   flex-direction: row;
   align-items: center;
   justify-content: center;   /* Center horizontally */
-  gap: 1.5em;
-  margin-bottom: 1.25em;
+  gap: .5em;
+  margin-bottom: .25em;
 }
 .input-row, .step-controls {
   display: flex;
@@ -70,38 +70,14 @@
 .step-controls button:hover:not(:disabled), .input-row button:hover:not(:disabled) {
   background: #ddd;
 }
-.legend {
-  display: flex;
-  justify-content: flex-start;
-  gap: 1.5em;
-  margin-bottom: 1em;
-}
-.legend-item {
-  display: flex;
-  align-items: center;
-  gap: 0.4em;
-}
-/* ── New ── */
-/* ── New ── */
-.legend .legend-box {
-  display: inline-block;    /* make the span respect width/height */
-  width: 16px;
-  height: 16px;
-  border: 1px solid #000;   /* pure black outline */
-  margin-right: 0.4em;      /* small gap before the label text */
-  box-sizing: border-box;   /* ensure border doesn’t add to the box size */
-}
 
-.legend-box.a { background: #d0e7ff; }
-.legend-box.b { background: #ffd0d0; }
-.legend-box.res { background: #d0ffd0; }
 .matrix-panel {
   display: flex;
   flex-direction: column;
   align-items: center;
 }
 .matrix-label {
-  margin-top: 0.4em;
+  margin-top: 0.2em;
   font-weight: bold;
 }
 .matrix-op {
@@ -115,7 +91,7 @@
   display: flex;
   justify-content: flex-start;  /* pack everything to the left */
   gap: .25em;
-  margin-bottom: 1em;
+  margin-bottom: .25em;
 }
 .matrix-container {
   display: grid;
@@ -184,7 +160,8 @@
   text-align: left;
   font-style: italic;
   min-height: 1.5em;
-  margin-top: 10px;
+  margin-top: 0px;
+  margin-bottom: 0px;
 }
 
 /* demo.css (≈100 lines) - extra animations & responsive tweaks */
@@ -429,7 +406,7 @@
   backdrop-filter: blur(5px);
   z-index: 1000;
   overflow-y: auto;
-  padding: 20px;
+  padding: 5px;
 }
 
 .demo-overlay .demo-container {
@@ -437,7 +414,7 @@
   margin: 0 auto;
   background: white;
   border-radius: 12px;
-  padding: 20px;
+  padding: 5px;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
 }
 
@@ -445,7 +422,7 @@
   text-align: center;
   font-size: 1.5em;
   font-weight: bold;
-  margin-bottom: 20px;
+  margin-bottom: 5px;
   color: #333;
 }
 
@@ -483,7 +460,7 @@
   display: flex;
   justify-content: flex-start;
   gap: .1em;
-  margin-bottom: 1em;
+  margin-bottom: .25em;
 }
 
 /* Also fix the computation area operator alignment in demo overlay */
@@ -508,7 +485,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.5em;
+  gap: 0.125em;
 }
 
 .result-placeholder {
@@ -520,8 +497,8 @@
   border: 2px dashed #999;
   border-radius: 4px;
   background: rgba(255, 255, 255, 0.8);
-  min-width: 60px;
-  min-height: 60px;
+  min-width: 40px;
+  min-height: 40px;
   justify-content: center;
 }
 
@@ -529,8 +506,7 @@
      Do not force a wide min-width so layout is compact on wide screens. */
 .term-buttons {
   display: flex;
-  flex-direction: column;
-  gap: 0.3em;
+  gap: 0.1em;
   align-items: center;
   justify-content: center;
   /* allow to size naturally next to result */
@@ -574,8 +550,8 @@
 }
 
 .computation-steps {
-  margin-top: 1em;
-  padding: 1em;
+  margin-top: 0.5em;
+  padding: 0.5em;
   background: rgba(255, 255, 255, 0.9);
   border-radius: 6px;
   border: 1px solid #ddd;
@@ -616,7 +592,7 @@
   display: flex;
   justify-content: center;
   gap: 10px;
-  margin-top: 16px;
+  margin-top: 6px;
 }
 
 /* Layout for each Strassen computation row: computation on the left, controls on the right */
@@ -624,8 +600,8 @@
   display: flex;
   align-items: center;
   justify-content: space-between; /* push controls to the right */
-  gap: 1em;
-  margin: 0.5em 0;
+  gap: 0.6em;
+  margin: 0.2em 0; /* reduced from 0.5em */
 }
 
 .strassen-row .matrix-computation {
@@ -654,8 +630,8 @@
   min-height: 400px;        /* enforce minimum height requested */
   height: auto;             /* prefer auto so content or flex controls height */
   overflow: auto;           /* allow both vertical and horizontal scrolling when needed */
-  margin: 1em 0;
-  max-height: 60vh;         /* optional cap to avoid huge growth on very tall screens */
+  margin: .25em 0;
+  max-height: 70vh;         /* optional cap to avoid huge growth on very tall screens */
   box-sizing: border-box;   /* include padding/border in min-height */
 }
 
@@ -669,10 +645,10 @@
 .final-ms-row {
   display: flex;
   flex-direction: row;
-  gap: 10px;
+  gap: 6px; /* reduced from 10px */
   align-items: flex-start;
   flex-wrap: wrap; /* allow wrapping on narrow screens */
-  margin-bottom: 12px;
+  margin-bottom: 8px; /* reduced from 12px */
 }
 .final-ms-row .matrix-with-label {
   display: flex;

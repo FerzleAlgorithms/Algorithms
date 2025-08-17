@@ -1,4 +1,3 @@
-
 class DemoManager {
   constructor(containers, buttons = {}) {
     this.containers = containers;
@@ -112,7 +111,8 @@ class DemoManager {
         this.buildComputationList();
         this.computationsBuilt = true;
       }
-      if (this.containers.commentBox) this.containers.commentBox.textContent = 'Compute the seven products. Do each +/- operation first, then click Compute/Show Computation to calculate the product.';
+      if (this.containers.commentBox) this.containers.commentBox.innerHTML 
+      = 'Compute the seven products. Do the +/- operation(s) first.<br>Then click <b>Show</b> see details or <b>Compute</b> to skip to result.';
     }
   }
 
@@ -195,7 +195,7 @@ class DemoManager {
     });
 
     const showBtn = document.createElement('button');
-    showBtn.textContent = 'Show Computation';
+    showBtn.textContent = 'Show';
     showBtn.disabled = true;
     showBtn.dataset.rowIndex = idx;
     showBtn.addEventListener('click', () => {
@@ -390,21 +390,16 @@ class DemoManager {
       M6
     ).result;
 
+    // Store quadrant matrices, but DO NOT copy them into finalResult yet.
     this._finalQuadrants = { C11, C12, C21, C22 };
+    // Start with an all-zero result matrix; we'll copy quadrants into it one-by-one.
     this.finalResult = MatrixUtils.initZeroMatrix(this.n);
-    for (let i = 0; i < m; i++) {
-      for (let j = 0; j < m; j++) {
-        this.finalResult[i][j] = C11[i][j];
-        this.finalResult[i][j + m] = C12[i][j];
-        this.finalResult[i + m][j] = C21[i][j];
-        this.finalResult[i + m][j + m] = C22[i][j];
-      }
-    }
 
     this.showFinalComputationsWithMs();
   }
 
-  // Show M1..M7 then step through quadrant formulas and final render
+  // Show M1..M7 then step through quadrant formulas and copy each quadrant
+  // into the result matrix automatically (show result, then show copy).
   showFinalComputationsWithMs() {
     const container = this.containers.computations;
     if (!container) {
@@ -416,12 +411,16 @@ class DemoManager {
 
     container.innerHTML = '';
 
+    // Ensure result matrix initially rendered (empty)
+    MatrixRenderer.renderMatrix(this.containers.matR, this.finalResult);
+
+    // Row of M1..M7 (visual)
     const mRow = document.createElement('div');
     mRow.className = 'final-ms-row';
     const ms = ['M1','M2','M3','M4','M5','M6','M7'];
     ms.forEach(k => {
       const box = document.createElement('div');
-      box.className = 'matrix-with-label';
+      box.className = 'matrix-with-label m-box';
       const small = MatrixRenderer.renderSmallMatrix(this.M[k], this.M[k].length, 'result');
       box.appendChild(small);
       const lbl = document.createElement('div');
@@ -432,16 +431,17 @@ class DemoManager {
     });
     container.appendChild(mRow);
 
+    const m = this.n / 2;
+    const quads = [
+      { name: 'C11', mat: this._finalQuadrants.C11, rr: 0, rc: 0, tokens: ['M1','+','M4','-','M5','+','M7'] },
+      { name: 'C12', mat: this._finalQuadrants.C12, rr: 0, rc: m, tokens: ['M3','+','M5'] },
+      { name: 'C21', mat: this._finalQuadrants.C21, rr: m, rc: 0, tokens: ['M2','+','M4'] },
+      { name: 'C22', mat: this._finalQuadrants.C22, rr: m, rc: m, tokens: ['M1','-','M2','+','M3','+','M6'] }
+    ];
+
     const formulaWrap = document.createElement('div');
     formulaWrap.className = 'final-formulas';
     container.appendChild(formulaWrap);
-
-    const quads = [
-      { name: 'C11', mat: this._finalQuadrants.C11, formula: 'M1 + M4 - M5 + M7' },
-      { name: 'C12', mat: this._finalQuadrants.C12, formula: 'M3 + M5' },
-      { name: 'C21', mat: this._finalQuadrants.C21, formula: 'M2 + M4' },
-      { name: 'C22', mat: this._finalQuadrants.C22, formula: 'M1 - M2 + M3 + M6' }
-    ];
 
     const quadArea = document.createElement('div');
     quadArea.className = 'final-quad-area';
@@ -452,28 +452,103 @@ class DemoManager {
     const nextBtn = document.createElement('button');
     nextBtn.textContent = 'Next quadrant';
     const finishBtn = document.createElement('button');
-    finishBtn.textContent = 'Finish and copy';
+    finishBtn.textContent = 'Finish';
     finishBtn.style.display = 'none';
     btnRow.appendChild(nextBtn);
     btnRow.appendChild(finishBtn);
     formulaWrap.appendChild(btnRow);
 
     let idx = 0;
+    const copied = [false, false, false, false];
+
     const renderQuadFormula = (i) => {
       quadArea.innerHTML = '';
       const info = quads[i];
+
+      // Title / formula text
       const formulaText = document.createElement('div');
       formulaText.className = 'formula';
-      formulaText.textContent = `${info.name} = ${info.formula}`;
-      const matrixNode = MatrixRenderer.renderSmallMatrix(info.mat, info.mat.length, 'result');
-      const wrapped = MatrixRenderer.wrapMatrixWithLabel(matrixNode, info.name, 'result');
-
+      formulaText.textContent = `${info.name} = ${info.tokens.join(' ')}`;
       quadArea.appendChild(formulaText);
-      quadArea.appendChild(wrapped);
+
+      // Build the sequence: Mx (+|-) My ... = Result
+      const seq = document.createElement('div');
+      seq.className = 'matrix-computation';
+      seq.style.display = 'flex';
+      seq.style.alignItems = 'center';
+      seq.style.gap = '0.5em';
+
+      const opNode = (sym) => {
+        const span = document.createElement('span');
+        span.textContent = sym;
+        span.style.fontWeight = 'bold';
+        span.style.fontSize = '1.1em';
+        return span;
+      };
+
+      let expectedOp = '+';
+      for (let t = 0; t < info.tokens.length; t++) {
+        const token = info.tokens[t];
+        if (token === '+' || token === '-') {
+          seq.appendChild(opNode(token));
+          expectedOp = token;
+          continue;
+        }
+        const mKey = token;
+        const mMat = this.M[mKey];
+        const small = MatrixRenderer.renderSmallMatrix(mMat, mMat.length, 'result');
+        const wrapped = MatrixRenderer.wrapMatrixWithLabel(small, mKey, 'result');
+
+        wrapped.classList.add('m-box');
+        if (expectedOp === '+') wrapped.classList.add('used-add');
+        else wrapped.classList.add('used-sub');
+
+        seq.appendChild(wrapped);
+        expectedOp = '+';
+      }
+
+      seq.appendChild(opNode('='));
+
+      const quadrantSmall = MatrixRenderer.renderSmallMatrix(info.mat, info.mat.length, 'result');
+      const quadrantWrapped = MatrixRenderer.wrapMatrixWithLabel(quadrantSmall, info.name, 'result');
+      seq.appendChild(quadrantWrapped);
+
+      quadArea.appendChild(seq);
+
+      // Until the automatic copy completes, disallow Next
+      nextBtn.disabled = true;
 
       if (this.containers.commentBox) {
-        this.containers.commentBox.textContent = `Showing ${info.name}.`;
+        this.containers.commentBox.textContent = `Showing ${info.name}. Copying into result...`;
       }
+
+      // schedule automatic copy after a short delay so user sees the quadrant first
+      const copyDelay = Math.max(200, Math.floor(DemoConfig.ANIMATION_DURATION / 2));
+      setTimeout(() => {
+        // copy quadrant values into finalResult at (rr, rc)
+        const size = info.mat.length;
+        for (let r = 0; r < size; r++) {
+          for (let c = 0; c < size; c++) {
+            this.finalResult[info.rr + r][info.rc + c] = info.mat[r][c];
+          }
+        }
+
+        // render with highlight
+        MatrixRenderer.renderMatrix(this.containers.matR, this.finalResult, { highlightRegion: { r: info.rr, c: info.rc, size } });
+
+        copied[i] = true;
+        // allow user to proceed after highlight
+        nextBtn.disabled = false;
+
+        if (this.containers.commentBox) {
+          this.containers.commentBox.textContent = `${info.name} copied into result.`;
+        }
+
+        // remove highlight after animation duration
+        setTimeout(() => {
+          MatrixRenderer.renderMatrix(this.containers.matR, this.finalResult);
+        }, DemoConfig.ANIMATION_DURATION + 100);
+      }, copyDelay);
 
       if (i === quads.length - 1) {
         nextBtn.style.display = 'none';
@@ -490,6 +565,17 @@ class DemoManager {
     });
 
     finishBtn.addEventListener('click', () => {
+      // ensure any remaining quadrants are copied (should already be done by auto-copy)
+      quads.forEach((info, k) => {
+        if (!copied[k]) {
+          const size = info.mat.length;
+          for (let r = 0; r < size; r++) {
+            for (let c = 0; c < size; c++) {
+              this.finalResult[info.rr + r][info.rc + c] = info.mat[r][c];
+            }
+          }
+        }
+      });
       MatrixRenderer.renderMatrix(this.containers.matR, this.finalResult);
       OverlayManager.hideOverlay(this.containers.matR);
       if (this.containers.commentBox) {
@@ -498,6 +584,7 @@ class DemoManager {
       container.innerHTML = '';
     });
 
+    // start with first quadrant
     renderQuadFormula(0);
   }
 

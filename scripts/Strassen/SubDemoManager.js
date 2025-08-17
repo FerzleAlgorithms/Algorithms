@@ -30,7 +30,7 @@ class SubDemoManager {
             <div class="matrix-label">Result</div>
           </div>
         </div>
-        <div id="sub-computations" style="max-height:350px;overflow-y:auto;margin:1em 0;"></div>
+        <div id="sub-computations" style="max-height:350px;overflow-y:auto;margin:.25em 0;"></div>
         <div id="sub-comment" class="comment">Compute the seven products.</div>
       </div>
     `;
