@@ -13,7 +13,7 @@ class SubDemoManager {
     overlay.innerHTML = `
       <div class="demo-container">
         <button class="close-overlay">Close</button>
-        <h3>${label}: ${expr}</h3>
+        <h3>Computing ${label} = ${expr}</h3>
         <div id="sub-matrix-row" style="display:flex;gap:0.25em;margin-bottom:1em;">
           <div class="matrix-panel">
             <div id="sub-matrix-a" class="matrix-container"></div>

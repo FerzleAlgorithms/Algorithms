@@ -159,7 +159,7 @@
 .comment {
   text-align: left;
   font-style: italic;
-  min-height: 1.5em;
+  min-height: 2.25em;
   margin-top: 0px;
   margin-bottom: 0px;
 }
@@ -294,10 +294,10 @@
 .matrix-computation {
   display: inline-flex;
   align-items: center;
-  gap: 0.2em;
+  /*gap: 0.2em;*/
   flex-wrap: nowrap;
   overflow-x: auto;
-  padding: 0.25em 0;
+  padding: 0.125em 0;
 }
 
 /* Remove matrix brackets completely */
@@ -389,13 +389,12 @@
 /* Fix computation area operator alignment */
 .matrix-computation > span {
   align-self: center; /* Back to center */
-  margin-bottom: 25px; /* Nudge down 10px from center */
+  margin-bottom: 25px; 
 }
 .demo-overlay .matrix-computation.interactive > span {
   align-self: center;
   margin-bottom: 0;
-  /* Optionally nudge up: */
-  margin-top: -4px; /* Adjust as needed */
+  margin-bottom: 25px; 
 }
 
 /* Full demo overlay for recursive sub-computations */
@@ -416,6 +415,14 @@
   border-radius: 12px;
   padding: 5px;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+  
+  /* Make the overlay container fill the viewport height (minus header/footer space),
+       and use flex column so children can grow/scroll like the main screen. */
+    height: calc(100vh - 30px);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden; /* keep scrolling inside children */
+
 }
 
 .demo-overlay .overlay-title {
@@ -465,9 +472,19 @@
 
 /* Also fix the computation area operator alignment in demo overlay */
 .demo-overlay .matrix-computation > span {
-  margin-bottom: 0 !important;
+  margin-bottom: 25px !important;
   align-self: center;
 }
+
+  /* Ensure the computations / main content area fills available space and scrolls */
+  .demo-overlay .computation-steps,
+  .demo-overlay #strassen-computations,
+  .demo-overlay .demo-container > .computation-steps,
+  .demo-overlay .demo-container #strassen-computations {
+    flex: 1 1 auto;
+    min-height: 0; /* important for flex children to allow correct overflow */
+    overflow: auto;
+  }
 
 /* Interactive computation styles */
 .interactive-computation {
@@ -478,7 +495,7 @@
 
 .matrix-computation.interactive {
   align-items: center;
-  gap: 0.2em;
+  /*gap: 0.2em;*/
 }
 
 .term-container {
@@ -600,7 +617,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between; /* push controls to the right */
-  gap: 0.6em;
+  /*gap: 0.6em;*/
   margin: 0.2em 0; /* reduced from 0.5em */
 }
 
@@ -608,7 +625,7 @@
   flex: 1 1 auto; /* allow computation area to grow */
   display: inline-flex;
   align-items: center;
-  gap: 0.5em;
+ /*gap: 0.5em;*/
   overflow: auto;
 }
 
@@ -618,8 +635,8 @@
   flex-direction: column;
   height: calc(100vh - 40px); /* give it most of the viewport; adjust as needed */
   box-sizing: border-box;
-  padding: 12px;
-  gap: 12px;
+  /*padding: 12px;
+  gap: 12px; */
 }
 
 /* New: ensure the computations pane can scroll reliably and never collapse */
@@ -633,6 +650,7 @@
   margin: .25em 0;
   max-height: 70vh;         /* optional cap to avoid huge growth on very tall screens */
   box-sizing: border-box;   /* include padding/border in min-height */
+  border: 2px solid #ddd;
 }
 
 /* New: ensure overlay demo container scrolls when content is tall */
@@ -751,6 +769,37 @@
 
 /* ensure inline operator doesn't force vertical spacing in term container */
 .term-container .matrix-computation .matrix-with-label { margin: 0; }
+
+#sub-computations {
+  /* remove the inline max/min/overflow constraints */
+  max-height: none !important;
+  min-height: 0 !important;
+  height: auto !important;
+
+  /* don't force an internal scrollbar — the page/overlay will scroll instead */
+  overflow-y: visible !important;
+
+  /* keep normal flow sizing */
+  display: flex;
+  flex-direction: column;
+  flex: 0 0 auto;
+  /*margin: 0.25em 0; */
+}
+
+/* Option B — keep the overlay fixed-height and make the sub-pane fill available space and scroll */
+.demo-overlay .demo-container { /* ensure overlay container is a flex column and has constrained height */
+  height: calc(100vh - 30px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+#sub-computations.fill-and-scroll {
+  max-height: none;
+  min-height: 0;
+  flex: 1 1 auto;        /* take available vertical space inside the overlay */
+  overflow-y: auto;      /* scroll only this pane */
+  margin: 0.25em 0;
+}
 
   </style>
   <!-- Google tag (gtag.js) -->

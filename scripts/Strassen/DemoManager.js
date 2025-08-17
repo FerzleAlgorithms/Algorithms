@@ -156,11 +156,11 @@ class DemoManager {
     if (!container) return;
 
     // Stabilize container layout so it won't collapse
-    container.style.display = container.style.display || 'flex';
-    container.style.flexDirection = container.style.flexDirection || 'column';
-    container.style.flex = container.style.flex || '1 1 auto';
-    container.style.minHeight = container.style.minHeight || '400px';
-    container.style.overflowY = container.style.overflowY || 'auto';
+    //container.style.display = container.style.display || 'flex';
+    //container.style.flexDirection = container.style.flexDirection || 'column';
+    //container.style.flex = container.style.flex || '1 1 auto';
+    //container.style.minHeight = container.style.minHeight || '500px';
+    //container.style.overflowY = container.style.overflowY || 'auto';
 
     container.innerHTML = '';
     this.nextComputeIndex = 0;
