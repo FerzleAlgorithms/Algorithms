@@ -1,4 +1,18 @@
 class MatrixUtils {
+  // Internal helper: record operations to a global counter and update UI if present.
+  static _recordOps(adds = 0, muls = 0) {
+    if (typeof window === 'undefined') return;
+    if (!window.opCounters) window.opCounters = { add: 0, mul: 0 };
+    if (adds) window.opCounters.add += adds;
+    if (muls) window.opCounters.mul += muls;
+    try {
+      const el = document.getElementById && document.getElementById('op-tally');
+      if (el) el.textContent = `Additions: ${window.opCounters.add} · Multiplications: ${window.opCounters.mul}`;
+    } catch (e) {
+      // ignore DOM update errors
+    }
+  }
+
   static randInt(max) {
     return Math.floor(Math.random() * max);
   }
@@ -40,6 +54,8 @@ class MatrixUtils {
         addCount++;
       }
     }
+    // record globally (atomic additions)
+    MatrixUtils._recordOps(addCount, 0);
     return { result, addCount };
   }
 
@@ -53,6 +69,8 @@ class MatrixUtils {
         addCount++;
       }
     }
+    // subtraction counted as additions (one element-wise op)
+    MatrixUtils._recordOps(addCount, 0);
     return { result, addCount };
   }
 
@@ -68,7 +86,10 @@ class MatrixUtils {
     };
     if ((typeof A === 'number' || (Array.isArray(A) && A.length === 1)) &&
         (typeof B === 'number' || (Array.isArray(B) && B.length === 1))) {
-      return getScalar(A) * getScalar(B);
+      const res = getScalar(A) * getScalar(B);
+      // single scalar multiply
+      MatrixUtils._recordOps(0, 1);
+      return res;
     }
 
     const result = [[0,0],[0,0]];
@@ -79,6 +100,8 @@ class MatrixUtils {
         }
       }
     }
+    // 2x2 full multiply: 4 entries, each with 2 multiplications and 1 addition
+    MatrixUtils._recordOps(4, 8);
     return result;
   }
 
@@ -102,17 +125,18 @@ class MatrixUtils {
       }
     }
     
+    // record atomic operations
+    MatrixUtils._recordOps(addCount, mulCount);
     return { result, steps, addCount, mulCount };
   }
 
   static strassenMultiply(A, B) {
     const n = A.length;
     if (n === 1) {
-      return {
-        result: [[A[0][0] * B[0][0]]],
-        addCount: 0,
-        mulCount: 1
-      };
+      // single scalar multiplication — count the multiplication
+      const r = [[A[0][0] * B[0][0]]];
+      MatrixUtils._recordOps(0, 1);
+      return { result: r, addCount: 0, mulCount: 1 };
     }
     if (n === 2) {
       const { result, addCount, mulCount } = this.multiply2x2WithSteps(A, B);

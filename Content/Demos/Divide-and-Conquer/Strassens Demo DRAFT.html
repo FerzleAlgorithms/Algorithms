@@ -166,7 +166,7 @@
 
 /* demo.css (≈100 lines) - extra animations & responsive tweaks */
 @media (max-width: 768px) {
-  .matrix-element { width: 40px; height: 40px; font-size: 0.9em; }
+  .matrix-element { width: 30px; height: 30px; font-size: 0.9em; }
 }
 @keyframes slide-to-res {
   0% { transform: translateY(0) scale(1); opacity: 1; }
@@ -735,21 +735,6 @@
   cursor: default;
 }
 
-/* Arrow hint ABOVE the operator, larger and centered */
-/*
-.op-btn::before {
-  content: '▼';
-  font-size: 1.1em;
-  line-height: 1;
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-  bottom: calc(100%);
-  color: rgba(0,0,0,0.65);
-  pointer-events: none;
-  user-select: none;
-}*/
-
 /* ensure inline operator doesn't force vertical spacing in term container */
 .term-container .matrix-computation .matrix-with-label { margin: 0; }
 
@@ -883,107 +868,14 @@
       };
 
       const demo = new DemoManager(containers, buttons);
+      // ensure counters start fresh on demo creation
+      if (!window.opCounters) window.opCounters = { add: 0, mul: 0 };
+      const tallyEl = document.getElementById('op-tally');
+      if (tallyEl) tallyEl.textContent = `Additions: ${window.opCounters.add} · Multiplications: ${window.opCounters.mul}`;
       demo.generateNewDemo();
       // Also enforce Step 0 after everything else has run
       window.addEventListener('load', () => demo.setStep(0));
-
-      // --- Operation tally instrumentation (reliable) ---
-      const tallyEl = document.getElementById('op-tally');
-      // counters
-      window.opCounters = { add: 0, mul: 0 };
-
-      function updateTallyDisplay() {
-        tallyEl.textContent = `Additions: ${window.opCounters.add} · Multiplications: ${window.opCounters.mul}`;
-      }
-
-      // suspend nested counting while a top-level wrapper does its estimation
-      let opCountingSuspended = false;
-
-      // Generic wrapper helper
-      function wrapIfExists(obj, name, estimateFn) {
-        if (!obj || typeof obj[name] !== 'function') return;
-        const orig = obj[name];
-        obj[name] = function (...args) {
-          // If already suspended, delegate directly to avoid double counting
-          if (opCountingSuspended) {
-            return orig.apply(this, args);
-          }
-          opCountingSuspended = true;
-          try {
-            const result = orig.apply(this, args);
-            try {
-              const { adds = 0, muls = 0 } = estimateFn(args, result, name) || {};
-              if (adds) window.opCounters.add += adds;
-              if (muls) window.opCounters.mul += muls;
-              updateTallyDisplay();
-            } catch (e) {
-              // estimation failed; ignore but don't break execution
-              console.warn('op-estimate failed for', name, e);
-            }
-            return result;
-          } finally {
-            opCountingSuspended = false;
-          }
-        };
-      }
-
-      // helpers to detect matrices / scalars
-      function isMatrix(x) {
-        return Array.isArray(x) && Array.isArray(x[0]);
-      }
-
-      // Estimate functions
-      function estimateAdd(args, result, name) {
-        const a = args[0], b = args[1];
-        if (isMatrix(a) && isMatrix(b)) {
-          const rows = a.length;
-          const cols = (a[0] && a[0].length) || 0;
-          return { adds: rows * cols, muls: 0 };
-        }
-        // scalar add
-        if (typeof a === 'number' && typeof b === 'number') return { adds: 1, muls: 0 };
-        return { adds: 0, muls: 0 };
-      }
-
-      function estimateMul(args, result, name) {
-        const a = args[0], b = args[1];
-        // matrix × matrix: count multiplies and adds per entry
-        if (isMatrix(a) && isMatrix(b)) {
-          const rows = a.length;
-          const k = (a[0] && a[0].length) || 0;
-          const cols = (b[0] && b[0].length) || 0;
-          const muls = rows * cols * k;
-          const adds = rows * cols * Math.max(0, k - 1);
-          return { adds, muls };
-        }
-        // scalar multiplication
-        if (typeof a === 'number' && typeof b === 'number') return { adds: 0, muls: 1 };
-        return { adds: 0, muls: 0 };
-      }
-
-      // Candidate global namespaces that might contain matrix helpers
-      const candidates = [window.MatrixUtils, window.MatrixRenderer, window, window.DemoManager && window.DemoManager.prototype];
-
-      // Common function names to wrap (add-kind and mul-kind)
-      const addNames = ['addMatrices', 'addMatrix', 'matrixAdd', 'add', 'addScalar', 'addElements', 'sum', 'plus', 'matrixAddInPlace'];
-      const mulNames = ['multiplyMatrices', 'multiplyMatrix', 'matMul', 'mulMatrices', 'multiply', 'multiplyScalar', 'scalarMultiply', 'mul', 'times', 'prod', 'matmul'];
-
-      candidates.forEach(ns => {
-        if (!ns) return;
-        addNames.forEach(name => wrapIfExists(ns, name, estimateAdd));
-        mulNames.forEach(name => wrapIfExists(ns, name, estimateMul));
-      });
-
-      // Also attempt to wrap any function directly on the demo instance that looks like an adder/multiplier
-      try {
-        addNames.forEach(name => wrapIfExists(demo, name, estimateAdd));
-        mulNames.forEach(name => wrapIfExists(demo, name, estimateMul));
-      } catch (e) { /* ignore */ }
-
-      // Make sure tally exists in DOM and is initialized
-      updateTallyDisplay();
-      // --- end instrumentation ---
     });
-   </script>
+  </script>
 </body>
 </html>

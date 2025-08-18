@@ -31,8 +31,17 @@ class DemoManager {
     this.generateDemoFromMatrices(A, B);
   }
 
-  generateDemoFromMatrices(A, B) {
+  generateDemoFromMatrices(A, B, suppressCounterReset = false) {
+    // Reset global operation counters for a fresh demo run unless explicitly suppressed.
+    if (!suppressCounterReset && typeof window !== 'undefined') {
+      window.opCounters = { add: 0, mul: 0 };
+      try {
+        const el = document.getElementById && document.getElementById('op-tally');
+        if (el) el.textContent = `Additions: ${window.opCounters.add} · Multiplications: ${window.opCounters.mul}`;
+      } catch (e) { /* ignore DOM errors */ }
+    }
     this.A = A;
+
     this.B = B;
     this.n = A.length;
     this.M = {};
@@ -79,6 +88,11 @@ class DemoManager {
       OverlayManager.hideOverlay(this.containers.matR);
       if (this.containers.computations) this.containers.computations.innerHTML = '';
       if (this.containers.commentBox) this.containers.commentBox.textContent = 'Matrices ready. Click Next to show quadrants.';
+      // refresh tally UI on step changes
+      try {
+        const el = document.getElementById && document.getElementById('op-tally');
+        if (el && window.opCounters) el.textContent = `Additions: ${window.opCounters.add} · Multiplications: ${window.opCounters.mul}`;
+      } catch (e) {}
       return;
     }
 
@@ -94,6 +108,10 @@ class DemoManager {
       }
       if (this.containers.computations) this.containers.computations.innerHTML = '';
       if (this.containers.commentBox) this.containers.commentBox.textContent = 'Quadrants shown. Click Next to set up Strassen products.';
+      try {
+        const el = document.getElementById && document.getElementById('op-tally');
+        if (el && window.opCounters) el.textContent = `Additions: ${window.opCounters.add} · Multiplications: ${window.opCounters.mul}`;
+      } catch (e) {}
       return;
     }
 
@@ -113,6 +131,10 @@ class DemoManager {
       }
       if (this.containers.commentBox) this.containers.commentBox.innerHTML 
       = 'Compute the seven products. Do the +/- operation(s) first.<br>Then click <b>Show</b> see details or <b>Compute</b> to skip to result.';
+      try {
+        const el = document.getElementById && document.getElementById('op-tally');
+        if (el && window.opCounters) el.textContent = `Additions: ${window.opCounters.add} · Multiplications: ${window.opCounters.mul}`;
+      } catch (e) {}
     }
   }
 
