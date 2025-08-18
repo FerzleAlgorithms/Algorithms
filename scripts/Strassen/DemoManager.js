@@ -31,15 +31,8 @@ class DemoManager {
     this.generateDemoFromMatrices(A, B);
   }
 
-  generateDemoFromMatrices(A, B, suppressCounterReset = false) {
-    // Reset global operation counters for a fresh demo run unless explicitly suppressed.
-    if (!suppressCounterReset && typeof window !== 'undefined') {
-      window.opCounters = { add: 0, mul: 0 };
-      try {
-        const el = document.getElementById && document.getElementById('op-tally');
-        if (el) el.textContent = `Additions: ${window.opCounters.add} · Multiplications: ${window.opCounters.mul}`;
-      } catch (e) { /* ignore DOM errors */ }
-    }
+  generateDemoFromMatrices(A, B) {
+   
     this.A = A;
 
     this.B = B;
@@ -88,11 +81,7 @@ class DemoManager {
       OverlayManager.hideOverlay(this.containers.matR);
       if (this.containers.computations) this.containers.computations.innerHTML = '';
       if (this.containers.commentBox) this.containers.commentBox.textContent = 'Matrices ready. Click Next to show quadrants.';
-      // refresh tally UI on step changes
-      try {
-        const el = document.getElementById && document.getElementById('op-tally');
-        if (el && window.opCounters) el.textContent = `Additions: ${window.opCounters.add} · Multiplications: ${window.opCounters.mul}`;
-      } catch (e) {}
+    
       return;
     }
 
@@ -108,10 +97,7 @@ class DemoManager {
       }
       if (this.containers.computations) this.containers.computations.innerHTML = '';
       if (this.containers.commentBox) this.containers.commentBox.textContent = 'Quadrants shown. Click Next to set up Strassen products.';
-      try {
-        const el = document.getElementById && document.getElementById('op-tally');
-        if (el && window.opCounters) el.textContent = `Additions: ${window.opCounters.add} · Multiplications: ${window.opCounters.mul}`;
-      } catch (e) {}
+
       return;
     }
 
@@ -131,10 +117,6 @@ class DemoManager {
       }
       if (this.containers.commentBox) this.containers.commentBox.innerHTML 
       = 'Compute the seven products. Do the +/- operation(s) first.<br>Then click <b>Show</b> see details or <b>Compute</b> to skip to result.';
-      try {
-        const el = document.getElementById && document.getElementById('op-tally');
-        if (el && window.opCounters) el.textContent = `Additions: ${window.opCounters.add} · Multiplications: ${window.opCounters.mul}`;
-      } catch (e) {}
     }
   }
 
@@ -180,12 +162,6 @@ class DemoManager {
     container.style.maxHeight = '';
     container.style.minHeight = '';
     container.style.overflowY = '';
-    // Stabilize container layout so it won't collapse
-    //container.style.display = container.style.display || 'flex';
-    //container.style.flexDirection = container.style.flexDirection || 'column';
-    //container.style.flex = container.style.flex || '1 1 auto';
-    //container.style.minHeight = container.style.minHeight || '500px';
-    //container.style.overflowY = container.style.overflowY || 'auto';
 
     container.innerHTML = '';
     this.nextComputeIndex = 0;

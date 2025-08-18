@@ -47,7 +47,7 @@ class SubDemoManager {
 
     const demo = new DemoManager(containers, {});
     // suppress counter reset so subdemo doesn't clear the main page tally
-    demo.generateDemoFromMatrices(matA, matB, true);
+    demo.generateDemoFromMatrices(matA, matB);
     // For subdemos with 2x2 matrices avoid overlays (they hide numbers).
     // DemoManager.updateStepUI already checks this.n > 2 before showing overlays,
     // so simply set step to computations and rely on that condition.

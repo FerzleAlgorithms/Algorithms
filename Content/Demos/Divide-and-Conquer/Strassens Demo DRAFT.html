@@ -247,13 +247,6 @@
   text-align: center;
 }
 
-.operation-counts {
-  margin-top: 0.5em;
-  font-size: 0.9em;
-  color: #666;
-  font-style: italic;
-}
-
 /* NEW: dedicated area for computations/summaries to keep layout tidy */
 #work-area {
   margin-top: 1em;
@@ -841,9 +834,6 @@
     <!-- Comment Box -->
     <div id="comment" class="comment">Initialize to begin...</div>
 
-    <!-- Operation tally: additions & multiplications -->
-    <div id="op-tally" class="operation-counts">Additions: 0 · Multiplications: 0</div>
-
     <!-- Strassen Computations List -->
     <div id="strassen-computations">
       <!-- Dynamically filled by JS: 7 computations, each with buttons -->
@@ -869,9 +859,6 @@
 
       const demo = new DemoManager(containers, buttons);
       // ensure counters start fresh on demo creation
-      if (!window.opCounters) window.opCounters = { add: 0, mul: 0 };
-      const tallyEl = document.getElementById('op-tally');
-      if (tallyEl) tallyEl.textContent = `Additions: ${window.opCounters.add} · Multiplications: ${window.opCounters.mul}`;
       demo.generateNewDemo();
       // Also enforce Step 0 after everything else has run
       window.addEventListener('load', () => demo.setStep(0));
