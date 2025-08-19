@@ -164,6 +164,78 @@ function hookIframeContent(iframe) {
   scriptTips.src = `/Algorithms/scripts/glossary-tooltips.js?cb=${Date.now()}`;
   head.appendChild(scriptTips);
 
+  // Insert a visible DRAFT banner when the iframe document name (filename) includes "DRAFT"
+  (function manageDraftBanner(doc) {
+    if (!doc || !doc.body) return;
+
+    const createBanner = () => {
+      const b = doc.createElement('div');
+      b.id = 'draft-banner';
+      b.textContent = 'DRAFT';
+      b.style.cssText = [
+        'color:#b00000',
+        'font-size:48px',
+        'font-weight:700',
+        'text-align:center',
+        'padding:8px 0',
+        'background:rgba(255,0,0,0.03)',
+        'border-bottom:3px solid rgba(176,0,0,0.12)',
+        'position:relative',
+        'z-index:9999',
+        'box-sizing:border-box'
+      ].join(';');
+      return b;
+    };
+
+    const getDocName = () => {
+      try {
+        const loc = doc.defaultView?.location || doc.location;
+        if (!loc) return '';
+        const parts = loc.pathname ? loc.pathname.split('/') : [];
+        return decodeURIComponent(parts.pop() || '').toUpperCase();
+      } catch (e) {
+        return '';
+      }
+    };
+
+    const updateBanner = () => {
+      try {
+        const name = getDocName();
+        const existing = doc.getElementById('draft-banner');
+        if (name.includes('DRAFT')) {
+          if (!existing) doc.body.insertBefore(createBanner(), doc.body.firstChild);
+        } else {
+          if (existing) existing.remove();
+        }
+      } catch (e) {
+        // ignore cross-origin or other errors
+      }
+    };
+
+    // Initial check
+    updateBanner();
+
+    // Poll for changes to the document name (handles in-page navigation)
+    let lastName = getDocName();
+    const poll = setInterval(() => {
+      const current = getDocName();
+      if (current !== lastName) {
+        lastName = current;
+        updateBanner();
+      }
+    }, 500);
+
+    // Clear poll and banner on iframe unload
+    const win = doc.defaultView;
+    if (win) {
+      win.addEventListener('unload', () => {
+        clearInterval(poll);
+        const existing = doc.getElementById('draft-banner');
+        if (existing) existing.remove();
+      }, { once: true });
+    }
+  })(innerDoc);
+
   // Intercept any “?path=” links inside the iframe
   innerDoc.addEventListener('click', (event) => {
     const anchor = event.target.closest('a[href^="?path="]');
@@ -177,11 +249,11 @@ function hookIframeContent(iframe) {
     window.parent.postMessage({ type: 'navigate', path: raw }, '*');
   });
 
-/*
+  /*
   // External links break out to top window
   innerDoc.querySelectorAll('a[href]:not([href^="?path="])')
     .forEach(a => a.target = '_top');
-*/
+  */
  innerDoc.querySelectorAll('a[href]:not([href^="?path="])').forEach(a => {
    // only set a target if none was explicitly given
    if (!a.hasAttribute('target')) {
@@ -467,3 +539,4 @@ window.addEventListener('popstate', (event) => {
   highlightActiveLink(rawPath);
   loadContent(`${normalizePath(rawPath)}.html`);
 });
+
