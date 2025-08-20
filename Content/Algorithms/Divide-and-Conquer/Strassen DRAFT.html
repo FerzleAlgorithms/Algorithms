@@ -23,24 +23,25 @@
 
   <section id="problem-solved">
   <h2>Problem Solved</h2>
-  <p>
-    Strassen's algorithm multiplies two \(n\times n\) matrices faster than the standard \(O(n^3)\) method using a divide-and-conquer idea that reduces the number of recursive multiplications from 8 to 7. This yields an asymptotic running time of about \(O(n^{\log_2(7)}) \approx O(n^{2.81}).\) The algorithm trades some additional additions/subtractions for fewer multiplications, which is beneficial when multiplications are relatively expensive.
+    <p>
+    Strassen's algorithm is a divide-and-conquer algorithm that solves the
+    <a class="problem" href="?path=Problems%2FFoundational%2FMatrix%20Multiplication">Matrix Multiplication</a>
+    problem. Somewhat surprisingly, it outperforms the classical \(O(n^3)\) algorithm by reducing the number of multiplications using a clever formula.
   </p>
   </section>
 
   <section id="design">
   <h2>Design and Strategy</h2>
   <p>
-    As with the block divide-and-conquer approach, partition each \(n\times n\) matrix into four \(n/2\times n/2\) blocks:
+    Strassen's algorithm start exactly the same way as the standard <a class="problem" href="?path=Algorithms%2FDivide-and-Conquer%2FMatrix%20Multiplication"
+>divide-and-conquer matrix multiplication</a> by partitioning each \(n\times n\) matrix into four \(n/2\times n/2\) blocks:
     \[A = \begin{pmatrix} A_{11} & A_{12} \\ A_{21} & A_{22} \end{pmatrix}, \quad 
       B = \begin{pmatrix} B_{11} & B_{12} \\ B_{21} & B_{22} \end{pmatrix}.\]
-    Instead of computing the four \(C_{ij}\) blocks using 8 recursive products, Strassen computes seven carefully chosen products \(M_1, M_2,\ldots, M_7\) 
-    (each a recursion on \(n/2\times n/2\) matrices) and then forms the \(C\) blocks by linear combinations of the \(M\)'s.
+   However, instead of computing the four \(C_{ij}\) blocks using 8 recursive products, Strassen's algorithm computes seven carefully chosen products \(M_1, M_2,\ldots, M_7\) of  \(n/2\times n/2\) matrices, and then forms the \(C\) blocks by linear combinations of the \(M\)'s. Although doing this once only saves one multiplication, the savings compound recursively, yielding an asymptotic running time of about \(O(n^{\log_2(7)}) \approx O(n^{2.81})\) (which we will justify later).
   </p>
 
-  <p><strong>Strassen's 7 products (block-level):</strong></p>
+  <p>Strassen's method forms seven auxiliary block products, \(M_1, \ldots, M_7.\) These products are chosen as particular linear combinations of the four \(A\)-blocks and four \(B\)-blocks so that (1) only seven recursive multiplications are needed and (2) appropriate linear combinations of the \(M_i\) reproduce the four \(C\) blocks via many cancellations. Define</p>
   <p>
-    Define
     \begin{align*}
       M_1 &= (A_{11} + A_{22})(B_{11} + B_{22}) \\
       M_2 &= (A_{21} + A_{22})B_{11} \\
@@ -52,7 +53,8 @@
     \end{align*}
   </p>
 
-  <p><strong>Assemble the result:</strong>
+  <p>Assemble the result by taking specific linear combinations of the \(M_i\); the pairwise cancellations in these combinations recover the usual block products for \(C\):</p>
+    <p>
     \begin{align*}
       C_{11} &= M_1 + M_4 - M_5 + M_7\\
       C_{12} &= M_3 + M_5\\
@@ -61,51 +63,91 @@
     \end{align*}
   </p>
 
+  <p>
+    At first glance it is not obvious why these particular combinations of the seven products produce the same blocks as the standard block formula. To see why, substitute the definitions of the \(M_i\) and expand for \(C_{11}\):
+  </p>
+
+  <p>
+    \[
+      \begin{aligned}
+        M_1 &= (A_{11}+A_{22})(B_{11}+B_{22}) = A_{11}B_{11}+A_{11}B_{22}+A_{22}B_{11}+A_{22}B_{22},\\
+        M_4 &= A_{22}(B_{21}-B_{11}) = A_{22}B_{21}-A_{22}B_{11},\\
+        M_5 &= (A_{11}+A_{12})B_{22} = A_{11}B_{22}+A_{12}B_{22},\\
+        M_7 &= (A_{12}-A_{22})(B_{21}+B_{22}) = A_{12}B_{21}+A_{12}B_{22}-A_{22}B_{21}-A_{22}B_{22}.
+      \end{aligned}
+    \]
+  </p>
+
+  <p>
+    Now sum them as in the assembly formula:
+    \[
+      \begin{aligned}
+        M_1 + M_4 - M_5 + M_7
+        &= (\; A_{11}B_{11} + {\color{red} A_{11}B_{22}} + {\color{blue}A_{22}B_{11}} + {\color{green} A_{22}B_{22}} \;) \\
+        &\quad +\; (\; {\color{orange}A_{22}B_{21}} - {\color{blue} A_{22}B_{11}} \;) \\
+        &\quad -\; (\; {\color{red} A_{11}B_{22}} + {\color{purple} A_{12}B_{22}} \;) \\
+        &\quad +\;(\; A_{12}B_{21} + {\color{purple} A_{12}B_{22}} - {\color{orange} A_{22}B_{21}} - {\color{green} A_{22}B_{22}} \;) \\
+        &= A_{11}B_{11} + A_{12}B_{21},
+      \end{aligned}
+    \]
+    where many terms cancel pairwise by design (see the matched colors above and verify they all cancel with thier counterpart). Thus the Strassen combination for \(C_{11}\) equals the usual block product.
+  </p>
+
+  <p>
+    You should confirm the remaining three identities similarly; for reference, the standard block formulas are:
+    <div class="highlight">
+    <pre><code class="language-latex">C_{11} &= A_{11}B_{11}+A_{12}B_{21}\\
+C_{12} &= A_{11}B_{12}+A_{12}B_{22}\\
+C_{21} &= A_{21}B_{11}+A_{22}B_{21}\\
+C_{22} &= A_{21}B_{12}+A_{22}B_{22}
+</code></pre>
+    </div>
+  </p>
+
   <p><strong>Size & padding:</strong> Strassen is usually presented assuming \(n = 2^k.\) For other sizes, pad to the next power of two and trim the result; the correctness is preserved in the top-left \(n\times n\) block, with only modest overhead in practice.</p>
 
   <div class="example-box">
-    <strong class="example-title">Worked Example: 2×2 matrices (Strassen)</strong>
-    <p>Take small matrices so the arithmetic stays compact. Let
+    <strong class="example-title">Example: 2×2 matrices</strong>
+    <p>Here is a tiny example of Strassen's algorithm in action. Let
     \[A=\begin{pmatrix}1 & 2\\ 3 & 4\end{pmatrix},\quad B=\begin{pmatrix}5 & 6\\ 7 & 8\end{pmatrix}.\]</p>
 
     <p>Compute the seven scalars (here blocks are scalars):</p>
     <p>
     \begin{align*}
-      M_1 &= (1+4)(5+8) = 5\cdot 13 = 65\\
-      M_2 &= (3+4)\cdot 5 = 7\cdot 5 = 35\\
-      M_3 &= 1\cdot(6-8) = -2\\
-      M_4 &= 4\cdot(7-5) = 8\\
-      M_5 &= (1+2)\cdot 8 = 24\\
-      M_6 &= (3-1)(5+6) = 2\cdot 11 = 22\\
-      M_7 &= (2-4)(7+8) = -2\cdot 15 = -30
+      M_1 &= (A_{11}+A_{22})(B_{11}+B_{22}) \;=\; (1+4)(5+8) \;=\; 5\cdot 13 \;=\; 65\\
+      M_2 &= (A_{21}+A_{22})B_{11} \;=\; (3+4)\cdot 5 \;=\; 7\cdot 5 \;=\; 35\\
+      M_3 &= A_{11}(B_{12}-B_{22}) \;=\; 1\cdot(6-8) \;=\; 1\cdot(-2) \;=\; -2\\
+      M_4 &= A_{22}(B_{21}-B_{11}) \;=\; 4\cdot(7-5) \;=\; 4\cdot 2 \;=\; 8\\
+      M_5 &= (A_{11}+A_{12})B_{22} \;=\; (1+2)\cdot 8 \;=\; 3\cdot 8 \;=\; 24\\
+      M_6 &= (A_{21}-A_{11})(B_{11}+B_{12}) \;=\; (3-1)(5+6) \;=\; 2\cdot 11 \;=\; 22\\
+      M_7 &= (A_{12}-A_{22})(B_{21}+B_{22}) \;=\; (2-4)(7+8) \;=\; (-2)\cdot 15 \;=\; -30
     \end{align*}
     </p>
 
     <p>Assemble:</p>
     <p>
     \begin{align*}
-      C_{11} &= 65 + 8 - 24 - 30 = 19\\
-      C_{12} &= -2 + 24 = 22\\
-      C_{21} &= 35 + 8 = 43\\
-      C_{22} &= 65 - 35 - 2 + 22 = 50
+      C_{11} &= M_1 + M_4 - M_5 + M_7 \;=\; 65 + 8 - 24 - 30 \;=\; 19\\
+      C_{12} &= M_3 + M_5 \;=\; -2 + 24 \;=\; 22\\
+      C_{21} &= M_2 + M_4 \;=\; 35 + 8 \;=\; 43\\
+      C_{22} &= M_1 - M_2 + M_3 + M_6 \;=\; 65 - 35 - 2 + 22 \;=\; 50
     \end{align*}
     </p>
 
-    <p>This matches the standard product:
-      \(\begin{pmatrix}19 & 22\\ 43 & 50\end{pmatrix}\).</p>
+    <p>Putting the 4 numbers in place, we get the final answer:
+      \(\begin{pmatrix}19 & 22\\ 43 & 50\end{pmatrix}\). You should double check the answer by doing the matrix product using the definition and comparing.</p>
 
-    <p><em>Note:</em> For larger matrices, each \(M_i\) is itself a recursive Strassen multiplication on \(n/2\times n/2\) blocks.</p>
   </div>
 
-  <p>
-    High-level pseudocode:
+    <p>The previous example only involved \(2\times 2\) matrices, so it was quite simple. For larger matrices, computation of each \(M_i\) involves a multiplication on \(n/2\times n/2\) submatrices, which are also performed using the same procedure.This leads to the following high-level pseudocode:
   </p>
   <ol>
-    <li>Base case: if size \(leq\) threshold (or size == 1), compute directly.</li>
-    <li>Recursive case: partition \(A\) and \(B\), compute the seven \(M_i\) (using additions/subtractions of blocks and recursive calls), then assemble \(C\) from the \(M\)'s.</li>
+    <li>Base case: If size=1, compute directly.</li>
+    <li>Recursive case: Partition \(A\) and \(B\), compute the seven \(M_i\) (using additions/subtractions of blocks and recursive calls), then assemble \(C\) from the \(M\)'s.</li>
   </ol>
   </section>
 
+  <p>The following demo shows an implementation of the algorithm that allows you to see the recursive aspect of it in action. It allows you to show or skip some of the computations. It is recommended that you show enough of them until you understand what is going on. Then feel free to skip some of the steps.</p>
   <section id="demo">
   <div class="embeddedDemoContainer">
     <iframe class="embeddedDemo"
@@ -118,7 +160,7 @@
 
   <section id="code">
   <h2>Implementation (illustrative)</h2>
-  <p>Below are straightforward, clear implementations for teaching; production code would optimize memory allocation and use blocking/thresholds carefully.</p>
+  <p>Below are straightforward, unoptimized implementations provided for clarity. Production code would optimize memory allocation, reuse temporaries, and apply cache-aware blocking. The examples use a <code>THRESHOLD</code>: when submatrix sizes fall at or below this threshold the algorithm switches from recursive Strassen to the standard (brute‑force) multiply because the recursion overhead outweighs the benefit for small matrices.</p>
 
   <div class="tab-group">
     <div class="tabs" role="tablist">
@@ -134,7 +176,7 @@ static final int THRESHOLD = 64;
 /** Matrix addition helper */
 private static int[][] add(int[][] A, int[][] B) {
     int n = A.length;
-    int[][] \(C\) = new int[n][n];
+    int[][] C = new int[n][n];
     for (int i = 0; i < n; i++)
         for (int j = 0; j < n; j++)
             C[i][j] = A[i][j] + B[i][j];
@@ -144,7 +186,7 @@ private static int[][] add(int[][] A, int[][] B) {
 /** Matrix subtraction helper */
 private static int[][] sub(int[][] A, int[][] B) {
     int n = A.length;
-    int[][] \(C\) = new int[n][n];
+    int[][] C = new int[n][n];
     for (int i = 0; i < n; i++)
         for (int j = 0; j < n; j++)
             C[i][j] = A[i][j] - B[i][j];
@@ -155,7 +197,7 @@ private static int[][] sub(int[][] A, int[][] B) {
 public static int[][] strassenMultiply(int[][] A, int[][] B) {
     int n = A.length;
     if (n <= THRESHOLD) {
-        int[][] \(C\) = new int[n][n];
+        int[][] C = new int[n][n];
         for (int i = 0; i < n; i++)
             for (int j = 0; j < n; j++)
                 for (int k = 0; k < n; k++)
@@ -190,7 +232,7 @@ public static int[][] strassenMultiply(int[][] A, int[][] B) {
     int[][] M6 = strassenMultiply(sub(A21, A11), add(B11, B12));
     int[][] M7 = strassenMultiply(sub(A12, A22), add(B21, B22));
     // assemble C
-    int[][] \(C\) = new int[n][n];
+    int[][] C = new int[n][n];
     int[][] C11 = add(sub(add(M1, M4), M5), M7);
     int[][] C12 = add(M3, M5);
     int[][] C21 = add(M2, M4);
@@ -294,7 +336,7 @@ def sub(A, B):
 
 def standard_mult(A, B):
     n = len(A)
-    \(C\) = [[0]*n for _ in range(n)]
+    C = [[0]*n for _ in range(n)]
     for i in range(n):
         for j in range(n):
             for k in range(n):
@@ -329,7 +371,7 @@ def strassen(A, B):
     C21 = add(M2, M4)
     C22 = add(sub(add(M1, M3), M2), M6)
     # join into C
-    \(C\) = [[0]*n for _ in range(n)]
+    C = [[0]*n for _ in range(n)]
     for i in range(m):
         for j in range(m):
             C[i][j] = C11[i][j]
@@ -430,181 +472,6 @@ def strassen(A, B):
       <li><strong>Padding and non-power-of-two:</strong> Describe padding strategy for arbitrary p×q times q×r multiplication using Strassen, and analyze overhead. Provide pseudocode.</li>
 
       <li><strong>Parallel Strassen:</strong> Sketch a parallel implementation that spawns the seven recursive products concurrently. Using the work/span model, give W(n) and S(n) and estimate maximum parallelism.</li>
-    </ol>
-  </section>
-
-</body>
-</html>
-    <li><strong>Comparison to Brute Force:</strong> Why does this divide-and-conquer algorithm have the same asymptotic complexity as the standard triple-loop algorithm, and why is it often slower in practice?</li>
-
-    <li><strong>Usefulness Without Speedup:</strong> If the asymptotic time is not better than the standard triple-loop method, why might this divide-and-conquer formulation still be valuable in practice? Give at least two concrete advantages.</li>
-
-    <li><strong>Block Correctness:</strong> Briefly justify why the block formulas
-      \[
-        C_{11}=A_{11}B_{11}+A_{12}B_{21}\] \[
-        C_{12}=A_{11}B_{12}+A_{12}B_{22}\] \[
-        C_{21}=A_{21}B_{11}+A_{22}B_{21}\] \[
-        C_{22}=A_{21}B_{12}+A_{22}B_{22}\]
-      are correct. Which algebraic properties of matrix multiplication are used?</li>
-
-    <li><strong>Operation Counts:</strong> Let \(M(n)\) be the number of scalar multiplications and \(A(n)\) the number of scalar additions for this algorithm. Write the recurrences for \(M(n)\) and \(A(n)\) with base cases, and solve them in closed form. Why are these counts important when comparing to Strassen's algorithm?</li>
-
-    <li><strong>Threshold Choice:</strong> Why do implementations switch to the standard triple-loop algorithm below a size threshold? Name two machine- or implementation-specific factors that influence the best threshold value.</li>
-
-    <li><strong>Offsets vs. Copying:</strong> Our implementation uses offsets to operate on subregions in-place rather than allocating submatrices. What asymptotic space benefit does this provide?</li>
-
-    <li><strong>Non-Power-of-2 Sizes:</strong> If \(n\) is not a power of 2 and we pad with zeros to the next power of 2, how does padding affect (a) the correctness of the result and (b) the running time bound in big-O notation?</li>
-
-    <li><strong>Strassen Comparison:</strong> How does Strassen's algorithm improve on the basic divide-and-conquer approach? State its recurrence, its asymptotic time, and one tradeoff that might make the basic approach preferable in some situations.</li>
-
-    <li><strong>Practical Improvements:</strong> What are some practical ways—other than reducing asymptotic complexity—to make matrix multiplication faster on real hardware?</li>
-  </ol>
-
-  <button id="toggleAnswers" class="show-answer" aria-expanded="false">Show Answers</button>
-  <div id="answers" class="answer" hidden>
-    <ol>
-      <li><strong>Answer:</strong> The recurrence is \(T(n) = 8T(n/2) + O(n^2)\). Here, \(a = 8\), \(b = 2\), and \(d = 2\) (since \(O(n^2)\)). Since \(a = b^d\) (\(8 = 2^3\)), by the Master Theorem case 1, \(T(n) = \Theta(n^3)\).</li>
-      <li><strong>Answer:</strong> Both algorithms perform \(O(n^3)\) work, but the divide-and-conquer version has extra overhead from recursion, function calls, and handling submatrices, making it slower in practice for most sizes.</li>
-
-      <li><strong>Answer:</strong> Advantages include (i) improved cache locality by working on contiguous subblocks, (ii) a clear structure that supports parallelization, and (iii) serving as a foundation for faster algorithms like Strassen's and cache-oblivious methods.</li>
-
-      <li><strong>Answer:</strong> The block formulas follow from associativity and distributivity of matrix multiplication: \((AB)_{ij} = \sum_k A_{ik}B_{kj}\) holds whether \(i,j,k\) index single elements or whole submatrices. Splitting the \(k\)-sum at \(n/2\) yields the two block products per quadrant.</li>
-
-      <li><strong>Answer:</strong> Multiplications: \(M(n) = 8M(n/2)\), \(M(1) = 1\), giving \(M(n) = n^3\). Additions: \(A(n) = 8A(n/2) + 4(n/2)^2\), \(A(1) = 0\), which solves to \(A(n) = n^3 - n^2\). These counts matter because Strassen's reduces multiplications (expensive) at the cost of more additions (cheap).</li>
-
-      <li><strong>Answer:</strong> Small recursive calls have high relative overhead and low arithmetic intensity. Switching to triple-loop at a cutoff reduces constants. Optimal thresholds depend on cache sizes, memory bandwidth, compiler optimizations, and runtime overheads.</li>
-
-      <li><strong>Answer:</strong> Offsets avoid allocating \(O(n^2)\)-sized submatrices at each level, keeping extra space at \(O(\log n)\) for the recursion stack (plus the \(O(n^2)\) output).</li>
-
-      <li><strong>Answer:</strong> (a) Padding with zeros doesn't change the true product in the top-left \(n\times n\) region; trimming yields the correct result. (b) Time complexity is \(O({n'}^3)\) where \(n'\) is the next power of 2 ≥ \(n\); this is still \(O(n^3)\).</li>
-
-      <li><strong>Answer:</strong> Strassen's recurrence is \(T(n) = 7T(n/2) + O(n^2)\), giving \(T(n) = O(n^{\log_2 7}) \approx O(n^{2.81})\). Tradeoff: more additions and complex formulas increase constants and can hurt numerical stability; basic divide-and-conquer may be better for moderate sizes or simple implementations.</li>
-
-      <li><strong>Answer:</strong> Examples: cache-oblivious algorithms to improve memory access patterns, blocking/tiling to fit subblocks in cache, and parallelizing independent subproblems on multiple cores or machines.</li>
-    </ol>
-  </div>
-</section>
-
-
-<section id="activities">
-  <h2>In-Class Activities</h2>
-  <ol>
-    <li><strong>Block-Correctness Trace (4x4):</strong>
-      Partition two 4x4 matrices into 2x2 blocks. Compute
-      \(C_{11}=A_{11}B_{11}+A_{12}B_{21}\),
-      \(C_{12}=A_{11}B_{12}+A_{12}B_{22}\),
-      \(C_{21}=A_{21}B_{11}+A_{22}B_{21}\),
-      \(C_{22}=A_{21}B_{12}+A_{22}B_{22}\),
-      and verify that these four blocks assemble into the same \(C\) you get from the standard triple-loop method. 
-      <em>Deliverable:</em> One worked example with a brief note citing the algebraic properties used (associativity, distributivity).
-    </li>
-
-    <li><strong>Exact Operation Counts (with Recurrences):</strong>
-      Use the following recurrences for the basic divide-and-conquer algorithm on \(n\times n\) matrices (assume \(n=2^k\)):
-      <ul>
-        <li>Multiplications: \(M(n)=8\,M(n/2)\), \(M(1)=1\).</li>
-        <li>Additions: \(A(n)=8\,A(n/2)+4\,(n/2)^2\), \(A(1)=0\).</li>
-      </ul>
-      (a) Solve both recurrences in closed form.  
-      (b) Verify numerically for \(n\in\{2,4,8\}\).  
-      (c) Prove your closed forms by induction on \(k\).  
-      <em>Deliverable:</em> Closed forms, small table of values, short induction proof.
-    </li>
-
-    <li><strong>Cache-Aware Blocking Thought Experiment:</strong>
-      Consider a naive triple-loop implementation and a blocked/tiling version that multiplies subblocks of size \(b\times b\).  
-      (a) Explain (qualitatively) why blocking can reduce cache misses.  
-      (b) For a given cache that holds \(\Theta(b^2)\) elements, argue how to choose \(b\) to keep two \(b\times b\) tiles of \(A,B\) and one of \(C\) in cache.  
-      <em>Deliverable:</em> 5–8 sentence write-up with a simple diagram of data reuse.
-    </li>
-
-    <li><strong>Parallel Work/Span Sketch:</strong>
-      Model the 8 submultiplications-per-level as a task DAG.  
-      (a) What is the total work \(W(n)\) and the span (critical path) \(S(n)\) ignoring additions?  
-      (b) Estimate the maximum parallelism \(W(n)/S(n)\).  
-      (c) How would this change under Strassen (7 submultiplications)?  
-      <em>Deliverable:</em> Brief derivation and a one-level DAG sketch.
-    </li>
-    <li><strong>Parallel Quadrant Computation:</strong>
-  As a group, assign each student (or small team) one of the four quadrants of the result matrix \(C\):
-  \(C_{11}\), \(C_{12}\), \(C_{21}\), or \(C_{22}\).  
-  Each team:
-  <ol type="a">
-    <li>Identifies the two submatrix products needed for their quadrant.</li>
-    <li>Computes those products (using small matrices for hand calculation) and adds the results.</li>
-    <li>Writes their completed quadrant on the board.</li>
-  </ol>
-  When all teams are done, assemble the full \(C\) matrix and compare to the standard triple-loop computation.  
-  <em>Goal:</em> Practice the block multiplication formulas and experience how the algorithm can be parallelized at the quadrant level.
-</li>
-
-  </ol>
-</section>
-
-
-  <section id="problems">
-    <h2>Homework Problems</h2>
-    <ol>
-      <li><strong>Matrix Transpose (Two Approaches):</strong>  
-      The transpose of an \(n\times n\) matrix \(A\) is the matrix \(A^T\) obtained by flipping \(A\) across its main diagonal so that \(A^T[i][j] = A[j][i]\).  
-      <ol type="a">
-        <li><em>Brute Force:</em> Write pseudocode to compute the transpose of an \(n\times n\) matrix using the straightforward triple-loop method (or double-loop if you swap in place). Analyze its running time and space usage.</li>
-        <li><em>Divide and Conquer:</em> Design a recursive divide-and-conquer algorithm for computing the transpose, assuming \(n\) is a power of 2. 
-          Give pseudocode using offsets (no copying of submatrices) and analyze its recurrence relation for running time. </li>
-          <li>Compare the asymptotic complexity of the two algorithms.</li>
-      </ol>
-   <li><strong>Recursive Matrix Addition:</strong>  
-      Write a divide-and-conquer algorithm to add two \(n\times n\) matrices, assuming \(n\) is a power of 2.  
-      <ol type="a">
-        <li>Give a clear description and/or pseudocode for your algorithm.</li>
-        <li>State the recurrence for the running time.</li>
-        <li>Solve it and verify it matches the expected \(O(n^2)\).</li>
-        <li>Discuss whether recursion is worthwhile for this problem and why.</li>
-      </ol>
-    </li>
-
-    <li><strong>Operation Counts for Multiplication:</strong>  
-      Using the recurrences  
-      \(M(n) = 8M(n/2), \; M(1)=1\) and  
-      \(A(n) = 8A(n/2) + 4(n/2)^2, \; A(1) = 0\),  
-      <ol type="a">
-        <li>Solve for \(M(n)\) and \(A(n)\) in closed form.</li>
-        <li>Verify the formulas for \(n=2,4,8\) by explicitly counting operations in small examples.</li>
-        <li>Prove your formulas by induction.</li>
-      </ol>
-    </li>
-
-    <li><strong>Divide-and-Conquer Image Quadrant Processing:</strong>  
-      An \(n\times n\) grayscale image is stored in a 2D array.  
-      Write a divide-and-conquer algorithm that applies a given pixel operation (e.g., brighten by 10%) to the entire image by recursively processing its four quadrants in parallel.  
-      <ol type="a">
-        <li>Provide pseudocode.</li>
-        <li>Give the recurrence for the running time.</li>
-        <li>Compare its asymptotic complexity to simply processing the image in a single (or double-nested) loop.</li>
-      </ol>
-    </li>
-
-      <li><strong>Handling Non-Square Matrices:</strong>  
-      The divide-and-conquer algorithm described in this section assumes square \(n\times n\) matrices with \(n\) a power of 2.  
-      Modify the algorithm to multiply two matrices \(A\) of size \(p\times q\) and \(B\) of size \(q\times r\), where \(p, q, r\) are not necessarily equal and may not be powers of 2.  
-      <ol type="a">
-        <li>Describe how to pad each dimension of \(A\) and \(B\) so the algorithm can still be applied. State exactly how many rows and columns of zeros you need to add to each.</li>
-        <li>Explain how to remove the padded rows/columns from the final result to recover the true product.</li>
-        <li>Give pseudocode for your modified version.</li>
-        <li>Analyze how the padding changes the running time in big-O notation, and discuss when the overhead becomes significant.</li>
-      </ol>
-    </li>
-
-    <li><strong>Parallel Quadrant Version:</strong>  
-      One advantage of the divide-and-conquer approach is that the four quadrants of the result matrix \(C\) can be computed in parallel.  
-      <ol type="a">
-        <li>Draw a dependency diagram showing which products must be computed for each of the four quadrants \(C_{11}, C_{12}, C_{21}, C_{22}\).</li>
-        <li>Write pseudocode that uses four parallel tasks (or threads) to compute the quadrants simultaneously, assuming your language has a simple parallel construct like <code>parallel</code> or <code>spawn</code>/<code>sync</code>.</li>
-        <li>Using the parallel work/span model, let \(W(n)\) be the total work (same as the sequential running time) and \(S(n)\) be the span (critical path length). Derive \(W(n)\) and \(S(n)\) for this algorithm, ignoring additions.</li>
-        <li>Estimate the maximum theoretical parallelism \(P_{\text{max}} = W(n)/S(n)\) for this algorithm. Explain what this number means for speedup on a real multicore machine.</li>
-        <li>Briefly discuss any practical challenges in achieving the theoretical speedup (e.g., overhead, memory bandwidth limits).</li>
-      </ol>
-    </li>
     </ol>
   </section>
 
