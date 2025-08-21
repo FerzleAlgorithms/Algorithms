@@ -42,7 +42,7 @@
 
   <p>Strassen's method forms seven auxiliary block products, \(M_1, \ldots, M_7.\) These products are chosen as particular linear combinations of the four \(A\)-blocks and four \(B\)-blocks so that (1) only seven recursive multiplications are needed and (2) appropriate linear combinations of the \(M_i\) reproduce the four \(C\) blocks via many cancellations. Define</p>
   <p>
-    \begin{align*}
+    <begin{align*}
       M_1 &= (A_{11} + A_{22})(B_{11} + B_{22}) \\
       M_2 &= (A_{21} + A_{22})B_{11} \\
       M_3 &= A_{11}(B_{12} - B_{22}) \\
@@ -55,7 +55,7 @@
 
   <p>Assemble the result by taking specific linear combinations of the \(M_i\); the pairwise cancellations in these combinations recover the usual block products for \(C\):</p>
     <p>
-    \begin{align*}
+    <begin{align*}
       C_{11} &= M_1 + M_4 - M_5 + M_7\\
       C_{12} &= M_3 + M_5\\
       C_{21} &= M_2 + M_4\\
@@ -96,11 +96,13 @@
   <p>
     You should confirm the remaining three identities similarly; for reference, the standard block formulas are:
     <div class="highlight">
-    <pre><code class="language-latex">C_{11} &= A_{11}B_{11}+A_{12}B_{21}\\
+    \begin{align*}
+C_{11} &= A_{11}B_{11}+A_{12}B_{21}\\
 C_{12} &= A_{11}B_{12}+A_{12}B_{22}\\
 C_{21} &= A_{21}B_{11}+A_{22}B_{21}\\
 C_{22} &= A_{21}B_{12}+A_{22}B_{22}
-</code></pre>
+    \end{align*}
+
     </div>
   </p>
 
@@ -159,7 +161,7 @@ C_{22} &= A_{21}B_{12}+A_{22}B_{22}
   </section>
 
   <section id="code">
-  <h2>Implementation (illustrative)</h2>
+  <h2>Implementation in Java, C++, Python</h2>
   <p>Below are straightforward, unoptimized implementations provided for clarity. Production code would optimize memory allocation, reuse temporaries, and apply cache-aware blocking. The examples use a <code>THRESHOLD</code>: when submatrix sizes fall at or below this threshold the algorithm switches from recursive Strassen to the standard (brute‑force) multiply because the recursion overhead outweighs the benefit for small matrices.</p>
 
   <div class="tab-group">
@@ -170,49 +172,59 @@ C_{22} &= A_{21}B_{12}+A_{22}B_{22}
     </div>
 
     <div id="java" class="code-container active" role="tabpanel" aria-labelledby="tab-java">
-      <pre><code class="language-java">// No class wrapper needed for illustration
+      <pre><code class="language-java">// When n &lt;= THRESHOLD, switch to standard multiply to avoid recursion overhead
 static final int THRESHOLD = 64;
 
-/** Matrix addition helper */
+/** Classical O(n^3) multiply helper used as the recursion base case */
+private static int[][] standardMultiply(int[][] A, int[][] B) {
+    int n = A.length;
+    int[][] C = new int[n][n];
+    for (int i = 0; i &lt; n; i++)
+        for (int j = 0; j &lt; n; j++)
+            for (int k = 0; k &lt; n; k++)
+                C[i][j] += A[i][k] * B[k][j];
+    return C;
+}
+
+/** Matrix addition helper: elementwise add two same-size square matrices */
 private static int[][] add(int[][] A, int[][] B) {
     int n = A.length;
     int[][] C = new int[n][n];
-    for (int i = 0; i < n; i++)
-        for (int j = 0; j < n; j++)
+    for (int i = 0; i &lt; n; i++)
+        for (int j = 0; j &lt; n; j++)
             C[i][j] = A[i][j] + B[i][j];
     return C;
 }
 
-/** Matrix subtraction helper */
+/** Matrix subtraction helper: elementwise subtract B from A */
 private static int[][] sub(int[][] A, int[][] B) {
     int n = A.length;
     int[][] C = new int[n][n];
-    for (int i = 0; i < n; i++)
-        for (int j = 0; j < n; j++)
+    for (int i = 0; i &lt; n; i++)
+        for (int j = 0; j &lt; n; j++)
             C[i][j] = A[i][j] - B[i][j];
     return C;
 }
 
-/** Strassen multiply (assumes n is power of 2) */
+/** Strassen multiply (assumes n is power of 2).
+ *  Base case: for small n use classical O(n^3) multiply.
+ *  Recursive case: split into four n/2 blocks, compute seven Strassen products (M1..M7),
+ *  then assemble C from the linear combinations.
+ */
 public static int[][] strassenMultiply(int[][] A, int[][] B) {
     int n = A.length;
-    if (n <= THRESHOLD) {
-        int[][] C = new int[n][n];
-        for (int i = 0; i < n; i++)
-            for (int j = 0; j < n; j++)
-                for (int k = 0; k < n; k++)
-                    C[i][j] += A[i][k] * B[k][j];
-        return C;
+    if (n &lt;= THRESHOLD) {
+        return standardMultiply(A, B);
     }
     int newSize = n / 2;
-    // allocate submatrices
+    // allocate submatrices for A and B (A11,A12,A21,A22 and B11,...)
     int[][] A11 = new int[newSize][newSize], A12 = new int[newSize][newSize],
             A21 = new int[newSize][newSize], A22 = new int[newSize][newSize];
     int[][] B11 = new int[newSize][newSize], B12 = new int[newSize][newSize],
             B21 = new int[newSize][newSize], B22 = new int[newSize][newSize];
-    // ...copy entries into submatrices...
-    for (int i = 0; i < newSize; i++) {
-        for (int j = 0; j < newSize; j++) {
+    // copy entries into submatrices
+    for (int i = 0; i &lt; newSize; i++) {
+        for (int j = 0; j &lt; newSize; j++) {
             A11[i][j] = A[i][j];
             A12[i][j] = A[i][j + newSize];
             A21[i][j] = A[i + newSize][j];
@@ -223,7 +235,7 @@ public static int[][] strassenMultiply(int[][] A, int[][] B) {
             B22[i][j] = B[i + newSize][j + newSize];
         }
     }
-    // compute M1..M7
+    // compute the seven Strassen products (each is a recursive call)
     int[][] M1 = strassenMultiply(add(A11, A22), add(B11, B22));
     int[][] M2 = strassenMultiply(add(A21, A22), B11);
     int[][] M3 = strassenMultiply(A11, sub(B12, B22));
@@ -231,14 +243,14 @@ public static int[][] strassenMultiply(int[][] A, int[][] B) {
     int[][] M5 = strassenMultiply(add(A11, A12), B22);
     int[][] M6 = strassenMultiply(sub(A21, A11), add(B11, B12));
     int[][] M7 = strassenMultiply(sub(A12, A22), add(B21, B22));
-    // assemble C
+    // assemble final blocks using the Strassen recombination formulas
     int[][] C = new int[n][n];
-    int[][] C11 = add(sub(add(M1, M4), M5), M7);
-    int[][] C12 = add(M3, M5);
-    int[][] C21 = add(M2, M4);
-    int[][] C22 = add(sub(add(M1, M3), M2), M6);
-    for (int i = 0; i < newSize; i++) {
-        for (int j = 0; j < newSize; j++) {
+    int[][] C11 = add(sub(add(M1, M4), M5), M7);  // M1 + M4 - M5 + M7
+    int[][] C12 = add(M3, M5);                    // M3 + M5
+    int[][] C21 = add(M2, M4);                    // M2 + M4
+    int[][] C22 = add(sub(add(M1, M3), M2), M6);  // M1 - M2 + M3 + M6
+    for (int i = 0; i &lt; newSize; i++) {
+        for (int j = 0; j &lt; newSize; j++) {
             C[i][j] = C11[i][j];
             C[i][j + newSize] = C12[i][j];
             C[i + newSize][j] = C21[i][j];
@@ -251,45 +263,53 @@ public static int[][] strassenMultiply(int[][] A, int[][] B) {
     </div>
 
     <div id="cpp" class="code-container" role="tabpanel" aria-labelledby="tab-cpp">
-      <pre><code class="language-cpp">// Simple illustrative Strassen (not optimized)
-using Matrix = std::vector<std::vector<int>>;
-const int THRESHOLD = 64;
+      <pre><code class="language-cpp">// Matrix is a square vector-of-vectors of ints
+using Matrix = std::vector&lt;std::vector&lt;int&gt;&gt;;
+const int THRESHOLD = 64; // switch to classical multiply at or below this size
 
+// classical O(n^3) multiply used as the recursion base case
+Matrix standard_mult(const Matrix &A, const Matrix &B) {
+    int n = A.size();
+    Matrix C(n, std::vector&lt;int&gt;(n, 0));
+    for (int i = 0; i &lt; n; ++i)
+        for (int j = 0; j &lt; n; ++j)
+            for (int k = 0; k &lt; n; ++k)
+                C[i][j] += A[i][k] * B[k][j];
+    return C;
+}
+
+// elementwise addition helper
 Matrix add(const Matrix &A, const Matrix &B) {
     int n = A.size();
-    Matrix C(n, std::vector<int>(n));
-    for (int i = 0; i < n; ++i)
-        for (int j = 0; j < n; ++j)
+    Matrix C(n, std::vector&lt;int&gt;(n));
+    for (int i = 0; i &lt; n; ++i)
+        for (int j = 0; j &lt; n; ++j)
             C[i][j] = A[i][j] + B[i][j];
     return C;
 }
+// elementwise subtraction helper
 Matrix sub(const Matrix &A, const Matrix &B) {
     int n = A.size();
-    Matrix C(n, std::vector<int>(n));
-    for (int i = 0; i < n; ++i)
-        for (int j = 0; j < n; ++j)
+    Matrix C(n, std::vector&lt;int&gt;(n));
+    for (int i = 0; i &lt; n; ++i)
+        for (int j = 0; j &lt; n; ++j)
             C[i][j] = A[i][j] - B[i][j];
     return C;
 }
 
 Matrix strassen(const Matrix &A, const Matrix &B) {
     int n = A.size();
-    if (n <= THRESHOLD) {
-        Matrix C(n, std::vector<int>(n, 0));
-        for (int i = 0; i < n; ++i)
-            for (int j = 0; j < n; ++j)
-                for (int k = 0; k < n; ++k)
-                    C[i][j] += A[i][k] * B[k][j];
-        return C;
+    if (n &lt;= THRESHOLD) {
+        return standard_mult(A, B);
     }
     int m = n/2;
-    // split \(A\) and \(B\) into 4 blocks each (copying for clarity)
-    Matrix A11(m, std::vector<int>(m)), A12(m, std::vector<int>(m)),
-           A21(m, std::vector<int>(m)), A22(m, std::vector<int>(m));
-    Matrix B11(m, std::vector<int>(m)), B12(m, std::vector<int>(m)),
-           B21(m, std::vector<int>(m)), B22(m, std::vector<int>(m));
-    for (int i = 0; i < m; ++i)
-      for (int j = 0; j < m; ++j) {
+    // split A and B into 4 blocks each (copying for clarity)
+    Matrix A11(m, std::vector&lt;int&gt;(m)), A12(m, std::vector&lt;int&gt;(m)),
+           A21(m, std::vector&lt;int&gt;(m)), A22(m, std::vector&lt;int&gt;(m));
+    Matrix B11(m, std::vector&lt;int&gt;(m)), B12(m, std::vector&lt;int&gt;(m)),
+           B21(m, std::vector&lt;int&gt;(m)), B22(m, std::vector&lt;int&gt;(m));
+    for (int i = 0; i &lt; m; ++i)
+      for (int j = 0; j &lt; m; ++j) {
         A11[i][j] = A[i][j];
         A12[i][j] = A[i][j+m];
         A21[i][j] = A[i+m][j];
@@ -299,6 +319,7 @@ Matrix strassen(const Matrix &A, const Matrix &B) {
         B21[i][j] = B[i+m][j];
         B22[i][j] = B[i+m][j+m];
       }
+    // seven Strassen products (recursive)
     Matrix M1 = strassen(add(A11,A22), add(B11,B22));
     Matrix M2 = strassen(add(A21,A22), B11);
     Matrix M3 = strassen(A11, sub(B12,B22));
@@ -306,13 +327,14 @@ Matrix strassen(const Matrix &A, const Matrix &B) {
     Matrix M5 = strassen(add(A11,A12), B22);
     Matrix M6 = strassen(sub(A21,A11), add(B11,B12));
     Matrix M7 = strassen(sub(A12,A22), add(B21,B22));
-    Matrix C(n, std::vector<int>(n));
-    Matrix C11 = add(sub(add(M1,M4), M5), M7);
-    Matrix C12 = add(M3, M5);
-    Matrix C21 = add(M2, M4);
-    Matrix C22 = add(sub(add(M1,M3), M2), M6);
-    for (int i = 0; i < m; ++i)
-      for (int j = 0; j < m; ++j) {
+    // assemble final matrix from block combinations
+    Matrix C(n, std::vector&lt;int&gt;(n));
+    Matrix C11 = add(sub(add(M1,M4), M5), M7);  // M1 + M4 - M5 + M7
+    Matrix C12 = add(M3, M5);                    // M3 + M5
+    Matrix C21 = add(M2, M4);                    // M2 + M4
+    Matrix C22 = add(sub(add(M1,M3), M2), M6);   // M1 - M2 + M3 + M6
+    for (int i = 0; i &lt; m; ++i)
+      for (int j = 0; j &lt; m; ++j) {
         C[i][j] = C11[i][j];
         C[i][j+m] = C12[i][j];
         C[i+m][j] = C21[i][j];
@@ -324,17 +346,20 @@ Matrix strassen(const Matrix &A, const Matrix &B) {
     </div>
 
     <div id="python" class="code-container" role="tabpanel" aria-labelledby="tab-python">
-      <pre><code class="language-python">THRESHOLD = 64
+      <pre><code class="language-python">THRESHOLD = 64  # switch to classical multiply at or below this size
 
 def add(A, B):
+    "Elementwise addition of two square matrices A and B."
     n = len(A)
     return [[A[i][j] + B[i][j] for j in range(n)] for i in range(n)]
 
 def sub(A, B):
+    "Elementwise subtraction A - B."
     n = len(A)
     return [[A[i][j] - B[i][j] for j in range(n)] for i in range(n)]
 
 def standard_mult(A, B):
+    "Classical O(n^3) matrix multiplication used as the recursion base case."
     n = len(A)
     C = [[0]*n for _ in range(n)]
     for i in range(n):
@@ -344,11 +369,17 @@ def standard_mult(A, B):
     return C
 
 def strassen(A, B):
+    """
+    Strassen's algorithm:
+    - If n &lt;= THRESHOLD use standard_mult.
+    - Otherwise split A and B into 4 submatrices, compute M1..M7 recursively,
+      and combine to form the result blocks.
+    """
     n = len(A)
-    if n <= THRESHOLD:
+    if n &lt;= THRESHOLD:
         return standard_mult(A, B)
     m = n // 2
-    # create submatrices
+    # create submatrices (copying for clarity)
     A11 = [[A[i][j] for j in range(m)] for i in range(m)]
     A12 = [[A[i][j+m] for j in range(m)] for i in range(m)]
     A21 = [[A[i+m][j] for j in range(m)] for i in range(m)]
@@ -357,7 +388,7 @@ def strassen(A, B):
     B12 = [[B[i][j+m] for j in range(m)] for i in range(m)]
     B21 = [[B[i+m][j] for j in range(m)] for i in range(m)]
     B22 = [[B[i+m][j+m] for j in range(m)] for i in range(m)]
-    # seven products
+    # seven products (recursive)
     M1 = strassen(add(A11, A22), add(B11, B22))
     M2 = strassen(add(A21, A22), B11)
     M3 = strassen(A11, sub(B12, B22))
@@ -365,12 +396,12 @@ def strassen(A, B):
     M5 = strassen(add(A11, A12), B22)
     M6 = strassen(sub(A21, A11), add(B11, B12))
     M7 = strassen(sub(A12, A22), add(B21, B22))
-    # assemble
-    C11 = add(sub(add(M1, M4), M5), M7)
-    C12 = add(M3, M5)
-    C21 = add(M2, M4)
-    C22 = add(sub(add(M1, M3), M2), M6)
-    # join into C
+    # assemble blocks
+    C11 = add(sub(add(M1, M4), M5), M7)  // M1 + M4 - M5 + M7
+    C12 = add(M3, M5)                    // M3 + M5
+    C21 = add(M2, M4)                    // M2 + M4
+    C22 = add(sub(add(M1, M3), M2), M6)  // M1 - M2 + M3 + M6
+    # join into full matrix
     C = [[0]*n for _ in range(n)]
     for i in range(m):
         for j in range(m):
@@ -386,23 +417,67 @@ def strassen(A, B):
 
   <section id="analysis">
   <h2>Time/Space Analysis</h2>
+
   <p>
-    <strong>Time Complexity:</strong> Strassen reduces the recurrence to
+    <strong>Time Complexity:</strong> Each call to Strassen's algorithm performs seven recursive calls on matrices of size \(n/2\) and a collection of matrix additions/subtractions of cost \(O(n^2)\) to form the operands and to assemble the result. Hence the running time satisfies
     \[
-      T(n) = 7T(n/2) + O(n^2)
+      T(n) = 7\,T(n/2) + \Theta(n^2).
     \]
-    which solves to \(T(n) = O(n^{\log_2 7}) \approx O(n^{2.81})\). The improvement comes from reducing one recursive multiplication per level at the cost of more additions/subtractions.
+    Applying the Master Theorem with \(a = 7\), \(b = 2\), and \(d=2\), we obtain 
+    \[T(n) = \Theta(n^{\log_2 7}) \approx \Theta(n^{2.80735}).\]
+    By contrast, the classical (naive) algorithm performs takes \(O(n^3)\) time. As \(n\) grows, Strassen's algorithm becomes significantly faster than the classical method.
   </p>
+
   <p>
-    <strong>Operation tradeoffs:</strong> Strassen reduces multiplications (expensive) but increases additions and temporary storage for the linear combinations. For large n this win outweighs the overhead; for small-to-moderate n the additional overhead and numerical considerations may make classical algorithms preferable.
+    But we can be a little more specific and count the number of additions and the number of multiplications. This can be useful to compare Strassen with other algorithms, especially the brute-force and naive divide-and-conquer algorithm.
+    First, we let \(M(n)\) denote the number of scalar multiplications. Each recursive call creates seven subproblems of size \(n/2\), and no scalar multiplications are performed in the combine phase beyond those produced by recursive calls. When \(n=1\), two number are finally multiplied (so one multiplication is performed). Thus
+    \[
+      M(n) = 7\,M(n/2),\qquad M(1)=1,
+    \]
+    and therefore
+    \[
+      M(n) = O(n^{\log_2 7}) \approx O(n^{2.80735}).
+    \]
   </p>
+
   <p>
-    <strong>Numerical stability:</strong> Strassen uses more additions and subtractions which can magnify round-off error in floating-point arithmetic; stable implementations and hybrid strategies are used in practice.
+    Next, we count the number of scalar additions/subtractions.
+    Let \(A(n)\) denote the number of scalar additions/subtractions. 
+    To form the seven operand matrices, we perform 10 matrix additions/subtractions of size \((n/2)\times(n/2)\); to assemble the four result blocks from \(M_1\ldots M_7\) we do 8 matrix additions/subtractions of size \((n/2)\times(n/2)\). That is a total of 18 matrix adds/subs per call, for a total of \(18(n/2)^2\) additions/subtractions. 
+    When \(n=1\), no additions/subtractions are performed (so \(A(1)=0\)).
+    Thus, 
+    \[
+      A(n) = 7\,A(n/2) + 18\cdot\Big(\frac{n}{2}\Big)^2 = 7\,A(n/2) + \frac{18}{4}\,n^2.
+    \]
+    As with \(M(n)\), the Master Theorem yields a solution of    
+    \[
+      A(n) = O(n^{\log_2 7}) \approx O(n^{2.80735}).
+    \]
   </p>
-  <p>
-    <strong>Space:</strong> Extra temporary matrices are typically required (naive implementations use O(n^2) auxiliary space); optimized in-place or pooled allocations reduce the overhead.
-  </p>
-  </section>
+  <p>Since the constants involved with Strassen's algorithm are not insignificant, it is important to do a more precise computation of number of operations and/or test implementations to determine for which values of \(n\) Strassen's algorithm is practially more efficient than the brute-force algorithm. We will leave that the the activities/problems.</p>
+
+    <p>
+      <font style="color: red; font-weight: bold; font-size: 3em;">I AM HERE!!!!</font><br> 
+    <strong>Space Complexity:</strong> Because of the recursive calls, computing the amount of memory used takes a little effort.
+        For each recursive call, 19 matrices of half the size are stored (This can be easily reduced to 11 by using offsets
+        in recursive calls, but we will leave it to the reader to think about how to do that), along with the final result 
+        of the same size. 
+        Thus, during the first recrusive call, the memory used is \(n^2+19 (\frac{n}{2})^2 = 23 (\frac{n}{2})^2\). 
+        When a recursive call is made, that allocates 19 matrices of size \(\frac{n}{4}\times\frac{n}{4}\) and one 
+        of size \(\frac{n}{2}\times\frac{n}{2}\), for a total of \(23 (\frac{n}{4})^2\) space; and so on. 
+        This leads to a geometric series of memory usage across recursion levels:
+        
+    \begin{align*}
+      \text{Peak_Memory}(n) &= 23\Big(\frac{n}{2}\Big)^2 + 23\Big(\frac{n}{4}\Big)^2 + 23\Big(\frac{n}{8}\Big)^2 + \cdots 23(1)^2\\
+          &= 23\; n^2\sum_{i=1}^{\log_4(n)}\Big(\frac{1}{4}\Big)^i \\
+          &\leq 23\; n^2\sum_{i=0}^{\infty}\Big(\frac{1}{4}\Big)^i \\
+          &=23\; n^2 \frac{1}{1-1/4} \\
+          &= \frac{92}{3}\,n^2,
+    \end{align*}
+        so total memory usage is \(\Theta(n^2)\).</p>
+    <p>This analysis assumes temporary memory used in each recursive call is freed before sibling recursive calls begin. If the seven recursive multiplications run concurrently (parallel Strassen) or if temporaries are retained across calls, memory usage grows with concurrency and can be much larger than \(\Theta(n^2)\).</p>
+
+</section>
 
   <section id="variations">
   <h2>Variations/Improvements</h2>
