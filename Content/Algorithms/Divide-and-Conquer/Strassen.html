@@ -33,7 +33,7 @@
   <section id="design">
   <h2>Design and Strategy</h2>
   <p>
-    Strassen's algorithm start exactly the same way as the standard <a class="problem" href="?path=Algorithms%2FDivide-and-Conquer%2FMatrix%20Multiplication"
+    Strassen's algorithm starts exactly the same way as the standard <a class="problem" href="?path=Algorithms%2FDivide-and-Conquer%2FMatrix%20Multiplication"
 >divide-and-conquer matrix multiplication</a> by partitioning each \(n\times n\) matrix into four \(n/2\times n/2\) blocks:
     \[A = \begin{pmatrix} A_{11} & A_{12} \\ A_{21} & A_{22} \end{pmatrix}, \quad 
       B = \begin{pmatrix} B_{11} & B_{12} \\ B_{21} & B_{22} \end{pmatrix}.\]
@@ -42,7 +42,7 @@
 
   <p>Strassen's method forms seven auxiliary block products, \(M_1, \ldots, M_7.\) These products are chosen as particular linear combinations of the four \(A\)-blocks and four \(B\)-blocks so that (1) only seven recursive multiplications are needed and (2) appropriate linear combinations of the \(M_i\) reproduce the four \(C\) blocks via many cancellations. Define</p>
   <p>
-    <begin{align*}
+    \begin{align*}
       M_1 &= (A_{11} + A_{22})(B_{11} + B_{22}) \\
       M_2 &= (A_{21} + A_{22})B_{11} \\
       M_3 &= A_{11}(B_{12} - B_{22}) \\
@@ -55,7 +55,7 @@
 
   <p>Assemble the result by taking specific linear combinations of the \(M_i\); the pairwise cancellations in these combinations recover the usual block products for \(C\):</p>
     <p>
-    <begin{align*}
+    \begin{align*}
       C_{11} &= M_1 + M_4 - M_5 + M_7\\
       C_{12} &= M_3 + M_5\\
       C_{21} &= M_2 + M_4\\
@@ -90,7 +90,7 @@
         &= A_{11}B_{11} + A_{12}B_{21},
       \end{aligned}
     \]
-    where many terms cancel pairwise by design (see the matched colors above and verify they all cancel with thier counterpart). Thus the Strassen combination for \(C_{11}\) equals the usual block product.
+    where many terms cancel pairwise by design (see the matched colors above and verify they all cancel with their counterpart). Thus the Strassen combination for \(C_{11}\) equals the usual block product.
   </p>
 
   <p>
@@ -109,7 +109,7 @@ C_{22} &= A_{21}B_{12}+A_{22}B_{22}
   <p><strong>Size & padding:</strong> Strassen is usually presented assuming \(n = 2^k.\) For other sizes, pad to the next power of two and trim the result; the correctness is preserved in the top-left \(n\times n\) block, with only modest overhead in practice.</p>
 
   <div class="example-box">
-    <strong class="example-title">Example: 2×2 matrices</strong>
+    <strong class="example-title">Example: \(2\times 2\) matrices</strong>
     <p>Here is a tiny example of Strassen's algorithm in action. Let
     \[A=\begin{pmatrix}1 & 2\\ 3 & 4\end{pmatrix},\quad B=\begin{pmatrix}5 & 6\\ 7 & 8\end{pmatrix}.\]</p>
 
@@ -397,10 +397,10 @@ def strassen(A, B):
     M6 = strassen(sub(A21, A11), add(B11, B12))
     M7 = strassen(sub(A12, A22), add(B21, B22))
     # assemble blocks
-    C11 = add(sub(add(M1, M4), M5), M7)  // M1 + M4 - M5 + M7
-    C12 = add(M3, M5)                    // M3 + M5
-    C21 = add(M2, M4)                    // M2 + M4
-    C22 = add(sub(add(M1, M3), M2), M6)  // M1 - M2 + M3 + M6
+    C11 = add(sub(add(M1, M4), M5), M7)  # M1 + M4 - M5 + M7
+    C12 = add(M3, M5)                    # M3 + M5
+    C21 = add(M2, M4)                    # M2 + M4
+    C22 = add(sub(add(M1, M3), M2), M6)  # M1 - M2 + M3 + M6
     # join into full matrix
     C = [[0]*n for _ in range(n)]
     for i in range(m):
@@ -454,101 +454,163 @@ def strassen(A, B):
       A(n) = O(n^{\log_2 7}) \approx O(n^{2.80735}).
     \]
   </p>
-  <p>Since the constants involved with Strassen's algorithm are not insignificant, it is important to do a more precise computation of number of operations and/or test implementations to determine for which values of \(n\) Strassen's algorithm is practially more efficient than the brute-force algorithm. We will leave that the the activities/problems.</p>
+  <p>Since the constants involved with Strassen's algorithm are not insignificant, it is important to do a more precise computation of number of operations and/or test implementations to determine for which values of \(n\) Strassen's algorithm is practically more efficient than the brute-force algorithm. We will leave that the the activities/problems.</p>
 
     <p>
-      <font style="color: red; font-weight: bold; font-size: 3em;">I AM HERE!!!!</font><br> 
-    <strong>Space Complexity:</strong> Because of the recursive calls, computing the amount of memory used takes a little effort.
-        For each recursive call, 19 matrices of half the size are stored (This can be easily reduced to 11 by using offsets
-        in recursive calls, but we will leave it to the reader to think about how to do that), along with the final result 
-        of the same size. 
-        Thus, during the first recrusive call, the memory used is \(n^2+19 (\frac{n}{2})^2 = 23 (\frac{n}{2})^2\). 
-        When a recursive call is made, that allocates 19 matrices of size \(\frac{n}{4}\times\frac{n}{4}\) and one 
-        of size \(\frac{n}{2}\times\frac{n}{2}\), for a total of \(23 (\frac{n}{4})^2\) space; and so on. 
-        This leads to a geometric series of memory usage across recursion levels:
-        
-    \begin{align*}
-      \text{Peak_Memory}(n) &= 23\Big(\frac{n}{2}\Big)^2 + 23\Big(\frac{n}{4}\Big)^2 + 23\Big(\frac{n}{8}\Big)^2 + \cdots 23(1)^2\\
-          &= 23\; n^2\sum_{i=1}^{\log_4(n)}\Big(\frac{1}{4}\Big)^i \\
-          &\leq 23\; n^2\sum_{i=0}^{\infty}\Big(\frac{1}{4}\Big)^i \\
-          &=23\; n^2 \frac{1}{1-1/4} \\
-          &= \frac{92}{3}\,n^2,
-    \end{align*}
-        so total memory usage is \(\Theta(n^2)\).</p>
-    <p>This analysis assumes temporary memory used in each recursive call is freed before sibling recursive calls begin. If the seven recursive multiplications run concurrently (parallel Strassen) or if temporaries are retained across calls, memory usage grows with concurrency and can be much larger than \(\Theta(n^2)\).</p>
-
+    <strong>Space Complexity:</strong> Because of the recursive calls, computing the exact amount of memory used takes a little effort. We will leave it to an exercise to fill in the details, but the amount of extra space used by Strassen's algorithm is \(\Theta(n^2)\).
+    </p>
 </section>
 
   <section id="variations">
   <h2>Variations/Improvements</h2>
   <ul>
-    <li>Hybrid approaches: switch to standard multiplication below a threshold for better constants and stability.</li>
-    <li>Memory-optimized Strassen: reuse temporaries and avoid allocating many small matrices at each recursion level.</li>
-    <li>Further asymptotic improvements exist (e.g., Coppersmith–Winograd and successors) but are rarely practical due to huge constants.</li>
-    <li>Parallel Strassen: the 7 recursive calls give parallelism; practical gains depend on task granularity and memory bandwidth.</li>
+    <li><strong>Hybrid cutoff (THRESHOLD):</strong> Benchmark on target hardware and switch to a blocked classical multiply at/under the cutoff (often 32–256). Use separate cutoffs per datatype.</li>
+    <li><strong>Winograd variant:</strong> Use Strassen–Winograd schedules to reduce additions (fewer matrix adds than vanilla Strassen) while keeping 7 multiplies; improves constant factors.</li>
+    <li><strong>Memory reuse and in-place schedules:</strong> Reuse 2–3 scratch buffers to compute \(M_1\ldots, M_7\) and assemble \(C_{ij}\), avoiding per-level allocations. 
+      A scratch pool keeps peak extra memory near \(O(n^2)\).</li>
+    <li><strong>Numerical stability:</strong> Perform additions/subtractions in higher precision (e.g., float64 for float32 inputs). For integers, use 64-bit accumulators to avoid overflow.</li>
+    <li><strong>Parallel Strassen:</strong> Fork the 7 recursive multiplies up to a depth cutoff; use a work-stealing pool. Limit parallelism to avoid memory-bandwidth saturation and oversubscription.</li>
   </ul>
   </section>
 
   <section id="links">
   <h2>Links to Resources</h2>
   <ul>
-    <li><a href="https://en.wikipedia.org/wiki/Strassen_algorithm" target="_blank">Strassen algorithm (Wikipedia)</a></li>
-    <li><a href="https://www.geeksforgeeks.org/strassen-algorithm-for-matrix-multiplication/" target="_blank">Strassen's algorithm (GeeksforGeeks)</a></li>
+    <li><a href="https://en.wikipedia.org/wiki/Strassen_algorithm" target="_blank">Strassen algorithm (Wikipedia)</a> Discussion of Strassen's algorithm, including a link to the original paper.</li>
+    <li><a href="https://en.wikipedia.org/wiki/Matrix_multiplication_algorithm" target="_blank">Matrix Multiplication Algorithm (Wikipedia)</a> Discussion of several matrix multiplication algorithms.</li>
+    <li><a href="https://www.geeksforgeeks.org/dsa/strassens-matrix-multiplication/" target="_blank">Matrix Multiplication (GeeksforGeeks)</a> Several algorithms, including Strassen's.</li>
   </ul>
   </section>
 
- <section id="reading-questions">
+  <section id="reading-questions">
   <h2>Reading Comprehension Questions</h2>
   <ol>
-    <li>Write the seven Strassen products M1..M7 and the formulas for C11..C22. Why do they produce the same result as standard multiplication?</li>
-    <li>Give the recurrence for Strassen's running time and solve it using the Master Theorem.</li>
-    <li>Explain why Strassen reduces the number of multiplications and what is being traded off.</li>
-    <li>When might standard O(n^3) or blocked algorithms be preferable to Strassen?</li>
-    <li>Discuss numerical stability concerns with Strassen and one mitigation strategy.</li>
-    <li>How does padding to a power-of-two affect correctness and asymptotic runtime?</li>
-    <li>Describe how to combine Strassen with blocking/cache-aware optimizations.</li>
+    <li><strong>Big idea:</strong> In one sentence, how does Strassen differ from standard divide-and-conquer matrix multiplication?</li>
+    <li><strong>Seven products:</strong> Write the definitions of \(M_1,\ldots,M_7\). Then expand \(C_{11}=M_1+M_4-M_5+M_7\) and show the cancellations to get \(A_{11}B_{11}+A_{12}B_{21}\).</li>
+    <li><strong>Recurrence & exponent:</strong> Give the runtime recurrence for Strassen and solve it with the Master Theorem. State \(\log_2 7\) to 5 decimal places.</li>
+    <li><strong>Operation counts:</strong> Let \(M(n)\) be the number of scalar multiplications and \(A(n)\) the number of scalar additions/subtractions in Strassen. Write the recurrences (with base cases) and give their asymptotic solutions. Briefly explain (one sentence) why \(A(n)\) is not \(\Theta(n^2\log n)\).</li>
+    <li><strong>Base case / cutoff:</strong> What purpose does a <code>THRESHOLD</code> (hybrid switch to classical multiply) serve, and why can it make Strassen faster in practice?</li>
+    <li><strong>Padding:</strong> When \(n\) is not a power of two, what size do we pad the matrices to, and where is the correct \(n\times n\) product located after padding and multiplication?</li>
+    <li><strong>Space:</strong> What is the extra-space complexity of a straightforward Strassen implementation and what causes it? Name one strategy that keeps peak extra space at \(\Theta(n^2)\).</li>
   </ol>
 
   <button id="toggleAnswers" class="show-answer" aria-expanded="false">Show Answers</button>
   <div id="answers" class="answer" hidden>
     <ol>
-      <li><strong>Answer:</strong> See M1..M7 and assembly formulas above; correctness follows because the block algebra expands to the usual sum over k when blocks are treated as matrix entries.</li>
-      <li><strong>Answer:</strong> T(n)=7T(n/2)+O(n^2), so T(n)=Θ(n^{log_2 7}) ≈ Θ(n^{2.81}).</li>
-      <li><strong>Answer:</strong> Strassen replaces one multiplication per recursion level with several additions/subtractions; since multiplications dominate cost, this reduces asymptotic work.</li>
-      <li><strong>Answer:</strong> For small n, high constants, and stability concerns; blocked classical methods often beat Strassen in practice for medium sizes.</li>
-      <li><strong>Answer:</strong> More additions can amplify round-off error; use higher-precision arithmetic or hybrid switching to standard multiply at lower levels.</li>
-      <li><strong>Answer:</strong> Padding preserves correctness in the top-left block and increases runtime only by a constant factor; asymptotic bound remains the same.</li>
-      <li><strong>Answer:</strong> Use Strassen at outer recursion levels, switch to blocked classical multiply in the leaves, and reuse temporaries to reduce allocations.</li>
+      <li><strong>Answer:</strong> It reduces the 8 sub-matrix multiplications to 7 by forming linear combinations of blocks, then recombines those 7 results to recover the 4 output blocks.</li>
+      <li><strong>Answer:</strong> Use the listed \(M_i\) formulas; expanding \(C_{11}=M_1+M_4-M_5+M_7\) cancels to \(A_{11}B_{11}+A_{12}B_{21}\) as shown in the text.</li>
+      <li><strong>Answer:</strong> \(T(n)=7T(n/2)+\Theta(n^2)\); by Master Theorem, \(T(n)=\Theta(n^{\log_2 7})\) with \(\log_2 7\approx 2.80735\).</li>
+      <li><strong>Answer:</strong> \(M(n)=7M(n/2),\;M(1)=1\Rightarrow M(n)=\Theta(n^{\log_2 7})\).  
+        \(A(n)=7A(n/2)+18\,(n/2)^2,\;A(1)=0\Rightarrow A(n)=\Theta(n^{\log_2 7})\).  
+        Because \(a=7>b^d=2^2=4\), the recursive part dominates (Master Theorem case 1), not the \(\Theta(n^2)\) term.</li>
+      <li><strong>Answer:</strong> It avoids small, overhead-dominated recursion; below the cutoff, classical \(O(n^3)\) is faster due to better constants and cache use.</li>
+      <li><strong>Answer:</strong> Pad to the smallest value of \(k\) such that \(n\leq 2^k\); the correct result is in the top-left \(n\times n\) block.</li>
+      <li><strong>Answer:</strong> \(\Theta(n^2)\) extra space from temporary block sums/differences and storing intermediates \(M_1\ldots M_7\). Reuse a small scratch buffer / in-place schedules to cap peak memory at \(\Theta(n^2)\).</li>
     </ol>
   </div>
 </section>
 
+
 <section id="activities">
   <h2>In-Class Activities</h2>
   <ol>
-    <li>Derive the M1..M7 formulas algebraically by expanding block products and grouping terms. <em>Deliverable:</em> short derivation showing equivalence to block-by-block formula.</li>
-    <li>Small-group numeric exercise: apply Strassen to a 4×4 problem by partitioning into 2×2 blocks and using Strassen on the 2×2 blocks (compute M1..M7 where blocks are 2×2 matrices). <em>Deliverable:</em> hand-computed block results and assembled C.</li>
-    <li>Implement Strassen and compare runtime vs. blocked classical multiply for sizes n in {128,256,512}. Report crossover point (threshold) and memory use. <em>Deliverable:</em> short experiment writeup and plots.</li>
-    <li>Sketch parallel task graph for the seven recursive multiplications and estimate theoretical parallelism; discuss practical limits due to memory bandwidth.</li>
+    <li><strong>Correctness of Strassen's Algorithm:</strong> Verify the formulas used by Strassen's algorithm to show that it properly computes the matrix product.</li>
+    <li><strong>Warm-up (\(2\times 2\) run):</strong> Using two \(2\times 2\) matrices provided by the instructor, compute \(M_1\ldots M_7\) and assemble \(C\).
+      <em>Deliverable:</em> the seven scalars and the final \(2\times 2\) product. Compare your answers with others.</li>
+
+    <li><strong>Block \(4\times 4\) run:</strong> Partition \(4\times 4\) matrices into \(2\times 2\) blocks and apply one level of Strassen (on \(2\times 2\) blocks).
+      <em>Deliverable:</em> the seven \(2\times 2\) block products and the assembled \(4\times 4\) matrix \(C\).</li>
+
+    <li><strong>Exact operation counts for \(n=2^k\):</strong>
+        Let \(M(n)\) be the number of scalar multiplications and \(A(n)\) the number of scalar additions/subtractions in Strassen. 
+      <ol type="a">
+        <li>Write recurrences (with base cases) for \(M(n)\) and \(A(n)\) when \(n=2^k\).</li>
+        <li>Make a small table for \(k=1,\ldots,6\) listing \(n=2^k\), \(M(n)\), and \(A(n)\).</li>
+        <li>Solve the recurrences to closed form in terms of \(k\) (or \(n\)). <em>Hint:</em> one solves to a linear combination of \(7^k\) and \(4^k\), and the other one is really easy.</li>
+        
+      </ol>
+    </li>
+
+    <li><strong>Exact peak memory for the reference code:</strong>
+      Assume the provided implementation that copies submatrices, computes all \(M_1\ldots M_7\) and keeps them until assembly, and builds \(C\) from four blocks.
+      <ol type="a">
+        <li>At the first level of recursion, list which submatrices must be <em>simultaneously</em> resident. State your assumptions about temporaries from <code>add</code>/<code>sub</code> and when they can be freed.</li>
+        <li>Given the number of submatrices and their sizes, how much memory is 
+          required at this level of recursion? (Remember that an \((n/2)\times(n/2)\) matrix requires \((n/2)^2\) scalars (numbers)).</li>
+        <li>Repeat for the second level of recursion.</li>
+        <li>Derive a geometric series for the total peak memory use along one recursion path (down to \(n=1\)).</li>
+        <li>Simplify the geometric series and upper bound it  
+          to show that the peak memory usage is \(O(n^2)\).</li>
+        <li>Repeat the count assuming half as many matrices are required.
+           Compare the memory usage of both scenarios.</li>
+      </ol>
+    </li>
+
+    <li><strong>Cost-model crossover (analytic threshold):</strong>
+      For a given algorithm \(\text{alg}\),
+      let total cost be 
+      \[C_{\text{alg}}(n)=c_a\cdot A(n)+c_m\cdot M(n)\] 
+      where constants \(c_a,c_m&gt;0\) are relative weights of how much time addition
+      and multiplication take. Assume \(n=2^k\) throughout.
+      <ol type="a">
+        <li>Write \(C_{\text{Strassen}}(n)\) using your closed forms for \(A(n),M(n)\).</li>
+        <li>For the brute-force matrix multiplication, derive (or look up) exact counts for \(M(n)\) and \(A(n)\) and write \(C_{\text{brute}}(n)\).</li>
+        <li>Plot \(C_{\text{brute}}(n)\) and \(C_{\text{Strassen}}(n)\) assuming 
+          \(c_m=c_a=1\) (equal cost per mult/add) and determine the crossover point.</li>
+        <li>Repeat for \(c_m=3\) and \(c_a=1\) (mults cost 3x adds), 
+          and \(c_m=10\) and \(c_a=1\)  (mults cost 10x adds).</li>
+      </ol>
+    </li>
+
+    <li><strong>Complex Number Multiplication Shortcut:</strong>
+      Break into groups and determine how to multiply \((a+bi)(c+di)\) using only 3 real number multiplications. Derive the formula and count adds/mults.</li>
   </ol>
 </section>
 
-  <section id="problems">
-    <h2>Homework Problems</h2>
-    <ol>
-      <li><strong>Strassen correctness:</strong> Prove algebraically that the Strassen formulas recover the usual block multiplication by expanding block products.</li>
+<section id="problems">
+  <h2>Homework Problems</h2>
+  <ol>
+    <li><strong>Exact operation counts for \(n=2^k\):</strong>
+      Let \(n=2^k\). Recall that \(M(n)\) is the number of scalar multiplications and \(A(n)\) as the number of scalar additions/subtractions in Strassen's algorithm.
+      <ol type="a">
+        <li>Find an exact closed-formula for \(M(n)\) and prove that it is correct.</li>
+        <li>Find an exact closed-formula for \(A(n)\) and prove that it is correct.</li>
+        <li>Verify your formulas by computing \(M(n)\) and \(A(n)\) for \(n\in\{2,4,8,16\}\) directly from the recursion tree and comparing with the formulas.</li>
+      </ol>
+    </li>
 
-      <li><strong>Operation counts:</strong> Let M(n) be scalar multiplications and A(n) additions in Strassen. Write recurrences for \(M\) and A, solve asymptotically, and compare to classical methods.</li>
+    <li><strong>Classical exact counts:</strong>
+      For the classical triple-loop algorithm,
+      <ol type="a">
+        <li>Show that the exact number of scalar multiplications is \(n^3\).</li>
+        <li>Show that the exact number of scalar additions is \(n^2(n-1)=n^3-n^2\).</li>
+      </ol>
+    </li>
 
-      <li><strong>Hybrid implementation:</strong> Implement Strassen with a switch to blocked classical multiplication below a threshold. Empirically determine the best threshold on your machine and explain why.</li>
+    <li><strong>Exact peak memory for the reference code:</strong>
+       Do In-Class Activity 5 above.
+    </li>
+    <li><strong>Cost-model crossover (analytic threshold):</strong>
+       Do In-Class Activity 6 above.
+    </li>
 
-      <li><strong>Numerical stability study:</strong> Compare relative error of Strassen vs. classical multiply on random floating-point matrices of varying condition numbers. Summarize findings and discuss mitigation strategies.</li>
-
-      <li><strong>Padding and non-power-of-two:</strong> Describe padding strategy for arbitrary p×q times q×r multiplication using Strassen, and analyze overhead. Provide pseudocode.</li>
-
-      <li><strong>Parallel Strassen:</strong> Sketch a parallel implementation that spawns the seven recursive products concurrently. Using the work/span model, give W(n) and S(n) and estimate maximum parallelism.</li>
-    </ol>
-  </section>
+    <li><strong>Hands-on Strassen (\(4\times 4\) numbers):</strong>
+      Use the matrices
+      \[
+      A=\begin{pmatrix}
+      1&2&0&1\\ 0&1&2&0\\ 1&0&1&2\\ 2&1&0&1
+      \end{pmatrix},\quad
+      B=\begin{pmatrix}
+      2&0&1&1\\ 1&1&0&2\\ 0&2&1&0\\ 1&0&2&1
+      \end{pmatrix}.
+      \]
+      <ol type="a">
+        <li>Partition into \(2\times 2\) blocks and compute one full level of Strassen (i.e., compute the seven \(2\times 2\) block products and assemble \(C\)). You may multiplethe \(2\times 2\) matrices using the brute-force algorithm.</li>
+        <li>Verify your result by classical multiplication (you may use a computer to check).</li>
+      </ol>
+    </li>
+  </ol>
+</section>
 
 </body>
 </html>
