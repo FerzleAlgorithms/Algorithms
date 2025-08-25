@@ -21,7 +21,8 @@
       "Divide-and-Conquer": [
         "Matrix Multiplication.html",
         "Merge Sort.html",
-        "Quicksort.html"
+        "Quicksort.html",
+        "Strassen.html"
       ]
     },
     {
@@ -170,6 +171,7 @@
     }
   ],
   "More": [
+    "AI Resources.html",
     "Books.html",
     "Credits.html",
     "Glossary.html",
