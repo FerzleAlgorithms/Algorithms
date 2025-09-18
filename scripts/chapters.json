@@ -182,12 +182,12 @@
         "Algorithms/Decrease-and-Conquer/Quickselect DRAFT.html",
         "Algorithms/Decrease-and-Conquer/Topological Sort DRAFT.html",
         "Algorithms/Divide-and-Conquer/Convex Hull DRAFT.html",
-        "Algorithms/Divide-and-Conquer/Strassen DRAFT.html",
         "Algorithms/Exhaustive Search/Topological Sort (DFS) DRAFT.html",
         "Algorithms/Greedy/Fractional Knapsack DRAFT.html",
         "Algorithms/Greedy/Interval Scheduling DRAFT.html",
         "Algorithms/Space-Time Tradeoff/Boyer-Moore_DRAFT.html",
-        "Algorithms/Transform-and-Conquer/Horners Rule DRAFT.html"
+        "Algorithms/Transform-and-Conquer/Horners Rule DRAFT.html",
+        "Demos/Divide-and-Conquer/Convex Hull DRAFT.html"
       ]
     }
   ],

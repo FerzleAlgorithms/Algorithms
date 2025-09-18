@@ -25,6 +25,10 @@
     stroke: var(--node-stroke);
     stroke-width: 1px;
   }
+  /* Ensure node fills reflect BFS states */
+  .graphNode.white circle { fill: lightblue; }
+  .graphNode.gray  circle { fill: orange; }
+  .graphNode.black circle { fill: lightgreen; }
   .graphNode.visited circle { fill: lightgreen; }
   .graphNode.current circle { fill: orange; stroke-width: 2.5px; }
   .graphNode text {
@@ -47,6 +51,18 @@
   #linkLayer line.current-edge {
     stroke: crimson;
     stroke-width: 4px;
+  }
+  /* Final-step styling */
+  #linkLayer line.tree-edge-final {
+    stroke: #1e88e5 !important; /* blue */
+    stroke-width: 5px !important;
+    stroke-dasharray: none !important;
+    opacity: 1 !important;
+  }
+  #linkLayer line.nontree-final {
+    stroke: #d0d0d0 !important; /* very light gray, but visible */
+    stroke-opacity: 1 !important;
+    stroke-width: 2px !important;
   }
 
   /* Distance labels (positioned via JS) */
@@ -92,6 +108,13 @@
     white-space: nowrap;
     max-width: 750px;
   }
+  #neighbors {
+    display: inline-flex;
+    align-items: center;
+    overflow-x: auto;
+    white-space: nowrap;
+    max-width: 750px;
+  }
   .queueNode {
     margin: 0 4px;
     flex: 0 0 auto;
@@ -99,6 +122,14 @@
     border: none;
   }
   .queue-arrow { margin: 0 4px; flex: 0 0 auto; }
+  #neighbors-container {
+    display: grid;
+    grid-template-columns: max-content 1fr;
+    align-items: center;
+    column-gap: 8px;
+    height: 60px;
+    width: 100%;
+  }
 
   /* State Table */
   #state-table {
@@ -315,6 +346,9 @@ document.getElementById('generateSourceBtn').addEventListener('click', () => {
     <div id="structures">
       <div id="queue-container">
         <strong>Queue:</strong> <span id="queue"></span>
+      </div>
+      <div id="neighbors-container">
+        <strong id="neighbors-title">Neighbors:</strong> <span id="neighbors"></span>
       </div>
     </div>
     <div id="commentary"></div>
@@ -662,6 +696,8 @@ function addDragHandlers(g, i) {
 
   // 3) redraw queue right under the graph
   renderQueue(ev);
+  // 3.5) list neighbors for the current node
+  renderNeighbors(ev);
 
   // 4) rebuild the state table
   renderTable(ev);
@@ -684,6 +720,14 @@ function renderGraph(ev) {
   labelLayer.innerHTML = '';
 
   // draw static base edges once
+  const isFinal = (stepIndex === steps.length - 1);
+  const treeSet = new Set();
+  if (isFinal && ev.highlightEdges) {
+    ev.highlightEdges.forEach(({from,to}) => {
+      const id = `edge-${Math.min(from,to)}-${Math.max(from,to)}`;
+      treeSet.add(id);
+    });
+  }
   adjList.forEach((nbrs, i) => {
     nbrs.forEach(j => {
       if (i < j) {
@@ -696,8 +740,10 @@ function renderGraph(ev) {
         L.setAttribute('y1', p1.y);
         L.setAttribute('x2', p2.x);
         L.setAttribute('y2', p2.y);
-        L.setAttribute('stroke', '#000');
-        L.setAttribute('stroke-width', '2');
+        // Lighten non-tree edges only on the final step
+        if (isFinal && !treeSet.has(id)) {
+          L.classList.add('nontree-final');
+        }
         linkLayer.appendChild(L);
       }
     });
@@ -742,9 +788,15 @@ function renderGraph(ev) {
       H.setAttribute('y1', p1.y);
       H.setAttribute('x2', p2.x);
       H.setAttribute('y2', p2.y);
-      H.setAttribute('stroke', 'yellow');
-      H.setAttribute('stroke-width', '4');
-      H.setAttribute('stroke-dasharray', '6 4');
+      if (isFinal) {
+        // Final step: make tree edges darker/blue
+        H.classList.add('tree-edge-final');
+      } else {
+        // During traversal: keep existing highlight style
+        H.setAttribute('stroke', 'yellow');
+        H.setAttribute('stroke-width', '4');
+        H.setAttribute('stroke-dasharray', '6 4');
+      }
       linkLayer.appendChild(H);
     });
   }
@@ -845,6 +897,37 @@ function renderQueue(ev) {
     `);
     if (i < ev.queue.length - 1) {
       queueEl.insertAdjacentHTML('beforeend', '<span class="queue-arrow">→</span>');
+    }
+  });
+}
+
+// Render the neighbor list of the current node, highlighting the active neighbor
+function renderNeighbors(ev) {
+  const titleEl = document.getElementById('neighbors-title');
+  const listEl  = document.getElementById('neighbors');
+  listEl.innerHTML = '';
+
+  if (ev.current === null || ev.current === undefined) {
+    titleEl.textContent = 'Neighbors:';
+    return;
+  }
+
+  const u = ev.current;
+  titleEl.textContent = `Neighbors of ${u}:`;
+
+  const activeV = ev.currentEdge ? ev.currentEdge.to : null;
+  (adjList[u] || []).forEach((v, i) => {
+    const isActive = (activeV === v);
+    const stroke   = isActive ? 'crimson' : '#444';
+    const strokeW  = isActive ? 4 : 2;
+    listEl.insertAdjacentHTML('beforeend', `
+      <svg class="queueNode" width="40" height="40" xmlns="http://www.w3.org/2000/svg" title="${v}">
+        <circle cx="20" cy="20" r="18" fill="lightblue" stroke="${stroke}" stroke-width="${strokeW}"/>
+        <text x="20" y="24" text-anchor="middle" dominant-baseline="middle" font-size="16">${v}</text>
+      </svg>
+    `);
+    if (i < adjList[u].length - 1) {
+      listEl.insertAdjacentHTML('beforeend', '<span class="queue-arrow">,</span>');
     }
   });
 }
