@@ -594,7 +594,7 @@ def strassen(A, B):
        Do In-Class Activity 6 above.
     </li>
 
-    <li><strong>Hands-on Strassen (\(4\times 4\) numbers):</strong>
+    <li><strong>Hands-on Strassen (\(4\times 4\) matrices):</strong>
       Use the matrices
       \[
       A=\begin{pmatrix}
@@ -605,7 +605,10 @@ def strassen(A, B):
       \end{pmatrix}.
       \]
       <ol type="a">
-        <li>Partition into \(2\times 2\) blocks and compute one full level of Strassen (i.e., compute the seven \(2\times 2\) block products and assemble \(C\)). You may multiplethe \(2\times 2\) matrices using the brute-force algorithm.</li>
+        <li>Partition into \(2\times 2\) blocks and compute one full level of Strassen (i.e., compute the seven \(2\times 2\) 
+          block products and assemble \(C\)). You may multiple the \(2\times 2\) matrices using the brute-force algorithm.
+        Make sure to show the 7 matrix products (and the several additions that are also necessary), 
+        and then the construction of the final 4 submatrices.</li>
         <li>Verify your result by classical multiplication (you may use a computer to check).</li>
       </ol>
     </li>

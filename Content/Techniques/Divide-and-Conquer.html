@@ -1054,6 +1054,25 @@ Merge(L, R):  // Merge two already-sorted lists L and R
         Derive the recurrence \(T(n)=T(n/5)+T(7n/10)+O(n)\) for its worst-case compliexity 
         and show that \(T(n)=O(n)\).
       </li>
+      <li>
+  <strong>Weight Calibration</strong><br>
+  You dropped a box of <em>n</em> distinct calibration weights and lost their labels. 
+  There are <em>n</em> spring scales, each calibrated to exactly one weight. 
+  Placing a weight on a scale reports either UNDER, CALIBRATED, or OVER.
+  Your goal is to re-pair each scale with its calibration weight.
+  In case it is not clear, you cannot compare weights with each other or scales with each other. 
+  You may only try a weight with a scale and get one of the 3 results. 
+  For each of the following make sure to give a very clear and complete description of your algorithm.
+  <i>Hint:</i> Do not try to think if this problem in terms of arrays of weights and scales. It is easier
+  to think in terms of <i>piles</i> of weights and scales.
+  <ol type="a">
+    <li>Devise a brute-force algorithm to solve this problem.</li>
+    <li>Analyze the time and space requirements of your brute-force algorithm.</li>
+    <li>Devise a divide-and-conquer algorithm to solve the problem.</li>
+    <li>Analyze the time and space requirements of your divide-and-conquer algorithm.</li>
+  </ol>
+</li>
+
   </ol>
 </section>
   
