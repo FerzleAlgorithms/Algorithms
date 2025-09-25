@@ -164,24 +164,27 @@ function hookIframeContent(iframe) {
   scriptTips.src = `/Algorithms/scripts/glossary-tooltips.js?cb=${Date.now()}`;
   head.appendChild(scriptTips);
 
-  // Insert a visible DRAFT banner when the iframe document name (filename) includes "DRAFT"
-  (function manageDraftBanner(doc) {
-    if (!doc || !doc.body) return;
+  // Insert a visible DRAFT banner in the HOST page (outside the iframe)
+  // so it does NOT follow into fullscreen when the iframe enters fullscreen.
+  (function manageDraftBannerHost(doc, hostDoc, hostIframe) {
+    if (!doc || !hostDoc || !hostIframe) return;
 
-    const createBanner = () => {
-      const b = doc.createElement('div');
-      b.id = 'draft-banner';
+    const createHostBanner = () => {
+      const b = hostDoc.createElement('div');
+      b.id = 'draft-banner-host';
       b.textContent = 'DRAFT';
       b.style.cssText = [
         'color:#b00000',
-        'font-size:48px',
+        'font-size:28px',
         'font-weight:700',
         'text-align:center',
-        'padding:8px 0',
-        'background:rgba(255,0,0,0.03)',
-        'border-bottom:3px solid rgba(176,0,0,0.12)',
+        'padding:4px 0',
+        'background:rgba(255,0,0,0.05)',
+        'border:1px solid rgba(176,0,0,0.2)',
+        'border-radius:6px',
+        'margin:6px 0',
         'position:relative',
-        'z-index:9999',
+        'z-index:2',
         'box-sizing:border-box'
       ].join(';');
       return b;
@@ -198,24 +201,55 @@ function hookIframeContent(iframe) {
       }
     };
 
+    const ensureContentWrapper = () => {
+      // Wrap the iframe (and error message) in a right-side column so a banner
+      // can sit above the content only, not above the left menu.
+      const container = hostDoc.getElementById('container');
+      if (!container) return null;
+      let wrapper = hostDoc.getElementById('content-wrapper');
+      if (!wrapper) {
+        wrapper = hostDoc.createElement('div');
+        wrapper.id = 'content-wrapper';
+        wrapper.style.cssText = [
+          'display:flex',
+          'flex-direction:column',
+          'flex:1 1 auto',
+          'min-width:0'
+        ].join(';');
+        // Insert wrapper before the iframe, then move iframe (and any error box) inside it
+        if (hostIframe && hostIframe.parentNode === container) {
+          container.insertBefore(wrapper, hostIframe);
+          wrapper.appendChild(hostIframe);
+        }
+        const err = hostDoc.getElementById('errorMessage');
+        if (err && err.parentNode === container) {
+          wrapper.appendChild(err);
+        }
+      }
+      return wrapper;
+    };
+
     const updateBanner = () => {
       try {
         const name = getDocName();
-        const existing = doc.getElementById('draft-banner');
+        const existingHost = hostDoc.getElementById('draft-banner-host');
         if (name.includes('DRAFT')) {
-          if (!existing) doc.body.insertBefore(createBanner(), doc.body.firstChild);
+          if (!existingHost) {
+            const banner = createHostBanner();
+            const wrapper = ensureContentWrapper();
+            if (wrapper) wrapper.insertBefore(banner, wrapper.firstChild);
+            else hostIframe.parentNode.insertBefore(banner, hostIframe);
+          }
         } else {
-          if (existing) existing.remove();
+          if (existingHost) existingHost.remove();
         }
       } catch (e) {
-        // ignore cross-origin or other errors
+        // ignore
       }
     };
 
-    // Initial check
+    // Initial and reactive updates
     updateBanner();
-
-    // Poll for changes to the document name (handles in-page navigation)
     let lastName = getDocName();
     const poll = setInterval(() => {
       const current = getDocName();
@@ -225,16 +259,15 @@ function hookIframeContent(iframe) {
       }
     }, 500);
 
-    // Clear poll and banner on iframe unload
+    // Cleanup on iframe unload
     const win = doc.defaultView;
     if (win) {
       win.addEventListener('unload', () => {
         clearInterval(poll);
-        const existing = doc.getElementById('draft-banner');
-        if (existing) existing.remove();
+        // do not remove host banner here; it will be re-evaluated on next load
       }, { once: true });
     }
-  })(innerDoc);
+  })(innerDoc, document, iframe);
 
   // Intercept any “?path=” links inside the iframe
   innerDoc.addEventListener('click', (event) => {
@@ -539,4 +572,3 @@ window.addEventListener('popstate', (event) => {
   highlightActiveLink(rawPath);
   loadContent(`${normalizePath(rawPath)}.html`);
 });
-
