@@ -18,7 +18,16 @@
   <style>
     /* Minimal inline styles to complement existing demo.css */
     .controls label { display: inline-flex; align-items: center; gap: .4rem; }
-    #stepInfo { margin-left: auto; font-size: .9rem; opacity: .85; }
+    #stepInfo {
+      margin-left: auto;
+      font-size: .9rem;
+      opacity: .85;
+      display: inline-block;          /* allow fixed height without breaking layout */
+      line-height: 1.2em;             /* consistent line spacing */
+      min-height: calc(1.2em * 3);    /* reserve space for 3 lines */
+      white-space: pre-line;          /* render \n as line breaks */
+      vertical-align: top;
+    }
     .canvas-wrap { position: relative; border: 1px solid #ddd; background: #fff; }
     #ch-canvas { width: 100%; height: 520px; display: block; }
     /* Legend uses shared styles from demo.css */
@@ -291,6 +300,10 @@
       function addStep(step) {
         state.steps.push({
           desc: step.desc || '',
+          // three-line comment area content
+          comment1: step.comment1 || '',
+          comment2: step.comment2 || '',
+          comment3: step.comment3 || '',
           // current edge being discussed [{a,b}]
           dividing: step.dividing || [],
           // new subproblem edges introduced this step
@@ -317,18 +330,37 @@
         const pts = points.slice();
 
         // Intro step
-        addStep({ desc: 'Points initialized. Click Next to begin testing edges.', major: true });
+        addStep({
+          desc: 'Points initialized. Click Next to begin testing edges.',
+          comment1: 'Points initialized.',
+          comment2: 'Press Next to begin.',
+          comment3: '',
+          major: true
+        });
 
         const n = pts.length;
         const hullSet = new Set(); // for de-duping edges (by id pair sorted)
 
         for (let i = 0; i < n; i++) {
+          // Announce which vertex is used as the first endpoint (line 1 remains while i is fixed)
+          const firstLine = `Looking at edges with first endpoint ${pts[i].id}.`;
+          addStep({
+            desc: firstLine,
+            comment1: firstLine,
+            comment2: '',
+            comment3: '',
+            highlightPts: [pts[i]],
+            major: true
+          });
           for (let j = i + 1; j < n; j++) {
             const A = pts[i], B = pts[j];
 
             // Start testing edge (A,B)
             addStep({
-              desc: `Test edge (${A.id},${B.id}). Check whether all other vertices lie on one side.`,
+              desc: `Test edge (${A.id},${B.id}).`,
+              comment1: firstLine,
+              comment2: `Checking edge (${A.id},${B.id}).`,
+              comment3: '',
               dividing: [{ a: A, b: B }],
               highlightPts: [A, B],
               major: true
@@ -345,8 +377,15 @@
               const s = cross(A, B, P);
               const { foot } = distanceToLine(A, B, P);
               if (s > 0) leftSoFar.push(P); else if (s < 0) rightSoFar.push(P);
+              const sideStr = (s < 0) ? 'the right' : (s > 0) ? 'the left' : 'collinear';
+              const thirdLine = (s === 0)
+                ? `Vertex ${P.id} is collinear with (${A.id},${B.id}).`
+                : `Vertex ${P.id} is on ${sideStr} of (${A.id},${B.id}).`;
               addStep({
                 desc: `Check position of vertex ${P.id} relative to edge (${A.id},${B.id}).`,
+                comment1: firstLine,
+                comment2: `Checking edge (${A.id},${B.id}).`,
+                comment3: thirdLine,
                 dividing: [{ a: A, b: B }],
                 distances: [{ p: P, foot }],
                 // keep endpoints highlighted; color P via side coloring to avoid red overlay
@@ -358,6 +397,9 @@
               if (sawPos && sawNeg) {
                 addStep({
                   desc: `Found vertices on both sides of edge (${A.id},${B.id}); not a hull edge.`,
+                  comment1: firstLine,
+                  comment2: `Checking edge (${A.id},${B.id}).`,
+                  comment3: 'Vertices found on both sides; not a hull edge.',
                   dividing: [{ a: A, b: B }],
                   highlightPts: [A, B],
                   sides: { left: leftSoFar.slice(), right: rightSoFar.slice() },
@@ -375,6 +417,9 @@
                 hullSet.add(key);
                 addStep({
                   desc: `All vertices lie on one side (or collinear); edge (${A.id},${B.id}) is on the hull.`,
+                  comment1: firstLine,
+                  comment2: `Checking edge (${A.id},${B.id}).`,
+                  comment3: 'All vertices lie on one side; edge is on the hull.',
                   hullEdges: [{ a: A, b: B }],
                   highlightPts: [A, B],
                   sides: { left: leftSoFar.slice(), right: rightSoFar.slice() },
@@ -385,7 +430,13 @@
           }
         }
 
-        addStep({ desc: 'Convex hull complete.', major: true });
+        addStep({
+          desc: 'Convex hull complete.',
+          comment1: 'Convex hull complete.',
+          comment2: '',
+          comment3: '',
+          major: true
+        });
       }
 
       // Rendering
@@ -528,7 +579,12 @@
         for (const d of (step.distances || [])) { labelPoint(d.p, '#603'); }
         for (const p of (step.highlightPts || [])) { labelPoint(p, COLORS.highlight); }
 
-        stepInfoEl.textContent = `Step ${i + 1} / ${state.steps.length} — ${step.desc}`;
+        const c1 = step.comment1 || '';
+        const c2 = step.comment2 || '';
+        const c3 = step.comment3 || '';
+        // Show exactly three lines to keep control height stable.
+        // Line 1 combines the step counter with the first comment line.
+        stepInfoEl.textContent = `Step ${i + 1} / ${state.steps.length} — ${c1}\n${c2}\n${c3}`;
       }
 
       // Playback controls
