@@ -66,6 +66,7 @@
     {
       "Brute Force": [
         "Bubble Sort Demo.html",
+        "Convex Hull.html",
         "Fibonacci 5 Naive Demo.html",
         "Fibonacci Naive Demo.html",
         "Matrix Multiplication Demo.html",
@@ -104,6 +105,7 @@
     },
     {
       "Divide-and-Conquer": [
+        "Convex Hull.html",
         "Exponentiation Demo.html",
         "Matrix Multiplcation (Inplace) Demo.html",
         "Matrix Multiplication Demo.html",
@@ -186,9 +188,7 @@
         "Algorithms/Greedy/Fractional Knapsack DRAFT.html",
         "Algorithms/Greedy/Interval Scheduling DRAFT.html",
         "Algorithms/Space-Time Tradeoff/Boyer-Moore_DRAFT.html",
-        "Algorithms/Transform-and-Conquer/Horners Rule DRAFT.html",
-        "Demos/Brute Force/Convex Hull DRAFT.html",
-        "Demos/Divide-and-Conquer/Convex Hull DRAFT.html"
+        "Algorithms/Transform-and-Conquer/Horners Rule DRAFT.html"
       ]
     }
   ],

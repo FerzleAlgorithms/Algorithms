@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Convex Hull Brute-Force Demo</title>
+  <title>Convex Hull Divide-and-Conquer Algorithm Demo</title>
   <script src="../../../scripts/demoScripts.js"></script>
   <link rel="stylesheet" href="../../../css/style.css">
   <link rel="stylesheet" href="../../../css/demo.css">
@@ -18,16 +18,7 @@
   <style>
     /* Minimal inline styles to complement existing demo.css */
     .controls label { display: inline-flex; align-items: center; gap: .4rem; }
-    #stepInfo {
-      margin-left: auto;
-      font-size: .9rem;
-      opacity: .85;
-      display: inline-block;          /* allow fixed height without breaking layout */
-      line-height: 1.2em;             /* consistent line spacing */
-      min-height: calc(1.2em * 3);    /* reserve space for 3 lines */
-      white-space: pre-line;          /* render \n as line breaks */
-      vertical-align: top;
-    }
+    #stepInfo { margin-left: auto; font-size: .9rem; opacity: .85; }
     .canvas-wrap { position: relative; border: 1px solid #ddd; background: #fff; }
     #ch-canvas { width: 100%; height: 520px; display: block; }
     /* Legend uses shared styles from demo.css */
@@ -35,26 +26,23 @@
 </head>
 <body class="no-tooltips">
   <div class="demo-container">
-    <h2>Convex Hull Brute-Force Demo</h2>
+    <h2>Convex Hull Divide-and-Conquer Algorithm Demo</h2>
     <div class="controls">
       <label>Points:
         <input id="pointCount" type="number" min="10" max="200" value="30" step="1" style="width: 70px;">
       </label>
       <button id="generateBtn">Generate</button>
       <br>
+      <button id="prevMajorBtn" title="Jump to previous major step">Previous (major)</button>
       <button id="prevBtn">Previous</button>
       <button id="nextBtn">Next</button>
+      <button id="nextMajorBtn" title="Skip detailed scans">Next (major)</button>
       <button id="playBtn">Play</button>
       <label for="speed">Speed:</label>
       <select id="speed">
         <option value="1">1×</option>
         <option value="2">2×</option>
         <option value="4">4×</option>
-        <option value="8">8×</option>
-        <option value="16">16×</option>
-        <option value="32">32×</option>
-        <option value="64">64×</option>
-        <option value="128">128×</option>
       </select>
       <br>
       <span id="stepInfo">Step 0 / 0</span>
@@ -67,20 +55,19 @@
       <strong class="legend-label">Legend:</strong>
       <div class="legend-items">
         <span class="legend-box" style="background-color:#222"></span> Points
-        <span class="legend-box" style="background-color:#1f77b4"></span> Left-side points
-        <span class="legend-box" style="background-color:#ff7f0e"></span> Right-side points
-        <span class="legend-box" style="background-color:#d62728"></span> Highlighted points<br>
         <span class="legend-box" style="background-color:#27ae60"></span> Hull edges (solid)
         <span class="legend-box" style="background-color:#8e44ad"></span> Current edge (focus)
+        <span class="legend-box" style="background-color:#888"></span> Other dividing (dashed)<br>
+        <span class="legend-box" style="background-color:#2d7dd2"></span> Subproblem (dashed)
         <span class="legend-box" style="background-color:#ff9900"></span> Distance (dotted)
+        <span class="legend-box" style="background-color:#d62728"></span> Highlighted points
       </div>
     </div>
   </div>
 
   <script>
     //
-    // Brute-force convex hull demo: test every pair (i,j)
-    // Edge (i,j) is on the hull if all other points lie on one side (or collinear).
+    // QuickHull interactive demo with step recording and playback
     //
     (function() {
       const canvas = document.getElementById('ch-canvas');
@@ -93,16 +80,24 @@
       const nextBtn = document.getElementById('nextBtn');
       const speedEl = document.getElementById('speed');
       const stepInfoEl = document.getElementById('stepInfo');
-
+      const nextMajorBtn = document.getElementById('nextMajorBtn');
+      const prevMajorBtn = document.getElementById('prevMajorBtn');
 
       const COLORS = {
         points: '#222',
-        current: '#8e44ad',       // current edge under test (dashed)
-        distance: '#ff9900',      // dotted candidate visualization
-        hull: '#27ae60',          // final hull edges (solid)
+        // generic dividing line
+        dividing: '#888',
+        // current focus dividing line
+        current: '#8e44ad',
+        // dashed
+        subproblem: '#2d7dd2',
+        // dotted
+        distance: '#ff9900',
+        // solid
+        hull: '#27ae60',
         highlight: '#d62728',
-        leftSide: '#1f77b4',      // blue
-        rightSide: '#ff7f0e'      // orange
+        // initial minX–maxX (always visible)
+        mainDividing: '#666'
       };
 
       const EDGE_MARGIN = 20;
@@ -120,6 +115,11 @@
         current: 0,
         timer: null,
         speed: 1,
+        // {a,b} initial minX–maxX line, persistent
+        mainAB: null,
+        // step index from which to show mainAB
+        showMainABFrom: Infinity,
+        // track sizes to scale geometry only when toggling fullscreen
         view: { mode: null, normalW: 0, normalH: 0, fullscreenW: 0, fullscreenH: 0 }
       };
 
@@ -137,7 +137,7 @@
         return Math.max(360, Math.min(640, target));
       }
 
-      // Resize canvas to element size and scale stored geometry to fill
+      // Resize canvas to element size and scale stored geometry on fullscreen toggle
       function resizeCanvas() {
         // Let CSS height be driven by JS for responsiveness/fullscreen
         canvas.style.height = computeCanvasHeight() + 'px';
@@ -146,7 +146,7 @@
         const dpr = window.devicePixelRatio || 1;
         canvas.width = Math.round(cssWidth * dpr);
         canvas.height = Math.round(cssHeight * dpr);
-        // If we have a logical coordinate system, map it to screen with uniform scale
+        // If logical size is established, map logical→screen with uniform scale
         if (state.view && state.view.logicalW && state.view.logicalH) {
           const lw = state.view.logicalW; const lh = state.view.logicalH;
           const s = Math.max(0.0001, Math.min(cssWidth / lw, cssHeight / lh));
@@ -158,7 +158,7 @@
         }
         ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-        // Only scale stored geometry when toggling fullscreen mode, not on every resize
+        // Only scale stored geometry when switching between normal/fullscreen
         const mode = document.fullscreenElement ? 'fullscreen' : 'normal';
         const v = state.view;
         if (v.mode == null) {
@@ -173,83 +173,34 @@
           if (state.points && state.points.length && isFinite(sx) && isFinite(sy) && (Math.abs(sx - 1) > 1e-6 || Math.abs(sy - 1) > 1e-6)) {
             for (const p of state.points) { p.x *= sx; p.y *= sy; }
             for (const s of state.steps) {
-              if (s.distances) {
-                for (const d of s.distances) {
-                  if (d && d.foot) { d.foot.x *= sx; d.foot.y *= sy; }
-                }
-              }
-            }
-            // ensure everything remains within visible bounds
-            const margin = 2;
-            const w = canvas.clientWidth || canvas.width;
-            const h = canvas.clientHeight || canvas.height;
-            const maxX = Math.max(1, w - margin);
-            const maxY = Math.max(1, h - margin);
-            for (const p of state.points) {
-              p.x = Math.max(margin, Math.min(maxX, p.x));
-              p.y = Math.max(margin, Math.min(maxY, p.y));
-            }
-            for (const s of state.steps) {
               if (s && s.distances) {
-                for (const d of s.distances) {
-                  if (d && d.foot) {
-                    d.foot.x = Math.max(margin, Math.min(maxX, d.foot.x));
-                    d.foot.y = Math.max(margin, Math.min(maxY, d.foot.y));
-                  }
+                for (const d of s.distances) { if (d && d.foot) { d.foot.x *= sx; d.foot.y *= sy; } }
+              }
+            }
+          // keep all geometry within visible canvas with minimal clamp to avoid drift
+          const maxX = Math.max(1, cssWidth - 1);
+          const maxY = Math.max(1, cssHeight - 1);
+          for (const p of state.points) {
+            p.x = Math.max(1, Math.min(maxX, p.x));
+            p.y = Math.max(1, Math.min(maxY, p.y));
+          }
+          for (const s of state.steps) {
+            if (s && s.distances) {
+              for (const d of s.distances) {
+                if (d && d.foot) {
+                  d.foot.x = Math.max(1, Math.min(maxX, d.foot.x));
+                  d.foot.y = Math.max(1, Math.min(maxY, d.foot.y));
                 }
               }
             }
+          }
           }
           v.mode = mode;
           if (mode === 'fullscreen') { v.fullscreenW = cssWidth; v.fullscreenH = cssHeight; }
           else { v.normalW = cssWidth; v.normalH = cssHeight; }
         } else {
-          // same mode: record previous size and update to latest
-          if (mode === 'fullscreen') {
-            const prevW = v.fullscreenW, prevH = v.fullscreenH;
-            v.fullscreenW = cssWidth; v.fullscreenH = cssHeight;
-            // if canvas area shrank, clamp points to keep all visible
-            if ((prevW && cssWidth < prevW) || (prevH && cssHeight < prevH)) {
-              // On same-mode shrink, clamp minimally to keep points visible without shifting layout
-              const maxX = Math.max(1, cssWidth - 1);
-              const maxY = Math.max(1, cssHeight - 1);
-              for (const p of state.points) {
-                p.x = Math.max(1, Math.min(maxX, p.x));
-                p.y = Math.max(1, Math.min(maxY, p.y));
-              }
-              for (const s of state.steps) {
-                if (s && s.distances) {
-                  for (const d of s.distances) {
-                    if (d && d.foot) {
-                      d.foot.x = Math.max(1, Math.min(maxX, d.foot.x));
-                      d.foot.y = Math.max(1, Math.min(maxY, d.foot.y));
-                    }
-                  }
-                }
-              }
-            }
-          } else {
-            const prevW = v.normalW, prevH = v.normalH;
-            v.normalW = cssWidth; v.normalH = cssHeight;
-            if ((prevW && cssWidth < prevW) || (prevH && cssHeight < prevH)) {
-              const maxX = Math.max(1, cssWidth - 1);
-              const maxY = Math.max(1, cssHeight - 1);
-              for (const p of state.points) {
-                p.x = Math.max(1, Math.min(maxX, p.x));
-                p.y = Math.max(1, Math.min(maxY, p.y));
-              }
-              for (const s of state.steps) {
-                if (s && s.distances) {
-                  for (const d of s.distances) {
-                    if (d && d.foot) {
-                      d.foot.x = Math.max(1, Math.min(maxX, d.foot.x));
-                      d.foot.y = Math.max(1, Math.min(maxY, d.foot.y));
-                    }
-                  }
-                }
-              }
-            }
-          }
+          if (mode === 'fullscreen') { v.fullscreenW = cssWidth; v.fullscreenH = cssHeight; }
+          else { v.normalW = cssWidth; v.normalH = cssHeight; }
         }
         render();
       }
@@ -300,10 +251,6 @@
       function addStep(step) {
         state.steps.push({
           desc: step.desc || '',
-          // three-line comment area content
-          comment1: step.comment1 || '',
-          comment2: step.comment2 || '',
-          comment3: step.comment3 || '',
           // current edge being discussed [{a,b}]
           dividing: step.dividing || [],
           // new subproblem edges introduced this step
@@ -315,126 +262,134 @@
           highlightPts: step.highlightPts || [],
           // stack of active edges [{a,b,type:'dividing'|'subline'}]
           persistent: step.persistent || [],
-          // for brute-force: cumulative side classification
-          sides: step.sides || null,
           // major step marker for navigation
           major: !!step.major
         });
       }
 
-      // Brute-force: test every pair (i,j)
-      function bruteHull(points) {
+      // QuickHull with persistent-line stack
+      function quickHull(points) {
         state.steps = [];
+        state.mainAB = null;
         if (points.length < 2) return;
 
-        const pts = points.slice();
+        const pts = points.slice().sort((p, q) => p.x - q.x || p.y - q.y);
+        const A = pts[0], B = pts[pts.length - 1];
+        // always visible
+        state.mainAB = { a: A, b: B };
 
-        // Intro step
+        // Initial step before determining endpoints
         addStep({
-          desc: 'Points initialized. Click Next to begin testing edges.',
-          comment1: 'Points initialized.',
-          comment2: 'Press Next to begin.',
-          comment3: '',
+          desc: 'Points initialized. Click Next to find the leftmost vertex.',
           major: true
         });
 
-        const n = pts.length;
-        const hullSet = new Set(); // for de-duping edges (by id pair sorted)
+        // Record explicit steps for finding min/max instead of starting there
+        addStep({
+          desc: `Find leftmost point (min x): vertex ${A.id}.`,
+          highlightPts: [A],
+          major: true
+        });
+        addStep({
+          desc: `Find rightmost point (max x): vertex ${B.id}.`,
+          highlightPts: [B],
+          major: true
+        });
 
-        for (let i = 0; i < n; i++) {
-          // Announce which vertex is used as the first endpoint (line 1 remains while i is fixed)
-          const firstLine = `Looking at edges with first endpoint ${pts[i].id}.`;
+        addStep({
+          desc: 'Initial split by minX–maxX.',
+          dividing: [{ a: A, b: B }],
+          highlightPts: [A, B],
+          // mainAB is drawn separately
+          persistent: [],
+          major: true
+        });
+        // from this step onward, show the main AB line
+        state.showMainABFrom = state.steps.length - 1;
+
+        const leftSet = pts.filter(p => isLeft(A, B, p));
+        const rightSet = pts.filter(p => isLeft(B, A, p));
+
+
+        // Maintain a stack of active dividing/subproblem lines
+        // elements: {a,b,type:'dividing'|'subline'}
+        const active = [];
+
+        function findHull(S, A, B, label) {
+          // Enter edge A->B
+          active.push({ a: A, b: B, type: 'dividing' });
+          const isTopLevelForSide = active.length === 1; // first edge for this side
           addStep({
-            desc: firstLine,
-            comment1: firstLine,
-            comment2: '',
-            comment3: '',
-            highlightPts: [pts[i]],
+            desc: `Finding ${label} hull — focus on edge (${A.id},${B.id}).`,
+            dividing: [{ a: A, b: B }],
+            persistent: active.slice(),
+            highlightPts: isTopLevelForSide ? [A, B, ...S] : [A, B],
             major: true
           });
-          for (let j = i + 1; j < n; j++) {
-            const A = pts[i], B = pts[j];
 
-            // Start testing edge (A,B)
+          if (S.length === 0) {
+            // AB is a hull edge
             addStep({
-              desc: `Test edge (${A.id},${B.id}).`,
-              comment1: firstLine,
-              comment2: `Checking edge (${A.id},${B.id}).`,
-              comment3: '',
-              dividing: [{ a: A, b: B }],
+              desc: `No points lie strictly outside this line; edge (${A.id},${B.id}) is on the hull.`,
+              hullEdges: [{ a: A, b: B }],
+              persistent: active.slice(),
               highlightPts: [A, B],
               major: true
             });
-
-            let sawPos = false, sawNeg = false;
-            let invalid = false;
-            const leftSoFar = [];
-            const rightSoFar = [];
-
-            for (let k = 0; k < n; k++) {
-              if (k === i || k === j) continue;
-              const P = pts[k];
-              const s = cross(A, B, P);
-              const { foot } = distanceToLine(A, B, P);
-              if (s > 0) leftSoFar.push(P); else if (s < 0) rightSoFar.push(P);
-              const sideStr = (s < 0) ? 'the right' : (s > 0) ? 'the left' : 'collinear';
-              const thirdLine = (s === 0)
-                ? `Vertex ${P.id} is collinear with (${A.id},${B.id}).`
-                : `Vertex ${P.id} is on ${sideStr} of (${A.id},${B.id}).`;
-              addStep({
-                desc: `Check position of vertex ${P.id} relative to edge (${A.id},${B.id}).`,
-                comment1: firstLine,
-                comment2: `Checking edge (${A.id},${B.id}).`,
-                comment3: thirdLine,
-                dividing: [{ a: A, b: B }],
-                distances: [{ p: P, foot }],
-                // keep endpoints highlighted; color P via side coloring to avoid red overlay
-                highlightPts: [A, B],
-                sides: { left: leftSoFar.slice(), right: rightSoFar.slice() },
-                major: false
-              });
-              if (s > 0) sawPos = true; else if (s < 0) sawNeg = true;
-              if (sawPos && sawNeg) {
-                addStep({
-                  desc: `Found vertices on both sides of edge (${A.id},${B.id}); not a hull edge.`,
-                  comment1: firstLine,
-                  comment2: `Checking edge (${A.id},${B.id}).`,
-                  comment3: 'Vertices found on both sides; not a hull edge.',
-                  dividing: [{ a: A, b: B }],
-                  highlightPts: [A, B],
-                  sides: { left: leftSoFar.slice(), right: rightSoFar.slice() },
-                  major: true
-                });
-                invalid = true;
-                break;
-              }
-            }
-
-            if (!invalid) {
-              // All points on one side (or collinear)
-              const key = `${Math.min(A.id,B.id)}-${Math.max(A.id,B.id)}`;
-              if (!hullSet.has(key)) {
-                hullSet.add(key);
-                addStep({
-                  desc: `All vertices lie on one side (or collinear); edge (${A.id},${B.id}) is on the hull.`,
-                  comment1: firstLine,
-                  comment2: `Checking edge (${A.id},${B.id}).`,
-                  comment3: 'All vertices lie on one side; edge is on the hull.',
-                  hullEdges: [{ a: A, b: B }],
-                  highlightPts: [A, B],
-                  sides: { left: leftSoFar.slice(), right: rightSoFar.slice() },
-                  major: true
-                });
-              }
-            }
+            // leave section
+            active.pop();
+            return;
           }
+
+          // Farthest point from AB — show scan details
+          let far = null, maxd = -1, foot = null;
+          for (const p of S) {
+            const { d, foot: f } = distanceToLine(A, B, p);
+            // add a micro-step for this candidate
+            addStep({
+              desc: `Check distance from vertex ${p.id} to edge (${A.id},${B.id}).`,
+              dividing: [{ a: A, b: B }],
+              distances: [{ p, foot: f }],
+              highlightPts: far ? [A, B, p, far] : [A, B, p],
+              persistent: active.slice(),
+              major: false
+            });
+            if (d > maxd) { maxd = d; far = p; foot = f; }
+          }
+
+          // summary step for farthest point and introduce both sublines
+          addStep({
+            desc: `Farthest point from edge (${A.id},${B.id}) is vertex ${far.id}. We need to explore edges (${A.id},${far.id}) and (${far.id},${B.id}).`,
+            dividing: [{ a: A, b: B }],
+            sublines: [{ a: A, b: far }, { a: far, b: B }],
+            distances: [{ p: far, foot }],
+            highlightPts: [A, far, B],
+            persistent: active.slice(),
+            major: true
+          });
+
+          const S1 = S.filter(p => isLeft(A, far, p));
+          const S2 = S.filter(p => isLeft(far, B, p));
+
+          // Keep BOTH sublines visible while solving both halves
+          active.push({ a: A, b: far, type: 'subline' });
+          active.push({ a: far, b: B, type: 'subline' });
+          findHull(S1, A, far, label);
+          findHull(S2, far, B, label);
+          active.pop();
+          active.pop();
+
+          // Leave edge A->B section
+          active.pop();
         }
 
+        // Process lower hull first, then upper hull
+        findHull(leftSet, A, B, 'lower');
+        findHull(rightSet, B, A, 'upper');
+
+        // Final step
         addStep({
           desc: 'Convex hull complete.',
-          comment1: 'Convex hull complete.',
-          comment2: '',
-          comment3: '',
           major: true
         });
       }
@@ -482,7 +437,6 @@
           let t = (0 - y1) / dy; addIfWithin(x1 + t * dx, 0);
           t = (h - y1) / dy; addIfWithin(x1 + t * dx, h);
         }
-        // dedupe close points
         const uniq = [];
         for (const p of pts) {
           if (!uniq.some(q => Math.hypot(q.x - p.x, q.y - p.y) < 1)) uniq.push(p);
@@ -494,13 +448,47 @@
         }
       }
 
-      // Draw extended edge with thin line outside segment and thicker over the segment
       function drawExtendedEdge(a, b, color) {
         ctx.save();
-        ctx.globalAlpha = 0.6;             // de-emphasize the infinite extension
+        ctx.globalAlpha = 0.6;
         drawInfiniteLine(a, b, color, 1, [6, 6]);
         ctx.restore();
-        // emphasize the actual segment
+        drawLine(a, b, color, 3, [6, 6]);
+      }
+
+      function drawInfiniteLine(a, b, color, width = 1, dash = []) {
+        const w = canvas.clientWidth || canvas.width;
+        const h = canvas.clientHeight || canvas.height;
+        const x1 = a.x, y1 = a.y, x2 = b.x, y2 = b.y;
+        const dx = x2 - x1, dy = y2 - y1;
+        const pts = [];
+        function addIfWithin(x, y) {
+          if (x >= 0 && x <= w && y >= 0 && y <= h) pts.push({ x, y });
+        }
+        if (Math.abs(dx) > 1e-9) {
+          let t = (0 - x1) / dx; addIfWithin(0, y1 + t * dy);
+          t = (w - x1) / dx; addIfWithin(w, y1 + t * dy);
+        }
+        if (Math.abs(dy) > 1e-9) {
+          let t = (0 - y1) / dy; addIfWithin(x1 + t * dx, 0);
+          t = (h - y1) / dy; addIfWithin(x1 + t * dx, h);
+        }
+        const uniq = [];
+        for (const p of pts) {
+          if (!uniq.some(q => Math.hypot(q.x - p.x, q.y - p.y) < 1)) uniq.push(p);
+        }
+        if (uniq.length >= 2) {
+          drawLine(uniq[0], uniq[1], color, width, dash);
+        } else {
+          drawLine(a, b, color, width, dash);
+        }
+      }
+
+      function drawExtendedEdge(a, b, color) {
+        ctx.save();
+        ctx.globalAlpha = 0.6;
+        drawInfiniteLine(a, b, color, 1, [6, 6]);
+        ctx.restore();
         drawLine(a, b, color, 3, [6, 6]);
       }
 
@@ -533,9 +521,6 @@
         if (!ctx) return;
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        // Draw all points first
-        for (const p of state.points) drawPoint(p, COLORS.points, 3);
-
         if (state.steps.length === 0) {
           stepInfoEl.textContent = 'Step 0 / 0';
           return;
@@ -544,23 +529,38 @@
         const i = Math.max(0, Math.min(state.current, state.steps.length - 1));
         const step = state.steps[i];
 
+        // Show the initial main dividing line only after initial split step
+        if (state.mainAB && i >= state.showMainABFrom) {
+          drawLine(state.mainAB.a, state.mainAB.b, COLORS.mainDividing, 2, [6, 6]);
+        }
+
         // Persistent hull edges discovered so far
         const hullEdges = collectHullEdgesUpTo(i);
         for (const e of hullEdges) drawLine(e.a, e.b, COLORS.hull, 3);
 
-        // Current edge under test — thin infinite extension + thicker segment
+        // Persistent dividing/subproblem lines active at this step
+        if (step.persistent && step.persistent.length) {
+          for (const e of step.persistent) {
+            // avoid doubling the main AB (already drawn)
+            if (state.mainAB && sameEdge(e, state.mainAB)) continue;
+            const style = e.type === 'subline'
+              ? { color: COLORS.subproblem, width: 1.5, dash: [6, 6] }
+              : { color: COLORS.dividing, width: 1.5, dash: [6, 6] };
+            drawLine(e.a, e.b, style.color, style.width, style.dash);
+          }
+        }
+
+        // Current dividing lines — thin infinite extension + thicker segment
         for (const e of step.dividing) drawExtendedEdge(e.a, e.b, COLORS.current);
 
-        // Candidate visualization dotted (per-step only)
+        // Subproblem lines introduced in this step (dashed)
+        for (const e of step.sublines) drawLine(e.a, e.b, COLORS.subproblem, 1.5, [6, 6]);
+
+        // Farthest distance dotted (per-step only)
         for (const d of step.distances) drawLine(d.p, d.foot, COLORS.distance, 1.5, [2, 6]);
 
-        // Side-colored points accumulated so far for the current edge
-        if (step.sides) {
-          const left = step.sides.left || [];
-          const right = step.sides.right || [];
-          for (const p of left) drawPoint(p, COLORS.leftSide, 4.5);
-          for (const p of right) drawPoint(p, COLORS.rightSide, 4.5);
-        }
+        // Draw base points after lines so vertices appear above edges
+        for (const p of state.points) drawPoint(p, COLORS.points, 3);
 
         // Highlight points for this step
         if (step.highlightPts) {
@@ -579,12 +579,7 @@
         for (const d of (step.distances || [])) { labelPoint(d.p, '#603'); }
         for (const p of (step.highlightPts || [])) { labelPoint(p, COLORS.highlight); }
 
-        const c1 = step.comment1 || '';
-        const c2 = step.comment2 || '';
-        const c3 = step.comment3 || '';
-        // Show exactly three lines to keep control height stable.
-        // Line 1 combines the step counter with the first comment line.
-        stepInfoEl.textContent = `Step ${i + 1} / ${state.steps.length} — ${c1}\n${c2}\n${c3}`;
+        stepInfoEl.textContent = `Step ${i + 1} / ${state.steps.length} — ${step.desc}`;
       }
 
       // Playback controls
@@ -601,7 +596,7 @@
         // ms
         const baseDelay = 750;
         const spd = parseInt(speedEl.value, 10) || 1;
-        const delay = Math.max(16, baseDelay / spd);
+        const delay = Math.max(100, baseDelay / spd);
         state.timer = setInterval(() => {
           if (state.current >= state.steps.length - 1) {
             stop();
@@ -622,18 +617,12 @@
         stop();
         // ensure size before generating
         resizeCanvas();
-        // Reset logical coordinate system to current CSS size
+        // reset logical coordinate system
         state.view.logicalW = canvas.clientWidth || 900;
         state.view.logicalH = canvas.clientHeight || 520;
         state.points = generatePoints(getPointCount());
-        // Keep points within view with a margin
-        (function(){
-          const w = state.view.logicalW; const h = state.view.logicalH;
-          const maxX = Math.max(1, w - EDGE_MARGIN); const maxY = Math.max(1, h - EDGE_MARGIN);
-          for (const p of state.points) { p.x = Math.max(EDGE_MARGIN, Math.min(maxX, p.x)); p.y = Math.max(EDGE_MARGIN, Math.min(maxY, p.y)); }
-        })();
         state.current = 0;
-        bruteHull(state.points);
+        quickHull(state.points);
         render();
       });
 
@@ -649,18 +638,32 @@
         render();
       });
 
-      // (Major-step navigation removed for brute-force demo)
+      nextMajorBtn.addEventListener('click', () => {
+        stop();
+        let j = state.current + 1;
+        while (j < state.steps.length && !state.steps[j].major) j++;
+        state.current = Math.min(j, state.steps.length - 1);
+        render();
+      });
+
+      prevMajorBtn.addEventListener('click', () => {
+        stop();
+        let j = state.current - 1;
+        while (j > 0 && !state.steps[j].major) j--;
+        state.current = Math.max(0, j);
+        render();
+      });
 
       playBtn.addEventListener('click', play);
 
       // Init
       function init() {
         resizeCanvas();
-        // Establish logical coordinate system based on current CSS size
+        // establish logical coordinate system
         state.view.logicalW = canvas.clientWidth || 900;
         state.view.logicalH = canvas.clientHeight || 520;
         state.points = generatePoints(getPointCount());
-        bruteHull(state.points);
+        quickHull(state.points);
         render();
       }
       init();
