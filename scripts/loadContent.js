@@ -321,6 +321,197 @@ function hookIframeContent(iframe) {
       setTimeout(resize, 500);
     });
   });
+
+  // Collapsible Sections (opt-in via `section-title` or `data-section-title`)
+  (function setupCollapsibleSections(doc) {
+    try {
+      const selector = 'section[section-title], section[data-section-title]';
+      const sections = Array.from(doc.querySelectorAll(selector))
+        // avoid reprocessing if we reload/rehook
+        .filter(sec => !sec.classList.contains('collapsible-ready'));
+      if (sections.length === 0) return;
+
+      // Minimal styles injected once per iframe document
+      if (!doc.getElementById('collapsible-section-styles')) {
+        const style = doc.createElement('style');
+        style.id = 'collapsible-section-styles';
+        style.textContent = `
+          section.collapsible-ready { margin-top: .5rem; border-top: 1px solid #e0e0e0; padding-top: .25rem; }
+          section.collapsible-ready:first-of-type { border-top: 0; margin-top: .25rem; padding-top: 0; }
+          section.collapsible-ready > h1,
+          section.collapsible-ready > h2,
+          section.collapsible-ready > h3,
+          section.collapsible-ready > h4,
+          section.collapsible-ready > h5,
+          section.collapsible-ready > h6 { margin: 0; }
+          .section-toggle { cursor: pointer; background: none; border: none; padding: .15rem 0; font: inherit; color: inherit; display: inline-flex; align-items: center; gap: .4rem; }
+          .section-toggle .chev { display: inline-block; width: 1em; }
+          .section-body { margin-top: .35rem; }
+          /* toolbar for expand/collapse all */
+          .section-toolbar { display:flex; gap:.5rem; align-items:center; margin:.25rem 0 .5rem 0; }
+          .section-toolbar button { background:none; border:1px solid #ddd; border-radius:4px; padding:.15rem .5rem; cursor:pointer; }
+          .section-toolbar button:hover { background:#f7f7f7; }
+        `;
+        (doc.head || doc.documentElement).appendChild(style);
+      }
+
+      // Parse section targets from parent URL: supports ?section=a&section=b and comma lists
+      const getOpenTargets = () => {
+        let search = '';
+        try {
+          search = window.parent?.location?.search || window.location.search || '';
+        } catch (_) {
+          search = window.location.search || '';
+        }
+        const params = new URLSearchParams(search);
+        const values = [];
+        params.forEach((val, key) => {
+          if (key.toLowerCase() === 'section') values.push(...String(val).split(','));
+        });
+        const norm = (s) => String(decodeURIComponent(s || '')).trim().toLowerCase();
+        return new Set(values.map(norm).filter(Boolean));
+      };
+      const openTargets = getOpenTargets();
+
+      const slugify = (txt) => String(txt || '')
+        .toLowerCase()
+        .normalize('NFKD')
+        .replace(/[^\w\s-]/g, '')
+        .trim()
+        .replace(/[\s_-]+/g, '-')
+        .replace(/^-+|-+$/g, '');
+
+      const isTopLevel = (el) => el.parentElement === doc.body;
+
+      // Build a stable list of top-level collapsibles for default-open logic
+      const topLevel = Array.from(doc.body.querySelectorAll(':scope > section[section-title], :scope > section[data-section-title]'))
+        .filter(sec => !sec.classList.contains('collapsible-ready'));
+
+      const registry = [];
+      sections.forEach((section, index) => {
+        const titleAttr = section.getAttribute('section-title') || section.getAttribute('data-section-title') || '';
+        const id = (section.getAttribute('id') || '').trim();
+        const slug = slugify(titleAttr);
+
+        // Find or create a heading to host the toggle
+        let header = section.querySelector(':scope > h1, :scope > h2, :scope > h3, :scope > h4, :scope > h5, :scope > h6');
+        if (!header) {
+          header = doc.createElement('h2');
+          header.textContent = titleAttr || id || 'Section';
+          section.insertBefore(header, section.firstChild);
+        }
+
+        // Wrap the rest of the content
+        const body = doc.createElement('div');
+        body.className = 'section-body';
+        const children = Array.from(section.childNodes);
+        children.forEach((node) => {
+          if (node !== header) body.appendChild(node);
+        });
+        section.appendChild(body);
+
+        // Create a toggle button inside the header
+        const btn = doc.createElement('button');
+        btn.type = 'button';
+        btn.className = 'section-toggle';
+        const label = titleAttr || header.textContent || id || 'Section';
+        btn.innerHTML = `<span class="chev" aria-hidden="true">▸</span><span class="label"></span>`;
+        btn.querySelector('.label').textContent = label;
+        header.textContent = '';
+        header.appendChild(btn);
+
+        const setExpanded = (expanded) => {
+          btn.setAttribute('aria-expanded', String(!!expanded));
+          body.hidden = !expanded;
+          const chev = btn.querySelector('.chev');
+          if (chev) chev.textContent = expanded ? '▾' : '▸';
+        };
+
+        const ensureEmbeddedDemoHeights = () => {
+          body.querySelectorAll('iframe.embeddedDemo').forEach((frame) => {
+            try {
+              const d = getIframeDocument(frame);
+              if (!d) return;
+              // allow layout to settle if just unhidden
+              setTimeout(() => {
+                try { frame.style.height = 'auto'; } catch {}
+                try { frame.style.height = `${computeIframeHeight(d)}px`; } catch {}
+              }, 0);
+            } catch {}
+          });
+        };
+
+        btn.addEventListener('click', () => {
+          const next = btn.getAttribute('aria-expanded') !== 'true';
+          setExpanded(next);
+          if (next) ensureEmbeddedDemoHeights();
+        });
+
+        // Determine initial state
+        let open = false;
+        if (openTargets.size > 0) {
+          const idKey = id.toLowerCase();
+          if (idKey && openTargets.has(idKey)) open = true;
+          else if (slug && openTargets.has(slug)) open = true;
+        } else {
+          // Default: first top-level collapsible opens; others collapsed
+          if (topLevel.length > 0) {
+            open = (isTopLevel(section) && section === topLevel[0]);
+          } else {
+            open = (index === 0); // fallback
+          }
+        }
+        setExpanded(open);
+        if (open) ensureEmbeddedDemoHeights();
+
+        section.classList.add('collapsible-ready');
+        registry.push({ section, btn, body, setExpanded });
+      });
+
+      // Insert Expand/Collapse All toolbar near the page title
+      if (registry.length > 0 && !doc.getElementById('section-toolbar')) {
+        const toolbar = doc.createElement('div');
+        toolbar.id = 'section-toolbar';
+        toolbar.className = 'section-toolbar';
+        const expandBtn = doc.createElement('button');
+        expandBtn.type = 'button';
+        expandBtn.textContent = 'Expand All';
+        expandBtn.addEventListener('click', () => {
+          registry.forEach(({ setExpanded }) => setExpanded(true));
+          // resize any newly visible embedded demos
+          registry.forEach(({ body }) => {
+            body.querySelectorAll('iframe.embeddedDemo').forEach((frame) => {
+              try {
+                const d = getIframeDocument(frame);
+                if (d) frame.style.height = `${computeIframeHeight(d)}px`;
+              } catch {}
+            });
+          });
+        });
+        const collapseBtn = doc.createElement('button');
+        collapseBtn.type = 'button';
+        collapseBtn.textContent = 'Collapse All';
+        collapseBtn.addEventListener('click', () => {
+          registry.forEach(({ setExpanded }) => setExpanded(false));
+        });
+        toolbar.appendChild(expandBtn);
+        toolbar.appendChild(collapseBtn);
+
+        const title = doc.querySelector('body > h1');
+        const firstSection = registry[0]?.section;
+        if (title && title.parentNode) {
+          title.parentNode.insertBefore(toolbar, title.nextSibling);
+        } else if (firstSection && firstSection.parentNode) {
+          firstSection.parentNode.insertBefore(toolbar, firstSection);
+        } else {
+          doc.body.insertBefore(toolbar, doc.body.firstChild);
+        }
+      }
+    } catch (e) {
+      // Swallow errors to avoid affecting live content loading
+      console.error('Collapsible setup error:', e);
+    }
+  })(innerDoc);
 }
 
 // ─── Build Sidebar Menu ───────────────────────────────────────────────────────
@@ -451,11 +642,8 @@ async function loadContent(relativePath) {
     err.style.display = 'none';
     iframe.style.display = 'block';
 
-    try {
-      iframe.contentWindow.location.replace(url);
-    } catch {
-      iframe.src = `${url}?_=${Date.now()}`;
-    }
+    // Use src assignment with cache-bust for stable navigation in iframe
+    iframe.src = `${url}?_=${Date.now()}`;
 
     iframe.onload = () => {
       hookIframeContent(iframe);
@@ -477,6 +665,17 @@ async function loadContent(relativePath) {
           window.scrollTo(0, prevY);
         }
       };
+
+      // If the frame loaded into an empty document, re-navigate once defensively
+      try {
+        const dtest = getIframeDocument(iframe);
+        const isEmpty = !dtest || !dtest.body || dtest.body.childElementCount === 0;
+        if (isEmpty) {
+          // reassign src once
+          iframe.src = `${url}?__retry__=${Date.now()}`;
+          return; // wait for next onload
+        }
+      } catch {}
 
       resizeIframe();
       const d = getIframeDocument(iframe);

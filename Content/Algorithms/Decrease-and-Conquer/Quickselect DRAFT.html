@@ -13,7 +13,7 @@
 <body>
   <h1>Quickselect</h1>
 
-  <section id="problem-solved">
+  <section id="problem-solved" section-title="Problem Solved">
   <h2>Problem Solved</h2>
   <p>
     Quickselect solves the
@@ -22,7 +22,7 @@
   </p>
   </section>
 
-  <section id="design">
+  <section id="design" section-title="Design and Strategy">
   <h2>Design and Strategy</h2>
   <p>
     Quickselect is a <strong>decrease-and-conquer</strong> algorithm that efficiently finds the k-th smallest element
@@ -61,7 +61,7 @@
   </p>
   </section>
 
-  <section id="demo">
+  <section id="demo" section-title="Interactive Demo">
   <div class="embeddedDemoContainer">
     <iframe class="embeddedDemo"
             src="/Algorithms/Content/Demos/Decrease-and-Conquer/Quickselect Demo.html"
@@ -71,7 +71,7 @@
   </div>
   </section>
 
-  <section id="code">
+  <section id="code" section-title="Implementation in Java, C++, Python">
   <h2>Implementation in Java, C++, Python</h2>
   <div class="tab-group">
     <div class="tabs" role="tablist">
@@ -108,7 +108,7 @@
   </div>
   </section>
 
-  <section id="analysis">
+  <section id="analysis" section-title="Time/Space Analysis">
   <h2>Time/Space Analysis</h2>
   <p><strong>Time Complexity:</strong> The average-case time is \( O(n) \) due to reducing the problem size by half on average each time. However, the worst case is \( O(n^2) \), which occurs when the pivot consistently produces unbalanced partitions (e.g., always picking smallest or largest element).</p>
   <p><strong>Space Complexity:</strong> \( O(1) \) extra space if done in-place with tail recursion optimization. Otherwise, \( O(n) \) call stack space in the worst case, \( O(\log n) \) in average case.</p>
@@ -121,7 +121,7 @@
   </ul>
   </section>
 
-  <section id="links">
+  <section id="links" section-title="Links to Resources">
   <h2>Links to Resources</h2>
   <ul>
     <li><a href="https://en.wikipedia.org/wiki/Quickselect" target="_blank">Wikipedia: Quickselect</a></li>
@@ -130,7 +130,7 @@
   </ul>
   </section>
 
-  <section id="reading-questions">
+  <section id="reading-questions" section-title="Reading Comprehension Questions">
     <h2>Reading Comprehension Questions</h2>
     <ol>
       <li><strong>What is the main problem solved by Quickselect?</strong> </li>
@@ -155,7 +155,7 @@
     </div>
   </section>
 
-  <section id="activities">
+  <section id="activities" section-title="In-Class Activities">
     <h2>In-Class Activities</h2>
     <ol>
       <li><strong>Trace Quickselect:</strong> Have students find the 3rd and 6th smallest values in the same array by hand using Quickselect.</li>
@@ -169,7 +169,7 @@
     </ol>
   </section>
 
-  <section id="problems">
+  <section id="problems" section-title="Homework Problems">
     <h2>Homework Problems</h2>
     <ol>
       <li><strong>Basic Trace:</strong> Trace Quickselect on [5,2,9,1,6,7] to find the 4th smallest value. Show all recursive calls.</li>

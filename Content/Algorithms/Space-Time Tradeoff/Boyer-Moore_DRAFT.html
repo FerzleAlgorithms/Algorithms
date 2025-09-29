@@ -40,24 +40,31 @@
 </style>
 <body>
   <h1>Boyer–Moore Algorithm</h1>
-  <h3><font color="red">UNDER CONSTRUCTION!</font><h3>
+  <h3><font color="red">UNDER CONSTRUCTION!</font></h3>
 
-  <h2>Problem Statement</h2>
-  <p>Boyer–Moore solves the <a class="problem" href="?path=Problems%2FFoundational%2FStringMatching">String Matching</a> problem: find all occurrences of a pattern <em>P</em> (length <em>m</em>) in a text <em>T</em> (length <em>n</em>) as efficiently as possible.</p>
+  <section id="problem-solved" section-title="Problem Statement">
+    <h2>Problem Statement</h2>
+    <p>Boyer–Moore solves the <a class="problem" href="?path=Problems%2FFoundational%2FStringMatching">String Matching</a> problem: find all occurrences of a pattern <em>P</em> (length <em>m</em>) in a text <em>T</em> (length <em>n</em>) as efficiently as possible.</p>
+  </section>
 
-  <h2>Design and Strategy</h2>
-  <p>The Boyer–Moore algorithm uses two heuristics to skip ahead in the text:</p>
+  <section id="design" section-title="Design and Strategy">
+    <h2>Design and Strategy</h2>
+    <p>The Boyer–Moore algorithm uses two heuristics to skip ahead in the text:</p>
   <ul>
     <li><strong>Bad Character Heuristic:</strong> Shift based on the rightmost occurrence of the mismatched character.</li>
     <li><strong>Good Suffix Heuristic:</strong> Shift based on previously matched suffixes of the pattern.</li>
   </ul>
   <p>Preprocessing builds two tables in <em>O(m + σ)</em> time (<em>σ</em> = alphabet size). Searching then runs in sublinear average time <em>O(n/m)</em>, with worst-case <em>O(mn)</em> without further optimizations.</p>
+  </section>
 
-  <h3>Bad Character Heuristic</h3>
-  <p>Build a <code>last</code> array (<em>L</em>) mapping each character to its rightmost index in <em>P</em>, or <code>-1</code> if absent. On a mismatch at <code>T[i+j]</code>, shift by <code>j − L[T[i+j]]</code>.</p>
+  <section section-title="Bad Character Heuristic">
+    <h3>Bad Character Heuristic</h3>
+    <p>Build a <code>last</code> array (<em>L</em>) mapping each character to its rightmost index in <em>P</em>, or <code>-1</code> if absent. On a mismatch at <code>T[i+j]</code>, shift by <code>j − L[T[i+j]]</code>.</p>
+  </section>
 
-  <h3>Building the Bad Character Table</h3>
-  <p>For <code>P = "EXAMPLE"</code> (<em>m</em> = 7), we build <em>L</em>:</p>
+  <section section-title="Preprocessing Walkthrough">
+    <h3>Building the Bad Character Table</h3>
+    <p>For <code>P = "EXAMPLE"</code> (<em>m</em> = 7), we build <em>L</em>:</p>
   <div style="text-align:center;">
     <ol class="shift-build" style="display:inline-block; text-align:left;">
       <li>
@@ -394,9 +401,9 @@ tools.buildGoodSuffixTable = function(pat) {
       </div>
     </li>
   </ol>
+  </section>
 
-
-
+  <section id="demo" section-title="Interactive Demo">
   <div class="embeddedDemoContainer" style="height: 600px">
     <iframe class="embeddedDemo"
             src="../../Demos/Space-Time Tradeoff/Boyer-Moore Demo.html"
@@ -404,10 +411,12 @@ tools.buildGoodSuffixTable = function(pat) {
             name="boyermoore-demo">
     </iframe>
   </div>
+  </section>
 
-  <h2>Code Implementations</h2>
-  <p>The implementations below combine both heuristics. Preprocessing builds <code>last</code>, <code>suffix</code>, and <code>prefix</code> tables.  
-  During search, on a mismatch at <code>j</code>, we compute both the bad-character shift and good-suffix shift and advance by their maximum, ensuring we never skip a valid match and reduce unnecessary comparisons.</p>
+  <section id="code" section-title="Implementation in Java, C++, Python">
+    <h2>Code Implementations</h2>
+    <p>The implementations below combine both heuristics. Preprocessing builds <code>last</code>, <code>suffix</code>, and <code>prefix</code> tables.  
+    During search, on a mismatch at <code>j</code>, we compute both the bad-character shift and good-suffix shift and advance by their maximum, ensuring we never skip a valid match and reduce unnecessary comparisons.</p>
   <div class="tab-group">
     <div class="tabs" role="tablist">
       <button id="tab-java" class="tablink active" data-lang="java" role="tab" aria-controls="java" aria-selected="true">Java</button>
@@ -564,13 +573,16 @@ vector<int> boyerMooreSearch(const string &T, const string &P) {
     return result</code></pre>
     </div>
   </div>
+  </section>
 
-  <h2>Time/Space Analysis</h2>
-  <p>Preprocessing: <em>O(m + σ)</em>.  
-  Search: average-case <em>O(n/m)</em>, worst-case <em>O(mn)</em> (without optimizations).  
-  Space: <em>O(σ + m)</em>.</p>
+  <section id="analysis" section-title="Time/Space Analysis">
+    <h2>Time/Space Analysis</h2>
+    <p>Preprocessing: <em>O(m + σ)</em>.  
+    Search: average-case <em>O(n/m)</em>, worst-case <em>O(mn)</em> (without optimizations).  
+    Space: <em>O(σ + m)</em>.</p>
+  </section>
 
-  <div class="section">
+  <section id="reading-questions" section-title="Reading Comprehension Questions">
     <h2>Reading Comprehension Questions</h2>
     <ol>
       <li>What does the bad-character table store, and how is it used?</li>
@@ -579,9 +591,9 @@ vector<int> boyerMooreSearch(const string &T, const string &P) {
       <li>What is the average-case time complexity of Boyer–Moore?</li>
       <li>How would the algorithm behave on a pattern with no repeated substrings?</li>
     </ol>
-  </div>
+  </section>
 
-  <div class="section">
+  <section id="activities" section-title="In-Class Activities">
     <h2>In-Class Activities</h2>
     <ol>
       <li>Manually build both tables for a given pattern and verify shifts.</li>
@@ -590,9 +602,9 @@ vector<int> boyerMooreSearch(const string &T, const string &P) {
       <li>Extend the implementation to support wildcard characters.</li>
       <li>Experiment with very large alphabets (e.g., Unicode) and measure preprocess time.</li>
     </ol>
-  </div>
+  </section>
 
-  <div class="section">
+  <section id="problems" section-title="Homework Problems">
     <h2>Problems</h2>
     <ol>
       <li>Prove the correctness of the good-suffix heuristic.</li>
@@ -601,6 +613,6 @@ vector<int> boyerMooreSearch(const string &T, const string &P) {
       <li>Design a parallel variant and discuss scalability.</li>
       <li>Optimize space usage when σ is very large.</li>
     </ol>
-  </div>
+  </section>
 </body>
 </html>

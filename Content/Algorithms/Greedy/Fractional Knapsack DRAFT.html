@@ -13,7 +13,7 @@
 <body>
   <h1>Fractional Knapsack</h1>
 
-  <section id="problem-solved">
+  <section id="problem-solved" section-title="Problem Solved">
     <h2>Problem Solved</h2>
     <p>
       Fractional Knapsack solves the
@@ -22,7 +22,7 @@
     </p>
   </section>
 
-  <section id="design">
+  <section id="design" section-title="Design and Strategy">
     <h2>Design and Strategy</h2>
     <p>
       The Fractional Knapsack problem asks: given a set of items, each with a weight and a value, and a maximum capacity, 
@@ -84,13 +84,13 @@
     </p>
   </section>
 
-  <section id="demo">
+  <section id="demo" section-title="Interactive Demo">
     <div class="embeddedDemoContainer">
       <iframe class="embeddedDemo" src="/Algorithms/Content/Demos/Greedy/Fractional Knapsack Demo.html" allow="fullscreen" name="fractional-knapsack-demo"></iframe>
     </div>
   </section>
 
-  <section id="code">
+  <section id="code" section-title="Implementation in Java, C++, Python">
     <h2>Implementation in Java, C++, Python</h2>
     <p>All implementations sort items by ratio and then fill the knapsack greedily.</p>
     <div class="tab-group">
@@ -160,7 +160,7 @@ double fractionalKnapsack(Item items[], int n, int capacity) {
     </div>
   </section>
 
-  <section id="analysis">
+  <section id="analysis" section-title="Time/Space Analysis and Variations">
     <h2>Time/Space Analysis</h2>
     <p><strong>Time Complexity:</strong> Sorting items takes \(O(n \log n)\). The greedy scan is linear, \(O(n)\). So total time is \(O(n \log n)\).</p>
     <p><strong>Space Complexity:</strong> The algorithm uses \(O(1)\) extra space if sorting is done in-place. Otherwise, sorting may use additional \(O(n)\) space.</p>
@@ -172,7 +172,7 @@ double fractionalKnapsack(Item items[], int n, int capacity) {
     </ul>
   </section>
 
-  <section id="links">
+  <section id="links" section-title="Links to Resources">
     <h2>Links to Resources</h2>
     <ul>
       <li><a href="https://en.wikipedia.org/wiki/Knapsack_problem">Wikipedia: Knapsack Problem</a> Overview of knapsack variants and algorithms.</li>
@@ -181,7 +181,7 @@ double fractionalKnapsack(Item items[], int n, int capacity) {
     </ul>
   </section>
 
-  <section id="reading-questions">
+  <section id="reading-questions" section-title="Reading Comprehension Questions">
     <h2>Reading Comprehension Questions</h2>
     <ol>
       <li><strong>Greedy Basis:</strong> Why is sorting by value-to-weight ratio a good idea for the fractional knapsack problem?</li>
@@ -204,7 +204,7 @@ double fractionalKnapsack(Item items[], int n, int capacity) {
     </div>
   </section>
 
-  <section id="activities">
+  <section id="activities" section-title="In-Class Activities">
     <h2>In-Class Activities</h2>
     <ol>
       <li>Trace the algorithm by hand for 3–5 item examples with fractional weights.</li>
@@ -217,7 +217,7 @@ double fractionalKnapsack(Item items[], int n, int capacity) {
     </ol>
   </section>
 
-  <section id="problems">
+  <section id="problems" section-title="Homework Problems">
     <h2>Homework Problems</h2>
     <ol>
       <li><strong>Step-by-Step Example:</strong> Given items with (value, weight) = [(60,10), (100,20), (120,30)] and capacity = 50, walk through the algorithm.</li>

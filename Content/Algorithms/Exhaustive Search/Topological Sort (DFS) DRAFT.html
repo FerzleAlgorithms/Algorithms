@@ -13,7 +13,7 @@
 <body>
 <h1>Topological Sort (DFS)</h1>
 
-<section id="problem-solved">
+<section id="problem-solved" section-title="Problem Solved">
   <h2>Problem Solved</h2>
   <p>
     Topological Sort using DFS solves the
@@ -22,7 +22,7 @@
   </p>
 </section>
 
-<section id="design">
+<section id="design" section-title="Design and Strategy">
   <h2>Design and Strategy</h2>
   <p>
     <strong>Prerequisites:</strong> If you have not read the <a href="?path=Algorithms%2FExhaustive%20Search%2FDepth-First%20Search">Depth-First Search</a> page, you should do so before continuing, as topological sorting via DFS builds directly upon the core DFS algorithm and concepts like discovery/finish times and edge classification.
@@ -201,7 +201,7 @@
   <h3>Demonstration</h3>
   <p>The demo below shows both the cycle detection and topological sorting capabilities of the DFS-based algorithm:</p>
 
-  <section id="demo">
+  <section id="demo" section-title="Interactive Demo">
     <div class="embeddedDemoContainer">
       <iframe class="embeddedDemo"
               src="/Algorithms/Content/Demos/Exhaustive%20Search/Topological%20Sort%20Demo.html"
@@ -225,7 +225,7 @@
 
 </section>
 
-<section id="code">
+<section id="code" section-title="Implementation in Java, C++, Python">
   <h2>Implementation in Java, C++, Python</h2>
   <p>These implementations show the stack-based approach for topological sorting with cycle detection. The timestamp approach would require sorting vertices by finish time after DFS completes.</p>
   
@@ -380,7 +380,7 @@ bool dfsVisit(int v, vector&lt;int&gt; adj[], vector&lt;int&gt;& color,
   </div>
 </section>
 
-<section id="analysis">
+<section id="analysis" section-title="Time/Space Analysis">
   <h2>Time/Space Analysis</h2>
   
   <p>
@@ -404,7 +404,7 @@ bool dfsVisit(int v, vector&lt;int&gt; adj[], vector&lt;int&gt;& color,
   <p>This is optimal for topological sorting since we must examine every vertex and edge to ensure correctness.</p>
 </section>
 
-<section id="variations">
+<section id="variations" section-title="Variations/Improvements">
   <h2>Variations/Improvements</h2>
   
   <h3>Alternative Approaches</h3>
@@ -429,7 +429,7 @@ bool dfsVisit(int v, vector&lt;int&gt; adj[], vector&lt;int&gt;& color,
   </ul>
 </section>
 
-<section id="links">
+<section id="links" section-title="Links to Resources">
   <h2>Links to Resources</h2>
   <ul>
     <li><a href="https://en.wikipedia.org/wiki/Topological_sorting" target="_blank">Topological sorting (Wikipedia)</a> - Comprehensive overview of topological sorting algorithms including both DFS and Kahn's approaches.</li>
@@ -438,7 +438,7 @@ bool dfsVisit(int v, vector&lt;int&gt; adj[], vector&lt;int&gt;& color,
   </ul>
 </section>
 
-<section id="reading-questions">
+<section id="reading-questions" section-title="Reading Comprehension Questions">
   <h2>Reading Comprehension Questions</h2>
   <ol>
     <li><strong>DFS Foundation:</strong> How does topological sorting build upon the core DFS algorithm, and why are finish times crucial?</li>
@@ -461,7 +461,7 @@ bool dfsVisit(int v, vector&lt;int&gt; adj[], vector&lt;int&gt;& color,
   </div>
 </section>
 
-<section id="activities">
+<section id="activities" section-title="In-Class Activities">
   <h2>In-Class Activities</h2>
   <ol>
     <li><strong>Manual Topological Sort:</strong> Hand-trace the DFS-based topological sort on a small DAG, recording finish times and demonstrating both the timestamp and stack approaches produce the same result.</li>
@@ -485,7 +485,7 @@ bool dfsVisit(int v, vector&lt;int&gt; adj[], vector&lt;int&gt;& color,
   </ol>
 </section>
 
-<section id="problems">
+<section id="problems" section-title="Homework Problems">
   <h2>Homework Problems</h2>
   <ol>
     <li><strong>Timestamp-Based Topological Sort:</strong>

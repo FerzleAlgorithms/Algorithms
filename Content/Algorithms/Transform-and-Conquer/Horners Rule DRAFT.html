@@ -15,12 +15,12 @@
 </head> 
 					<body>
 						<h1>Horner's Rule</h1>
-						<section id="problem-solved">
+						<section id="problem-solved" section-title="Problem Solved">
 							<h2>Problem Solved</h2>
 							<p> Horner's Rule solves the <a class="problem"
 								   href="?path=Problems%2FFoundational%2FPolynomial%20Evaluation">Polynomial Evaluation</a> problem. </p>
 						</section>
-						<section id="design">
+						<section id="design" section-title="Design and Strategy">
 							<h2>Design and Strategy</h2>
 							<p> Horner's Rule (also known as Horner's Method) uses a <strong>transform-and-conquer</strong> strategy to evaluate polynomials efficiently. Instead of computing each term \(a_i x^i\) separately as in a brute-force approach, the polynomial is <em>transformed</em> into a nested form that factors out powers of \(x\). This nested form drastically reduces redundant calculations. </p>
 							<p> For example, consider a 6th-degree polynomial with a few negative coefficients: \[ P(x) = 5x^6 - 3x^5 + 2x^4 - x^3 + 4x^2 + 7x - 1. \] We can rewrite this polynomial by factoring \(x\) step by step: \[ P(x) = x(5x^5 - 3x^4 + 2x^3 - x^2 + 4x + 7) - 1, \] \[ \qquad= x\!\Big(x(5x^4 - 3x^3 + 2x^2 - x + 4) + 7\Big) - 1, \] \[ \qquad\vdots \] \[ \qquad= (((((5x - 3)x + 2)x - 1)x + 4)x + 7)x - 1. \] This fully <em>nested</em> representation corresponds to evaluating the polynomial by starting with the leading coefficient and repeatedly multiplying by \(x\) and adding the next coefficient. In general, any polynomial \(P(x) = a_0 + a_1x + a_2x^2 + \dots + a_nx^n\) can be transformed into the form \[ P(x) = (...((a_n x + a_{n-1})x + a_{n-2})x + \dots + a_1)x + a_0, \] which is exactly the representation Horner's Rule uses. </p>
@@ -35,7 +35,7 @@
 							</ol>
 							<p> The above pseudocode describes Horner's Rule. Each loop iteration multiplies the current accumulated value by \(x\) and then adds the next coefficient. The interactive demo below illustrates this process step by step. </p>
 						</section>
-						<section id="demo">
+						<section id="demo" section-title="Interactive Demo">
 							<p> This demo shows Horner's Rule in action. It visualizes the evaluation of a polynomial in nested form, highlighting each multiplication and addition. You can see how the running total is updated at each step and compare the number of operations to the brute-force method. </p>
 							<div class="embeddedDemoContainer">
 								<iframe class="embeddedDemo"
@@ -44,7 +44,7 @@
 								        name="horners-rule-demo"> </iframe>
 							</div>
 						</section>
-						<section id="code">
+						<section id="code" section-title="Implementation in Java, C++, Python">
 							<h2>Implementation in Java, C++, Python</h2>
 							<div class="tab-group">
 								<div class="tabs"
@@ -95,14 +95,14 @@
 								</div>
 							</div>
 						</section>
-						<section id="analysis">
+						<section id="analysis" section-title="Time/Space Analysis">
 							<h2>Time/Space Analysis</h2>
 							<p>
 								<strong>Time Complexity:</strong> Horner's Rule runs in linear time \(O(n)\) for a degree \(n\) polynomial. The algorithm performs one multiplication and one addition per coefficient (approximately \(n\) multiplications and \(n\) additions in total for a degree \(n\)). This is a dramatic improvement over the \(O(n^2)\) time of the brute-force method, which recalculates powers of \(x\). By reusing the partial result at each step, Horner's method avoids all redundant power computations.</p>
 							<p>
 								<strong>Space Complexity:</strong> The space complexity is \(O(1)\) (constant space). Horner's Rule requires only a few fixed-size variables (for example, the accumulator for the result and a loop index). It evaluates the polynomial in place without needing any extra arrays or significant additional memory, aside from storing the input coefficients.</p>
 						</section>
-						<section id="variations">
+						<section id="variations" section-title="Variations/Improvements">
 							<h2>Variations/Improvements</h2>
 							<ul>
 								<li>
@@ -113,7 +113,7 @@
 									<strong>Parallel Evaluation:</strong> Horner's Rule minimizes total operations sequentially. If parallelism is available, an alternative like <em>Estrin's algorithm</em> can evaluate different portions of the polynomial concurrently, reducing the evaluation depth (roughly to \(O(\log n)\) steps). However, the overall number of operations remains \(O(n)\), and Horner's Rule is usually optimal for single-point evaluation on a single processor.</li>
 							</ul>
 						</section>
-						<section id="links">
+						<section id="links" section-title="Links to Resources">
 							<h2>Links to Resources</h2>
 							<ul>
 								<li>
@@ -127,7 +127,7 @@
 									   target="_blank">Cut-the-Knot: Horner's Method Interactive</a> Detailed walkthrough of Horner's method including an interactive applet, and how it relates to evaluating derivatives and polynomial division.</li>
 							</ul>
 						</section>
-						<section id="reading-questions">
+						<section id="reading-questions" section-title="Reading Comprehension Questions">
 							<h2>Reading Comprehension Questions</h2>
 							<ol>
 								<li>
@@ -169,7 +169,7 @@
 							</ol>
 						</div>
 					</section>
-					<section id="activities">
+					<section id="activities" section-title="In-Class Activities">
 						<h2>In-Class Activities</h2>
 						<ol>
 							<li>
@@ -186,7 +186,7 @@
 								<strong>Special Cases:</strong> Discuss what Horner's algorithm does for special inputs. Ask: If \(x = 1\), what does Horner's Rule compute (hint: the sum of all coefficients)? If \(x = 0\), what is the result (hint: just \(a_0\))? Use these cases to illustrate how the algorithm seamlessly handles them and why the results make sense.</li>
 						</ol>
 					</section>
-					<section id="problems">
+					<section id="problems" section-title="Homework Problems">
 						<h2>Homework Problems</h2>
 						<ol>
 							<li>
