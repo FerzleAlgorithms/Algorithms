@@ -388,6 +388,7 @@ function hookIframeContent(iframe) {
         .filter(sec => !sec.classList.contains('collapsible-ready'));
 
       const registry = [];
+      const defaultOpenSlugs = new Set(['problem-solved','design-and-strategy']);
       sections.forEach((section, index) => {
         const titleAttr = section.getAttribute('section-title') || section.getAttribute('data-section-title') || '';
         const id = (section.getAttribute('id') || '').trim();
@@ -454,8 +455,12 @@ function hookIframeContent(iframe) {
           if (idKey && openTargets.has(idKey)) open = true;
           else if (slug && openTargets.has(slug)) open = true;
         } else {
-          // Default: first top-level collapsible opens; others collapsed
-          if (topLevel.length > 0) {
+          // Default: open key intro sections if present; otherwise open first top-level only
+          const idKey = id.toLowerCase();
+          const isPreferred = (defaultOpenSlugs.has(slug) || (idKey && defaultOpenSlugs.has(idKey)));
+          if (isPreferred) {
+            open = true;
+          } else if (topLevel.length > 0) {
             open = (isTopLevel(section) && section === topLevel[0]);
           } else {
             open = (index === 0); // fallback
