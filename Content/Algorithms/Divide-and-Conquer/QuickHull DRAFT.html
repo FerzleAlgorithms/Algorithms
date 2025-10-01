@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>QuickHull (Divide-and-Conquer)</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js"></script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <script src="/Algorithms/scripts/chapterScripts.js"></script>
+  <link rel="stylesheet" href="/Algorithms/css/style.css">
+  <link rel="stylesheet" href="/Algorithms/css/chapter.css">
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DQ5LVZVFDC"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);} 
+    gtag('js', new Date());
+    gtag('config', 'G-DQ5LVZVFDC');
+  </script>
+  
+</head>
+<body>
+  <h1>QuickHull (Divide-and-Conquer)</h1>
+
+  <section id="problem-solved" section-title="Problem Solved">
+  <h2>Problem Solved</h2>
+  <p>
+    QuickHull is a divide-and-conquer algorithm that solves the
+    <a class="problem" href="?path=Problems%2FGeometry%2FConvex%20Hull">Convex Hull</a>
+    problem.
+  </p>
+  </section>
+
+  <section id="design" section-title="Design and Strategy">
+    
+  <h2>Design and Strategy</h2>
+  <p>
+    QuickHull is a divide-and-conquer algorithm for computing the convex hull.
+    After sorting by x, we choose the leftmost point A and rightmost point B to form a baseline that partitions the points into <em>upper</em> and <em>lower</em> sets; on each side we select the point F farthest from the current edge (e.g., A→B) and split into two recursive subproblems on edges A→F and F→B.
+    Points strictly inside the triangle A–F–B are discarded, and recursion continues until no points lie outside an edge; that edge is then part of the hull.
+  </p>
+  
+  <h3>Necessary Computations</h3>
+  <p>
+    QuickHull uses a handful of small computations. We do not need linear algebra; everything reduces to a few integer formulas and sign checks.
+  </p>
+
+  <p><strong>1) Orientation (left/right/collinear)</strong></p>
+  <p>
+    Given points O, A, B, define the 2D cross product (a scalar):
+  </p>
+  <p style="margin-left:1rem;">
+    \[
+      \operatorname{cross}(O,A,B)
+      = (A_x{-}O_x)(B_y{-}O_y) - (A_y{-}O_y)(B_x{-}O_x).
+    \]
+  </p>
+  <p style="margin-top:.25rem;">
+    This value is the z-component of the 3D cross product \(\overrightarrow{OA}\times\overrightarrow{OB}\) when embedding the plane in 3D with z=0.
+    It is also twice the signed area of triangle OAB (the shoelace determinant). Many texts simply call it the orientation test.
+  </p>
+  <ul>
+    <li>cross &gt; 0 ⇒ B is to the left of the directed line O→A (counter‑clockwise turn).</li>
+    <li>cross &lt; 0 ⇒ right turn.</li>
+    <li>cross = 0 ⇒ collinear.</li>
+  </ul>
+  <p style="margin-top:.5rem;">The (unsigned) area of triangle OAB equals |cross|/2, so |cross| also measures how far B is from line OA up to a scale.</p>
+  
+  <p><strong>Examples (orientation).</strong> O=(0,0), A=(2,1), B=(3,4) ⇒ cross=5&gt;0 (left turn).</p>
+  
+  <div style="display:flex;gap:20px;flex-wrap:wrap;margin:12px 0;">
+    <figure style="margin:0;">
+      <svg width="260" height="180" viewBox="-10 -10 220 150" role="img" aria-label="Orientation left turn">
+        <defs>
+          <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="#444" />
+          </marker>
+        </defs>
+        <rect x="-10" y="-10" width="240" height="160" fill="#fff" />
+        <circle cx="20" cy="120" r="3" fill="#2a6" />
+        <text x="24" y="120" font-size="12">O(0,0)</text>
+        <circle cx="100" cy="80" r="3" fill="#2a6" />
+        <text x="104" y="80" font-size="12">A(2,1)</text>
+        <circle cx="160" cy="20" r="3" fill="#2a6" />
+        <text x="164" y="20" font-size="12">B(3,4)</text>
+        <line x1="20" y1="120" x2="100" y2="80" stroke="#444" stroke-width="2" marker-end="url(#arrow)" />
+        <line x1="20" y1="120" x2="160" y2="20" stroke="#444" stroke-width="2" marker-end="url(#arrow)" />
+        <text x="20" y="140" font-size="12">Left turn: cross &gt; 0</text>
+      </svg>
+      <figcaption style="text-align:center;font-size:12px;color:#555">Left turn (counter‑clockwise)</figcaption>
+    </figure>
+    <figure style="margin:0;">
+      <svg width="260" height="180" viewBox="-10 -10 220 150" role="img" aria-label="Orientation right turn">
+        <rect x="-10" y="-10" width="240" height="160" fill="#fff" />
+        <circle cx="20" cy="120" r="3" fill="#a62" />
+        <text x="24" y="120" font-size="12">O(0,0)</text>
+        <circle cx="100" cy="80" r="3" fill="#a62" />
+        <text x="104" y="80" font-size="12">A(2,1)</text>
+        <circle cx="160" cy="140" r="3" fill="#a62" />
+        <text x="164" y="140" font-size="12">B(3,-1)</text>
+        <line x1="20" y1="120" x2="100" y2="80" stroke="#444" stroke-width="2" />
+        <line x1="20" y1="120" x2="160" y2="140" stroke="#444" stroke-width="2" />
+        <text x="20" y="140" font-size="12">Right turn: cross &lt; 0</text>
+      </svg>
+      <figcaption style="text-align:center;font-size:12px;color:#555">Right turn (clockwise)</figcaption>
+    </figure>
+    <figure style="margin:0;">
+      <svg width="260" height="180" viewBox="-10 -10 220 150" role="img" aria-label="Orientation collinear">
+        <rect x="-10" y="-10" width="240" height="160" fill="#fff" />
+        <line x1="20" y1="100" x2="180" y2="100" stroke="#444" stroke-width="2" />
+        <circle cx="40" cy="100" r="3" fill="#266" />
+        <text x="44" y="100" font-size="12">O</text>
+        <circle cx="100" cy="100" r="3" fill="#266" />
+        <text x="104" y="100" font-size="12">A</text>
+        <circle cx="160" cy="100" r="3" fill="#266" />
+        <text x="164" y="100" font-size="12">B</text>
+        <text x="20" y="120" font-size="12">Collinear: cross = 0</text>
+      </svg>
+      <figcaption style="text-align:center;font-size:12px;color:#555">Collinear case</figcaption>
+    </figure>
+  </div>
+
+  <p><strong>Signed area example.</strong> Let O=(0,0), A=(4,0), B=(2,3). Then cross(O,A,B) = (4−0)(3−0) − (0−0)(2−0) = 12. So area(△OAB) = |cross|/2 = 6. This matches ½·base·height = ½·4·3 = 6 (and the shoelace determinant).</p>
+  <figure style="margin:0 0 12px 0;">
+    <svg width="360" height="200" viewBox="0 0 360 200" role="img" aria-label="Signed area example">
+      <rect x="0" y="0" width="360" height="200" fill="#fff" />
+      <!-- base OA along x-axis -->
+      <line x1="40" y1="160" x2="280" y2="160" stroke="#666" stroke-width="2" />
+      <circle cx="40" y="160" r="3" fill="#2a6" />
+      <text x="46" y="160" font-size="12">O(0,0)</text>
+      <circle cx="280" y="160" r="3" fill="#2a6" />
+      <text x="286" y="160" font-size="12">A(4,0)</text>
+      <!-- point B above base -->
+      <circle cx="160" y="100" r="3" fill="#d62728" />
+      <text x="166" y="100" font-size="12">B(2,3)</text>
+      <!-- triangle OAB -->
+      <polygon points="40,160 280,160 160,100" fill="#cfe8ff" stroke="#2b6cb0" stroke-width="2" />
+      <!-- height from B to base -->
+      <line x1="160" y1="100" x2="160" y2="160" stroke="#ff9900" stroke-width="2" stroke-dasharray="4,6" />
+      <text x="164" y="130" font-size="12" fill="#ff9900">height = 3</text>
+      <text x="150" y="175" font-size="12">base = 4</text>
+      <text x="20" y="20" font-size="12">|cross(O,A,B)| = 12 ⇒ area = 12/2 = 6</text>
+    </svg>
+    <figcaption style="text-align:center;font-size:12px;color:#555">Triangle area from cross (shoelace) equals ½·base·height</figcaption>
+  </figure>
+
+  <p><strong>2) Signed distance to a line (practical formula)</strong></p>
+  <p>
+    For edge A(x₁,y₁)→B(x₂,y₂), a line equation is Ax + By + C = 0 with
+  </p>
+  <p style="margin-left:1rem;">
+    \[
+      A = (y_2 - y_1),\quad B = (x_1 - x_2),\quad C = (x_2 y_1 - x_1 y_2).
+    \]
+  </p>
+  <p>
+    For a point P(x,y), the signed value is S = A x + B y + C. The (unsigned) distance to line AB is
+  </p>
+  <p style="margin-left:1rem;">
+    \[
+      d = \frac{|S|}{\sqrt{A^2 + B^2}}.
+    \]
+  </p>
+  <p>
+    We rarely need d itself. To pick the farthest point, we can compare |S| directly (or |S|²) since \(\sqrt{A^2{+}B^2}\) is constant for a fixed edge. Equivalently, maximizing |cross(A,B,P)| also works because |cross| = |AB|·d.
+  </p>
+  <p>Example (distance): if A=(0,0), B=(6,0), then \(|\operatorname{cross}(A,B,P)|=6\cdot |P_y|\), so the farthest point maximizes |y|.</p>
+
+  <p><strong>3) Upper/lower half‑planes</strong></p>
+  <p>
+    With baseline A→B, classify a point P by the sign of cross(A,B,P):
+  </p>
+  <pre><code>if cross(A,B,P) &gt; 0:  # left of A→B
+    P ∈ upper set U
+elif cross(A,B,P) &lt; 0:  # right of A→B
+    P ∈ lower set L
+else:
+    P is collinear with A–B (ignore interior; endpoints only)</code></pre>
+
+  <p><strong>4) Triangle pruning test</strong></p>
+  <p>
+    After choosing the farthest point F from edge X→Y (on, say, the upper side), a point Q lies inside the triangle X–F–Y or on its boundary if it is not strictly to the left of X→F and not strictly to the left of F→Y:
+  </p>
+  <pre><code>inside_or_boundary = (cross(X,F,Q) ≤ 0) and (cross(F,Y,Q) ≤ 0)
+# If true, Q can be discarded for this side.</code></pre>
+
+  <div style="display:flex;gap:20px;flex-wrap:wrap;margin:12px 0;">
+    <figure style="margin:0;">
+      <svg width="260" height="180" viewBox="0 0 260 180" role="img" aria-label="QuickHull split and farthest point">
+        <rect x="0" y="0" width="260" height="180" fill="#fff" />
+        <!-- baseline A->B -->
+        <circle cx="30" cy="140" r="3" fill="#2a6" />
+        <text x="36" y="140" font-size="12">A</text>
+        <circle cx="220" cy="120" r="3" fill="#2a6" />
+        <text x="226" y="120" font-size="12">B</text>
+        <line x1="30" y1="140" x2="220" y2="120" stroke="#666" stroke-width="2" stroke-dasharray="6,6" />
+        <!-- upper points -->
+        <circle cx="90" cy="60" r="3" fill="#222" />
+        <circle cx="150" cy="40" r="3" fill="#222" />
+        <circle cx="200" cy="70" r="3" fill="#222" />
+        <!-- farthest point from AB (C) -->
+        <circle cx="150" cy="40" r="4" fill="#d62728" />
+        <text x="156" y="40" font-size="12">C (farthest)</text>
+        <!-- triangles showing pruning -->
+        <line x1="30" y1="140" x2="150" y2="40" stroke="#2d7dd2" stroke-width="2" />
+        <line x1="150" y1="40" x2="220" y2="120" stroke="#2d7dd2" stroke-width="2" />
+        <polygon points="30,140 150,40 220,120" fill="none" stroke="#ff9900" stroke-dasharray="4,6" />
+        <text x="60" y="110" font-size="12" fill="#ff9900">discard inside</text>
+      </svg>
+      <figcaption style="text-align:center;font-size:12px;color:#555">Split by A→B; pick farthest C; prune interior</figcaption>
+    </figure>
+  </div>
+
+  <p><strong>5) Practical notes</strong></p>
+  <ul>
+    <li><em>Integers vs. floats:</em> With integer coordinates, cross is exact and fast. With floats, treat small |cross| as 0 using a tiny ε (e.g., 1e−9).</li>
+    <li><em>Avoiding sqrt:</em> Compare |cross| (or |S|) instead of distances to skip expensive square roots.</li>
+    <li><em>Overflow guard:</em> If coordinates can be large, use 64‑bit integers for cross computations.</li>
+    <li><em>Duplicates and collinearity:</em> Remove duplicates up front; for collinear points on edges we keep endpoints only (the policy used here).</li>
+  </ul>
+
+  <p><strong>Examples (orientation).</strong> O=(0,0), A=(2,1), B=(3,4) ⇒ cross=5&gt;0 (left turn).</p>
+
+  <div style="display:flex;gap:20px;flex-wrap:wrap;margin:12px 0;">
+    <figure style="margin:0;">
+      <svg width="260" height="180" viewBox="-10 -10 220 150" role="img" aria-label="Orientation left turn">
+        <defs>
+          <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="#444" />
+          </marker>
+        </defs>
+        <rect x="-10" y="-10" width="240" height="160" fill="#fff" />
+        <circle cx="20" cy="120" r="3" fill="#2a6" />
+        <text x="24" y="120" font-size="12">O(0,0)</text>
+        <circle cx="100" cy="80" r="3" fill="#2a6" />
+        <text x="104" y="80" font-size="12">A(2,1)</text>
+        <circle cx="160" cy="20" r="3" fill="#2a6" />
+        <text x="164" y="20" font-size="12">B(3,4)</text>
+        <line x1="20" y1="120" x2="100" y2="80" stroke="#444" stroke-width="2" marker-end="url(#arrow)" />
+        <line x1="20" y1="120" x2="160" y2="20" stroke="#444" stroke-width="2" marker-end="url(#arrow)" />
+        <text x="20" y="140" font-size="12">Left turn: cross &gt; 0</text>
+      </svg>
+      <figcaption style="text-align:center;font-size:12px;color:#555">Orientation via cross product</figcaption>
+    </figure>
+    <figure style="margin:0;">
+      <svg width="260" height="180" viewBox="-10 -10 220 150" role="img" aria-label="Orientation right turn">
+        <rect x="-10" y="-10" width="240" height="160" fill="#fff" />
+        <circle cx="20" cy="120" r="3" fill="#a62" />
+        <text x="24" y="120" font-size="12">O(0,0)</text>
+        <circle cx="100" cy="80" r="3" fill="#a62" />
+        <text x="104" y="80" font-size="12">A(2,1)</text>
+        <circle cx="160" cy="140" r="3" fill="#a62" />
+        <text x="164" y="140" font-size="12">B(3,-1)</text>
+        <line x1="20" y1="120" x2="100" y2="80" stroke="#444" stroke-width="2" />
+        <line x1="20" y1="120" x2="160" y2="140" stroke="#444" stroke-width="2" />
+        <text x="20" y="140" font-size="12">Right turn: cross &lt; 0</text>
+      </svg>
+      <figcaption style="text-align:center;font-size:12px;color:#555">Right turn (clockwise)</figcaption>
+    </figure>
+    <figure style="margin:0;">
+      <svg width="260" height="180" viewBox="-10 -10 220 150" role="img" aria-label="Orientation collinear">
+        <rect x="-10" y="-10" width="240" height="160" fill="#fff" />
+        <line x1="20" y1="100" x2="180" y2="100" stroke="#444" stroke-width="2" />
+        <circle cx="40" cy="100" r="3" fill="#266" />
+        <text x="44" y="100" font-size="12">O</text>
+        <circle cx="100" cy="100" r="3" fill="#266" />
+        <text x="104" y="100" font-size="12">A</text>
+        <circle cx="160" cy="100" r="3" fill="#266" />
+        <text x="164" y="100" font-size="12">B</text>
+        <text x="20" y="120" font-size="12">Collinear: cross = 0</text>
+      </svg>
+      <figcaption style="text-align:center;font-size:12px;color:#555">Collinear case</figcaption>
+    </figure>
+  </div>
+
+  <h3>QuickHull Recurrence</h3>
+  <p>
+    On edge X→Y with candidate set S, choose F maximizing the absolute area of triangle XFY, which is proportional to |cross(X,Y,F)|. Then recursively solve the two subproblems on the sets strictly to the left of X→F and F→Y. All points inside triangle XFY are interior and can be discarded.
+  </p>
+
+  <h3>Worked Numeric Example</h3>
+  <p>
+    Let A=(0,0) and B=(6,0). Upper set U contains P1=(1,2), P2=(3,5), P3=(5,1).
+    The farthest point from AB is the one maximizing |cross(A,B,Pi)|. Since B−A=(6,0),
+    cross(A,B,Pi) = (6)(Pi.y−0) − (0)(Pi.x−0) = 6·Pi.y, so P2 with y=5 is farthest.
+  </p>
+  <ul>
+    <li>Form triangle A–P2–B and discard any points inside it.</li>
+    <li>Recurse on edges A→P2 with points left of A→P2, and P2→B with points left of P2→B.</li>
+  </ul>
+  <p>Repeat until no points remain outside an edge; the collected edges form the hull.</p>
+  </section>
+
+  <section id="demo" section-title="Interactive Demo">
+  <div class="embeddedDemoContainer">
+    <iframe class="embeddedDemo"
+            src="/Algorithms/Content/Demos/Divide-and-Conquer/QuickHull.html"
+            allow="fullscreen"
+            name="CONVEX_HULL-demo">
+    </iframe>
+  </div>
+  </section>
+
+  <section id="code" section-title="Implementation in Java, C++, Python">
+  <h2>Implementation in Java, C++, Python</h2>
+  <p>The implementations below follow QuickHull: partition by the baseline A–B, recursively select the farthest point from each edge, and prune interior points.</p>
+  <div class="tab-group">
+    <div class="tabs" role="tablist">
+      <button id="tab-java" class="tablink active" data-lang="java" role="tab" aria-controls="java" aria-selected="true">Java</button>
+      <button id="tab-cpp" class="tablink" data-lang="cpp" role="tab" aria-controls="cpp" aria-selected="false">C++</button>
+      <button id="tab-python" class="tablink" data-lang="python" role="tab" aria-controls="python" aria-selected="false">Python</button>
+    </div>
+    <div id="java" class="code-container active" role="tabpanel" aria-labelledby="tab-java">
+      <pre><code class="language-java">import java.util.*;
+
+class Point {
+    int x, y;
+    Point(int x, int y) { this.x = x; this.y = y; }
+}
+
+public class ConvexHullQuickHull {
+    private static long cross(Point O, Point A, Point B) {
+        return (long)(A.x - O.x) * (B.y - O.y) - (long)(A.y - O.y) * (B.x - O.x);
+    }
+
+    // Absolute twice-area of triangle OAB (no sqrt); proportional to distance to line OA
+    private static long triArea2(Point O, Point A, Point B) {
+        return Math.abs(cross(O, A, B));
+    }
+
+    public static List<Point> convexHull(Point[] pts) {
+        if (pts.length <= 1) return Arrays.asList(pts);
+        Arrays.sort(pts, (a, b) -> a.x != b.x ? Integer.compare(a.x, b.x) : Integer.compare(a.y, b.y));
+        Point A = pts[0], B = pts[pts.length - 1];
+        List<Point> upper = new ArrayList<>();
+        List<Point> lower = new ArrayList<>();
+        for (Point p : pts) {
+            long c1 = cross(A, B, p);
+            if (c1 > 0) upper.add(p);
+            else if (c1 < 0) lower.add(p);
+        }
+        List<Point> hull = new ArrayList<>();
+        quickHullSide(A, B, upper, hull); // builds A..B along upper
+        quickHullSide(B, A, lower, hull); // builds B..A along lower
+        return hull;
+    }
+
+    private static void quickHullSide(Point A, Point B, List<Point> S, List<Point> out) {
+        if (S.isEmpty()) { out.add(A); return; }
+        Point far = null; long best = -1;
+        for (Point p : S) {
+            long a2 = triArea2(A, B, p);
+            if (a2 > best) { best = a2; far = p; }
+        }
+        List<Point> S1 = new ArrayList<>();
+        List<Point> S2 = new ArrayList<>();
+        for (Point p : S) {
+            if (cross(A, far, p) > 0) S1.add(p);
+            else if (cross(far, B, p) > 0) S2.add(p);
+        }
+        quickHullSide(A, far, S1, out);
+        quickHullSide(far, B, S2, out);
+    }
+}</code></pre>
+    </div>
+    <div id="cpp" class="code-container" role="tabpanel" aria-labelledby="tab-cpp">
+      <pre><code class="language-cpp">#include <vector>
+#include <algorithm>
+
+struct Point { long long x, y; };
+
+static long long cross(const Point& O, const Point& A, const Point& B) {
+    return (A.x - O.x) * (B.y - O.y) - (A.y - O.y) * (B.x - O.x);
+}
+
+static long long triArea2(const Point& O, const Point& A, const Point& B) {
+    long long v = cross(O, A, B);
+    return v >= 0 ? v : -v;
+}
+
+static void quickHullSide(const Point& A, const Point& B,
+                          const std::vector<Point>& S,
+                          std::vector<Point>& out) {
+    if (S.empty()) { out.push_back(A); return; }
+    // farthest by area (no sqrt)
+    const Point* far = nullptr; long long best = -1;
+    for (const auto& p : S) {
+        long long a2 = triArea2(A, B, p);
+        if (a2 > best) { best = a2; far = &p; }
+    }
+    std::vector<Point> S1, S2;
+    for (const auto& p : S) {
+        if (cross(A, *far, p) > 0) S1.push_back(p);
+        else if (cross(*far, B, p) > 0) S2.push_back(p);
+    }
+    quickHullSide(A, *far, S1, out);
+    quickHullSide(*far, B, S2, out);
+}
+
+std::vector<Point> convexHullQuickHull(std::vector<Point> pts) {
+    if (pts.size() <= 1) return pts;
+    std::sort(pts.begin(), pts.end(), [](const Point& a, const Point& b){
+        return a.x < b.x || (a.x == b.x && a.y < b.y);
+    });
+    Point A = pts.front(), B = pts.back();
+    std::vector<Point> upper, lower;
+    for (const auto& p : pts) {
+        long long c = cross(A, B, p);
+        if (c > 0) upper.push_back(p);
+        else if (c < 0) lower.push_back(p);
+    }
+    std::vector<Point> hull; hull.reserve(pts.size());
+    quickHullSide(A, B, upper, hull);
+    quickHullSide(B, A, lower, hull);
+    return hull;
+}</code></pre>
+    </div>
+    <div id="python" class="code-container" role="tabpanel" aria-labelledby="tab-python">
+      <pre><code class="language-python">from typing import List, Tuple
+
+class Point:
+    def __init__(self, x: int, y: int):
+        self.x = x
+        self.y = y
+    def __repr__(self):
+        return f"Point({self.x},{self.y})"
+
+def cross(o: Point, a: Point, b: Point) -> int:
+    return (a.x - o.x) * (b.y - o.y) - (a.y - o.y) * (b.x - o.x)
+
+def tri_area2(o: Point, a: Point, b: Point) -> int:
+    return abs(cross(o, a, b))
+
+def quickhull(points: List[Point]) -> List[Point]:
+    if len(points) <= 1:
+        return points[:]
+    pts = sorted(points, key=lambda p: (p.x, p.y))
+    A, B = pts[0], pts[-1]
+    upper = [p for p in pts if cross(A, B, p) > 0]
+    lower = [p for p in pts if cross(B, A, p) > 0]
+    hull: List[Point] = []
+    _quickhull_side(A, B, upper, hull)
+    _quickhull_side(B, A, lower, hull)
+    return hull
+
+def _quickhull_side(A: Point, B: Point, S: List[Point], out: List[Point]) -> None:
+    if not S:
+        out.append(A)
+        return
+    far = max(S, key=lambda p: tri_area2(A, B, p))
+    S1 = [p for p in S if cross(A, far, p) > 0]
+    S2 = [p for p in S if cross(far, B, p) > 0]
+    _quickhull_side(A, far, S1, out)
+    _quickhull_side(far, B, S2, out)
+
+if __name__ == "__main__":
+    pts = [Point(0,3), Point(1,1), Point(2,2), Point(4,4),
+           Point(0,0), Point(1,2), Point(3,1), Point(3,3)]
+    h = quickhull(pts)
+    print("Convex Hull:", h)</code></pre>
+    </div>
+  </div>
+  </section>
+
+  <section id="analysis" section-title="Time/Space Analysis">
+  <h2>Time/Space Analysis</h2>
+  <p><strong>Time Complexity:</strong> Expected O(n log n) on typical inputs due to effective pruning; worst-case O(n²) when many points are on the hull or splits are highly unbalanced. Sorting by x is O(n log n) and usually dominant.</p>
+  <p><strong>Space Complexity:</strong> O(n) to store points and the resulting hull. Recursion depth is O(log n) on average but can be O(n) in adversarial cases.</p>
+  </section>
+  
+  
+  <section id="variations" section-title="Variations/Improvements">
+  <h2>Variations/Improvements</h2>
+  <p>
+    <strong>Graham Scan:</strong> O(n log n) after sorting by polar angle; maintains a stack of left turns.
+  </p>
+  <p>
+    <strong>Jarvis March (Gift Wrapping):</strong> O(nh) where h is hull size; efficient when h ≪ n, worst-case O(n²).
+  </p>
+  <p>
+    <strong>Chan's Algorithm:</strong> O(n log h), combining ideas from Graham and Jarvis; near-optimal when h is small.
+  </p>
+  <p>
+    <strong>Divide-and-Conquer (Tangent Merge):</strong> Build hulls on halves and merge via upper/lower tangents in linear time per merge level.
+  </p>
+  </section>
+
+  <section id="links" section-title="Links to Resources">
+  <h2>Links to Resources</h2>
+  <ul>
+    <li><a href="https://en.wikipedia.org/wiki/Convex_hull_algorithms" target="_blank">Wikipedia: Convex Hull Algorithms</a> Comprehensive overview of different approaches</li>
+    <li><a href="https://www.cs.jhu.edu/~mdinitz/classes/IntroAlgorithms/Spring2014/Notes/convex_hull.pdf" target="_blank">JHU Algorithm Notes</a> Mathematical treatment with detailed proofs</li>
+    <li><a href="https://cp-algorithms.com/geometry/convex-hull.html" target="_blank">CP-Algorithms: Convex Hull</a> Implementation-focused tutorial with multiple algorithms</li>
+  </ul>
+  </section>
+
+  <section id="reading-questions" section-title="Reading Comprehension Questions">
+    <h2>Reading Comprehension Questions</h2>
+    <ol>
+      <li><strong>Geometric Primitive:</strong> What does the cross product tell us about the orientation of three points, and why is this crucial for convex hull algorithms?</li>
+      <li><strong>Farthest Point:</strong> Why does QuickHull pick the point farthest from the current edge, and how does that choice enable pruning?</li>
+      <li><strong>Complexity:</strong> Describe when QuickHull achieves expected O(n log n) and when it can degrade to O(n²).</li>
+      <li><strong>Degenerate Cases:</strong> How should the algorithm handle collinear points? Should they be included on the hull boundary?</li>
+    </ol>
+    <button id="toggleAnswers" class="show-answer" aria-expanded="false">Show Answers</button>
+    <div id="answers" class="answer" hidden>
+      <ol>
+        <li><strong>Answer:</strong> The cross product of vectors OA and OB tells us the orientation: positive means counter-clockwise (left turn), negative means clockwise (right turn), zero means collinear. This is essential because convex hull algorithms need to determine whether adding a point would create a "left turn" (convex) or "right turn" (concave).</li>
+        <li><strong>Answer:</strong> The farthest point maximizes the support distance from the edge X→Y. The triangle X–F–Y contains only interior points, which can be discarded, shrinking the problem quickly in practice.</li>
+        <li><strong>Answer:</strong> Random, well-spread inputs tend to produce balanced recursion and expected O(n log n). Adversarial inputs (e.g., many points on a circle or on the hull) can cause highly unbalanced splits, leading to O(n²).</li>
+        <li><strong>Answer:</strong> Collinear points on the hull boundary can be handled in two ways: either include all collinear points (useful for some applications) or exclude interior collinear points (minimal hull). The algorithm should be consistent in its choice and handle the cross product returning zero appropriately.</li>
+      </ol>
+    </div>
+  </section>
+
+  <section id="activities" section-title="In-Class Activities">
+    <h2>In-Class Activities</h2>
+    <ol>
+      <li><strong>Upper/Lower Split:</strong> Identify A and B and partition a point set into upper and lower subsets.</li>
+      <li><strong>Farthest-Point Practice:</strong> Compute |cross(A,B,P)| values to choose the farthest point without square roots.</li>
+      <li><strong>Pruning Exercise:</strong> Draw triangle X–F–Y and mark points that can be discarded before recursing.</li>
+      <li><strong>QuickHull Trace:</strong> Step through QuickHull on 6–10 points and record the hull edges in order.</li>
+    </ol>
+  </section>
+
+  <section id="problems" section-title="Homework Problems">
+    <h2>Homework Problems</h2>
+    <ol>
+      <li><strong>Implementation Verification:</strong> Implement QuickHull and verify correctness on collinear sets, duplicate points, and small random cases.</li>
+      <li><strong>Comparative Analysis:</strong> Implement QuickHull and Graham scan; compare performance under random inputs vs. points placed on a circle.</li>
+      <li><strong>Geometric Applications:</strong> Given a set of 2D points representing locations of cell towers, write a program that finds the convex hull and calculates the area enclosed by the hull (useful for coverage area estimation).</li>
+      <li><strong>3D Extension:</strong> Research and describe how the convex hull problem extends to three dimensions. What are the main algorithmic differences, and what is the time complexity of 3D convex hull algorithms?</li>
+    </ol>
+  </section>
+
+</body>
+</html>

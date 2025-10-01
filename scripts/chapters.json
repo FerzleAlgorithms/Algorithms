@@ -105,11 +105,11 @@
     },
     {
       "Divide-and-Conquer": [
-        "Convex Hull.html",
         "Exponentiation Demo.html",
         "Matrix Multiplcation (Inplace) Demo.html",
         "Matrix Multiplication Demo.html",
         "Merge Sort Demo.html",
+        "QuickHull.html",
         "QuickSort Demo.html",
         "Strassens Demo.html"
       ]
@@ -183,7 +183,7 @@
         "Algorithms/Decrease-and-Conquer/Binary Search DRAFT.html",
         "Algorithms/Decrease-and-Conquer/Quickselect DRAFT.html",
         "Algorithms/Decrease-and-Conquer/Topological Sort DRAFT.html",
-        "Algorithms/Divide-and-Conquer/Convex Hull DRAFT.html",
+        "Algorithms/Divide-and-Conquer/QuickHull DRAFT.html",
         "Algorithms/Exhaustive Search/Topological Sort (DFS) DRAFT.html",
         "Algorithms/Greedy/Fractional Knapsack DRAFT.html",
         "Algorithms/Greedy/Interval Scheduling DRAFT.html",
