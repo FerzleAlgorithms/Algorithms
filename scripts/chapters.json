@@ -21,6 +21,7 @@
       "Divide-and-Conquer": [
         "Matrix Multiplication.html",
         "Merge Sort.html",
+        "QuickHull.html",
         "Quicksort.html",
         "Strassen.html"
       ]
@@ -184,7 +185,6 @@
         "Algorithms/Decrease-and-Conquer/Binary Search DRAFT.html",
         "Algorithms/Decrease-and-Conquer/Quickselect DRAFT.html",
         "Algorithms/Decrease-and-Conquer/Topological Sort DRAFT.html",
-        "Algorithms/Divide-and-Conquer/QuickHull DRAFT.html",
         "Algorithms/Exhaustive Search/Topological Sort (DFS) DRAFT.html",
         "Algorithms/Greedy/Fractional Knapsack DRAFT.html",
         "Algorithms/Greedy/Interval Scheduling DRAFT.html",
