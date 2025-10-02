@@ -4,11 +4,17 @@ import os, json, urllib.parse, xml.etree.ElementTree as ET
 # Edit this to match your actual root URL for the menu (include trailing slash if needed)
 SITE_ROOT = "https:///Algorithms/"
 
+# Directories to exclude from menu generation (case-insensitive)
+IGNORE_DIRS = {"old", "images", "figures"}
+
 def scan_dir(current_path, path_prefix="", draft_accumulator=None):
     items = []
     for entry in sorted(os.listdir(current_path)):
         entry_path = os.path.join(current_path, entry)
         if os.path.isdir(entry_path):
+            # Skip directories like 'old', 'images', or 'figures' (any capitalization)
+            if entry.lower() in IGNORE_DIRS:
+                continue
             sub = scan_dir(entry_path, path_prefix + entry + "/", draft_accumulator)
             if sub:
                 items.append({entry: sub})
@@ -25,6 +31,9 @@ def build_chapters_json(base_dir='/home/cusack/public_html/Algorithms/Content'):
     for chapter_dir in sorted(os.listdir(base_dir)):
         chapter_path = os.path.join(base_dir, chapter_dir)
         if os.path.isdir(chapter_path):
+            # Apply the same ignore filter at the top level
+            if chapter_dir.lower() in IGNORE_DIRS:
+                continue
             chapters[chapter_dir] = scan_dir(chapter_path, chapter_dir + "/", drafts)
     if drafts:
         chapters.setdefault("More", []).append({"DRAFTS": sorted(drafts)})

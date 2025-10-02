@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>QuickHull Mini Demo</title>
+  <script src="../../../scripts/demoScripts.js"></script>
+  <link rel="stylesheet" href="../../../css/style.css">
+  <link rel="stylesheet" href="../../../css/demo.css">
+
+  <script>
+    // Avoid tooltips clutter in this mini demo
+    document.addEventListener('DOMContentLoaded', () => document.body.classList.add('no-tooltips'));
+  </script>
+</head>
+<body class="no-tooltips">
+  <div class="demo">
+    <h2>QuickHull — Mini (Fixed Points)</h2>
+    <div class="controls">
+      <button id="prevBtn">Previous</button>
+      <button id="nextBtn">Next</button>
+      <button id="playBtn">Play</button>
+      <label for="speed" style="margin-left:8px;">Speed:</label>
+      <select id="speed">
+        <option value="1">1×</option>
+        <option value="2">2×</option>
+        <option value="4">4×</option>
+      </select>
+      <span id="stepInfo" class="step-info">Step 0 / 0</span>
+    </div>
+    <canvas id="cv" width="900" height="300"></canvas>
+    <br>
+    <div class="legend">
+      <strong>Legend:</strong>
+      <div class="legend-items">
+      <span class="legend-box" style="background-color:#222"></span> Points
+      <span class="legend-box" style="background-color:#27ae60"></span> Hull edges (solid)
+      <span class="legend-box" style="background-color:#8e44ad"></span> Current edge (focus)
+      <span class="legend-box" style="background-color:#888"></span> Other dividing (dashed)<br>
+      <span class="legend-box" style="background-color:#2d7dd2"></span> Subproblem (dashed)
+      <span class="legend-box" style="background-color:#ff9900"></span> Distance (dotted)
+      <span class="legend-box" style="background-color:#1f77b4"></span> Left scan
+      <span class="legend-box" style="background-color:#ff7f0e"></span> Right scan
+    </div>
+  </div>
+  </div>
+
+  <script>
+    (function() {
+      const canvas = document.getElementById('cv');
+      const ctx = canvas.getContext('2d');
+      const playBtn = document.getElementById('playBtn');
+      const prevBtn = document.getElementById('prevBtn');
+      const nextBtn = document.getElementById('nextBtn');
+      const speedEl = document.getElementById('speed');
+      const stepInfoEl = document.getElementById('stepInfo');
+
+      const COLORS = {
+        points: '#222',
+        dividing: '#888',
+        current: '#8e44ad',
+        subproblem: '#2d7dd2',
+        distance: '#ff9900',
+        hull: '#27ae60',
+        highlight: '#d62728',
+        mainDividing: '#666',
+        leftScan: '#1f77b4',
+        rightScan: '#ff7f0e'
+      };
+      
+      // Controls: keep step text close to button
+      (function ensureStepInfoStyle(){
+        const style = document.createElement('style');
+        style.textContent = `.controls .step-info{ margin-left:8px; }`;
+        document.head.appendChild(style);
+      })();
+
+      // Fixed points: small set
+      // Same coordinates as before, but deliberately out-of-x-order
+      const FIXED_POINTS = [
+        {id:1,x:420,y:20}, {id:2,x:240,y:220}, {id:3,x:740,y:200}, {id:4,x:160,y:40},
+        {id:5,x:640,y:80}, {id:6,x:260,y:120}, {id:7,x:360,y:240}, {id:8,x:780,y:40},
+        {id:9,x:120,y:250}, {id:10,x:560,y:260}, {id:11,x:320,y:60}, {id:12,x:520,y:100}
+      ];
+
+      const state = {
+        points: [],
+        steps: [],
+        current: 0,
+        timer: null,
+        mainAB: null,
+        showMainABFrom: Infinity
+      };
+
+      // Geometry helpers
+      function cross(a, b, c) { return (b.x - a.x) * (c.y - a.y) - (b.y - a.y) * (c.x - a.x); }
+      function isLeft(a, b, p) { return cross(a, b, p) > 0; }
+      function distanceToLine(a, b, p) {
+        const A = b.y - a.y, B = a.x - b.x, C = b.x * a.y - a.x * b.y;
+        const denom = Math.hypot(A, B) || 1;
+        const d = Math.abs(A * p.x + B * p.y + C) / denom;
+        const abx = b.x - a.x, aby = b.y - a.y;
+        const t = ((p.x - a.x) * abx + (p.y - a.y) * aby) / (abx * abx + aby * aby || 1);
+        const foot = { x: a.x + t * abx, y: a.y + t * aby };
+        return { d, foot };
+      }
+
+      // Step recording (mirrors the full demo but simplified controls)
+      function addStep(step) {
+        state.steps.push({
+          desc: step.desc || '',
+          dividing: step.dividing || [],    // current focus edges [{a,b}]
+          sublines: step.sublines || [],    // introduced subproblem edges this step [{a,b}]
+          distances: step.distances || [],  // [{p, foot}]
+          hullEdges: step.hullEdges || [],  // confirmed hull edges up to this step [{a,b}]
+          highlightPts: step.highlightPts || [],
+          persistent: step.persistent || [],// active lines stack to show [{a,b,type}]
+          leftCandidate: step.leftCandidate || null,
+          rightCandidate: step.rightCandidate || null,
+          major: !!step.major               // unused in controls, kept for parity
+        });
+      }
+
+      // QuickHull with persistent line stack
+      function quickHull(points) {
+        state.steps = [];
+        state.mainAB = null;
+        if (points.length < 2) return;
+
+        addStep({ desc: 'Points initialized. Scan for extremes (left & right).', major: true });
+
+        // Simultaneous scan for leftmost and rightmost
+        let A = points[0];
+        let B = points[0];
+        addStep({ desc: `Initialize scan with vertex ${points[0].id}.`, highlightPts: [points[0]] });
+        for (let i = 1; i < points.length; i++) {
+          const p = points[i];
+          // Record current candidates alongside the point being scanned
+          addStep({
+            desc: `Scan vertex ${p.id}; left ${A.id}, right ${B.id}.`,
+            highlightPts: [p],
+            // custom markers rendered later
+            persistent: [],
+            leftCandidate: A,
+            rightCandidate: B
+          });
+          if (p.x < A.x || (p.x === A.x && p.y < A.y)) A = p;
+          if (p.x > B.x || (p.x === B.x && p.y > B.y)) B = p;
+        }
+        // Finalize scan summary
+        addStep({ desc: `Scan complete — leftmost ${A.id}, rightmost ${B.id}.`, leftCandidate: A, rightCandidate: B, major: true });
+
+        state.mainAB = { a: A, b: B };
+
+        addStep({
+          desc: 'Initial split by minX–maxX.',
+          dividing: [{ a: A, b: B }],
+          highlightPts: [A, B],
+          major: true
+        });
+        state.showMainABFrom = state.steps.length - 1;
+
+        const pts = points.slice();
+        const leftSet = pts.filter(p => isLeft(A, B, p));
+        const rightSet = pts.filter(p => isLeft(B, A, p));
+
+        const active = [];
+
+        function findHull(S, X, Y, label) {
+          active.push({ a: X, b: Y, type: 'dividing' });
+          addStep({
+            desc: `Process ${label} side on edge (${X.id},${Y.id}).`,
+            dividing: [{ a: X, b: Y }],
+            persistent: active.slice(),
+            highlightPts: [X, Y],
+            major: true
+          });
+
+          if (S.length === 0) {
+            addStep({
+              desc: `No points left of edge; add (${X.id},${Y.id}) to hull.`,
+              hullEdges: [{ a: X, b: Y }],
+              persistent: active.slice(),
+              highlightPts: [X, Y],
+              major: true
+            });
+            active.pop();
+            return;
+          }
+
+          let far = null, maxd = -1, foot = null;
+          for (const p of S) {
+            const { d, foot: f } = distanceToLine(X, Y, p);
+            addStep({
+              desc: `Check distance to (${X.id},${Y.id}) from point ${p.id}.`,
+              dividing: [{ a: X, b: Y }],
+              distances: [{ p, foot: f }],
+              highlightPts: far ? [X, Y, p, far] : [X, Y, p],
+              persistent: active.slice(),
+              major: false
+            });
+            if (d > maxd) { maxd = d; far = p; foot = f; }
+          }
+
+          addStep({
+            desc: `Farthest is ${far.id}; split into (${X.id},${far.id}) and (${far.id},${Y.id}).`,
+            dividing: [{ a: X, b: Y }],
+            sublines: [{ a: X, b: far }, { a: far, b: Y }],
+            distances: [{ p: far, foot }],
+            highlightPts: [X, far, Y],
+            persistent: active.slice(),
+            major: true
+          });
+
+          const S1 = S.filter(q => isLeft(X, far, q));
+          const S2 = S.filter(q => isLeft(far, Y, q));
+
+          active.push({ a: X, b: far, type: 'subline' });
+          active.push({ a: far, b: Y, type: 'subline' });
+          findHull(S1, X, far, label);
+          findHull(S2, far, Y, label);
+          active.pop();
+          active.pop();
+
+          active.pop();
+        }
+
+        findHull(leftSet, A, B, 'lower');
+        findHull(rightSet, B, A, 'upper');
+
+        addStep({ desc: 'Convex hull complete.', major: true });
+      }
+
+      // Rendering helpers
+      function drawLine(a, b, color, width = 1, dash = []) {
+        ctx.save();
+        ctx.setLineDash(dash);
+        ctx.lineWidth = width;
+        ctx.strokeStyle = color;
+        ctx.beginPath();
+        ctx.moveTo(a.x, a.y);
+        ctx.lineTo(b.x, b.y);
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      function drawPoint(p, color = COLORS.points, r = 3) {
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
+        ctx.fillStyle = color;
+        ctx.fill();
+        ctx.restore();
+      }
+
+      function drawInfiniteLine(a, b, color, width = 1, dash = []) {
+        const w = canvas.width;
+        const h = canvas.height;
+        const x1 = a.x, y1 = a.y, x2 = b.x, y2 = b.y;
+        const dx = x2 - x1, dy = y2 - y1;
+        const pts = [];
+        function addIfWithin(x, y) {
+          if (x >= 0 && x <= w && y >= 0 && y <= h) pts.push({ x, y });
+        }
+        if (Math.abs(dx) > 1e-9) {
+          let t = (0 - x1) / dx; addIfWithin(0, y1 + t * dy);
+          t = (w - x1) / dx; addIfWithin(w, y1 + t * dy);
+        }
+        if (Math.abs(dy) > 1e-9) {
+          let t = (0 - y1) / dy; addIfWithin(x1 + t * dx, 0);
+          t = (h - y1) / dy; addIfWithin(x1 + t * dx, h);
+        }
+        const uniq = [];
+        for (const p of pts) {
+          if (!uniq.some(q => Math.hypot(q.x - p.x, q.y - p.y) < 1)) uniq.push(p);
+        }
+        if (uniq.length >= 2) {
+          drawLine(uniq[0], uniq[1], color, width, dash);
+        } else {
+          drawLine(a, b, color, width, dash);
+        }
+      }
+
+      function drawExtendedEdge(a, b, color) {
+        ctx.save();
+        ctx.globalAlpha = 0.6;
+        drawInfiniteLine(a, b, color, 1, [6, 6]);
+        ctx.restore();
+        drawLine(a, b, color, 3, [6, 6]);
+      }
+
+      function drawLabel(p, text, color = '#111') {
+        ctx.save();
+        ctx.font = '12px system-ui, -apple-system, Segoe UI, Roboto, sans-serif';
+        ctx.textBaseline = 'bottom';
+        ctx.textAlign = 'left';
+        ctx.strokeStyle = 'rgba(255,255,255,0.9)';
+        ctx.lineWidth = 3;
+        const x = p.x + 6;
+        const y = p.y - 6;
+        ctx.strokeText(text, x, y);
+        ctx.fillStyle = color;
+        ctx.fillText(text, x, y);
+        ctx.restore();
+      }
+
+      function collectHullEdgesUpTo(stepIndex) {
+        const edges = [];
+        for (let i = 0; i <= stepIndex && i < state.steps.length; i++) {
+          const s = state.steps[i];
+          if (s.hullEdges) edges.push(...s.hullEdges);
+        }
+        return edges;
+      }
+
+      function render() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        if (state.steps.length === 0) {
+          stepInfoEl.textContent = 'Step 0 / 0';
+          return;
+        }
+
+        const i = Math.max(0, Math.min(state.current, state.steps.length - 1));
+        const step = state.steps[i];
+
+        // Main AB line (from its intro onward)
+        if (state.mainAB && i >= state.showMainABFrom && i < state.steps.length - 1) {
+          drawLine(state.mainAB.a, state.mainAB.b, COLORS.mainDividing, 1.25, [6, 6]);
+        }
+
+        // Cumulative hull edges up to this step
+        for (const e of collectHullEdgesUpTo(i)) drawLine(e.a, e.b, COLORS.hull, 3);
+
+        // Persistent active lines stack (dashed)
+        if (step.persistent && step.persistent.length) {
+          for (const e of step.persistent) {
+            const style = e.type === 'subline'
+              ? { color: COLORS.subproblem, width: 1.5, dash: [6, 6] }
+              : { color: COLORS.dividing, width: 1.5, dash: [6, 6] };
+            drawLine(e.a, e.b, style.color, style.width, style.dash);
+          }
+        }
+
+        // Current dividing lines — extended, emphasized
+        for (const e of (step.dividing || [])) drawExtendedEdge(e.a, e.b, COLORS.current);
+
+        // Newly introduced subproblem lines this step (dashed)
+        for (const e of (step.sublines || [])) drawLine(e.a, e.b, COLORS.subproblem, 1.5, [6, 6]);
+
+        // Farthest distance indicator
+        for (const d of (step.distances || [])) drawLine(d.p, d.foot, COLORS.distance, 1.5, [2, 6]);
+
+        // Base points on top
+        for (const p of state.points) drawPoint(p, COLORS.points, 3);
+
+        // Scan candidates (colored) if present
+        if (step.leftCandidate) drawPoint(step.leftCandidate, COLORS.leftScan, 4);
+        if (step.rightCandidate) drawPoint(step.rightCandidate, COLORS.rightScan, 4);
+
+        // Highlighted points and labels
+        const labeled = new Set();
+        function labelPoint(p, col) {
+          if (!p) return; const key = p.id; if (labeled.has(key)) return; labeled.add(key); drawLabel(p, String(p.id), col);
+        }
+        if (step.dividing) for (const e of step.dividing) { labelPoint(e.a); labelPoint(e.b); }
+        if (step.sublines) for (const e of step.sublines) { labelPoint(e.a, '#225'); labelPoint(e.b, '#225'); }
+        if (step.distances) for (const d of step.distances) { labelPoint(d.p, '#603'); }
+        if (step.highlightPts) for (const p of step.highlightPts) labelPoint(p, COLORS.highlight);
+        if (step.leftCandidate) labelPoint(step.leftCandidate, COLORS.leftScan);
+        if (step.rightCandidate) labelPoint(step.rightCandidate, COLORS.rightScan);
+
+        stepInfoEl.textContent = `Step ${i + 1} / ${state.steps.length} — ${step.desc}`;
+      }
+
+      // Playback controls
+      function stop() {
+        if (state.timer) { clearInterval(state.timer); state.timer = null; }
+        playBtn.textContent = 'Play';
+      }
+      function play() {
+        // If already playing, pause
+        if (state.timer) { stop(); return; }
+        // If at the end, restart
+        if (state.current >= state.steps.length - 1) { state.current = 0; render(); }
+        playBtn.textContent = 'Pause';
+        const spd = parseInt(speedEl.value, 10) || 1;
+        const delay = Math.max(100, 700 / spd); // steady pace
+        state.timer = setInterval(() => {
+          if (state.current >= state.steps.length - 1) { stop(); return; }
+          state.current++;
+          render();
+        }, delay);
+      }
+
+      playBtn.addEventListener('click', play);
+      prevBtn.addEventListener('click', () => { stop(); state.current = Math.max(0, state.current - 1); render(); });
+      nextBtn.addEventListener('click', () => { stop(); state.current = Math.min(state.steps.length - 1, state.current + 1); render(); });
+      speedEl.addEventListener('change', () => { if (state.timer) { stop(); play(); } });
+
+      // Init with fixed points
+      function init() {
+        state.points = FIXED_POINTS.map(p => ({ ...p }));
+        state.current = 0;
+        quickHull(state.points);
+        render();
+      }
+      init();
+    })();
+  </script>
+</body>
+</html>
