@@ -1,0 +1,19 @@
+--- a/Content/Algorithms/Brute Force/Sequential Search.html
++++ b/Content/Algorithms/Brute Force/Sequential Search.html
+@@ -53,13 +53,15 @@
+       <li>If <code>i==n</code> (end of the array), return <code>-1</code>. Otherwise, repeat from step 2.</li>
+     </ol>
+ 
+-    <div class="embeddedDemoContainer">
++    <section id="demo" section-title="Interactive Demo">
++<div class="embeddedDemoContainer">
+   <iframe class="embeddedDemo"
+           src="/Algorithms/Content/Demos/Brute Force/Sequential Search Demo.html"
+           allow="fullscreen"
+           name="sequential-search-demo">
+   </iframe>
+ </div>
++</section>
+ 	
+     <h2>Implementation in Java, C++, Python</h2>
+ <div class="tab-group">

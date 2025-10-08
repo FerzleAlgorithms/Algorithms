@@ -1,0 +1,18 @@
+--- a/Content/Algorithms/Brute Force/Bubble Sort.html
++++ b/Content/Algorithms/Brute Force/Bubble Sort.html
+@@ -55,6 +55,7 @@
+ resetting <i>j</i> to the start of the array, and beginning the next pass.
+ </p>
+ 
++<section id="demo" section-title="Interactive Demo">
+ <div class="embeddedDemoContainer">
+   <iframe class="embeddedDemo"
+           src="/Algorithms/Content/Demos/Brute Force/Bubble Sort Demo.html"
+@@ -62,6 +63,7 @@
+           name="bubble-sort-demo">
+   </iframe>
+ </div>
++</section>
+ 
+ 
+ <h2>Implementation in Java, C++, Python</h2>

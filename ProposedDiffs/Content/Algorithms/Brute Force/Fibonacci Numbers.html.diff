@@ -1,0 +1,20 @@
+--- a/Content/Algorithms/Brute Force/Fibonacci Numbers.html
++++ b/Content/Algorithms/Brute Force/Fibonacci Numbers.html
+@@ -46,6 +46,7 @@
+   making this technique mainly pedagogical rather than an example of an efficient way to solve a problem.
+ </p>
+ 
++<section id="demo" section-title="Interactive Demo">
+ <div class="embeddedDemoContainer">
+   <iframe class="embeddedDemo"
+           src="/Algorithms/Content/Demos/Brute Force/Fibonacci Naive Demo.html"
+@@ -53,7 +54,8 @@
+           name="FibonacciRecursive-demo"
+           style="height: 400px; min-height: 400px;">
+   </iframe>
+-</div> 
++</div>
++</section> 
+ 
+ <h2>Implementation in Java, C++, Python</h2>
+ The implementations below return \(n\) whenever \(n \lt 2\) 

@@ -33,7 +33,7 @@
 <body>
   <h1>N-Queens (Exhaustive Search)</h1>
 
-  <section id="problem-solved">
+  <section id="problem-solved" section-title="Problem Solved">
     <h2>Problem Solved</h2>
     <p>Here will will present the exhaustive search algorithm that solves the 
       <a class="problem" href="?path=Problems%2FOther%2FN-Queens">N-Queens</a>
@@ -41,7 +41,7 @@
     </p>
   </section>
   
-  <section id="design">
+  <section id="design" section-title="Design and Strategy">
   <h2>Design and Strategy</h2>
   <p>
     The N-Queens problem asks how to place \(N\) queens on an \(N \times N\) chessboard so that no two queens threaten each other. 
@@ -186,11 +186,14 @@
     </ol>
   </li>
 </ol>
-
+  <p>
+    This is an example of <strong>exhaustive search</strong> because it explores all possibilities without any pruning or constraints—resulting in a combinatorial explosion of work.
+  </p>
 <p>If this is not entirely clear, walk through the following demo to see what is really happening.</p>
+
 </section>
 
-  <section id="demo">
+  <section id="demo" section-title="Interactive Demo">
     <div class="embeddedDemoContainer">
       <iframe class="embeddedDemo"
               src="/Algorithms/Content/Demos/Exhaustive%20Search/N-Queens Demo.html"
@@ -200,12 +203,9 @@
     </div>
   </section>
 
-  <p>
-    This is an example of <strong>exhaustive search</strong> because it explores all possibilities without any pruning or constraints—resulting in a combinatorial explosion of work.
-  </p>
   
   
-  <section id="code">
+  <section id="code" section-title="Implementation in Java, C++, Python">
     <h2>Implementation in Java, C++, Python</h2>
     <p>This implementation generates all \(N^N\) possible row-to-column assignments and filters out invalid ones. The code uses \(n\) instead of \(N\) because lower-case variables are more common.
 	The <code>isValid</code> function 
@@ -291,7 +291,7 @@ def is_valid(Q):
     </div>
   </section>
 
-  <section id="analysis">
+  <section id="analysis" section-title="Time/Space Analysis">
     <h2>Time/Space Analysis</h2>
 	<p><strong>Time Complexity:</strong> 
   There are \( N^N \) possible assignments to explore, since each of the \( N \) rows 
@@ -324,7 +324,9 @@ def is_valid(Q):
   since it places one queen per row. Therefore, the overall space complexity is \( O(N).\) 
   No additional data structures are used.
 </p>
+  </section>
 
+<section id="variations" section-title="Variations/Improvements">
 <h2>Variations/Improvements</h2>
 <p>
   Several optimizations can reduce the search space significantly while still exploring 
@@ -335,8 +337,9 @@ def is_valid(Q):
   <li><strong>Backtracking:</strong> A more efficient recursive approach that eliminates invalid partial configurations as soon as they occur, instead of waiting until the board is completely filled. We will explore this technique later as a better alternative.</li>
   <li><strong>Bitmasking (Advanced):</strong> In languages like C++ or Java, bitmasks can represent available columns and diagonals compactly, enabling very fast pruning. This is beyond simple exhaustive search but relevant for high-performance implementations.</li>
 </ul>
+</section>
 
-<section id="links">
+<section id="links" section-title="Links to Resources">
   <h2>Links to Resources</h2>
   <ul>
     <li>
@@ -355,7 +358,7 @@ def is_valid(Q):
     </li>
   </ul>
 </section>
-<section id="reading-questions">
+<section id="reading-questions" section-title="Reading Comprehension Questions">
   <h2>Reading Comprehension Questions</h2>
   <ol> 
   <li><strong>Representation:</strong> What does the array \( Q \) represent in this algorithm, and how is it used?</li>
@@ -396,7 +399,7 @@ Note that rows 0 and 3 both place a queen in column 1, so this configuration is 
   </div>
 </section>
 
-<section id="activities">
+<section id="activities" section-title="In-Class Activities">
   <h2>In-Class Activities</h2>
   <ol>
     <li><strong>Board Visualization:</strong> Given a list like \([3, 1, 4, 2, 0]\), draw the corresponding board and verify whether the configuration is valid. 
@@ -454,7 +457,7 @@ Note that rows 0 and 3 both place a queen in column 1, so this configuration is 
 	</li>
   </ol>
 </section>
-<section id="problems">
+<section id="problems" section-title="Homework Problems">
   <h2>Homework Problems</h2>
   <ol>
     <li><strong>Manual Tracing:</strong> For \( N = 4 \), 

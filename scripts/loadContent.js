@@ -338,6 +338,20 @@ function hookIframeContent(iframe) {
         style.textContent = `
           section.collapsible-ready { margin-top: .5rem; border-top: 1px solid #e0e0e0; padding-top: .25rem; }
           section.collapsible-ready:first-of-type { border-top: 0; margin-top: .25rem; padding-top: 0; }
+          /* Depth-based border thickness: thicker top-level, thinner nested */
+          section.collapsible-ready[data-depth="1"] { border-top-width: 3px; }
+          section.collapsible-ready[data-depth="2"] { border-top-width: 2px; }
+          section.collapsible-ready[data-depth="3"] { border-top-width: 1px; }
+          section.collapsible-ready[data-depth="4"],
+          section.collapsible-ready[data-depth="5"],
+          section.collapsible-ready[data-depth="6"] { border-top-width: 1px; }
+          /* Depth-based color: darker for higher levels */
+          section.collapsible-ready[data-depth="1"] { border-top-color: #777; }
+          section.collapsible-ready[data-depth="2"] { border-top-color: #999; }
+          section.collapsible-ready[data-depth="3"] { border-top-color: #bfbfbf; }
+          section.collapsible-ready[data-depth="4"],
+          section.collapsible-ready[data-depth="5"],
+          section.collapsible-ready[data-depth="6"] { border-top-color: #e0e0e0; }
           section.collapsible-ready > h1,
           section.collapsible-ready > h2,
           section.collapsible-ready > h3,
@@ -393,6 +407,17 @@ function hookIframeContent(iframe) {
         const titleAttr = section.getAttribute('section-title') || section.getAttribute('data-section-title') || '';
         const id = (section.getAttribute('id') || '').trim();
         const slug = slugify(titleAttr);
+
+        // Compute nested depth (1 = top-level child of body)
+        let depth = 1;
+        try {
+          let parent = section.parentElement;
+          while (parent && parent !== doc.body) {
+            if (parent.matches && parent.matches('section[section-title], section[data-section-title]')) depth++;
+            parent = parent.parentElement;
+          }
+        } catch {}
+        section.setAttribute('data-depth', String(depth));
 
         // Find or create a heading to host the toggle
         let header = section.querySelector(':scope > h1, :scope > h2, :scope > h3, :scope > h4, :scope > h5, :scope > h6');

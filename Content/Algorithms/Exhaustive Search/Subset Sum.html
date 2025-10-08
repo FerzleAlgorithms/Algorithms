@@ -21,7 +21,7 @@
 <body>
   <h1>Subset Sum (Exhaustive Search)</h1>
 
-  <section id="problem-solved">
+  <section id="problem-solved" section-title="Problem Solved">
     <h2>Problem Solved</h2>
     <p>
       Here we will describe the exhaustive search algorithm to solve the 
@@ -30,7 +30,7 @@
     </p>
   </section>
 
-<section id="design">
+<section id="design" section-title="Design and Strategy">
   <h2>Design and Strategy</h2>
   <p>
     The exhaustive search algorithm for the Subset Sum problem generates and checks all possible subsets of the input set to determine whether any of them sum to a given target value \( T \). Since a set of size \( n \) has \( 2^n \) subsets, the algorithm examines each one in turn.
@@ -91,7 +91,7 @@
   </ol>
 </section>
 
-  <section id="demo">
+  <section id="demo" section-title="Interactive Demo">
   <p>The following demo shows the algorithm in action.</p>
     <div class="embeddedDemoContainer">
       <iframe class="embeddedDemo"
@@ -102,7 +102,7 @@
     </div>
   </section>
 
-<section id="code">
+<section id="code" section-title="Implementation in Java, C++, Python">
   <h2>Implementation in Java, C++, Python</h2>
   <p>
     These implementations generate all \( 2^n \) subsets using bitmasks and print any subset whose elements sum to the target value.
@@ -170,7 +170,7 @@ void subsetSum(int S[], int n, int T) {
     </div>
   </div>
 </section>
-<section id="analysis">
+<section id="analysis" section-title="Time/Space Analysis">
   <h2>Time/Space Analysis</h2>
   <p>
     <strong>Time Complexity:</strong> An input set of size \( n \) has \( 2^n \) subsets. The algorithm loops through all bitmasks from \( 0 \) to \( 2^n - 1 \), and for each mask, it checks which elements are included and computes the sum of the corresponding subset. The inner loop runs in \( O(n) \) time per subset, so the total time complexity is
@@ -185,7 +185,7 @@ void subsetSum(int S[], int n, int T) {
   </p>
 </section>
   
-  <section id="variations">
+  <section id="variations" section-title="Variations/Improvements">
   <h2>Variations/Improvements</h2>
   <ul>
     <li><strong>Dynamic Programming:</strong> A pseudo-polynomial solution runs in \(O(n \times T)\) time and \(O(T)\) space by building a table of reachable sums. Efficient when the target \(T\) is not too large.</li>
@@ -195,7 +195,7 @@ void subsetSum(int S[], int n, int T) {
   </ul>
 </section>
 
-<section id="links">
+<section id="links" section-title="Links to Resources">
   <h2>Links to Resources</h2>
   <ul class="resource-list">
     <li><a href="https://en.wikipedia.org/wiki/Subset_sum_problem" target="_blank">Subset Sum Problem (Wikipedia)</a></li>
@@ -206,7 +206,7 @@ void subsetSum(int S[], int n, int T) {
 </section>
 
 
- <section id="reading-questions">
+ <section id="reading-questions" section-title="Reading Comprehension Questions">
   <h2>Reading Comprehension Questions</h2>
   <ol>
     <li>How many subsets are there of a set with \( n \) elements? How is this related to bitmasks?</li>
@@ -233,7 +233,7 @@ void subsetSum(int S[], int n, int T) {
   </div>
 </section>
 
-<section id="activities">
+<section id="activities" section-title="In-Class Activities">
   <h2>In-Class Activities</h2>
   <ol>
   <li>
@@ -289,7 +289,7 @@ void subsetSum(int S[], int n, int T) {
   </ol>
 </section>
 
-<section id="problems">
+<section id="problems" section-title="Homework Problems">
   <h2>Homework Problems</h2>
   <ol>
     <li>

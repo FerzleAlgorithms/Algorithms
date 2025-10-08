@@ -1,0 +1,97 @@
+--- a/Content/Algorithms/Brute Force/Polynomial Evaluation.html
++++ b/Content/Algorithms/Brute Force/Polynomial Evaluation.html
+@@ -21,7 +21,7 @@
+ <body>
+   <h1>Polynomial Evaluation (Brute Force)</h1>
+ 
+-  <section id="problem-solved">
++  <section id="problem-solved" section-title="Problem Solved">
+     <h2>Problem Solved</h2>
+     <p>
+       Here we will describe the brute force algorithm that solves the
+@@ -30,7 +30,7 @@
+     </p>
+   </section>
+ 
+-  <section id="design">
++  <section id="design" section-title="Design and Strategy">
+     <h2>Design and Strategy</h2>
+     <p>
+       To evaluate a polynomial of the form
+@@ -63,17 +63,19 @@
+   <section id="demo">
+   <p>This demo should give you a really good idea of how the algorithm works. 
+   It shows each step of the computation and counts the number of additions and multiplications
+-  so you can see exactly how long it takes. And later you can compare it with better algorithms.</p>
+-    <div class="embeddedDemoContainer">
++  so you can see exactly how long it takes. And later you can compare it with better algorithms.</p></section>
++<section id="demo-2" section-title="Interactive Demo">
++<div class="embeddedDemoContainer">
+       <iframe class="embeddedDemo"
+               src="/Algorithms/Content/Demos/Brute%20Force/Polynomial%20Evaluation%20(Quadratic)%20Demo.html"
+               allow="fullscreen"
+               name="polynomial-evaluation-demo">
+       </iframe>
+     </div>
+-  </section>
+-
+-  <section id="code">
++</section>
++
++
++  <section id="code" section-title="Implementation in Java, C++, Python">
+     <h2>Implementation in Java, C++, Python</h2>
+     <div class="tab-group">
+       <div class="tabs" role="tablist">
+@@ -120,13 +122,13 @@
+     </div>
+   </section>
+ 
+-  <section id="analysis">
++  <section id="analysis" section-title="Time/Space Analysis">
+     <h2>Time/Space Analysis</h2>
+     <p><strong>Time Complexity:</strong> The outer loop runs \( n + 1 \) times, and each iteration has an inner loop of up to \( i \) multiplications. The total number of operations is \( 1 + 2 + \dots + n = \frac{n(n+1)}{2} \), which is \( O(n^2) \).</p>
+     <p><strong>Space Complexity:</strong> The algorithm uses only a small number of variables for the result and intermediate power computations, so the space complexity is \( O(1) \).</p>
+   </section>
+ 
+-  <section id="variations">
++  <section id="variations" section-title="Variations/Improvements">
+   <h2>Variations/Improvements</h2>
+   <ul>
+     <li>By avoiding redundant multiplications when computing \( x^i \), we can reduce the total time to linear \( O(n) \). For example, by reusing \( x^{i-1} \) to compute \( x^i \), we only need one multiplication per term.</li>
+@@ -138,7 +140,7 @@
+   </ul>
+   </section>
+ 
+-  <section id="links">
++  <section id="links" section-title="Links to Resources">
+     <h2>Links to Resources</h2>
+     <ul>
+       <li><a href="https://en.wikipedia.org/wiki/Polynomial_evaluation" target="_blank">Wikipedia: Polynomial Evaluation</a> Describes the polynomial evaluation problem and gives several algorithms.</li>
+@@ -146,7 +148,7 @@
+     </ul>
+   </section>
+ 
+-  <section id="reading-questions">
++  <section id="reading-questions" section-title="Reading Comprehension Questions">
+     <h2>Reading Comprehension Questions</h2>
+     <ol>
+       <li><strong>Polynomial Form:</strong> What is the general form of a polynomial used in this algorithm?</li>
+@@ -169,7 +171,7 @@
+     </div>
+   </section>
+ 
+-  <section id="activities">
++  <section id="activities" section-title="In-Class Activities">
+     <h2>In-Class Activities</h2>
+     <ol>
+       <li><strong>Manual Evaluation:</strong> Have students evaluate \( P(x) = 3 + 2x + 5x^2 - 7 x^3 + 9 x^4 \) for \( x = 5 \) using the brute-force method by hand.</li>
+@@ -193,7 +195,7 @@
+     </ol>
+   </section>
+ 
+-  <section id="problems">
++  <section id="problems" section-title="Homework Problems">
+     <h2>Homework Problems</h2>
+     <ol>
+       <li><strong>Step-by-step:</strong> Evaluate \( P(x) = 2 - 3x - x^2 + 4x^3 + 5x^4 - 6x^5\) at \( x = 3 \) using the brute-force method. Show all work.</li>

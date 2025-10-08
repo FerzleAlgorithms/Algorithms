@@ -21,7 +21,7 @@
 <body>
   <h1>String Matching (Brute Force)</h1>
 
-  <section id="problem-solved">
+  <section id="problem-solved" section-title="Problem Solved">
     <h2>Problem Solved</h2>
     <p>
       Here we present the Brute Force algorithm that solves the
@@ -30,7 +30,7 @@
     </p>
   </section>
 
-  <section id="design">
+  <section id="design" section-title="Design and Strategy">
     <h2>Design and Strategy</h2>
     <p>
       The brute force approach to string matching is the most direct and intuitive method for finding a pattern \( P \) of length \( m \) within a text \( T \) of length \( n \).
@@ -85,7 +85,7 @@ The total number of character comparisons for this example is 15.
     </p>
   </section>
 
-  <section id="demo">
+  <section id="demo" section-title="Interactive Demo">
   <p>Try the following demo with several different patterns and texts to make sure you understand exactly what the
   algorithm is doing.</p>
     <div class="embeddedDemoContainer">
@@ -97,7 +97,7 @@ The total number of character comparisons for this example is 15.
     </div>
   </section>
 
-  <section id="code">
+  <section id="code" section-title="Implementation in Java, C++, Python">
     <h2>Implementation in Java, C++, Python</h2>
     <p>This is the straightforward version of brute-force string matching in three languages.
 	The Java version assumes the text and pattern are stored as <code>String</code>s,
@@ -156,14 +156,16 @@ The total number of character comparisons for this example is 15.
     </div>
   </section>
 
-  <section id="analysis">
+  <section id="analysis" section-title="Time/Space Analysis">
     <h2>Time/Space Analysis</h2>
     <p><strong>Time Complexity:</strong>
     In the worst case, for each of the \( n - m + 1 \) positions, we may perform up to \( m \) comparisons. Therefore, the worst-case time is \( O((n - m + 1)m) = O(nm) \). This occurs, for example, when both the pattern and text contain repeated characters and nearly match at each position.</p>
     <p>The best case occurs when an early mismatch happens at each position, leading to \( O(n) \) total comparisons.</p>
     <p><strong>Space Complexity:</strong> 
     The algorithm uses \( O(1) \) extra space. It does not use any auxiliary arrays or recursion.</p>
-
+  </section>
+  
+  <section id="variations" section-title="Variations/Improvements">
     <h2>Variations/Improvements</h2>
     <ul>
       <li><strong>Early Termination:</strong> Stop the search after the first match if only one match is required.</li>
@@ -172,7 +174,7 @@ The total number of character comparisons for this example is 15.
     </ul>
   </section>
 
-  <section id="links">
+  <section id="links" section-title="Links to Resources">
     <h2>Links to Resources</h2>
     <ul>
       <li><a href="https://en.wikipedia.org/wiki/String_searching_algorithm" target="_blank">Wikipedia: String Searching Algorithms</a> Information about String Searching Algorithms.</li>
@@ -181,7 +183,7 @@ The total number of character comparisons for this example is 15.
     </ul>
   </section>
 
-<section id="reading-questions">
+<section id="reading-questions" section-title="Reading Comprehension Questions">
   <h2>Reading Comprehension Questions</h2>
   <ol>
     <li><strong>Algorithm Goal:</strong> What is the brute force string matching algorithm trying to do at each position?</li>
@@ -202,7 +204,7 @@ The total number of character comparisons for this example is 15.
   </div>
 </section>
 
-<section id="activities">
+<section id="activities" section-title="In-Class Activities">
   <h2>In-Class Activities</h2>
   <ol>
     <li><strong>Trace by Hand:</strong> Given \( T = \text{ABCDABCD} \) and \( P = \text{BCD} \), trace the brute force algorithm step-by-step by hand. Show which characters are compared and how many comparisons are made in total. Compare your results with the demo.</li>
@@ -234,7 +236,7 @@ The total number of character comparisons for this example is 15.
   </ol>
 </section>
 
-<section id="problems">
+<section id="problems" section-title="Homework Problems">
   <h2>Homework Problems</h2>
   <ol>
     <li><strong>Trace a Match:</strong> Let \( T = \text{AABAACAADAABAABA} \) and \( P = \text{AABA} \). Trace the brute-force algorithm step-by-step and list all positions where matches occur. Count the total number of character comparisons.</li>

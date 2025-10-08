@@ -13,7 +13,7 @@
 <body>
 <h1>Depth-First Search</h1>
 
-<section id="problem-solved">
+<section id="problem-solved" section-title="Problem Solved">
   <h2>Problem Solved</h2>
   <p>
     Depth-First Search (DFS) solves the
@@ -22,12 +22,12 @@
   </p>
 </section>
 
-<section id="design">
+<section id="design" section-title="Design and Strategy">
   <h2>Design and Strategy</h2>
   <p>
     DFS explores a graph by diving as deep as possible along each branch before backtracking. It builds a traversal tree that reveals the structure of the graph, including which vertices are reachable from a given starting point and the order in which they are visited. This depth-first approach often uncovers recursive or hierarchical structures in the graph, making it well-suited for applications such as detecting cycles, exploring connected components, and performing topological sorts (in directed acyclic graphs).
   </p>
-
+<section id="core-algorithm" section-title="Core Algorithm">
   <h3>Core Algorithm</h3>
   <p>
     The algorithm is typically implemented recursively using a helper function, though an iterative version using an explicit stack is also possible. The overall DFS process consists of two parts. The main function iterates through all vertices in the graph, starting a DFS traversal at each unexplored vertex. This ensures that the algorithm fully explores every component, even in disconnected graphs. The recursive helper function, when called on a vertex, explores all of its neighbors that have not yet been visited—diving deeper into the graph until it reaches a dead end, at which point it backtracks.
@@ -75,7 +75,9 @@
       </ol>
     </li>
   </ol>
+  </section>
 
+<section id="timestamps" section-title="Timestamps and Their Purpose">
   <h3>Timestamps and Their Purpose</h3>
   <p>
     As each vertex is visited, we record the time it was first discovered (called the <em>discovery time</em>) and the time it was fully explored (called the <em>finish time</em>). These timestamps are assigned using a single global counter and provide valuable insight into the traversal's structure.
@@ -88,6 +90,9 @@
     These timestamps reflect the structure of the DFS traversal and help characterize the relationships between vertices—for example, whether one vertex is a descendant of another in the DFS tree. The timestamps allow us to reason about the order of visits and the relationship between vertices, and help classify edges into categories. In directed graphs, they are especially useful for identifying structural relationships like ancestry and edge directionality, which are key in classifying edges and analyzing connectivity.
   </p>
 
+  </section>
+  
+<section id="states-and-colors" section-title="Vertex States and Color Scheme">
   <h3>Vertex States and Color Scheme</h3>
   <p>
     To better understand edge classification during DFS, it's helpful to think of vertices as having three possible states or "colors": <span style="color: white; font-weight: bold; -webkit-text-stroke: 0.5px black; text-shadow: -0.5px -0.5px 0 black, 0.5px -0.5px 0 black, -0.5px 0.5px 0 black, 0.5px 0.5px 0 black;">white</span> (unvisited), <span style="color: #666; font-weight: bold;">gray</span> (discovered but not finished), and <span style="color: #000; font-weight: bold;">black</span> (completely finished). This coloring scheme makes it easier to identify edge types as we encounter them. Note that the color array effectively replaces the simple boolean visited array, providing more detailed state information.
@@ -156,11 +161,15 @@
   <p>
     <strong>Important for Undirected Graphs:</strong> In undirected graphs, the back edge detection condition should exclude the parent vertex to avoid false cycle detection. When examining edge \((v, u)\) from vertex \(v\), if \(u\) is gray but \(u = \text{parent}[v]\), this represents the edge we just traversed to reach \(v\), not a back edge indicating a cycle.
   </p>
+  </section>
 
-  <h3>Demonstration: Undirected Graphs</h3>
-  <p>Let's first see DFS in action on an undirected graph. (The demo below uses <span style="color: #007acc; font-weight: bold;">blue</span>/<span style="color: #ff6600; font-weight: bold;">orange</span>/<span style="color: #00aa00; font-weight: bold;">green</span> for <span style="color: white; font-weight: bold; -webkit-text-stroke: 0.5px black; text-shadow: -0.5px -0.5px 0 black, 0.5px -0.5px 0 black, -0.5px 0.5px 0 black, 0.5px 0.5px 0 black;">white</span>/<span style="color: #666; font-weight: bold;">gray</span>/<span style="color: #000; font-weight: bold;">black</span> because it's more visually appealing!)</p>
+  <section id="undirected-graphs" section-title="DFS on Undirected Graphs">
+  <h3>DFS on Undirected Graphs</h3>
+  <section id="demo1" section-title="Interactive Demo: Undirected Graphs">
+  <h4>Interactive Demo: Undirected Graphs</h4>
+  <p>Let's first see DFS in action on an undirected graph. 
+    (The demo below uses <span style="color: #007acc; font-weight: bold;">blue</span>/<span style="color: #ff6600; font-weight: bold;">orange</span>/<span style="color: #00aa00; font-weight: bold;">green</span> for <span style="color: white; font-weight: bold; -webkit-text-stroke: 0.5px black; text-shadow: -0.5px -0.5px 0 black, 0.5px -0.5px 0 black, -0.5px 0.5px 0 black, 0.5px 0.5px 0 black;">white</span>/<span style="color: #666; font-weight: bold;">gray</span>/<span style="color: #000; font-weight: bold;">black</span> because it's more visually appealing!)</p>
 
-  <section id="demo">
     <div class="embeddedDemoContainer">
       <iframe class="embeddedDemo"
               src="/Algorithms/Content/Demos/Exhaustive%20Search/DFS%20Demo.html"
@@ -170,6 +179,7 @@
     </div>
   </section>
 
+  <section id="edgeTypes" section-title="Edge Types in Undirected Graphs">
   <h4>Edge Types in Undirected Graphs</h4>
   <p>
     In undirected graphs, DFS encounters only two types of edges during traversal:
@@ -181,13 +191,19 @@
   <p>
     Note that forward and cross edges do not exist in undirected graphs because every edge \((u,v)\) appears as both \((u,v)\) and \((v,u)\). If an edge leads to a descendant or unrelated vertex, it would have been encountered as a tree edge when first discovered.
   </p>
-
-  <h3>Directed Graphs: Added Complexity</h3>
+</section>
+</section>
+  <section id="directed-graphs" section-title="DFS on Directed Graphs">
+    <h3>DFS on Directed Graphs</h3>
+  <section id="demo2" section-title="Interactive Demo: Directed Graphs">
+  <h4>Interactive Demo: Directed Graphs</h4>
   <p>
-    Directed graphs introduce additional complexity in edge classification. While the core DFS algorithm remains the same, directed graphs can exhibit four different types of edges, making the color-based vertex states especially useful for understanding the traversal structure. Next we will see DFS in action on a directed graph.
+    Directed graphs introduce additional complexity in edge classification. 
+    While the core DFS algorithm remains the same, directed graphs can exhibit four different types of edges, 
+    making the color-based vertex states especially useful for understanding the traversal structure. 
+    Next we will see DFS in action on a directed graph.
   </p>
 
-  <section id="demo">
     <div class="embeddedDemoContainer">
       <iframe class="embeddedDemo"
               src="/Algorithms/Content/Demos/Exhaustive%20Search/DFS (Directed) Demo.html"
@@ -197,6 +213,7 @@
     </div>
   </section>
 
+  <section id="demo" section-title="All Four Edge Types in Directed Graphs">
   <h4>All Four Edge Types in Directed Graphs</h4>
   <p>
     When DFS encounters an edge \((u, v)\) while exploring vertex \(u\) in a directed graph, the edge type can be determined immediately based on the current state of vertex \(v\):
@@ -265,7 +282,11 @@
   <p>
     In short, discovery and finish times provide a timestamped record of the traversal that reveals the structural and temporal relationships between vertices—information that is crucial to many graph-based algorithms and analyses.
   </p>
+</section>
+</section>
 
+
+  <section id="edgeSummary" section-title="Summary: Edge Classification Table">
   <h3>Summary: Edge Classification Table</h3>
   <p>
     The following table summarizes how DFS classifies edges based on the relationship between two vertices \( u \) and \( v \), where the edge \((u, v)\) is explored during the traversal of vertex \( u \). <strong>Note:</strong> Forward and cross edges only exist in directed graphs—undirected graphs have only tree and back edges.
@@ -353,7 +374,7 @@
 </section>
 
 
-<section id="code">
+<section id="code" section-title="Implementation in Java, C++, Python">
   <h2>Implementation in Java, C++, Python</h2>
   <p>Each implementation uses an adjacency list representation and tracks discovery and finish times. For simplicity, these implementations use a boolean visited array rather than the three-color scheme discussed earlier—the color approach is more useful when explicitly classifying edge types during traversal.</p>
   
@@ -468,7 +489,7 @@ void dfsVisit(int v, vector&lt;int&gt; adj[], vector&lt;bool&gt;& visited,
   </div>
 </section>
 
-<section id="analysis">
+<section id="analysis" section-title="Time/Space Analysis">
   <h2>Time/Space Analysis</h2>
   
   <p>
@@ -500,7 +521,7 @@ void dfsVisit(int v, vector&lt;int&gt; adj[], vector&lt;bool&gt;& visited,
   <p>For very deep graphs, DFS might exceed stack limits, while for very wide graphs, BFS might use more queue space.</p>
 </section>
 
-<section id="variations">
+<section id="variations" section-title="Variations/Improvements">
   <h2>Variations/Improvements</h2>
   
   <h3>Algorithmic Variations</h3>
@@ -556,7 +577,7 @@ void dfsVisit(int v, vector&lt;int&gt; adj[], vector&lt;bool&gt;& visited,
 </section>
 
 
-<section id="links">
+<section id="links" section-title="Links to Resources">
   <h2>Links to Resources</h2>
   <ul>
     <li><a href="https://en.wikipedia.org/wiki/Depth-first_search" target="_blank">Depth-first search (Wikipedia)</a> - Comprehensive encyclopedia entry covering DFS algorithm, applications, and theoretical properties with detailed pseudocode.</li>
@@ -566,7 +587,7 @@ void dfsVisit(int v, vector&lt;int&gt; adj[], vector&lt;bool&gt;& visited,
   </ul>
 </section>
 
-<section id="reading-questions">
+<section id="reading-questions" section-title="Reading Comprehension Questions">
   <h2>Reading Comprehension Questions</h2>
   <ol>
     <li><strong>Core Algorithm Strategy:</strong> What is the fundamental difference between how DFS and BFS explore a graph?</li>
@@ -595,7 +616,7 @@ void dfsVisit(int v, vector&lt;int&gt; adj[], vector&lt;bool&gt;& visited,
   </div>
 </section>
 
-<section id="activities">
+<section id="activities" section-title="In-Class Activities">
   <h2>In-Class Activities</h2>
   <ol>
     <li><strong>Manual DFS Trace:</strong> Hand-trace DFS on a small graph (directed or undirected, maybe provided by your instructor), recording the discovery and finish times, as well as the order vertices are visited. Try at least one graph with cycles and observe how back edges are identified.</li>
@@ -626,7 +647,7 @@ void dfsVisit(int v, vector&lt;int&gt; adj[], vector&lt;bool&gt;& visited,
   </ol>
 </section>
 
-<section id="problems">
+<section id="problems" section-title="Homework Problems">
   <h2>Homework Problems</h2>
   <ol>
     <li><strong>DFS Tree Construction with Timestamps:</strong>  

@@ -21,7 +21,7 @@
 <body>
   <h1>Matrix Multiplication (Divide and Conquer)</h1>
 
-  <section id="problem-solved">
+  <section id="problem-solved" section-title="Problem Solved">
   <h2>Problem Solved</h2>
   <p>
     Matrix Multiplication (Divide and Conquer) solves the
@@ -30,7 +30,7 @@
   </p>
   </section>
 
-  <section id="design">
+  <section id="design" section-title="Design and Strategy">
   <h2>Design and Strategy</h2>
   <p>
     The divide-and-conquer approach to matrix multiplication recursively breaks down the problem of multiplying two \(n\times n\) matrices into smaller subproblems. Instead of using the standard \(O(n^3)\) algorithm that computes each entry using a dot product, we divide each matrix into four quadrants and use the mathematical property that matrix multiplication can be expressed in terms of operations on these quadrants.
@@ -54,7 +54,9 @@
     \[C_{22} = A_{21}B_{12} + A_{22}B_{22}\]
   </p>
 
-  <p><strong>Why This Formula Works:</strong> The key insight is that matrix multiplication follows the same algebraic rules whether we think of entries as scalars or as blocks (submatrices). To see why, recall that in standard matrix multiplication, entry \(C[i][j]\) is computed as:
+  <section id="whyitworks" section-title="Why This Formula Works">
+  <h3>Why This Formula Works</h3> 
+    The key insight is that matrix multiplication follows the same algebraic rules whether we think of entries as scalars or as blocks (submatrices). To see why, recall that in standard matrix multiplication, entry \(C[i][j]\) is computed as:
   \[C[i][j] = \sum_{k=0}^{n-1} A[i][k] \cdot B[k][j]\]
   
   When we partition the matrices, this sum naturally splits based on which quadrant the indices fall into:</p>
@@ -78,7 +80,10 @@
     
     <li><strong>Similarly:</strong> \(C_{21}\) and \(C_{22}\) follow the same pattern. For \(C_{21}\) (bottom-left quadrant), we get \(C_{21} = A_{21}B_{11} + A_{22}B_{21}\), and for \(C_{22}\) (bottom-right quadrant), we get \(C_{22} = A_{21}B_{12} + A_{22}B_{22}\).</li>
   </ul>
+  </section>
 
+  <section id="example" section-title="Examples">
+  <h3>Examples</h3> 
   <div class="example-box">
     <strong class="example-title">Detailed Example: 4×4 Matrix Multiplication</strong>
     <p>Let's multiply two 4×4 matrices using both approaches to see they produce identical results:</p>
@@ -168,6 +173,10 @@
     
     <p><strong>Both methods produce identical results!</strong> This confirms that our divide-and-conquer block formula correctly implements matrix multiplication by preserving the fundamental row-column dot product computation, just organized into larger blocks.</p>
   </div>
+  </section>
+
+  <section id="pseudocode" section-title="Pseudocode">
+    <h3>Pseudocode</h3>
 
   <p>This idea leads the pseudocode like the following:</p>
   <ol>
@@ -197,7 +206,7 @@
   </p>
   </section>
 
-  <section id="demo">
+  <section id="demo" section-title="Interactive Demos">
   <div class="embeddedDemoContainer">
     <iframe class="embeddedDemo"
             src="/Algorithms/Content/Demos/Divide-and-Conquer/Matrix Multiplication Demo.html"
@@ -205,13 +214,16 @@
             name="matrix-multiplication-demo">
     </iframe>
   </div>
-  </section>
-
   <p>
-    Although that demo captures the essence of the algorithm, it is not how one would actually implement it in practice. The second version of the demo performs computations in-place, avoiding extra space for submatrices. Instead of creating submatrices for each recursive call and then copying results back, the algorithm passes offsets and operates directly on the relevant regions of the original matrices. For example, rather than creating two submatrices and then adding them, the first computation updates the corresponding submatrix of the result, and the second adds to those entries. This one is harder to follow, but ig you understand the concepts from the previous one, it should help this one make sense. Check it out:
+    Although that demo captures the essence of the algorithm, it is not how one would actually implement 
+    it in practice. The second version of the demo performs computations in-place, avoiding extra space 
+    for submatrices. Instead of creating submatrices for each recursive call and then copying results back, 
+    the algorithm passes offsets and operates directly on the relevant regions of the original matrices. 
+    For example, rather than creating two submatrices and then adding them, the first computation updates 
+    the corresponding submatrix of the result, and the second adds to those entries. 
+    This one is harder to follow, but if you understand the concepts from the previous one, 
+    it should help this one make sense. Check it out:
   </p>
-
-  <section id="demo">
   <div class="embeddedDemoContainer">
     <iframe class="embeddedDemo"
             src="/Algorithms/Content/Demos/Divide-and-Conquer/Matrix Multiplcation (Inplace) Demo.html"
@@ -223,7 +235,7 @@
   
 
 
-  <section id="code">
+  <section id="code" section-title="Implementation in Java, C++, Python">
   <h2>Implementation in Java, C++, Python</h2>
   <p>
     <strong>Key Implementation Details:</strong> This algorithm is a bit different from most you have seen before. Instead of working with whole matrices or copying out submatrices for each recursive call, we operate directly on subregions of the original matrices by passing <em>offsets</em>—that is, the row and column indices marking the top-left corner of the submatrix we want to work on. This is similar in spirit to how quicksort works: instead of copying out the left and right halves of the array, quicksort just passes the indices for the left and right boundaries to each recursive call. Here, we do the same for two-dimensional matrices, specifying which part of each matrix to use for each subproblem.
@@ -369,7 +381,7 @@ def _multiply_recursive(A, B, C, a_row, a_col, b_row, b_col, c_row, c_col, size)
   </div>
   </section>
 
-  <section id="analysis">
+  <section id="analysis" section-title="Time/Space Analysis">
   <h2>Time/Space Analysis</h2>
   <p>
     <strong>Time Complexity:</strong> The recurrence relation for the running time of this divide-and-conquer algorithm is:
@@ -401,7 +413,7 @@ def _multiply_recursive(A, B, C, a_row, a_col, b_row, b_col, c_row, c_col, size)
   </section>
   
   
-  <section id="variations">
+  <section id="variations" section-title="Variations/Improvements">
   <h2>Variations/Improvements</h2>
   <p>
     <strong>Strassen's Algorithm:</strong> The first major improvement over the basic divide-and-conquer approach, Strassen's algorithm reduces the number of recursive multiplications from 8 to 7 by cleverly reorganizing the computation. This changes the recurrence to \(T(n) = 7T(n/2) + O(n^2)\), yielding a time complexity of about \(O(n^{2.81})\). Strassen's method achieves this by trading some multiplications for more additions, which is worthwhile because additions are much cheaper than multiplications for large matrices. Strassen's algorithm is the first example of a divide-and-conquer matrix multiplication that is actually faster than the standard cubic-time approach.
@@ -417,7 +429,7 @@ def _multiply_recursive(A, B, C, a_row, a_col, b_row, b_col, c_row, c_col, size)
   </p>
   </section>
 
-  <section id="links">
+  <section id="links" section-title="Links to Resources">
   <h2>Links to Resources</h2>
   <ul>
     <li><a href="https://en.wikipedia.org/wiki/Matrix_multiplication_algorithm" target="_blank">Matrix Multiplication Algorithms (Wikipedia)</a> Comprehensive overview of various matrix multiplication approaches, including the divide-and-conquer approach</li>
@@ -425,7 +437,7 @@ def _multiply_recursive(A, B, C, a_row, a_col, b_row, b_col, c_row, c_col, size)
   </ul>
   </section>
 
- <section id="reading-questions">
+ <section id="reading-questions" section-title="Reading Comprehension Questions">
   <h2>Reading Comprehension Questions</h2>
   <ol>
     <li><strong>Recurrence and Complexity:</strong> What is the recurrence relation for the running time of the basic divide-and-conquer matrix multiplication algorithm? Use the Master Theorem to solve it and state the resulting time complexity.</li>
@@ -481,7 +493,7 @@ def _multiply_recursive(A, B, C, a_row, a_col, b_row, b_col, c_row, c_col, size)
 </section>
 
 
-<section id="activities">
+<section id="activities" section-title="In-Class Activities">
   <h2>In-Class Activities</h2>
   <ol>
     <li><strong>Block-Correctness Trace (4x4):</strong>
@@ -537,7 +549,7 @@ def _multiply_recursive(A, B, C, a_row, a_col, b_row, b_col, c_row, c_col, size)
 </section>
 
 
-  <section id="problems">
+  <section id="problems" section-title="Homework Problems">
     <h2>Homework Problems</h2>
     <ol>
       <li><strong>Matrix Transpose (Two Approaches):</strong>  

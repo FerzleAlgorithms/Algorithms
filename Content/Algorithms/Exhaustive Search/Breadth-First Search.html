@@ -51,7 +51,7 @@ td.goal {
 <body>
   <h1>Breadth-First Search</h1>
 
-  <section id="problem-solved">
+  <section id="problem-solved" section-title="Problem Solved">
     <h2>Problem Solved</h2>
     <p>
       Breadth-First Search solves the 
@@ -62,7 +62,7 @@ td.goal {
     </p>
   </section>
 
-  <section id="design">
+  <section id="design" section-title="Design and Strategy">
     <h2>Design and Strategy</h2>
 	<p>
 	  Breadth-First Search (BFS) is a fundamental graph traversal algorithm whose goal is to explore every vertex reachable from a given <em>source</em> vertex in the most systematic way possible. Specifically, it discovers each reachable node and determines a shortest path to it—measured in the fewest number of edges—in an unweighted graph. BFS is especially useful when we want to answer questions like: “Which vertices can be reached from here?” or “What is the shortest path to each one?”
@@ -76,7 +76,8 @@ td.goal {
 	<p>
 	  As a result, BFS explores every node reachable from the source exactly once, and computes the shortest-path distance from the source to each of them. If desired, it can also be extended to record the full path taken to reach each vertex.
 	</p>
-
+<section id="examples" section-title="Examples">
+<h2>Examples</h2>
 <div class="example-box">
   <strong class="example-title">Example 1: BFS on an Acyclic Graph</strong>
 
@@ -202,6 +203,7 @@ td.goal {
 </svg>
   </div>
 </div>
+</section>
 
 
 <p>
@@ -240,9 +242,15 @@ td.goal {
   (traditionally the colors used are white, gray, and black).
   While the pseudocode uses a simple boolean <code>visited</code> array, implementations like the demo may use multiple states to track the progress of each vertex more precisely.
 </p>
+  <p>
+  This three-color model (unvisited, discovered, processed) is not only helpful for visualization — it plays an essential role in many algorithms built on top of BFS.
+  For example, detecting whether a graph is bipartite involves assigning alternating colors to layers and checking for cross-layer conflicts,
+  and certain cycle detection algorithms rely on distinguishing whether a neighbor has been fully processed or is still in the queue.
+  While these ideas can be implemented using additional logic with a boolean <code>visited</code> array, the color/state distinction provides a more expressive and modular framework for reasoning about vertex status during traversal.
+</p>
   </section>
 
-  <section id="demo">
+  <section id="demo" section-title="Interactive Demo">
     <div class="embeddedDemoContainer">
       <iframe class="embeddedDemo"
               src="/Algorithms/Content/Demos/Exhaustive Search/BFS Demo.html"
@@ -251,13 +259,13 @@ td.goal {
       </iframe>
     </div>
   </section>
-  <p>
-  This three-color model (unvisited, discovered, processed) is not only helpful for visualization — it plays an essential role in many algorithms built on top of BFS.
-  For example, detecting whether a graph is bipartite involves assigning alternating colors to layers and checking for cross-layer conflicts,
-  and certain cycle detection algorithms rely on distinguishing whether a neighbor has been fully processed or is still in the queue.
-  While these ideas can be implemented using additional logic with a boolean <code>visited</code> array, the color/state distinction provides a more expressive and modular framework for reasoning about vertex status during traversal.
-</p>
-<p>
+
+
+
+
+  <section id="code" section-title="Implementation in Java, C++, Python">
+    <h2>Implementation in Java, C++, Python</h2>
+    <p>
   To implement BFS effectively, you need several supporting data structures:
   a <code>visited[]</code> array (or equivalent state labels) to track which vertices have been discovered,
   a <code>queue</code> to manage the frontier of the search,
@@ -266,11 +274,6 @@ td.goal {
   The <code>dist</code> array is updated as soon as a vertex is first discovered, guaranteeing that it reflects the correct shortest-path length,
   and the <code>pred</code> array can be used after traversal to reconstruct the shortest path by walking backward from any vertex to the source.
 </p>
-
-
-
-  <section id="code">
-    <h2>Implementation in Java, C++, Python</h2>
 	<p>
   Each implementation below uses idiomatic data structures for its language:
 </p>
@@ -359,7 +362,7 @@ td.goal {
     </div>
   </section>
   
-<section id="analysis">
+<section id="analysis" section-title="Time/Space Analysis">
   <h2>Time/Space Analysis</h2>
 	 <p>
 	  <strong>Time Complexity:</strong>
@@ -395,7 +398,7 @@ td.goal {
   </p>
 </section>
 
-<section id="edge-classification">
+<section id="edge-classification" section-title="Edge Classifications After BFS">
   <h2>Edge Classifications After BFS</h2>
   <p>
     Once BFS has completed, we can classify each edge in the graph based on how it relates to the traversal tree that was constructed:
@@ -414,7 +417,7 @@ td.goal {
 </section>
 
 
-<section id="variations">
+<section id="variations" section-title="Variations and Improvements">
   <h2>Variations and Improvements</h2>
   <ul>
     <li><strong>Directed Graphs:</strong> BFS works just as well on directed graphs by following only outgoing edges. This is useful for tasks like reachability in dependency graphs or flow networks.</li>
@@ -431,7 +434,7 @@ The rest of the algorithm remains unchanged.</li>
   </ul>
 </section>
 
-<section id="links">
+<section id="links" section-title="Links to Resources">
   <h2>Links to Resources</h2>
   <ul>
     <li>
@@ -453,7 +456,7 @@ The rest of the algorithm remains unchanged.</li>
   </ul>
 </section>
 
-<section id="reading-questions">
+<section id="reading-questions" section-title="Reading Comprehension Questions">
   <h2>Reading Comprehension Questions</h2>
   <ol>
     <li><strong>Discovery Order:</strong> Why does BFS always discover each vertex using a shortest path (fewest number of edges)?</li>
@@ -494,7 +497,7 @@ The rest of the algorithm remains unchanged.</li>
     </ol>
   </div>
 </section>
-<section id="activities">
+<section id="activities" section-title="In-Class Activities">
   <h2>In-Class Activities</h2>
   <ol>
     <li><strong>Manual BFS Trace:</strong> Hand-trace BFS on a small graph (directed or undirected, maybe provided by your instructor), recording the discovery order, queue contents, and distance values at each step. Try at least one graph with cycles.
@@ -533,7 +536,7 @@ The rest of the algorithm remains unchanged.</li>
     <li><strong>Shortest Path in a Grid Maze:</strong> Model a small maze as a grid graph. Mark walls as missing edges, and use BFS on paper to find the shortest path from entrance to exit. Record the discovered path using <code>pred[]</code>.</li>
   </ol>
 </section>
-<section id="problems">
+<section id="problems" section-title="Homework Problems">
   <h2>Homework Problems</h2>
   <ol>
   <li><strong>BFS Tree Construction:</strong>  

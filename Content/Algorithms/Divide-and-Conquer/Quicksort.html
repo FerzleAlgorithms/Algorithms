@@ -21,13 +21,16 @@
 <body>
   <h1>Quicksort</h1>
 
-  <h2>Problem Solved</h2>
+  <section id="problem-solved" section-title="Problem Solved">
+<h2>Problem Solved</h2>
   <p>Quicksort solves the
     <a class="problem" href="?path=Problems%2FFoundational%2FSorting">Sorting</a>
     problem.
   </p>
 
-  <h2>Design and Strategy</h2>
+  
+</section><section id="design-and-strategy" section-title="Design and Strategy">
+<h2>Design and Strategy</h2>
   <p>
     Quicksort is a <strong>divide-and-conquer</strong> algorithm: it picks a <strong>pivot</strong>,
     partitions the array into elements less than or equal to <em>pivot</em> and 
@@ -80,15 +83,19 @@
     Quicksort is generally not a stable sorting algorithm.
   </p>
   
-  <div class="embeddedDemoContainer">
+  <section id="demo" section-title="Interactive Demo">
+<div class="embeddedDemoContainer">
   <iframe class="embeddedDemo"
           src="/Algorithms/Content/Demos/Divide-and-Conquer/QuickSort Demo.html"
           allow="fullscreen"
           name="quick-sort-demo">
   </iframe>
   </div>
+</section>
 
-  <h2>Implementation in Java, C++, Python</h2>
+  
+</section><section id="implementation-in-java-c-python" section-title="Implementation in Java, C++, Python">
+<h2>Implementation in Java, C++, Python</h2>
 <div class="tab-group">
  <div class="tabs" role="tablist">
    <button
@@ -212,13 +219,18 @@ def partition(A, lo, hi):
   </div>
   </div>
 
-  <h2>Time/Space Analysis</h2>
+  
+</section><section id="timespace-analysis" section-title="Time/Space Analysis">
+<h2>Time/Space Analysis</h2>
 
   <p>
   <b>Time Complexity</b>
   Define \(T(n)\) as the running time required to sort an array of size \(n\) using Quicksort.
   As we saw in the <a class="problem" href="?path=Algorithms/Decrease-and-Conquer/Hoare Partition">Hoare's Partition</a>
   section, the partitioning procedure requires \(O(n)\) time.
+  
+  <section id="bestcase" section-title="Best Case">
+    <h3>Best Case</h3>
  In the best case, each pivot divides the array into two subarrays of size 
   approximately \(\tfrac{n}{2}\), the recursive calls to Quicksort will take 
   \(2\,T\!\bigl(\tfrac{n}{2}\bigr)\) time.
@@ -236,6 +248,10 @@ def partition(A, lo, hi):
         T(n) = O\bigl(n^d \log n\bigr) = O(n \log n).
       \]
     </p>
+    </section>
+
+  <section id="worstcase" section-title="Worst Case">
+    <h3>Worst Case</h3>
     <p>
     In the worst case, the pivot choice is consistently poor (for example, always the smallest or 
     largest element) and one side of the partition is empty and the other has \(n-1\) elements. 
@@ -275,7 +291,9 @@ def partition(A, lo, hi):
 	\end{aligned}
 	\]
     </p>
-
+    </section>
+  <section id="averagecase" section-title="Average Case">
+    <h3>Average Case</h3>
   <p>
   Assuming the pivot element is chosen at random, Quicksort has an average case complexity
   of <span class="math">\( \Theta(n \log n) \)</span>. The proof is a bit involved, but
@@ -397,6 +415,7 @@ def partition(A, lo, hi):
       Hence, \( T(n) = O(n \log n) \).
     </div>
   </div>
+</section>
 
 
     <p>
@@ -418,7 +437,9 @@ def partition(A, lo, hi):
 	  yielding a worst-case space complexity of \(O(n)\).
     </p>
   
-  <h2>Variations/Improvements</h2>
+  
+</section><section id="variationsimprovements" section-title="Variations/Improvements">
+<h2>Variations/Improvements</h2>
 
 <!-- 1. Pivot changes -->
 <h3>Pivot Selection Methods</h3>
@@ -457,14 +478,18 @@ splits into three regions: less than pivot, equal to pivot and greater than pivo
   (e.g. if the array happens to already be sorted). </li>
 </ul>
 
-  <h2>Helpful Links and Resources</h2>
+  
+</section><section id="helpful-links-and-resources" section-title="Helpful Links and Resources">
+<h2>Helpful Links and Resources</h2>
   <ol>
     <li><a href="https://en.wikipedia.org/wiki/Quicksort">Wikipedia – Quicksort</a></li>
     <li><a href="https://visualgo.net/en/sorting">Visualgo – Sorting Visualizations</a></li>
     <li><a href="https://www.geeksforgeeks.org/quick-sort/">GeeksforGeeks – Quicksort</a></li>
   </ol>
 
-  <h2>Reading Comprehension Questions</h2>
+  
+</section><section id="reading-comprehension-questions" section-title="Reading Comprehension Questions">
+<h2>Reading Comprehension Questions</h2>
   <ol>
     <li>How does Quicksort employ the divide-and-conquer technique?</li>
     <li>What are the average and worst-case time complexities of Quicksort, and when might they occur?</li>
@@ -489,7 +514,9 @@ splits into three regions: less than pivot, equal to pivot and greater than pivo
     </ol>
   </div>
   
-  <h2>In-class Activities</h2>
+  
+</section><section id="in-class-activities" section-title="In-class Activities">
+<h2>In-class Activities</h2>
   <ol>
     <li>Go over some example of Quicksort being performed on some arrays.</li>
     <li>Compare pivot choices: first-element vs random vs median-of-three, etc.</li>
@@ -501,7 +528,9 @@ splits into three regions: less than pivot, equal to pivot and greater than pivo
 
 
   <div class="section">
-    <h2>Problems</h2>
+    
+</section><section id="problems" section-title="Problems">
+<h2>Problems</h2>
     <ol>
       <li>
         Perform Quicksort on <code>['q', 'u', 'i', 'c', 'k', 's', 'o', 'r', 't']</code>.
@@ -541,5 +570,6 @@ splits into three regions: less than pivot, equal to pivot and greater than pivo
   
   
 
-</body>
+
+</section></body>
 </html>

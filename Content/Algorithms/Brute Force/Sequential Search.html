@@ -29,12 +29,15 @@
 
   <h1>Sequential Search</h1>
   
-    <h2>Problem Solved</h2>
+    <section id="problem-solved" section-title="Problem Solved">
+<h2>Problem Solved</h2>
 	Sequential Search solves the 
 	<a class="problem" href="?path=Problems%2FFoundational%2FSearching">Searching</a>
 	problem.
   
-    <h2>Design and Strategy</h2>
+    
+</section><section id="design-and-strategy" section-title="Design and Strategy">
+<h2>Design and Strategy</h2>
     <p>
   Sequential Search (also called Linear Search) is a classic <strong>brute-force</strong> algorithm: it makes no assumptions about the order of the data and
   exhaustively tests every element. Starting at index <code>0</code>, it compares the value of each element to the target value; if a match is found,
@@ -53,15 +56,19 @@
       <li>If <code>i==n</code> (end of the array), return <code>-1</code>. Otherwise, repeat from step 2.</li>
     </ol>
 
-    <div class="embeddedDemoContainer">
+    <section id="demo" section-title="Interactive Demo">
+<div class="embeddedDemoContainer">
   <iframe class="embeddedDemo"
           src="/Algorithms/Content/Demos/Brute Force/Sequential Search Demo.html"
           allow="fullscreen"
           name="sequential-search-demo">
   </iframe>
 </div>
+</section>
 	
-    <h2>Implementation in Java, C++, Python</h2>
+    
+</section><section id="implementation-in-java-c-python" section-title="Implementation in Java, C++, Python">
+<h2>Implementation in Java, C++, Python</h2>
 <div class="tab-group">
 <div class="tabs" role="tablist">
    <button
@@ -123,6 +130,8 @@
     </div>
 	</div>
 
+
+</section><section id="timespace-analysis" section-title="Time/Space Analysis">
 <h2>Time/Space Analysis</h2>
     
  <p><strong>Time Complexity:</strong> 
@@ -153,6 +162,8 @@ did <em>m</em> comparisons.
   The loop index <code>i</code>, the space for the <code>target</code>, and the return value.
   and a few constant‐size temporaries (if any). Thus, the space complexity is <em>O(1)</em>.</p> 
   
+
+</section><section id="reading-comprehension-questions" section-title="Reading Comprehension Questions">
 <h2>Reading Comprehension Questions</h2>
 <ol>
   <li><strong>Q1:</strong> What is the best-case time complexity for Sequential Search, and when does it occur?</li>
@@ -175,7 +186,9 @@ did <em>m</em> comparisons.
 </div>
   
 
- <h2>In-Class Activities</h2>
+ 
+</section><section id="in-class-activities" section-title="In-Class Activities">
+<h2>In-Class Activities</h2>
 <ol>
   <li>Walk through the algorithm on different arrays to count comparisons.</li>
   <li>Discuss how the target’s position affects performance.</li>
@@ -186,6 +199,8 @@ did <em>m</em> comparisons.
   then compare the number of comparisons and loop logic to the standard version.</li>
   </ol>
 
+
+</section><section id="problems" section-title="Problems">
 <h2>Problems</h2>
 <ol>
   <li>Write code or pseudocode for a recursive version of Sequential Search.</li>
@@ -199,5 +214,6 @@ did <em>m</em> comparisons.
 </ol>
 
 
-</body>
+
+</section></body>
 </html>

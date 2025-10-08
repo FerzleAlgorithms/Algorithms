@@ -22,6 +22,7 @@
 
 <h1>Fibonacci Numbers (Brute Force)</h1>
 
+<section id="problem-solved" section-title="Problem Solved">
 <h2>Problem Solved</h2>
 <p>
   Here we describe the brute force algorithm to solve the 
@@ -34,6 +35,8 @@
   \]
 </p>
 
+
+</section><section id="design-and-strategy" section-title="Design and Strategy">
 <h2>Design and Strategy</h2>
 <p>
   The naïve recursive approach directly implements the recurrence: if \(n = 0\) or \(n = 1\), return \(n\). Otherwise, it recursively computes \(F_{n-1}\) and \(F_{n-2}\), then adds them to obtain \(F_{n}\). 
@@ -46,6 +49,7 @@
   making this technique mainly pedagogical rather than an example of an efficient way to solve a problem.
 </p>
 
+<section id="demo" section-title="Interactive Demo">
 <div class="embeddedDemoContainer">
   <iframe class="embeddedDemo"
           src="/Algorithms/Content/Demos/Brute Force/Fibonacci Naive Demo.html"
@@ -53,8 +57,11 @@
           name="FibonacciRecursive-demo"
           style="height: 400px; min-height: 400px;">
   </iframe>
-</div> 
+</div>
+</section> 
 
+
+</section><section id="implementation-in-java-c-python" section-title="Implementation in Java, C++, Python">
 <h2>Implementation in Java, C++, Python</h2>
 The implementations below return \(n\) whenever \(n \lt 2\) 
 since \(F_0=0\), \(F_1=1\), and \(F_n\) is undefined when \(n\lt 0\), 
@@ -120,6 +127,8 @@ so we just return the (incorrect) input.
 </div>
 
 
+
+</section><section id="timespace-analysis" section-title="Time/Space Analysis">
 <h2>Time/Space Analysis</h2>
 <p>
   <strong>Time Complexity:</strong>
@@ -207,6 +216,8 @@ so we just return the (incorrect) input.
 </p>
 
 
+
+</section><section id="variationsimprovements" section-title="Variations/Improvements">
 <h2>Variations/Improvements</h2>
 <p>
   Because the naïve recursion repeats identical subproblems, it can be improved in several ways:
@@ -231,6 +242,8 @@ so we just return the (incorrect) input.
   </ul>
 </p>
 
+
+</section><section id="links-to-resources" section-title="Links to Resources">
 <h2>Links to Resources</h2>
 <ul>
   <li><a href="https://en.wikipedia.org/wiki/Fibonacci_number" target="_blank" rel="noopener">Wikipedia: Fibonacci Number</a></li>
@@ -238,6 +251,8 @@ so we just return the (incorrect) input.
   <li><a href="https://www.cs.usfca.edu/~galles/visualization/DPFib.html" target="_blank" rel="noopener">Galles’ Data Structure Visualizations: nth Fibonacci Number</a></li>
 </ul>
 
+
+</section><section id="reading-comprehension-questions" section-title="Reading Comprehension Questions">
 <h2>Reading Comprehension Questions</h2>
 <ol>
   <li>
@@ -298,6 +313,8 @@ fib(1)fib(0)
 
 
 
+
+</section><section id="in-class-activities" section-title="In-Class Activities">
 <h2>In-Class Activities</h2>
 <ol>
   <li>
@@ -315,6 +332,8 @@ fib(1)fib(0)
   </li>
 </ol>
 
+
+</section><section id="problems" section-title="Problems">
 <h2>Problems</h2>
 <ol>
   <li>
@@ -342,5 +361,6 @@ fib(1)fib(0)
 </ol>
 
 
-</body>
+
+</section></body>
 </html>

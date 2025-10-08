@@ -21,7 +21,7 @@
 <body>
   <h1>Strassen's Matrix Multiplication</h1>
 
-  <section id="problem-solved">
+  <section id="problem-solved" section-title="Problem Solved">
   <h2>Problem Solved</h2>
     <p>
     Strassen's algorithm is a divide-and-conquer algorithm that solves the
@@ -30,7 +30,7 @@
   </p>
   </section>
 
-  <section id="design">
+  <section id="design" section-title="Design and Strategy">
   <h2>Design and Strategy</h2>
   <p>
     Strassen's algorithm starts exactly the same way as the standard <a class="problem" href="?path=Algorithms%2FDivide-and-Conquer%2FMatrix%20Multiplication"
@@ -108,6 +108,8 @@ C_{22} &= A_{21}B_{12}+A_{22}B_{22}
 
   <p><strong>Size & padding:</strong> Strassen is usually presented assuming \(n = 2^k.\) For other sizes, pad to the next power of two and trim the result; the correctness is preserved in the top-left \(n\times n\) block, with only modest overhead in practice.</p>
 
+    <section id="example" section-title="Example">
+    <h3>Example</h3>
   <div class="example-box">
     <strong class="example-title">Example: \(2\times 2\) matrices</strong>
     <p>Here is a tiny example of Strassen's algorithm in action. Let
@@ -137,9 +139,10 @@ C_{22} &= A_{21}B_{12}+A_{22}B_{22}
     </p>
 
     <p>Putting the 4 numbers in place, we get the final answer:
-      \(\begin{pmatrix}19 & 22\\ 43 & 50\end{pmatrix}\). You should double check the answer by doing the matrix product using the definition and comparing.</p>
-
+      \(\begin{pmatrix}19 & 22\\ 43 & 50\end{pmatrix}\). You should double check the answer by doing the matrix product 
+      using the definition and comparing.</p>
   </div>
+  </section>
 
     <p>The previous example only involved \(2\times 2\) matrices, so it was quite simple. For larger matrices, computation of each \(M_i\) involves a multiplication on \(n/2\times n/2\) submatrices, which are also performed using the same procedure.This leads to the following high-level pseudocode:
   </p>
@@ -149,8 +152,10 @@ C_{22} &= A_{21}B_{12}+A_{22}B_{22}
   </ol>
   </section>
 
-  <p>The following demo shows an implementation of the algorithm that allows you to see the recursive aspect of it in action. It allows you to show or skip some of the computations. It is recommended that you show enough of them until you understand what is going on. Then feel free to skip some of the steps.</p>
-  <section id="demo">
+  <section id="demo" section-title="Interactive Demo">
+  <p>The following demo shows an implementation of the algorithm that allows you to see the recursive aspect of it in action. 
+    It allows you to show or skip some of the computations. It is recommended that you show enough of them until you understand what is going on. 
+    Then feel free to skip some of the steps.</p>
   <div class="embeddedDemoContainer">
     <iframe class="embeddedDemo"
             src="/Algorithms/Content/Demos/Divide-and-Conquer/Strassens Demo.html"
@@ -160,7 +165,7 @@ C_{22} &= A_{21}B_{12}+A_{22}B_{22}
   </div>
   </section>
 
-  <section id="code">
+  <section id="code" section-title="Implementation in Java, C++, Python">
   <h2>Implementation in Java, C++, Python</h2>
   <p>Below are straightforward, unoptimized implementations provided for clarity. Production code would optimize memory allocation, reuse temporaries, and apply cache-aware blocking. The examples use a <code>THRESHOLD</code>: when submatrix sizes fall at or below this threshold the algorithm switches from recursive Strassen to the standard (brute‑force) multiply because the recursion overhead outweighs the benefit for small matrices.</p>
 
@@ -415,7 +420,7 @@ def strassen(A, B):
   </div>
   </section>
 
-  <section id="analysis">
+  <section id="analysis" section-title="Time/Space Analysis">
   <h2>Time/Space Analysis</h2>
 
   <p>
@@ -461,7 +466,7 @@ def strassen(A, B):
     </p>
 </section>
 
-  <section id="variations">
+  <section id="variations" section-title="Variations/Improvements">
   <h2>Variations/Improvements</h2>
   <ul>
     <li><strong>Hybrid cutoff (THRESHOLD):</strong> Benchmark on target hardware and switch to a blocked classical multiply at/under the cutoff (often 32–256). Use separate cutoffs per datatype.</li>
@@ -473,7 +478,7 @@ def strassen(A, B):
   </ul>
   </section>
 
-  <section id="links">
+  <section id="links" section-title="Links to Resources">
   <h2>Links to Resources</h2>
   <ul>
     <li><a href="https://en.wikipedia.org/wiki/Strassen_algorithm" target="_blank">Strassen algorithm (Wikipedia)</a> Discussion of Strassen's algorithm, including a link to the original paper.</li>
@@ -482,7 +487,7 @@ def strassen(A, B):
   </ul>
   </section>
 
-  <section id="reading-questions">
+  <section id="reading-questions" section-title="Reading Comprehension Questions">
   <h2>Reading Comprehension Questions</h2>
   <ol>
     <li><strong>Big idea:</strong> In one sentence, how does Strassen differ from standard divide-and-conquer matrix multiplication?</li>
@@ -511,7 +516,7 @@ def strassen(A, B):
 </section>
 
 
-<section id="activities">
+<section id="activities" section-title="In-Class Activities">
   <h2>In-Class Activities</h2>
   <ol>
     <li><strong>Correctness of Strassen's Algorithm:</strong> Verify the formulas used by Strassen's algorithm to show that it properly computes the matrix product.</li>
@@ -567,7 +572,7 @@ def strassen(A, B):
   </ol>
 </section>
 
-<section id="problems">
+<section id="problems" section-title="Homework Problems">
   <h2>Homework Problems</h2>
   <ol>
     <li><strong>Exact operation counts for \(n=2^k\):</strong>
