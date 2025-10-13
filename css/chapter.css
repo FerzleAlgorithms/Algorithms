@@ -31,11 +31,11 @@
   overflow-x: auto;
 }
 
-/* once JS runs, hide all panels by default… */
+/* once JS runs, hide all panels by defaultï¿½ */
 .js-enabled .code-container {
   display: none;
 }
-/* …but show only the one with “active” */
+/* ï¿½but show only the one with ï¿½activeï¿½ */
 .js-enabled .code-container.active {
   display: block;
 }
@@ -77,7 +77,7 @@ pre {
 }
 
 
-.theorem, .lemma {
+.theorem, .lemma, .corollary {
   border: 2px solid #003366;
   background-color: #f0f8ff;
   padding: 1em;
@@ -93,7 +93,13 @@ pre {
   margin-bottom: 0.5em;
   color: #003366;
 }
-
+.corollary::before {
+  content: "Corollary";
+  font-weight: bold;
+  display: block;
+  margin-bottom: 0.5em;
+  color: #003366;
+}
 .lemma::before {
   content: "Lemma";
   font-weight: bold;

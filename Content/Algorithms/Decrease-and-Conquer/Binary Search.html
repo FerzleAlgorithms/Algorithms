@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Binary Search</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js"></script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <script src="/Algorithms/scripts/chapterScripts.js"></script>
+  <link rel="stylesheet" href="/Algorithms/css/style.css">
+  <link rel="stylesheet" href="/Algorithms/css/chapter.css">
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DQ5LVZVFDC"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag() { dataLayer.push(arguments); }
+    gtag('js', new Date());
+    gtag('config', 'G-DQ5LVZVFDC');
+  </script>
+  <style>
+    /* Clean academic-style table for examples and exercises */
+    table.nice {
+      border-collapse: collapse;
+      margin: 1em auto;
+      font-size: 1rem;
+      width: auto;
+      text-align: center;
+      background-color: #fafafa;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      overflow: hidden;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+
+    table.nice th,
+    table.nice td {
+      border: 1px solid #ccc;
+      padding: 0.4em 0.8em;
+    }
+
+    table.nice thead th {
+      background-color: #f0f0f0;
+      font-weight: 600;
+    }
+
+    table.nice tbody tr:nth-child(even) {
+      background-color: #f9f9f9;
+    }
+
+    table.nice tbody tr:hover {
+      background-color: #eef6ff;
+    }
+
+    table.nice caption {
+      caption-side: top;
+      font-weight: 600;
+      margin-bottom: 0.3em;
+    }
+  </style>
+</head>
+
+<body>
+  <h1>Binary Search</h1>
+
+  <section id="problem-solved" section-title="Problem Solved">
+    <h2>Problem Solved</h2>
+    <p>
+      Binary Search solves the
+      <a class="problem" href="?path=Problems%2FFoundational%2FSearching">Searching</a>
+      problem, but requires that the array is sorted ahead of time.
+    </p>
+  </section>
+
+  <section id="design" section-title="Design and Strategy">
+    <h2>Design and Strategy</h2>
+    <p>
+      Binary Search is a classic <strong>decrease-and-conquer</strong> algorithm. Given a sorted array and a target
+      value, it eliminates half of the search space in each step by comparing the target with the middle element. This
+      efficient strategy reduces the problem size exponentially.
+    </p>
+    <p>Since the array is sorted, we can compare the middle element to the target.
+      If it equals the target, we are done.
+      If it is larger, the target (if it exists) must lie in the left half;
+      if smaller, it must lie in the right half. In either case, we continue on the relevant
+      half, discarding the other half.
+      We repeat this process, continually halving the search interval until we either
+      find the target or the interval becomes empty.</p>
+
+    <p>More formally, we can write this as:</p>
+    <ol>
+      <li>Let \(low\) and \(high\) be the endpoints of the current search interval.</li>
+      <li>If \(low > high\), the search interval is empty; stop and report “not found.”</li>
+      <li>Compute \(mid = \lfloor (low + high) / 2 \rfloor.\)</li>
+      <li>If \(A[mid] = target\), return \(mid.\)</li>
+      <li>If \(A[mid] < target\), continue with the right half by setting \(low=mid + 1.\)</li>
+      <li>If \(A[mid] > target\), continue with the left half by setting \(high = mid - 1.\)</li>
+    </ol>
+    <p>
+      Because the input size is reduced by half each step, Binary Search exemplifies the decrease-by-a-constant-factor
+      strategy.
+    </p>
+    <p>This algorithm is simple enough that we can jump to the demo so you can see it in
+      action. Then we will get into more formal pseudocode and code for the algorithm.
+    </p>
+  </section>
+  <section id="demo" section-title="Interactive Demo">
+    <h2>Interactive Demo</h2>
+    <div class="embeddedDemoContainer">
+      <iframe class="embeddedDemo" src="/Algorithms/Content/Demos/Decrease-and-Conquer/Binary Search Demo.html"
+        allow="fullscreen" name="Binary_Search-demo">
+      </iframe>
+    </div>
+  </section>
+
+  <section id="pseudocode" section-title="Pseudocode">
+    <h2>Pseudocode</h2>
+    <p>The pseudocode for binary search is pretty straightforward.
+      We present both iterative and recursive versions.</p>
+    <pre><code class="language-python">BinarySearch(A, target):     // Iterative
+    low  = 0
+    high = length(A) - 1
+    while ( low &le; high ) do
+        mid = &lfloor;(low + high) / 2&rfloor;
+        if ( A[mid] == target ) then
+            return mid
+        else if ( A[mid] &lt; target ) then
+            low = mid + 1
+        else
+            high = mid - 1
+    return -1
+</code></pre>
+
+    <p>The recursive version is called initially as <code>BinarySearchRec(A, target, 0, n-1)</code>
+      for an array \(A\) with \(n\) elements.</p>
+    <pre>
+<code class="language-python">BinarySearchRec(A, target, low, high):   // Recursive
+    if ( low &gt; high ) then
+        return -1
+    mid = &lfloor;(low + high) / 2&rfloor;
+    if ( A[mid] == target ) then
+        return mid
+    else if ( A[mid] &gt; target) then
+        return BinarySearchRec(A, target, low, mid - 1)
+    else
+        return BinarySearchRec(A, target, mid + 1, high)
+</code></pre>
+  </section>
+
+  <section id="code" section-title="Implementation in Java, C++, Python">
+    <h2>Implementation in Java, C++, Python</h2>
+    <p>Here are simple recursive implementations in our usual languages.
+      The initial call to each is <code>binarySearch(A,  target, 0, n-1)</code>,
+      where the array \(A\) has \(n\) elements.
+      You will notice they are not much different than the pseudocode given earlier.
+      Iterative versions are similar and left as an exercise.</p>
+    <div class="tab-group">
+      <div class="tabs" role="tablist">
+        <button id="tab-java" class="tablink active" data-lang="java" role="tab" aria-controls="java"
+          aria-selected="true">Java</button>
+        <button id="tab-cpp" class="tablink" data-lang="cpp" role="tab" aria-controls="cpp"
+          aria-selected="false">C++</button>
+        <button id="tab-python" class="tablink" data-lang="python" role="tab" aria-controls="python"
+          aria-selected="false">Python</button>
+      </div>
+      <div id="java" class="code-container active" role="tabpanel" aria-labelledby="tab-java">
+        <pre><code class="language-java">int binarySearch(int[] A, int target, int low, int high) {
+    if (low &gt; high) return -1;
+    int mid = (low + high) / 2;
+    if (A[mid] == target) return mid;
+    else if (A[mid] &gt; target)
+        return binarySearch(A, target, low, mid - 1);
+    else
+        return binarySearch(A, target, mid + 1, high);
+}</code></pre>
+      </div>
+      <div id="cpp" class="code-container" role="tabpanel" aria-labelledby="tab-cpp">
+        <pre><code class="language-cpp">int binarySearch(int A[], int target, int low, int high) {
+    if (low &gt; high) return -1;
+    int mid = (low + high) / 2;
+    if (A[mid] == target) return mid;
+    else if (A[mid] &gt; target)
+        return binarySearch(A, target, low, mid - 1);
+    else
+        return binarySearch(A, target, mid + 1, high);
+}</code></pre>
+      </div>
+      <div id="python" class="code-container" role="tabpanel" aria-labelledby="tab-python">
+        <pre><code class="language-python">def binary_search(A, target, low, high):
+    if low &gt; high:
+        return -1
+    mid = (low + high) // 2
+    if A[mid] == target:
+        return mid
+    elif A[mid] &gt; target:
+        return binary_search(A, target, low, mid - 1)
+    else:
+        return binary_search(A, target, mid + 1, high)</code></pre>
+      </div>
+    </div>
+  </section>
+
+  <section id="analysis" section-title="Time/Space Analysis">
+    <h2>Time/Space Analysis</h2>
+    <p><strong>Time Complexity:</strong> At each recursive step, the algorithm examines one element and then recurses on
+      at most half of the array.
+      This leads to the recurrence
+      \[
+      T(n) = T(n/2) + O(1),
+      \]
+      since the work per step is constant and the problem size halves each time.
+      By the <em>Master Theorem</em>, this recurrence solves to \(T(n) = O(\log n)\).
+      We can also reach the same conclusion more directly by reasoning about how many times the
+      search interval can be halved before it becomes empty, as shown next.</p>
+
+    <section id="detailed-analysis" section-title="Detailed Analysis">
+      <h3>Detailed Analysis</h3>
+
+      <p>Before analyzing the loop count directly, it helps to recall how halving a number affects its binary
+        representation.
+        We will connect this to how many iterations binary search can run in the worst case.</p>
+      <p>So, how is the binary representation of \(n\) related to that of \(\lfloor n/2 \rfloor\)?
+        Try a couple of quick checks:</p>
+
+      <div class="example">
+        <p><strong>Example.</strong> If \(n=9\), then \(\lfloor n/2 \rfloor = 4\). In binary, \(9=1001_2\) and
+          \(4=100_2\). If \(n=22\), then \(\lfloor n/2 \rfloor = 11\). In binary, \(22=10110_2\) and \(11=1011_2\). A
+          pattern is emerging.</p>
+      </div>
+
+      <div class="exercise">
+        <p><strong>Exercise.</strong> Fill in the binary representations:</p>
+        <table class="nice">
+          <thead>
+            <tr>
+              <th colspan="2">\(n\)</th>
+              <th colspan="2">\(\lfloor n/2 \rfloor\)</th>
+            </tr>
+            <tr>
+              <th>decimal</th>
+              <th>binary</th>
+              <th>decimal</th>
+              <th>binary</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>12</td>
+              <td></td>
+              <td>6</td>
+              <td></td>
+            </tr>
+            <tr>
+              <td>13</td>
+              <td></td>
+              <td>6</td>
+              <td></td>
+            </tr>
+            <tr>
+              <td>32</td>
+              <td></td>
+              <td>16</td>
+              <td></td>
+            </tr>
+            <tr>
+              <td>33</td>
+              <td></td>
+              <td>16</td>
+              <td></td>
+            </tr>
+            <tr>
+              <td>118</td>
+              <td></td>
+              <td>59</td>
+              <td></td>
+            </tr>
+            <tr>
+              <td>119</td>
+              <td></td>
+              <td>59</td>
+              <td></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <details class="answer">
+          <summary>Solution</summary>
+          <table class="nice">
+            <thead>
+              <tr>
+                <th colspan="2">\(n\)</th>
+                <th colspan="2">\(\lfloor n/2 \rfloor\)</th>
+              </tr>
+              <tr>
+                <th>decimal</th>
+                <th>binary</th>
+                <th>decimal</th>
+                <th>binary</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>12</td>
+                <td>\(1100_2\)</td>
+                <td>6</td>
+                <td>\(110_2\)</td>
+              </tr>
+              <tr>
+                <td>13</td>
+                <td>\(1101_2\)</td>
+                <td>6</td>
+                <td>\(110_2\)</td>
+              </tr>
+              <tr>
+                <td>32</td>
+                <td>\(100000_2\)</td>
+                <td>16</td>
+                <td>\(10000_2\)</td>
+              </tr>
+              <tr>
+                <td>33</td>
+                <td>\(100001_2\)</td>
+                <td>16</td>
+                <td>\(10000_2\)</td>
+              </tr>
+              <tr>
+                <td>118</td>
+                <td>\(1110110_2\)</td>
+                <td>59</td>
+                <td>\(111011_2\)</td>
+              </tr>
+              <tr>
+                <td>119</td>
+                <td>\(1110111_2\)</td>
+                <td>59</td>
+                <td>\(111011_2\)</td>
+              </tr>
+            </tbody>
+          </table>
+        </details>
+      </div>
+
+      <div class="question">
+        <p><strong>Question.</strong> How are the binary representations of \(n\) and \(\lfloor n/2 \rfloor\) related?
+        </p>
+        <details class="answer">
+          <summary>Answer</summary>
+          <p>\(\lfloor n/2 \rfloor\) is \(n\) with its least significant bit removed (i.e., a right shift by one bit).
+          </p>
+        </details>
+      </div>
+
+      <p>This observation leads to the following results.</p>
+
+      <div class="theorem">
+        <p>The binary representation of \(\lfloor n/2 \rfloor\)
+          is the binary representation of \(n\) shifted to the right by one bit—
+          that is, the same as \(n\) with the last bit (the lowest-order bit) removed.</p>
+
+        <details class="proof">
+          <summary>Proof</summary>
+          <p>
+            Let the binary representation of \(n\) be
+            \(a_m a_{m-1} a_{m-2} \ldots a_2 a_1 a_0\), where \(a_m = 1\)
+            (so the highest-order bit is a 1). Then
+            \[
+            n = a_m\,2^m + a_{m-1}\,2^{m-1} + \cdots + a_2\,2^2 + a_1\,2^1 + a_0\,2^0.
+            \]
+            Dividing by 2 and taking the floor gives
+            \[
+            \begin{aligned}
+            \left\lfloor \frac{n}{2} \right\rfloor
+            &= \left\lfloor
+            \frac{a_m\,2^m + a_{m-1}\,2^{m-1} + \cdots + a_1\,2^1 + a_0\,2^0}{2}
+            \right\rfloor \\[4pt]
+            &= \left\lfloor
+            a_m\,2^{m-1} + a_{m-1}\,2^{m-2} + \cdots + a_2\,2^1 + a_1\,2^0 + a_0/2
+            \right\rfloor \\[4pt]
+            &= a_m\,2^{m-1} + a_{m-1}\,2^{m-2} + \cdots + a_2\,2^1 + a_1\,2^0,
+            \end{aligned}
+            \]
+            because \(a_0/2\) is either 0 or \(\tfrac12\), and the floor removes the fractional part.
+            Hence the binary representation of \(\lfloor n/2 \rfloor\)
+            is \(a_m a_{m-1} a_{m-2} \ldots a_2 a_1\),
+            which is exactly the binary representation of \(n\) shifted right one bit.
+          </p>
+        </details>
+      </div>
+
+      <div class="corollary">
+        <p> If \(n\) requires exactly \(k\) bits in binary, then \(\lfloor n/2 \rfloor\) requires exactly \(k-1\) bits.
+        </p>
+        <details class="proof">
+          <summary>Proof</summary>
+          <p>Immediate from the theorem: removing the least significant bit reduces the bit-length by one.</p>
+        </details>
+      </div>
+
+      <div class="theorem">
+        <p>The number of bits needed to represent \(n\) in binary is \(\lfloor \log_2 n \rfloor + 1\).</p>
+        <details class="proof">
+          <summary>Proof</summary>
+          <p>Let \(k\) satisfy \(2^{k-1}\le n&lt;2^k\). Numbers from \(2^{k-1}\) up to \(2^k-1\) have \(k\) bits, so
+            \(n\) has \(k\) bits. Taking logs gives \(k-1\le \log_2 n&lt;k\), hence \(k=\lfloor \log_2 n \rfloor+1\).
+          </p>
+        </details>
+      </div>
+
+      <p>We can apply these results to the anaylsis of Binary Search.
+        Let the active portion of the array at any moment be between the indices from <em>low</em> to <em>high</em>,
+        inclusive.
+        Each iteration (or recursive call) discards at least half of those candidates. Equivalently, the
+        quantity "number of candidates left" is replaced by its floor-halved value.
+        By the results above, halving drops the binary representation by one bit.
+        Since an initial array of size \(n\) has \(\lfloor \log_2 n \rfloor + 1\) bits in its size,
+        the bit-length can decrease at most \(\lfloor \log_2 n \rfloor + 1\) times before the interval becomes empty.
+        Therefore, the loop/recursion runs at most \(\lfloor \log_2 n \rfloor + 1\) steps in the worst case,
+        and binary search runs in \(O(\log n)\) time.
+      </p>
+    </section>
+
+    <p><strong>Space Complexity:</strong>
+      For the recursive version, each call adds to the call stack.
+      In the worst case, there are \( O(\log n) \) recursive calls,
+      so the space complexity is \( O(\log n) \).
+      The iterative version keeps only a few index variables
+      (\(low\), \(high\), and \(mid\)) and therefore uses \(O(1)\) additional space.</p>
+
+  </section>
+
+  <section id="variations" section-title="Variations and Improvements">
+    <h2>Variations and Improvements</h2>
+    <ul>
+      <li><strong>First or Last Occurrence:</strong> In arrays with duplicate values, small adjustments to the midpoint
+        test let us return the first or last index of a target. This is useful in frequency counting or range queries.
+      </li>
+      <li><strong>Ternary Search:</strong> When searching for the maximum or minimum of a unimodal function rather than
+        an exact value, a related approach called <em>ternary search</em> divides the interval into three parts instead
+        of two. It still runs in \(O(\log n)\) time but fits continuous optimization settings better.</li>
+      <li><strong>Floating-Point or Infinite Domains:</strong> The same idea extends beyond arrays—for example, to
+        search for a real number satisfying a condition (like solving \(f(x)=0\)) by halving an interval until it is
+        small enough.</li>
+      <li><strong>Interpolation Search:</strong> Instead of always checking the middle element, interpolation search
+        estimates where the target lies based on its value relative to the endpoints. It works best when the array’s
+        values are uniformly distributed, achieving expected time \(O(\log \log n)\), but can degrade to \(O(n)\) in the
+        worst case.</li>
+
+    </ul>
+  </section>
+  <section id="links" section-title="Links to Resources">
+    <h2>Links to Resources</h2>
+    <ul>
+      <li><a href="https://en.wikipedia.org/wiki/Binary_search_algorithm" target="_blank">Wikipedia: Binary Search</a>
+      </li>
+      <li><a href="https://www.geeksforgeeks.org/binary-search/" target="_blank">GeeksforGeeks: Binary Search</a></li>
+      <li><a href="https://en.wikipedia.org/wiki/Interpolation_search" target="_blank">Wikipedia: Interpolation
+          Search</a></li>
+    </ul>
+  </section>
+
+  <section id="reading-questions" section-title="Reading Comprehension Questions">
+    <h2>Reading Comprehension Questions</h2>
+    <ol>
+      <li><strong>Base Case:</strong> What condition causes the recursion to stop?</li>
+      <li><strong>Key Comparison:</strong> Why do we compare the target to the middle element rather than to another
+        element?</li>
+      <li><strong>Decrease Step:</strong> How does each iteration reduce the problem size?</li>
+      <li><strong>Complexity:</strong> What is the worst-case time complexity, and when does it occur?</li>
+      <li><strong>Space Use:</strong> How does the recursive version's space complexity compare to the iterative
+        version?</li>
+      <li><strong>Assumptions:</strong> What property of the input array is required for binary search to work
+        correctly?</li>
+      <li><strong>Variants:</strong> How would the algorithm change if the array could contain duplicate values?</li>
+    </ol>
+
+    <button id="toggleAnswers" class="show-answer" aria-expanded="false">Show Answers</button>
+    <div id="answers" class="answer" hidden>
+      <ol>
+        <li><strong>Answer:</strong> When <code>low &gt; high</code>, the search interval is empty and the target cannot
+          be present.</li>
+        <li><strong>Answer:</strong> The middle element divides the array evenly, allowing us to discard half the search
+          space each step.</li>
+        <li><strong>Answer:</strong> It halves the number of elements still under consideration at each comparison.</li>
+        <li><strong>Answer:</strong> The worst-case time complexity is \(O(\log n)\), which occurs when the target is
+          not present in the array (or found only after the search interval has been reduced to a single element). In
+          this case, the algorithm performs the maximum number of halving steps—about \(\lfloor \log_2 n \rfloor + 1\)
+          comparisons—before the interval becomes empty.</li>
+        <li><strong>Answer:</strong> The recursive version adds one stack frame per call, using \(O(\log n)\) space; the
+          iterative version reuses variables, using \(O(1)\).</li>
+        <li><strong>Answer:</strong> The array must be sorted in non-decreasing order.</li>
+        <li><strong>Answer:</strong> With duplicates, you adjust the conditions to continue searching left or right
+          until the first or last occurrence is found.</li>
+      </ol>
+    </div>
+  </section>
+
+  <section id="activities" section-title="In-Class Activities">
+    <h2>In-Class Activities</h2>
+    <ol>
+      <li><strong>Trace Binary Search:</strong>
+        Work through several recursive binary searches on small arrays by hand, showing each midpoint comparison.</li>
+      <li><strong>Iterative Practice:</strong>
+        Rewrite binary search iteratively in your chosen language and verify it produces the same results.
+        Compare the number of steps and the space used.</li>
+      <li><strong>Introduce Ternary Search:</strong>
+        Explore how ternary search splits the range into three parts when locating the minimum or
+        maximum of a unimodal function. Trace one example.
+        Determine the exact number of comparisons necessary in the worst case.</li>
+      <li><strong>Binary vs. Ternary Search:</strong> Compare binary and ternary search on sorted arrays based on the
+        exact
+        number of comparisions needed in the worst case.
+        Does ternary search improve performance here? Why or why not?</li>
+      <li><strong>Coin-Weighing Problem (Halves):</strong>
+        You have one heavy fake coin among \(n\) identical-looking coins.
+        Design an algorithm using a balance scale that halves the possibilities each step.
+        How many weighings are needed?</li>
+      <li><strong>Coin-Weighing Problem (Thirds):</strong>
+        Now solve the same problem by dividing the coins into thirds.
+        How many weighings are needed?
+        Which version is faster, and why?</li>
+      <li><strong>Connecting the Ideas:</strong>
+        If you did all of the split-into-halves and split-into-thirds problems relating to both search and coins,
+        you hopefully came to the conclusion that in one case halves was better and in the other thirds was.
+        Explain the difference.</li>
+    </ol>
+  </section>
+
+  <section id="problems" section-title="Homework Problems">
+    <h2>Homework Problems</h2>
+    <ol>
+      <li><strong>Implement and Test:</strong>
+        Write a recursive implementation of binary search in your preferred language.
+        Run it on sorted arrays of various sizes and record the number of comparisons made in the worst case.
+        Verify that the growth is logarithmic.</li>
+
+      <li><strong>Iterative Analysis:</strong>
+        Write the iterative version of binary search and count how many comparisons it performs for arrays of sizes
+        \(n=10^3,10^4,10^5\).
+        Compare these counts to \(\lfloor \log_2 n \rfloor + 1\).</li>
+
+      <li><strong>First (or Last) Occurrence:</strong>
+        Modify binary search so that it returns the <em>first</em> index of a target value if it appears more than once.
+        Prove that your algorithm still runs in \(O(\log n)\) time.</li>
+
+      <li><strong>Coin Problem (Halves and Thirds):</strong>
+        You have one heavier fake coin among \(n\) identical-looking coins.
+        Design two algorithms using a balance scale:
+        <ul>
+          <li>One that divides the coins into halves each weighing</li>
+          <li>One that divides into thirds</li>
+        </ul>
+        Derive and compare closed-form expressions for the total number of weighings required in each case.
+      </li>
+
+      <li><strong>Binary vs. Ternary Search:</strong>
+        Compute the exact number of comparisons required by binary search and by ternary search on an array of size
+        \(n\).
+        Determine which algorithm performs fewer comparisons asymptotically and explain why.</li>
+
+      <li><strong>Explain the Difference:</strong>
+        In the coin-weighing problem and in array searching, we can either divide the possibilities
+        into halves or into thirds.
+        In one of these contexts, thirds give an advantage; in the other, halves do.
+        Write a short explanation (one paragraph) describing the structural difference between the two problems
+        that explains this contrast.</li>
+
+      <li><strong>Interpolation-Based Searching:</strong>
+        Assuming the data are roughly uniform (nearly linear growth of value with index), we can exploit the idea that a value’s 
+        <em>position</em> should be proportional to its <em>relative value</em> within the current interval. 
+        Instead of always checking the midpoint, estimate the next index by placing the target the same fraction of the way between 
+        the ends as its value is between the endpoint values.
+        <br><em>Example.</em> Consider the current interval <code>[first,last] = [50,149]</code> (100 elements) with 
+        <code>A[first] = 300</code> and <code>A[last] = 1290</code>. 
+        Searching for target <code>630</code>, which is one-third of the way from 300 to 1290, we’d expect the target near 
+        index <code>first + ⌊(1/3)·(last − first)⌋ = 83</code> (far from the midpoint at 99).
+        <ol>
+          <li>Based on this idea, design a variable-size-decrease algorithm 
+            <code>search(A, target, first, last)</code> that returns the index of <code>target</code> or <code>-1</code> if not found.
+            Your pseudocode should:
+            <ul>
+              <li>Compute an estimated probe position <code>pos</code> within <code>[first,last]</code> using the proportional idea,</li>
+              <li>Compare <code>A[pos]</code> to the target and update <code>first</code>/<code>last</code> accordingly,</li>
+              <li>Handle edge cases (e.g., <code>A[first] == A[last]</code>, division by zero, and estimates outside <code>[first,last]</code> by clamping),</li>
+              <li>Terminate when the interval is empty or the value is found.</li>
+            </ul>
+          </li>
+          <li><strong>Bonus:</strong> Determine the average-case and worst-case number of comparisons. 
+            (Assume uniform data for average case; assume exponentially growing values—e.g., \(1,2,4,8,\ldots\)—for worst case.)</li>
+          <li><strong>Bonus 2:</strong> Compare and contrast your algorithm with binary search.</li>
+        </ol>
+      </li>
+      <li><strong>Empirical Comparison:</strong>
+        Implement both binary search and interpolation search.
+        Generate sorted arrays with values distributed (a) uniformly, (b) exponentially, and (b) logarithmically.
+        Measure and compare the average number of comparisons required in each case.</li>
+
+      <li><strong>Generalized Division Strategy:</strong>
+        Suppose an algorithm divides the search interval into \(k\) parts each step, checking \(k-1\) elements.
+        Derive a recurrence for its running time and determine the value of \(k\) that minimizes total comparisons.
+        Does your answer depend on the problem type?</li>
+
+    </ol>
+  </section>
+
+</body>
+
+</html>

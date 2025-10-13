@@ -13,6 +13,7 @@
     },
     {
       "Decrease-and-Conquer": [
+        "Binary Search.html",
         "Hoare Partition.html",
         "Insertion Sort.html"
       ]
@@ -99,7 +100,7 @@
         "Factorial Demo.html",
         "Hoare Partition Demo.html",
         "Insertion Sort Demo.html",
-        "QuickSelect Demo.html",
+        "Quickselect Demo.html",
         "Quickselect Simple Demo.html",
         "Topological Sort Demo.html"
       ]
@@ -182,7 +183,6 @@
     "Links.html",
     {
       "DRAFTS": [
-        "Algorithms/Decrease-and-Conquer/Binary Search DRAFT.html",
         "Algorithms/Decrease-and-Conquer/Quickselect DRAFT.html",
         "Algorithms/Decrease-and-Conquer/Topological Sort DRAFT.html",
         "Algorithms/Exhaustive Search/Topological Sort (DFS) DRAFT.html",
