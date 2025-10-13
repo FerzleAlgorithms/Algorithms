@@ -22,7 +22,7 @@
   <h1>Dynamic Programming</h1>
 
   <!-- Motivation & Introduction -->
-  <section id="introduction">
+  <section id="introduction" section-title="Introduction">
     <h2>Introduction</h2>
     <p>
       Dynamic programming (DP) is a powerful technique for solving optimization and counting problems by 
@@ -62,9 +62,7 @@
 
 
 
-<section id="examples">
-  <h2>Examples</h2>
-  
+<section id="examples" section-title="Example 1: Coin Row Problem">
   <div class="example-box">
   
   <strong class="example-title">Example: Coin Row Problem</strong>
@@ -184,6 +182,9 @@
       but also in techniques like backtracking and branch-and-bound. 
     </p>
   </div>  
+  </section>
+  
+  <section id="example2" section-title="Example 2: Fibonacci Numbers">
   
    <p>
     You may have seen that the brute force algorithm to compute the \(n\)th Fibonacci number 
@@ -225,8 +226,10 @@
     We will look at both of these approaches to computing the \(n\)th Fibonacci number.
     </p>
     
+  <section id="example2a" section-title="Example 2a: Fibonacci Numbers (Top-Down)">
+    <h3>Example 2a: Fibonacci Numbers (Top-Down)</h3>
   <div class="example-box">
-    <strong class="example-title">Example 2: Fibonacci Numbers (Top-Down)</strong>
+    <strong class="example-title">Example 2a: Fibonacci Numbers (Top-Down)</strong>
      <p>
         To compute the \(n\)th Fibonacci number using the top-down dynamic programming algorithm,
         we need to create an array to store the first \(n\) Fibonacci numbers,
@@ -277,6 +280,8 @@ fibRec(i, fib) { // Recursive helper with memoization //
               <code>fibRec(k,fib)</code> executes at most \(2C\, k\) instructions,
               correctly fills entries 0 through \(k\) of the \(fib\) array, 
               and returns \(F_k\), the \(k\)th Fibonacci number.</p>
+              
+            <section id="proof" section-title="Proof">
               <p><strong>Proof:</strong><br>
           <strong>Base case:</strong> 
             When \(k = 1\), the algorithm uses at most \(C\leq 2C\,1\) steps, sets \(fib[1]=1\),
@@ -293,6 +298,7 @@ fibRec(i, fib) { // Recursive helper with memoization //
             Finally, according to the code, <code>fibRec(k, fib)</code> correctly returns \(F_k=F_{k-1}+F_{k-2}\),
             and does so in no more than \(C+2C(k-1)+C\)\(=\)\(2C\, k\) steps.
           </p>
+          </section>
      </div>
     <p>
     Hopefully you can put it all together and see that <code>fibonacciTopDown(n)</code> has a time complexity of \(O(n)\).
@@ -300,10 +306,11 @@ fibRec(i, fib) { // Recursive helper with memoization //
   <strong>Space Complexity:</strong> It requires \(O(n)\) space for the \(fib\) array, plus a few extra local variables.
       </p>
     </div>
-    
-
+    </section>
+  <section id="example2b" section-title="Example 2b: Fibonacci Numbers (Bottom-Up)">
+    <h3>Example 2b: Fibonacci Numbers (Bottom-Up)</h3>
   <div class="example-box">
-    <strong class="example-title">Example 3: Fibonacci Numbers (Bottom-Up)</strong>
+    <strong class="example-title">Example 2b: Fibonacci Numbers (Bottom-Up)</strong>
       <p>
         Computing the \(n\)th Fibonacci number by filling an array from the bottom up
         turns out to be a lot easier than the top-down approach: Compute \(F_0=0\) and \(F_1=1\) to start,
@@ -332,7 +339,12 @@ fibRec(i, fib) { // Recursive helper with memoization //
     <p>I feel kind of bad that this example is so much shorter than the other ones.
     But when you use the right technique in the right way, sometimes it's just that easy!</p>
     </div>
+    </section>
+    </section>
     
+    
+  <section id="summary" section-title="Summary">
+    <h2>Summary</h2>
     <p>
     These examples are pretty simple compared to most instanced of dynamic programming (which is why we presnted them first!). 
     For many problems, a 2-dimensional array is needed to store values. But the idea is the same: Define a recurrence relation that
@@ -345,8 +357,9 @@ fibRec(i, fib) { // Recursive helper with memoization //
     But in other cases, it does not (as we will see with matrix chain multiplication).
     </p>
   </section>
+  </section>
   
-<section id="algorithms">
+<section id="algorithms" section-title="Algorithms Using This Technique">
   <h2>Algorithms Using This Technique</h2>
   The following are dynamic programming algorithms or problems where a dynamic programming algorithm exists, but does not have an official name, so we just list the name of the problem.
   <ul>
@@ -363,7 +376,7 @@ fibRec(i, fib) { // Recursive helper with memoization //
   </ul>
 </section>
 
-<section id="when">
+<section id="when" section-title="When to Use">
   <h2>When to Use</h2>
   <ul>
     <li><strong>Overlapping Subproblems:</strong> Identical subproblems recur and can be computed once and reused.</li>
@@ -375,7 +388,7 @@ fibRec(i, fib) { // Recursive helper with memoization //
   </ul>
 </section>
 
-<section id="Limitations">
+<section id="Limitations" section-title="Limitations">
   <h2>Limitations</h2>
   <ul>
     <li><strong>High Memory Usage:</strong> For some problems, the lookup table can be fairly large. For instance, the table for the 0-1 knapsack  (which you will hopefully
@@ -388,7 +401,7 @@ fibRec(i, fib) { // Recursive helper with memoization //
   </ul>
 </section>
 
-<section id="tips">
+<section id="tips" section-title="Implementation Tips">
   <h2>Implementation Tips</h2>
   <ul>
     <li><strong>Choose Bottom-Up vs. Top-Down:</strong> Bottom-up tabulation often yields clearer, faster loops when you need to compute all subproblems; Top-down memoization is more efficient if only a subset of subproblems is required, and is quicker to write and easier to debug.</li>
@@ -404,7 +417,7 @@ fibRec(i, fib) { // Recursive helper with memoization //
   </ul>
 </section>
 
-<section id="pitfalls">
+<section id="pitfalls" section-title="Common Pitfalls">
   <h2>Common Pitfalls</h2>
   <ul>
     <li><strong>Off-by-One Errors:</strong> Loop indices and table dimensions often mismatch; ensure your loops cover exactly the intended range.</li>
@@ -416,7 +429,7 @@ fibRec(i, fib) { // Recursive helper with memoization //
   </ul>
 </section>
 
-<section id="applications">
+<section id="applications" section-title="Real-World Applications">
   <h2>Real-World Applications</h2>
   <ul>
     <li><strong>Network Routing:</strong> Computing shortest or least-cost paths in large-scale networks via dynamic programming on path costs (e.g. Bellman–Ford in distance-vector routing).</li>
@@ -430,7 +443,7 @@ fibRec(i, fib) { // Recursive helper with memoization //
   </ul>
 </section>
 
-<section id="summary">
+<section id="summary" section-title="Summary &amp; Key Takeaways">
   <h2>Summary &amp; Key Takeaways</h2>
   <p>
     Dynamic programming is a method for solving complex problems by breaking them down into simpler subproblems, storing the results of those subproblems, and combining them to build up an optimal solution. It relies on two core properties:
@@ -454,7 +467,7 @@ fibRec(i, fib) { // Recursive helper with memoization //
   </p>
 </section>
 
-<section id="resources">
+<section id="resources" section-title="Related Links and Resources">
   <h2>Related Links and Resources</h2>
   <ul>
     <li><a href="https://en.wikipedia.org/wiki/Dynamic_programming" target="_blank">Dynamic Programming</a> (Wikipedia) Overview of dynamic programming concepts, history, and key examples.</li>
@@ -467,7 +480,7 @@ fibRec(i, fib) { // Recursive helper with memoization //
 </section>
 
 
-<section id="reading-questions">
+<section id="reading-questions" section-title="Reading Comprehension Questions">
   <h2>Reading Comprehension Questions</h2>
   <ol>
     <li>What two core properties does dynamic programming rely on?</li>
@@ -489,8 +502,8 @@ fibRec(i, fib) { // Recursive helper with memoization //
     <li>Give pseudocode for an algorithm that uses the rolling array optimization idea to compute the 
     \(n\)-th Fibonacci number in \(O(n)\) time and \(O(1)\) space.
     See the following demonstration for inspiration.</li>
-  </ol>      
-  <div class="embeddedDemoContainer"><iframe class="embeddedDemo" src="/Algorithms/Content/Demos/Dynamic Programming/Fibonacci Best Demo.html"></iframe>
+  </ol>
+<div class="embeddedDemoContainer"><iframe class="embeddedDemo" src="/Algorithms/Content/Demos/Dynamic Programming/Fibonacci Best Demo.html"></iframe>
       </div><br>
   
   <button id="toggleAnswers" class="show-answer" aria-expanded="false">
@@ -575,7 +588,8 @@ fibRec(i, fib) { // Recursive helper with memoization //
 </div>
 </section>
 
-<section id="activities">
+
+<section id="activities" section-title="In-Class Activities">
   <h2>In-Class Activities</h2>
   <ol> 
     <li><strong>Fibonacci Numbers:</strong> Have one group of students go up on the board and draw the recursion tree showing how to compute
@@ -614,7 +628,7 @@ fibRec(i, fib) { // Recursive helper with memoization //
    </ol>
 </section>
 
- <section id="problems">
+ <section id="problems" section-title="Homework Problems">
   <h2>Homework Problems</h2>
   <h3>Basic</h3>
   <ol>

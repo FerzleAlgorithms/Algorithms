@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Variable-Size-Decrease</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js"></script>
+  <script type="text/x-mathjax-config">
+    MathJax.Hub.Config({ TeX: { extensions: ["color.js"] } });
+  </script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <script src="/Algorithms/scripts/chapterScripts.js"></script>
+  <link rel="stylesheet" href="/Algorithms/css/style.css">
+  <link rel="stylesheet" href="/Algorithms/css/chapter.css">
+    <!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-DQ5LVZVFDC"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-DQ5LVZVFDC');
+</script>
+</head>
+<body>
+  <h1>Variable-Size-Decrease</h1>
+  
+  
+  <section id="variable-size-decrease" section-title="Introduction">
+  <h2>Introduction</h2>
+
+  <p>
+    In the variable-size-decrease strategy, each step reduces the problem size by a non-fixed amount&mdash;often determined by a selection, partitioning, or transformation process that depends on the input itself. Unlike constant or constant-factor reductions, the size of the next subproblem is not predictable in advance. This variability makes analysis more nuanced, but many powerful algorithms&mdash;such as QuickSelect and Quicksort&mdash;rely on this approach to achieve optimal or near-optimal performance in practice.
+  </p>
+  <p>
+    Typically, these algorithms spend \(O(n)\) time on a partitioning or scanning step, followed by a recursive call on a subproblem of size \(k\), where \(k\) may range from 0 to \(n - 1\). In the best case, the reduction is large, leading to fast convergence; in the worst case, the progress is slow&mdash;sometimes resulting in poor time complexity unless additional strategies (like randomization or median-of-medians) are applied.
+  </p>
+
+<h2>Examples</h2>
+<div class="example-box">
+  <strong class="example-title">Example 5: Euclidean Algorithm (Variable-Size-Decrease)</strong>
+  <p>
+    The <a href="?path=Problems/Foundational/GCD">Greatest Common Divisor</a> (GCD) 
+    problem asks for the largest integer that divides two positive integers \(a\) and \(b\) without leaving a remainder.
+    If you are unfamiliar with GCD, make sure you read the GCD page.
+    While a brute-force approach would check all numbers from \(\min(a,b)\) down to 1, there is a much faster method based on a variable-size-decrease strategy.
+  </p>
+  <p>
+    The Euclidean Algorithm for computing \(\gcd(a, b)\) works as follows:
+  </p>
+  <ol>
+    <li>If \(b = 0\), return \(a\). (We are done.)</li>
+    <li>Otherwise, recursively compute \(\gcd(b, a \bmod b)\).</li>
+  </ol>
+  <p>
+  To understand why this works, recall that any number that divides both \(a\) and \(b\) (where \(a\ge b\)) 
+  must also divide the remainder when \(a\) is divided by \(b\)&mdash;that is, \(a \bmod b\). 
+  This is because we can write \(a = bq + r\), where \(r = a \bmod b\), and any common divisor of \(a\) and \(b\) must also divide \(r\).
+  So the set of common divisors of \((a, b)\) is the same as that of \((b, a \bmod b)\), and thus their greatest common divisor is the same.
+</p>
+<p>
+  Intuitively, the Euclidean Algorithm works by replacing the original problem with a "smaller but equivalent" one:
+  instead of asking "what divides both \(a\) and \(b\)?", we ask "what divides both \(b\) and the leftover part of \(a\) after removing as many full \(b\)'s as possible?"
+</p>
+
+
+  <p>
+    At each step, the size of the problem decreases from \((a,b)\) to \((b, a \bmod b)\), but the amount it decreases depends on the values of \(a\) and \(b\).
+    In the worst case, it may only shrink slightly; in the best case, it decreases rapidly.
+    This makes it a clear example of a <em>variable-size-decrease</em> algorithm.
+  </p>
+  <p>
+    Here's more formal pseudocode for the recursive version of the algorithm:
+  </p>
+  <pre><code>gcd(a, b):
+    if b == 0:
+      return a
+    else:
+      return gcd(b, a % b)</code></pre>
+
+  <p>
+    The following demonstration shows the algorithm in action.
+  </p>
+  <div class="embeddedDemoContainer">
+    <iframe
+      class="embeddedDemo"
+      src="/Algorithms/Content/Demos/Decrease-and-Conquer/Euclidean GCD Demo.html"
+      allow="fullscreen"
+      name="EuclideanGCD-Variable-demo"
+    ></iframe>
+  </div>
+  <p>
+  Let \(T(a,b)\) be the time to compute \(\gcd(a,b)\).  
+  Each recursive call performs a constant-time modulus operation and then recurses on \(\bigl(b,\;a \bmod b\bigr)\).  
+  In the worst case&mdash;when \((a,b)\) are consecutive Fibonacci numbers&mdash;this recursion makes only \(O(\log b)\) steps, so
+  \[
+    T(a,b) \;=\; O(\log b)
+    \;=\; O\bigl(\log \min(a,b)\bigr).
+  \]
+  Thus the Euclidean Algorithm runs in time logarithmic in the smaller of its two inputs, 
+  making it extremely efficient even for very large integers.
+  (We realize we skimped on the details of this analysis. If you are really interested in understanding 
+  the details, you can find them in various other places including <a href="https://en.wikipedia.org/wiki/Euclidean_algorithm">Euclidean Algorithm (Wikipedia)</a>.)
+</p>
+</div>
+
+<div class="example-box">
+  <strong class="example-title">Example 6: Quickselect (Variable-Size-Decrease)</strong>
+  <p>
+    Quickselect solves the <a href="?path=Problems/Foundational/K-th Order Statistic">kth order statistic</a> problem,
+    which is simply to determine the \(k\)-th smallest element in a (presumably unsorted) array.
+    It works as follows:
+    <ol>
+      <li>Choosing a pivot and partitioning the array into \([\lt pivot \; | \; pivot \; | \gt pivot]\).</li>
+      <li>Recursing only on the group that contains the \(k\)th element.</li>
+    </ol>
+    <p>Here is a very simple demo showing a high-level view of Quickselect. It glosses over
+    the details of the partition step, but it should give you a general idea of how the algorithm works.</p>
+    </p>
+    <div class="embeddedDemoContainer">
+    <iframe
+      class="embeddedDemo"
+      src="/Algorithms/Content/Demos/Decrease-and-Conquer/Quickselect Simple Demo.html"
+      allow="fullscreen"
+      name="Quickselect-Simple-demo"
+    ></iframe>
+  </div>
+  <p>
+  Notice that once the algorithm has finished, the element at the desired index (in this case \(k=5\))
+  is in the proper location, elements smaller are to the left, and elements larger are to the right,
+  but the array is not totally ordered. Quickselect orders it just enough to be able to put the \(k\)-th
+  element in place.
+  </p>
+    <p>
+    On average Quickselect runs in \(O(n)\) time (with careful pivot selection), 
+    though in the worst case it can be \(O(n^2)\). 
+    </p>
+    <p>
+    This algorithm is a lot like Quicksort, except it only recurses on one part instead of both.
+    Because there are subtleties that make this algorithm a little more complicated than the other 
+    examples in this section, we defer full details, incuding pseudocode, to the
+    <a href="?path=Algorithms/Decrease-and-Conquer/Quickselect">Quickselect</a> page. 
+  </p>
+    
+
+</div>
+
+
+<section id="algorithms" section-title="Algorithms Using This Technique">
+  <h2>Algorithms Using This Technique</h2>
+    <ul>
+      <li><strong>Quickselect</strong>: partitions around a pivot to select the \(k\)th element, average-case \(O(n)\) and worst-case \(O(n^2)\) time.</li>
+      <li><strong>Euclidean Algorithm</strong>: computes \(\gcd(a,b)\) via \(\gcd(b,\,a \bmod b)\), running in \(O(\log \min(a,b))\) time.</li>
+        <li><strong>Binary Search Tree Operations (unbalanced tree):</strong> With an unbalanced tree, the worst-case running time
+        of search, insert, delete, etc. is \(O(h)\), where \(h\) is the height of the tree. Since 
+        \(\log n\leq h \leq n\), the performance can vary widely between trees, and even between calls on the
+        same tree since some paths to a leaf might be as high as \(n\) whereas others as low as \(1\) or \(2\).</li>
+      <li><strong>Interpolation Search:</strong> estimates next position to examine based on the key's value, 
+      giving average-case \(O(\log \log n)\) on uniform data.</li> 
+      <li><strong>Deterministic Median-of-Medians Selection:</strong> picks a pivot guaranteeing worst-case \(O(n)\) time for order statistics.</li>
+      <li><strong>Binary GCD (Stein's Algorithm):</strong> uses bit shifts and subtraction to reduce values, 
+      running in \(O(\log a)\) time (where \(a\) is the larger value).</li>   
+    </ul>
+</section>
+
+
+<section id="applicability" section-title="When to Use">
+  <h2>When to Use</h2>
+  <ul>
+    <li><strong>Single subproblem per call:</strong> When you do not need to branch into multiple subinstances (as in divide-and-conquer) but can solve the entire task by a sequence of dependent steps&mdash;e.g., gcd via the Euclidean algorithm or Quickselect.</li>
+    <li><strong>Data-dependent reduction:</strong> When the amount you remove or partition varies with the input, leading to good average-case performance (e.g., Quickselect's pivoting yields average \(O(n)\) time).</li>
+    <li><strong>Low per-step overhead:</strong> When the extra work beyond the recursive call is \(O(1)\) or otherwise negligible, so a long chain of reductions still runs in \(O(n)\) or \(O(\log n)\).</li>
+    <li><strong>Simplicity over branching:</strong> When the problem's structure does not naturally split into independent subproblems, and a linear or logarithmic "peel-away" approach is clearer and easier to maintain.</li>
+  </ul>
+</section>
+
+<section id="limitations" section-title="Limitations">
+  <h2>Limitations</h2>
+  <p>Variable-Size-Decrease may be less suitable in these scenarios:</p>
+  <ul>
+    <li><strong>Worst-case degradation:</strong> Some variable-size algorithms (e.g., naive Quickselect) can fall to \(O(n^2)\) time if the reductions are poorly balanced.</li>
+    <li><strong>Stack depth:</strong> A chain of \(O(n)\) reductions (as in decrease-by-a-constant) can lead to recursion depth \(O(n)\), risking stack overflow for large \(n\).</li>
+    <li><strong>High constant overhead:</strong> When each reduction step entails significant work&mdash;such as choosing a precise median pivot&mdash;the extra constant factors can outweigh the depth advantage on moderate inputs.</li>
+    <li><strong>Independent subproblems:</strong> If the problem naturally splits into multiple independent pieces, a divide-and-conquer strategy often enables better parallelism and overall efficiency.</li>
+  </ul>
+</section>
+
+<section id="implementation-tips" section-title="Implementation Tips">
+  <h2>Implementation Tips</h2>
+  <ul>
+    <li><strong>Clear base case:</strong> Define and test your termination condition (e.g., \(n \le 1\) or a small threshold) to avoid infinite recursion or loops.</li>
+    <li><strong>In-place partitioning:</strong> In variable-size algorithms like Quickselect, perform partitioning with two-pointer swaps to maintain \(O(1)\) extra space.</li>
+    <li><strong>Robust pivot choice:</strong> Use a randomized pivot or median-of-medians to guard against 
+    worst-case performance (e.g. \(O(n^2)\) in Quickselect).</li>
+    <li><strong>Hybrid small-case handling:</strong> In variable-size decrease algorithms (such as Quickselect), when the remaining subarray length falls below a small cutoff (e.g. \(n \le 16\)), finish with a simple iterative method (such as insertion sort or a direct scan) to avoid extra partitioning/pivoting and recursive-call overhead.</li>
+    <li><strong>Index-based parameters:</strong> Pass start/end indices instead of slicing arrays to avoid \(O(n)\) copy overhead.</li>
+  </ul>
+</section>
+
+<section id="common-pitfalls" section-title="Common Pitfalls">
+  <h2>Common Pitfalls</h2>
+  <ul>
+    <li><strong>Missing or incorrect base case:</strong> Failing to stop when \(n \le 1\) (or your chosen threshold) 
+    can lead to infinite recursion or loops.</li>
+    <li><strong>Off-by-one in size reduction:</strong> Mixing \(\lfloor n/b\rfloor\) and \(\lceil n/b\rceil\) 
+    (or \(n-1\) vs. \(n-c\)) inconsistently may leave subproblems unchanged or skip elements.</li>
+    <li><strong>Unintended array copies:</strong> Using slicing or subarray creation inside each call adds 
+    \(O(n)\) work per step, potentially turning an \(O(n)\) or \(O(n\log n)\) scheme into \(O(n^2)\).</li>
+    <li><strong>Excessive recursion depth:</strong> A long chain of recursive calls&mdash;especially without 
+    converting tail calls to iteration&mdash;can exhaust the call stack on large inputs.</li>
+    <li><strong>Poor pivot choice:</strong> In Quickselect or similar, consistently picking bad pivots 
+    can degrade average \(O(n)\) time to worst-case \(O(n^2)\).</li>
+    <li><strong>Boundary mismanagement:</strong> Off-by-one errors in start/end indices 
+    (inclusive vs. exclusive) can omit or duplicate elements in subproblems.</li>
+  </ul>
+</section>
+
+<section id="real-world-applications" section-title="Real-World Applications">
+  <h2>Real-World Applications</h2>
+  <ul>
+    <li><strong>Order statistics:</strong> Quickselect finds medians or percentiles in streaming analytics and real-time monitoring systems in average \(O(n)\) time.</li>
+    <li><strong>Arithmetic libraries:</strong> The Euclidean algorithm or binary GCD computes greatest common divisors and modular inverses in numerical and cryptographic software.</li>
+  </ul>
+</section>
+
+<section id="summary" section-title="Summary &amp; Key Takeaways">
+  <h2>Summary &amp; Key Takeaways</h2>
+  <ul>
+    <li><strong>Approach:</strong> Variable-size-decrease algorithms typically perform a selection or partition to choose a pivot (or key) that takes \(O(n)\) time, and recurse on a subproblem of size \(k\), where \(0 \le k < n\); the exact shrinkage depends on the input.</li>
+    <li><strong>When to Reach For It:</strong>  
+      Ideal when you can "peel off" a single subproblem&mdash;by a fixed amount, a fixed fraction, or adaptively&mdash;and funnel all work through one chain of reductions rather than branching into multiple independent calls (in which case divide-and-conquer might be more appropriate).</li>
+
+
+    <li><strong>Recursion depth:</strong> Determined by the sequence of chosen \(k\) values: 
+    <ul>
+      <li><em>Best case:</em> Technically, the best case can be \(O(1)\) levels, although for most problems that does not really occur. In most cases, the best case of \(O(\log n)\) levels occurs when \(k\) is generally somewhere around \(n/2\) (or some other fraction) at each step. However, given the nature of this technique, this is difficult to guarantee.</li>
+      <li><em>Average case:</em> With proper pivot/partition selection, often \(O(\log n)\) levels. For instance, using random pivot selection in Quickselect.</li>
+      <li><em>Worst case (poor pivots):</em> \(O(n)\) levels if \(k\approx n-1\) each time.</li>
+    </ul>
+  </li>
+    <li><strong>Time Complexity:</strong>
+    Because of their unpredictable nature, these are harder to generalize. On average, they have similar performance to decrease-by-a-constant-factor algorithms (assuming they generally have "nice" splits/division), and in the worst-case, they are similar to decrease-by-a-constant algorithms (assuming they have "poor" splits/divisions). For instance:
+      <ul>
+        <li><em>Euclidean Algorithm:</em> Always \(O\left(\log \left(\min(a,b)\right)\right)\).</li>
+        <li><em>Quickselect:</em> Average \(O(n)\), worst-case \(O(n^2)\); improved to worst-case \(O(n)\) with median-of-medians.</li>
+       </ul>
+    </li>
+    <li><strong>Space complexity:</strong> As with the other variations of this technique, it is based on the recursion stack depth, as well as any additional storage needed by the algorithm. The difference is that here it can vary. Often an average case of \(O(\log n)\) extra space can be achieved, but the worst-case is generally \(O(n)\).</li>
+    <li><strong>Limitations:</strong> Beware of worst-case degradation (e.g. bad pivots), deep recursion stacks, and hidden \(O(n)\) costs from slicing or inefficient subproblem handling.</li>
+    <li><strong>Real-world Impact:</strong> Found in high-speed selection (Quickselect), number theory (Euclidean algorithm), etc.</li>
+    <li><strong>Implementation Considerations:</strong>
+      <ul>
+        <li>Define and test a clear base case (e.g. stop when \(n \le 1\) or at a small threshold) to prevent infinite recursion or loops.</li>
+        <li>Use iteration to avoid recursion overhead.</li>
+        <li>Use robust pivots (e.g. randomized or median-of-medians) to avoid unbalanced splits.</li>
+        <li>Switch to an iterative or closed-form method when subproblem size drops below a cutoff (e.g. \(n \le 16\)) to reduce overhead.</li>
+        <li>Prefer in-place operations and avoid slicing to maintain \(O(1)\) extra space and preserve \(O(n)\) time.</li>
+      </ul>
+    </li>
+  </ul>
+</section>
+
+<section id="reading-questions-constant" section-title="Reading Comprehension Questions">
+  <h2>Reading Comprehension Questions</h2>
+  <ol>  <li>
+      <strong>Euclidean Algorithm Type</strong><br>
+      Why is the Euclidean Algorithm classified as variable-size-decrease, and what is its worst-case time complexity in terms of its inputs?
+    </li> 
+	<li>
+    <strong>Definition Insight:</strong><br>
+    What distinguishes a variable-size-decrease algorithm from decrease-by-a-constant or decrease-by-a-constant-factor?
+  </li>
+  <li>
+    <strong>Quickselect Behavior:</strong><br>
+    In Quickselect, why do we only recurse on one partition after choosing the pivot? What is the benefit of this?
+  </li>
+  <li>
+    <strong>GCD Efficiency:</strong><br>
+    Why is the Euclidean algorithm so efficient despite the variability in how much the input decreases each step?
+  </li>
+  <li>
+    <strong>BST Height Impact:</strong><br>
+    How does the height of a binary search tree impact the performance of search or insert operations in an unbalanced tree?
+  </li>
+  <li>
+    <strong>Performance Spectrum:</strong><br>
+    Why are variable-size-decrease algorithms sometimes closer to constant-decrease in the worst case but closer to constant-factor in the average case?
+  </li>
+  </ol>
+  <button id="toggleAnswers" aria-expanded="false">Show Answers</button>
+  <div id="answers" hidden>
+    <ol> 
+      <li>
+        <strong>Answer:</strong><br>
+        Its step replaces \((a,b)\) with \((b, a \bmod b)\), so the reduction depends on the values; in the worst case it makes \(O(\log \min(a,b))\) calls.
+      </li>
+	   <li>
+      <strong>Answer:</strong><br>
+      The amount the problem size decreases is not fixed or proportional; it depends on input values, making analysis harder but often enabling better average performance.
+    </li>
+    <li>
+      <strong>Answer:</strong><br>
+      Because only one part can contain the desired element. Repeating on one side reduces unnecessary work and improves performance.
+    </li>
+    <li>
+      <strong>Answer:</strong><br>
+      It performs a constant-time modulus each step and reduces one of the numbers—potentially by a large amount. In the worst case, it still completes in \(O(\log \min(a,b))\) time.
+    </li>
+    <li>
+      <strong>Answer:</strong><br>
+      Operations depend on tree height \(h\), which varies with balance. In unbalanced trees, \(h\) can approach \(n\), leading to poor performance.
+    </li>
+    <li>
+      <strong>Answer:</strong><br>
+      Because with good pivoting (e.g., random or median), the subproblem shrinks substantially—like in constant-factor decrease—but with poor choices, progress is minimal, like in constant-decrease.
+    </li>
+    </ol>
+  </div>
+</section>
+
+<section id="activities-constant" section-title="In-Class Activities">
+  <h2>In-Class Activities</h2>
+  <ol>    
+  <li>
+      <strong>Euclidean Algorithm Walkthrough:</strong><br>
+      Compute \(\gcd(1071,462)\) by hand using the Euclidean algorithm. Write down each remainder step, and count how many recursive calls occur.
+    </li>
+<li>
+    <strong>Quickselect Simulation:</strong><br>
+    Given the array [17, 32, 8, 24, 13, 29, 41, 19, 5, 11, 27] and \(k = 6\), simulate Quickselect with the first element as the pivot. 
+    Show each partitioning step, updated value of \(k\), and which subarray is recursed on.
+  </li>
+  <li>
+    <strong>GCD Variability:</strong><br>
+    Compare the number of Euclidean algorithm steps when computing \(\gcd(987, 610)\) and \(\gcd(996, 249)\). 
+    Explain why one takes more steps than the other.
+  </li>
+  <li>
+    <strong>Height of BST:</strong><br>
+    Construct a binary search tree by inserting [50, 25, 75, 10, 30, 60, 90, 5, 20, 27, 65, 85, 95] in order. 
+    Then construct one using [5, 10, 20, 25, 27, 30, 50, 60, 65, 75, 85, 90, 95]. Compare max depth in each.
+  </li>
+  <li>
+    <strong>Pivot Choice Effects:</strong><br>
+    Try Quickselect on the array [62, 71, 38, 54, 85, 23, 91, 33, 47, 19, 68, 75, 99] to find the 7th smallest element. 
+    Do this twice: once using the first element as the pivot, once using the true median. How many steps does each take?
+  </li>
+  <li>
+  <strong>Pivot Behavior Exploration:</strong><br>
+  Consider the array [42, 17, 63, 5, 89, 28, 34, 57, 71, 21, 46, 79]. 
+  Apply Quickselect with three pivot strategies to find the 6th smallest element:
+  <ul>
+    <li>(a) First element as pivot</li>
+    <li>(b) Last element as pivot</li>
+    <li>(c) Median-of-three (choose median of first, middle, last)</li>
+  </ul>
+  For each case, record the partitions created and number of steps. 
+  Which strategy gives the most balanced partitioning?
+</li>
+  </ol>
+</section>
+
+<section id="problems-constant" section-title="Homework Problems">
+  <h2>Homework Problems</h2>
+  <ol>
+    <li>
+      <strong>Euclidean Algorithm Walkthrough:</strong><br>
+      Compute \(\gcd(119, 34)\) by hand using the Euclidean algorithm. List each remainder step and 
+      determine how many recursive calls occur.
+    </li>
+	<li>
+    <strong>Quickselect by Hand:</strong><br>
+    Use Quickselect to find the 8th smallest number in the array 
+    [48, 15, 67, 34, 92, 10, 56, 74, 23, 29, 88, 12, 61]. Use the first element as the pivot at each step. 
+    Show the updated array, partition index, and range for the next recursive call at each step.
+  </li>
+  <li>
+    <strong>Euclidean Edge Case:</strong><br>
+    Compute \(\gcd(1597, 987)\) by hand. Count the number of recursive calls. 
+    (Hint: These are consecutive Fibonacci numbers.)
+  </li>
+  <li>
+    <strong>Tree Performance:</strong><br>
+    Insert the following numbers into a binary search tree in the given order: 
+    [500, 200, 800, 100, 300, 700, 900, 50, 150, 250, 350, 600, 750, 850, 950]. 
+    Draw the tree and compute the maximum depth, as well as the depth of each leaf node.
+  </li>
+  <li>
+    <strong>Worst-Case Quickselect:</strong><br>
+    Construct an array of 9 distinct elements such that Quickselect (using pivot-at-start) takes the maximum number of steps to find the 5th smallest. 
+    Explain why this array causes the worst-case behavior.
+  </li>
+  </ol>
+</section>
+
+
+
+ 
+</body>
+</html>

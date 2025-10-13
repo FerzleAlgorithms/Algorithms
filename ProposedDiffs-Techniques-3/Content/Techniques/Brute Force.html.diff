@@ -1,0 +1,115 @@
+--- a/Content/Techniques/Brute Force.html
++++ b/Content/Techniques/Brute Force.html
+@@ -22,7 +22,7 @@
+   <h1>Brute Force</h1>
+   
+   <!-- Motivation & Introduction -->
+-<section id="introduction">
++<section id="introduction" section-title="Introduction">
+   <h2>Introduction</h2>
+   <p>
+     Brute Force algorithms use the most straightforward approach—implementing a solution exactly as defined 
+@@ -36,7 +36,7 @@
+   </p>
+ </section>
+ 
+-  <section id="examples">
++  <section id="examples" section-title="Examples">
+     <h2>Examples</h2>
+     
+     
+@@ -55,8 +55,9 @@
+     <a class="problem" href="?path=Problems/Other/Fibonacci">Fibonacci number</a> page
+     before continuing.</p>
+     <p>Here is an example that shows the recursive calls made to 
+-    compute \(F(5)\) using the naive algorithm.</p>
+-    <div class="embeddedDemoContainer">
++    compute \(F(5)\) using the naive algorithm.</p></section>
++<section id="demo" section-title="Interactive Demo">
++<div class="embeddedDemoContainer">
+       <iframe
+         class="embeddedDemo"
+         src="/Algorithms/Content/Demos/Brute Force/Fibonacci 5 Naive Demo.html"
+@@ -160,8 +161,9 @@
+ </section>
+ 
+ 
++
+ <!-- Canonical Algorithms -->
+-<section id="algorithms">
++<section id="algorithms" section-title="Algorithms Using This Technique">
+   <h2>Algorithms Using This Technique</h2>
+   The following list breifly describes brute force techniques to solve various problems.
+   <ul>
+@@ -238,7 +240,7 @@
+ </section>
+ 
+ <!-- Applicability -->
+-<section id="applicability">
++<section id="applicability" section-title="When to Use">
+   <h2>When to Use</h2>
+   <ul>
+     <li>
+@@ -268,7 +270,7 @@
+   </p>
+ </section>
+   
+-<section id="limitations">
++<section id="limitations" section-title="Limitations">
+   <h2>Limitations</h2>
+   <ul>
+     <li>
+@@ -302,7 +304,7 @@
+ </section>
+ 
+ <!-- Implementation Tips & Common Pitfalls -->
+-<section id="tips">
++<section id="tips" section-title="Implementation Tips &amp; Common Pitfalls">
+   <h2>Implementation Tips &amp; Common Pitfalls</h2>
+   <ul>
+     <li>
+@@ -328,7 +330,7 @@
+ 
+ 
+ <!-- Real-World Applications -->
+-<section id="applications">
++<section id="applications" section-title="Real-World Applications">
+   <h2>Real-World Applications</h2>
+   <ul>
+     <li>
+@@ -359,7 +361,7 @@
+ </section>
+ 
+ <!-- Summary -->
+-<section id="summary">
++<section id="summary" section-title="Summary &amp; Key Takeaways">
+   <h2>Summary &amp; Key Takeaways</h2>
+   <p>
+     Brute Force involves applying the problem’s definition exactly—trying every possibility or following a formula verbatim—trading performance for simplicity. It provides a clear, easy-to-implement solution that is less prone to subtle bugs and serves as a reliable correctness check.
+@@ -392,7 +394,7 @@
+ 
+ 
+ <!-- Reading Comprehension Questions -->
+-<section id="reading-questions">
++<section id="reading-questions" section-title="Reading Comprehension Questions">
+   <h2>Reading Comprehension Questions</h2>
+   <ol>
+     <li>
+@@ -547,7 +549,7 @@
+ </section>
+ 
+ <!-- In-Class Activities -->
+-<section id="activities">
++<section id="activities" section-title="In-Class Activities">
+   <h2>In-Class Activities</h2>
+   <ol>
+     <li>
+@@ -598,7 +600,7 @@
+   </ol>
+ </section>
+ 
+-<section id="problems">
++<section id="problems" section-title="Homework Problems">
+   <h2>Homework Problems</h2>
+ 
+   <h3>Basic</h3>

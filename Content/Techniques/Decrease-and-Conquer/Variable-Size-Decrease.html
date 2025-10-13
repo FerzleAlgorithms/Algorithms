@@ -25,7 +25,7 @@
   <h1>Variable-Size-Decrease</h1>
   
   
-  <section id="variable-size-decrease">
+  <section id="variable-size-decrease" section-title="Introduction">
   <h2>Introduction</h2>
 
   <p>
@@ -35,7 +35,9 @@
     Typically, these algorithms spend \(O(n)\) time on a partitioning or scanning step, followed by a recursive call on a subproblem of size \(k\), where \(k\) may range from 0 to \(n - 1\). In the best case, the reduction is large, leading to fast convergence; in the worst case, the progress is slow&mdash;sometimes resulting in poor time complexity unless additional strategies (like randomization or median-of-medians) are applied.
   </p>
 
-<h2>Examples</h2>
+  </section>
+
+<section id="example5" section-title="Example 5: Euclidean Algorithm">
 <div class="example-box">
   <strong class="example-title">Example 5: Euclidean Algorithm (Variable-Size-Decrease)</strong>
   <p>
@@ -89,6 +91,7 @@
     ></iframe>
   </div>
   <p>
+    <strong>Time Complexity:</strong>
   Let \(T(a,b)\) be the time to compute \(\gcd(a,b)\).  
   Each recursive call performs a constant-time modulus operation and then recurses on \(\bigl(b,\;a \bmod b\bigr)\).  
   In the worst case&mdash;when \((a,b)\) are consecutive Fibonacci numbers&mdash;this recursion makes only \(O(\log b)\) steps, so
@@ -102,7 +105,9 @@
   the details, you can find them in various other places including <a href="https://en.wikipedia.org/wiki/Euclidean_algorithm">Euclidean Algorithm (Wikipedia)</a>.)
 </p>
 </div>
+</section>
 
+<section id="example5" section-title="Example 6: Quickselect">
 <div class="example-box">
   <strong class="example-title">Example 6: Quickselect (Variable-Size-Decrease)</strong>
   <p>
@@ -131,6 +136,7 @@
   element in place.
   </p>
     <p>
+      <strong>Time Complexity:</strong>
     On average Quickselect runs in \(O(n)\) time (with careful pivot selection), 
     though in the worst case it can be \(O(n^2)\). 
     </p>
@@ -140,12 +146,10 @@
     examples in this section, we defer full details, incuding pseudocode, to the
     <a href="?path=Algorithms/Decrease-and-Conquer/Quickselect">Quickselect</a> page. 
   </p>
-    
-
 </div>
+</section>
 
-
-<section id="algorithms">
+<section id="algorithms" section-title="Algorithms Using This Technique">
   <h2>Algorithms Using This Technique</h2>
     <ul>
       <li><strong>Quickselect</strong>: partitions around a pivot to select the \(k\)th element, average-case \(O(n)\) and worst-case \(O(n^2)\) time.</li>
@@ -163,7 +167,7 @@
 </section>
 
 
-<section id="applicability">
+<section id="applicability" section-title="When to Use">
   <h2>When to Use</h2>
   <ul>
     <li><strong>Single subproblem per call:</strong> When you do not need to branch into multiple subinstances (as in divide-and-conquer) but can solve the entire task by a sequence of dependent steps&mdash;e.g., gcd via the Euclidean algorithm or Quickselect.</li>
@@ -173,7 +177,7 @@
   </ul>
 </section>
 
-<section id="limitations">
+<section id="limitations" section-title="Limitations">
   <h2>Limitations</h2>
   <p>Variable-Size-Decrease may be less suitable in these scenarios:</p>
   <ul>
@@ -184,7 +188,7 @@
   </ul>
 </section>
 
-<section id="implementation-tips">
+<section id="implementation-tips" section-title="Implementation Tips">
   <h2>Implementation Tips</h2>
   <ul>
     <li><strong>Clear base case:</strong> Define and test your termination condition (e.g., \(n \le 1\) or a small threshold) to avoid infinite recursion or loops.</li>
@@ -196,7 +200,7 @@
   </ul>
 </section>
 
-<section id="common-pitfalls">
+<section id="common-pitfalls" section-title="Common Pitfalls">
   <h2>Common Pitfalls</h2>
   <ul>
     <li><strong>Missing or incorrect base case:</strong> Failing to stop when \(n \le 1\) (or your chosen threshold) 
@@ -214,7 +218,7 @@
   </ul>
 </section>
 
-<section id="real-world-applications">
+<section id="real-world-applications" section-title="Real-World Applications">
   <h2>Real-World Applications</h2>
   <ul>
     <li><strong>Order statistics:</strong> Quickselect finds medians or percentiles in streaming analytics and real-time monitoring systems in average \(O(n)\) time.</li>
@@ -222,7 +226,7 @@
   </ul>
 </section>
 
-<section id="summary">
+<section id="summary" section-title="Summary &amp; Key Takeaways">
   <h2>Summary &amp; Key Takeaways</h2>
   <ul>
     <li><strong>Approach:</strong> Variable-size-decrease algorithms typically perform a selection or partition to choose a pivot (or key) that takes \(O(n)\) time, and recurse on a subproblem of size \(k\), where \(0 \le k < n\); the exact shrinkage depends on the input.</li>
@@ -259,7 +263,7 @@
   </ul>
 </section>
 
-<section id="reading-questions-constant">
+<section id="reading-questions-constant" section-title="Reading Comprehension Questions">
   <h2>Reading Comprehension Questions</h2>
   <ol>  <li>
       <strong>Euclidean Algorithm Type</strong><br>
@@ -317,7 +321,7 @@
   </div>
 </section>
 
-<section id="activities-constant">
+<section id="activities-constant" section-title="In-Class Activities">
   <h2>In-Class Activities</h2>
   <ol>    
   <li>
@@ -359,7 +363,7 @@
   </ol>
 </section>
 
-<section id="problems-constant">
+<section id="problems-constant" section-title="Homework Problems">
   <h2>Homework Problems</h2>
   <ol>
     <li>

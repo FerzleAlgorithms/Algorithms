@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Decrease-by-a-Constant-Factor</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js"></script>
+  <script type="text/x-mathjax-config">
+    MathJax.Hub.Config({ TeX: { extensions: ["color.js"] } });
+  </script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <script src="/Algorithms/scripts/chapterScripts.js"></script>
+  <link rel="stylesheet" href="/Algorithms/css/style.css">
+  <link rel="stylesheet" href="/Algorithms/css/chapter.css">
+    <!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-DQ5LVZVFDC"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-DQ5LVZVFDC');
+</script>
+</head>
+<body>
+<h1>Decrease-by-a-Constant-Factor</h1>
+
+<section id="introduction" section-title="Introduction">
+<h2>Introduction</h2>
+  <p>
+    Decrease-by-a-Constant-Factor algorithms first do some work to identify and discard a fixed fraction of the 
+    input&mdash;throwing away, for example, half or a third of the input&mdash;then recursively solve the 
+    same type of problem on what is left. 
+    In general, these algorithms reduce the input size from \(n\) to roughly \(\lfloor n/b\rfloor\) 
+    or \(\lceil n/b\rceil\) for some constant \(b\), where \(b=2\) is by far the most common.</p>
+    <p>
+    You see this pattern in binary search (compare to the middle and discard half the array) 
+    and geometric searches that halve the search region. 
+    Because each step eliminates a constant fraction, there are only \(O(\log_b n)\) levels of recursion, 
+    and the total runtime is the per-level work multiplied by this logarithmic depth.
+  </p>
+  
+  
+</section><section id="examples" section-title="Examples">
+<h2>Examples</h2>
+  <p>The two most basic applications of this approach are Binary Search and Exponentiation by Squaring.</p>
+
+    <div class="example-box">
+      <strong class="example-title">Example 3: Exponentiation By Squaring (Decrease-by-a-Constant-Factor)</strong>
+      
+       <p>
+        Suppose you want to compute \(x^n\) for a given real number \(x\) and nonnegative integer \(n\). 
+        This is an example of the <a href="?path=Problems/Foundational/Exponentiation">Exponentiation</a> Problem.
+        See that page if you are unfamiliar with the concept. 
+        An obvious algorithm to solve this problem is to simply multiply \(x\) by itself \(n\) times,
+        which requires \(n-1\) multiplications. But we can do better than that.               
+    Notice that if \(n\) is even,
+    \[
+      x^n \;=\;\bigl(x^{n/2}\bigr)^2\;=\;\bigl(x^{\lfloor n/2\rfloor}\bigr)^2,
+    \]
+    and if \(n\) is odd,
+    \[
+      x^n \;=\; x \times \bigl(x^{\lfloor n/2\rfloor}\bigr)^2.
+    \]
+    By recursively computing \(y = x^{\lfloor n/2\rfloor}\)  and then squaring 
+    (plus one extra multiply when \(n\) is odd), we halve the exponent at each step. 
+        This yields the following "Exponentiation by Squaring" algorithm:
+      </p>
+      <pre><code>power(x, n):
+    if n == 0:
+      return 1
+    half = power(x, floor(n/2))
+    if n mod 2 == 0:
+      return half * half
+    else:
+      return x * half * half
+</code></pre>
+<p>Since this halves the input size at each call, this is a clear example of decrease-by-a-constant-factor
+with \(b=2\). Here is a demonstration of the algorithm in action.
+</p>
+        <!-- If a demo is available, embed it here; otherwise, remove this container. -->
+      <section id="demo" section-title="Interactive Demo">
+<div class="embeddedDemoContainer">
+        <iframe
+          class="embeddedDemo"
+          src="/Algorithms/Content/Demos/Decrease-and-Conquer/Exponentiation By Squaring Demo.html"
+          allow="fullscreen"
+          name="BinaryExp-DecrFactor-demo"
+        ></iframe>
+      </div>
+</section>
+<p><strong>Time Complexity:</strong><br>
+Let \(T(n)\) be the time to compute \(x^n\) using exponentiation by squaring. Each recursive step halves the exponent, so we get the recurrence relation:
+\[
+  T(n) = T\left(\left\lfloor \frac{n}{2} \right\rfloor\right) + O(1)
+\]
+The \(O(1)\) term accounts for at most two multiplications: one to square the result, and one more if \(n\) is odd.
+</p>
+
+<p>
+The easiest way to solve this is to observe that the floor function does not significantly affect the solution to the recurrence. We can simplify it to:
+\[
+  T(n) = T\left(\frac{n}{2}\right) + O(1)
+\]
+and apply the <strong>Master Theorem</strong>. Here, \(a = 1\), \(b = 2\), and \(f(n) = O(1)\), so \(d = 0\). Since \(b^d = 2^0 = 1 = a\), we are in case 2, which yields:
+\[
+  T(n) = O(n^0 \log n) = O(\log n)
+\]
+(If you did not follow that, brush up on your understanding of the Master Theorem!)
+</p>
+
+<p>
+A more insightful analysis of the algorithm comes from the following important fact about 
+the binary representation of integers:
+</p>
+
+<div class="lemma">
+  <p><strong>Lemma:</strong> For any integer \(n \ge 1\), the number of bits required to represent \(n\) in binary is
+  \[
+    \lfloor \log_2 n \rfloor + 1.
+  \]</p>
+
+  <p><strong>Proof:</strong></p>
+  <ul>
+    <li>
+      It is straightforward to verify that for any \(k \ge 0\), \(2^k\) requires \(k + 1\) bits to represent in binary.
+    </li>
+    <li>
+      Similarly, \(2^k\) is the smallest number that requires \(k + 1\) bits.
+    </li>
+    <li>
+      Let \(k\) be the smallest integer such that \(n < 2^k\). Then:
+      \[
+        2^{k - 1} \le n < 2^k
+      \]
+    </li>
+    <li>
+      From this, we conclude that \(n\) requires exactly \(k\) bits to represent in binary. To justify:
+      <ul>
+        <li>
+          Since \(n < 2^k\) and \(2^k\) is the smallest number requiring \(k + 1\) bits, \(n\) requires at most \(k\) bits.
+        </li>
+        <li>
+          Since \(2^{k - 1} \le n\) and \(2^{k - 1}\) requires \(k\) bits, \(n\) must require at least \(k\) bits.
+        </li>
+        <li>
+          Therefore, \(n\) requires exactly \(k\) bits.
+        </li>
+      </ul>
+    </li>
+    <li>
+      Taking logarithms of the inequality above:
+      \[
+        \log_2(2^{k - 1}) \le \log_2 n < \log_2(2^k)
+      \]
+      which simplifies to:
+      \[
+        k - 1 \le \log_2 n < k
+      \]
+    </li>
+	<li>
+	  Since \(\log_2 n\) lies between \(k - 1\) and \(k\), the greatest integer less than or equal to \(\log_2 n\) is \(k - 1\). That is,
+	  \[
+		\lfloor \log_2 n \rfloor = k - 1.
+	  \]
+	  Solving for \(k\), we get:
+	  \[
+		k = \lfloor \log_2 n \rfloor + 1.
+	  \]
+	</li>
+    <li>
+      Therefore, the number of bits required to represent \(n\) in binary is \(\lfloor \log_2 n \rfloor + 1\).
+    </li>
+  </ul>
+</div>
+
+<p>
+We can now use this lemma to analyze the algorithm without using a recurrence. The exponentiation-by-squaring algorithm computes \(x^n\) by repeatedly halving the exponent and squaring intermediate results. At each step, it checks whether the current exponent is even or odd and, if odd, multiplies by an extra factor of \(x\). The key insight is that dividing the exponent by 2 corresponds to removing the least significant bit of its binary representation. Thus, the number of steps the algorithm performs is exactly the number of bits in \(n\), which is \(\lfloor \log_2 n \rfloor + 1\). Since each step involves at most two multiplications and a few simple operations, the total running time is \(O(\log n)\).
+</p>
+
+<p>
+  <strong>Space Complexity:</strong><br>
+  Each recursive call adds a constant amount of stack space. Since the depth of recursion is \(O(\log n)\), the space complexity is also \(O(\log n)\).
+  An iterative version can reduce the space complexity to \(O(1)\).
+</p>
+  
+	  
+<p>
+We should note that this algorithm can be presented slightly differently so it falls under
+the transform-and-conquer technique by considering the binary representation of the exponent. 
+It leads to two different algorithms that are referred
+to as binary exponentiation: left-to-right and right-to-left. They are called that
+based on how they process the binary representation of the exponent.
+It turns out that the algorithm presented here is essentially the same as left-to-right
+binary exponentiation, but we arrived at the algorithm not by considering the binary representation
+of the exponent but by thinking in terms of decreasing the problem size which turns out
+to correspond to using the binary representation of the exponent, although not explicitly.
+</p>
+
+    </div>
+<div class="example-box">
+  <strong class="example-title">Example 4: Binary Search (Decrease-by-a-Constant-Factor)</strong>
+  <p>
+    The <a href="?path=Problems/Foundational/Searching">Searching</a>
+    problem asks to find the index an element with a given value \(v\) in an array \(A\) of size \(n\).
+    If the array is sorted in ascending order, we can do much better than a linear scan.
+  </p>
+   <p>
+    Binary Search works on a sorted list as follows:
+  </p>
+  <ol>
+    <li>If the list is empty, return -1 to indicate the value was not found.</li>
+    <li>Compare the middle element of the list to the target \(v\).
+      <ol type='a'>
+          <li>If it matches, returning its index.</li>
+          <li>If \(v\) is less than the middle element, go back to Step 1 with the left half 
+          (elements less than the middle).</li>
+          <li>If \(v\) is greater than the middle element, go back to Step 1 with the right half 
+          (elements greater than the middle).</li>
+      </ol>
+    </li>
+  </ol>
+  <p>
+    Since each step essentially halves the list size (from \(n\) to about  \(\lfloor n/2\rfloor\)), 
+    this is clearly a decrease-by-a-constant-factor algorithm with \(b=2\).
+  </p>
+  <p>
+    Here is more formal pseudocode of the algorithm.
+  </p>
+  <pre><code>binarySearch(A, v, low, high):
+    if low > high:
+      return -1                              // v not in array
+    mid = floor((low + high) / 2)            // The middle of the array
+    if A[mid] == v:
+      return mid                             // v was found!
+    else if v < A[mid]:
+      return binarySearch(A, v, low, mid-1)  // Search the left half
+    else:
+      return binarySearch(A, v, mid+1, high) // Search the right half</code></pre>
+      
+    <p>
+    The following demonstration shows the algorithm in action.
+    </p>
+  <section id="demo" section-title="Interactive Demo">
+<div class="embeddedDemoContainer">
+    <iframe
+      class="embeddedDemo"
+      src="/Algorithms/Content/Demos/Decrease-and-Conquer/Binary Search Demo.html"
+      allow="fullscreen"
+      name="BinarySearch-DecrFactor-demo"
+    ></iframe>
+  </div>
+</section>
+  <p>
+  <strong>Time Complexity:</strong><br>
+  Let \(T(n)\) denote the running time of Binary Search on a list of length \(n\).  
+  Each comparison and boundary update takes \(O(1)\) time, 
+  and we then recurse on half of the current range.  This gives the recurrence
+  \[
+    T(n) \;=\; T\bigl(\lfloor n/2\rfloor\bigr) + O(1).
+  \]
+  which is identical to the one in the previous example, so it is clear that
+  \(T(n)=\Theta(\log n)\).
+  From this we can see that Binary Search is a better algorithmn to use than Linear Search, 
+  assuming your data is already sorted.
+</p>
+<p>
+  <strong>Space Complexity:</strong><br>
+  As with the previous example, the space requirement is \(O(\log n)\),
+  but it can be reduced to \(O(1)\) by implementing it iteratively.
+</p>
+</div>
+
+
+
+<h2>Algorithms Using This Technique</h2>
+    <ul>
+      <li><strong>Binary Search</strong>: hHalves a sorted array each step, achieving \(O(\log n)\) time.</li>
+      <li><strong>Exponentiation by Squaring</strong>: Reduces the exponent by half per call, requiring \(O(\log n)\) multiplications.</li>
+        <li><strong>Binary Search Tree Operations (balanced tree)</strong>: Descends one level per comparison, 
+        for \(O(\log n)\) time.</li>   
+    <li><strong>Integer Binary Conversion</strong>: Repeatedly divides the number by 2 and stores the remainders. The number of steps is equal to the number of bits, which is \(\lfloor \log_2 n \rfloor + 1\).</li>		
+    <li><strong>Heap Operations</strong>: Operations like insertion and deletion bubble up/down through a binary heap, reducing the problem size by half at each level, with \(O(\log n)\) time complexity.</li>
+		
+    </ul>
+</section>
+
+
+  <section id="when-to-use" section-title="When to Use">
+<h2>When to Use</h2>
+  <ul>
+    <li><strong>Constant-factor shrink:</strong> When you can reduce the size by a constant factor (for instance, halving) each step and pay only small extra work&mdash;classic cases are binary search and exponentiation by squaring.</li>
+    <li><strong>Low per-step overhead:</strong> When the extra work beyond the recursive call is \(O(1)\) or otherwise negligible, so a long chain of reductions still runs in \(O(\log n)\).</li>
+    <li><strong>Simplicity over branching:</strong> When the problem's structure does not naturally split into independent subproblems, and a logarithmic "peel-away" approach is clearer and easier to maintain.</li>
+  </ul>
+
+  
+</section><section id="limitations" section-title="Limitations">
+<h2>Limitations</h2>
+  <ul>
+    <li><strong>High constant overhead:</strong> When each reduction step entails significant work&mdash;such as choosing a precise median pivot&mdash;the extra constant factors can outweigh the depth advantage on moderate inputs.</li>
+  </ul>
+
+  
+</section><section id="implementation-tips" section-title="Implementation Tips">
+<h2>Implementation Tips</h2>
+  <ul>
+    <li><strong>Consistent integer reduction:</strong> When shrinking by a factor, apply floor or ceiling division uniformly (e.g., \(\lfloor n / 2 \rfloor\)) to prevent off-by-one errors.</li>
+    <li><strong>Clear base case:</strong> Define and test your termination condition (e.g., \(n \le 1\) or a small threshold) to avoid infinite recursion or loops.</li>
+    <li><strong>Watch your stack usage:</strong> Unoptimized recursion can consume \(O(\log n)\) frames; prefer iterative forms when \(O(1)\) extra space is needed.</li>
+    <li><strong>Tail-call optimization:</strong> If your language or compiler supports it, enable tail-call elimination to reduce call stack depth.</li>
+    <li><strong>Hybrid cutoff:</strong> When a subproblem's size falls below a tuned cutoff (e.g., \(n \le 16\)), switch to a direct iterative or closed-form method to avoid unnecessary recursive calls.</li>
+  </ul>
+
+  
+</section><section id="common-pitfalls" section-title="Common Pitfalls">
+<h2>Common Pitfalls</h2>
+  <ul>
+    <li><strong>Off-by-one in size reduction:</strong> Mixing \(\lfloor n / b \rfloor\) and \(\lceil n / b \rceil\) inconsistently may leave subproblems unchanged or skip elements.</li>
+    <li><strong>Unintended array copies:</strong> Using slicing or subarray creation inside each call adds \(O(n)\) work per step, turning an \(O(\log n)\) or \(O(n \log n)\) approach into \(O(n^2)\).</li>
+    <li><strong>Missing or incorrect base case:</strong> Failing to stop when \(n \le 1\) (or your chosen threshold) can lead to infinite recursion or loops.</li>
+  </ul>
+
+  
+</section><section id="real-world-applications" section-title="Real-World Applications">
+<h2>Real-World Applications</h2>
+  <ul>
+    <li><strong>Cryptographic protocols:</strong> Exponentiation by squaring accelerates modular exponentiation in RSA, Diffie-Hellman key exchange, and digital signature algorithms.</li>
+    <li><strong>Database systems, search engines, file systems, etc.:</strong> Binary search and similar algorithms are used extensively for efficient lookup in sorted data.</li>
+    <li><strong>Arithmetic libraries:</strong> Binary GCD variants use halving and shifting to compute greatest common divisors efficiently.</li>
+  </ul>
+
+
+
+  
+</section><section id="summary-amp-key-takeaways" section-title="Summary &amp; Key Takeaways">
+<h2>Summary &amp; Key Takeaways</h2>
+  <ul>
+    <li><strong>Approach:</strong> Each step shrinks the input from \(n\) to about \(\lfloor n / b \rfloor\) (commonly \(b = 2\)), discarding a constant fraction.</li>
+    <li><strong>Recursion depth:</strong> \(O(\log_b n)\) levels of recursion (or loop iterations).</li>
+    <li><strong>Time complexity:</strong><br>
+      With \(O(1)\) work per level,
+      \[
+        T(n) = T(\lfloor n / b \rfloor) + O(1) = \Theta(\log n)
+      \]
+      More generally, if each level incurs \(O(f(n))\) work, then
+      \[
+        T(n) = T(\lfloor n / b \rfloor) + O(f(n)) = O(f(n) \log n)
+      \]
+    </li>
+    <li><strong>Space complexity:</strong> \(O(\log n)\) stack space for a naive recursive version (or \(O(1)\) if implemented iteratively or via tail-call optimization), plus any extra workspace per level.</li>
+  </ul>
+
+<section id="reading-questions-constant" section-title="Reading Comprehension Questions">
+  
+</section><h2>Reading Comprehension Questions</h2>
+  <ol> <li>
+      <strong>Logarithmic Reduction</strong><br>
+      How does exponentiation by squaring achieve \(O(\log n)\) time?
+    </li>
+    <li>
+      <strong>Binary Search Recurrence</strong><br>
+      Write the recurrence for binary search's running time and state its solution.
+    </li>
+	<li>
+      <strong>Bit-Length Connection</strong><br>
+      How does the number of bits in the binary representation of \(n\) relate to the number of steps in exponentiation by squaring?
+    </li>
+    <li>
+      <strong>When is this Technique Useful?</strong><br>
+      What problem characteristics make decrease-by-a-constant-factor algorithms particularly suitable?
+    </li>
+    <li>
+      <strong>Binary Search vs. Linear Search</strong><br>
+      Why is binary search more efficient than linear search, and under what condition does this advantage apply?
+    </li>
+  </ol>
+  <button id="toggleAnswers" aria-expanded="false">Show Answers</button>
+  <div id="answers" hidden>
+    <ol> <li>
+        <strong>Answer:</strong><br>
+        By halving the exponent each call, the recurrence \(T(n)=T(\lfloor n/2\rfloor)+O(1)\) solves to \(O(\log n)\).
+      </li>
+      <li>
+        <strong>Answer:</strong><br>
+        \(T(n)=T(\lfloor n/2\rfloor)+O(1)\), which solves to \(O(\log n)\).
+      </li>
+	   <li>
+        <strong>Answer:</strong><br>
+        Each halving of \(n\) corresponds to removing a bit from its binary representation. So the number of recursive steps is exactly the number of bits in \(n\), which is \(\lfloor \log_2 n \rfloor + 1\).
+      </li>
+      <li>
+        <strong>Answer:</strong><br>
+        When each recursive call can discard a fixed fraction of the input with little additional work. Typical examples include ordered search, numeric exponentiation, or any process where progress can be measured in exponential reduction.
+      </li>
+      <li>
+        <strong>Answer:</strong><br>
+        Binary search discards half the array at each step, giving \(O(\log n)\) time vs. linear search's \(O(n)\). This only applies if the array is already sorted.
+      </li>
+    </ol>
+  </div>
+</section>
+
+<section id="activities-constant" section-title="In-Class Activities">
+  <h2>In-Class Activities</h2>
+  <ol>
+      <li>
+      <strong>Recurrence Derivation (harder):</strong><br>
+      For <em>binary search</em>, write down the recurrence relation, 
+      then solve it exactly by iteration to confirm its \(O(\log n)\) bound.
+    </li>
+    <li>
+      <strong>Exponentiation By Squaring:</strong><br>
+      Compute \(3^{23}\) by hand using the obvious algorithm and using Exponentiation by Squaring.
+      How many multiplications did you need in each case. Which was easier to do?
+    </li>
+    <li>
+      <strong>Binary Search Simulation:</strong><br>
+      On the sorted list \([2,3,4,5,6,8,10,12,14,15,17,18,21,23,26,29]\), simulate binary search for target values 6, 28, and 1. At each step, mark the low, high, and mid indices, and indicate whether you recurse on the left or right half.
+      Count the number of comparisons made and confirm that it is around what you expect it to be.
+    </li>
+	<li>
+      <strong>Master Theorem Practice:</strong><br>
+      Apply the Master Theorem to solve the recurrence \(T(n) = T(n/3) + 1\). Then try \(T(n) = T(n/2) + \log n\). Classify each by Master Theorem case.
+    </li>
+    <li>
+      <strong>Binary vs. Iterative Exponentiation:</strong><br>
+      Write both an iterative and recursive version of exponentiation by squaring. Compare the time and space usage of each and explain which is more practical in different scenarios.
+    </li>
+    <li>
+      <strong>Heap Height and Time:</strong><br>
+      Show that a complete binary heap of \(n\) elements has height \(\lfloor \log_2 n \rfloor\), and explain how that justifies the \(O(\log n)\) time for insertion and deletion.
+    </li>
+  </ol>
+</section>
+
+<section id="problems-constant" section-title="Homework Problems">
+  <h2>Homework Problems</h2>
+  <ol>
+  <li>
+      <strong>Binary Search Recurrence:</strong><br>
+      Write down the recurrence for binary search's running time and solve it <em>exactly</em>.
+      Then solve it by the Master Theorem (provide the details that we left out). 
+      Finally verify that both techniques agree with our stated complexity of \(T(n)=\Theta(\log n)\).
+    </li>
+    <li>
+      <strong>Exponentiation Call Tree:</strong><br>
+      Draw the recursion tree for computing \(x^{75}\) using exponentiation by squaring. 
+      Label each node with the exponent and count the total number of multiplications.
+    </li>
+	<li>
+      <strong>Binary Search Simulation:</strong><br>
+      Suppose you perform binary search on a sorted array of size \(1024\). What is the maximum number of comparisons needed? Generalize your answer for an array of size \(n\).
+    </li>
+    <li>
+      <strong>Binary Conversion Analysis:</strong><br>
+      Write a function that converts a nonnegative integer \(n\) to binary by repeatedly dividing by 2 and storing remainders. How many iterations does it take? Use the lemma above to explain the result.
+    </li>
+	<li>
+  <strong>Integer GCD with Halving:</strong><br>
+  Re-discover the Binary Euclidean Algorithm (GCD using halving and subtraction).
+  Explain why this qualifies as a decrease-by-a-constant-factor algorithm and analyze its time complexity.
+  <em>Hint:</em> Consider what you can do if both numbers are even, if only one is even, and if both are odd.
+  Give very clear code/psuedocode!
+</li>
+  </ol>
+</section>
+
+
+
+ 
+</body>
+</html>

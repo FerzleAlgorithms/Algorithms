@@ -22,7 +22,7 @@
   <h1>Greedy Algorithms</h1>
 
   <!-- Motivation & Introduction -->
-    <section id="introduction">
+    <section id="introduction" section-title="Introduction">
   <h2>Introduction</h2>
   <p>
     Greedy algorithms build a solution iteratively by making the most appropriate/optimal choice available at each step.
@@ -79,7 +79,7 @@
 
 
   <!-- Pseudocode Skeleton -->
-  <section id="pseudocode">
+  <section id="pseudocode" section-title="Pseudocode Skeleton">
     <h2>Pseudocode Skeleton</h2>
     <p>Although they are not all identical, many greedy algorithms follow the same basic pattern:
     <pre><code>greedyAlgorithm(items):
@@ -92,12 +92,7 @@
   </section>
   </p>
 
-
-  <!-- Worked Examples -->
-  <section id="examples">
-    <h2>Examples</h2>
-    <p>Here are two classic examples of the greedy technique.</p>
-    
+  <section id="example1" section-title="Example 1: Interval Scheduling">
     <div class="example-box">
   <strong class="example-title">Example 1: Interval Scheduling</strong>
 
@@ -139,7 +134,7 @@ Suppose the first interval chosen by \(G\) finishes at \(f(g_1)\) and the first 
 <p>
 Let's see the algorithm in action.
 </p>
-  <div class="embeddedDemoContainer">
+<div class="embeddedDemoContainer">
     <iframe
       class="embeddedDemo"
       src="/Algorithms/Content/Demos/Greedy/Interval Scheduling Demo.html"
@@ -165,7 +160,9 @@ Let's see the algorithm in action.
    interface).
   </p>
 </div>
+</section>
 
+  <section id="example1" section-title="Example 2: Fractional Knapsack">
     <div class="example-box">
       <strong class="example-title">Example 2: Fractional Knapsack</strong>
       <p>Given \(n\) items, where item \(i\) has value \(v_i\) and weight \(w_i\),
@@ -297,11 +294,10 @@ with the original items.
       <a class="problem" href="?path=Algorithms/Greedy/Fractional Knapsack">Fractional Knapsack Algorithm</a> page.
       </p>
     </div>
-    
-      
-  </section>
+</section>
 
-  <section id="algorithms">
+
+  <section id="algorithms" section-title="Algorithms Using This Technique">
     <h2>Algorithms Using This Technique</h2>
     <ul>
       <li><strong>Activity Selection (Interval Scheduling):</strong> 
@@ -321,7 +317,7 @@ with the original items.
     </ul>
   </section>
 
-  <section id="when">
+  <section id="when" section-title="When to Use">
     <h2>When to Use</h2>
     <ul>
       <li><strong>Greedy Choice:</strong> When the greedy-choice property holds (a local optimum leads to a global optimum).
@@ -338,7 +334,7 @@ with the original items.
     </ul>
   </section>
 
-  <section id="limitations">
+  <section id="limitations" section-title="Limitations">
     <h2>Limitations</h2>
     <ul>
       <li><strong>Greedy Property Failure:</strong> Greedy choices may not lead to an optimal solution if the greedy-choice property does not hold.</li>
@@ -351,7 +347,7 @@ with the original items.
     </ul>
   </section>
 
-  <section id="tips">
+  <section id="tips" section-title="Implementation Tips">
     <h2>Implementation Tips</h2>
     <ul>
       <li><strong>Pre-Sort Input:</strong> Sort your data by the greedy criterion up front (e.g., finish time or value/weight ratio) 
@@ -374,7 +370,7 @@ with the original items.
     </ul>
   </section>
 
-<section id="pitfalls">
+<section id="pitfalls" section-title="Common Pitfalls">
   <h2>Common Pitfalls</h2>
   <ul>
     <li><strong>Incorrect Criterion:</strong> Using the wrong sorting key (e.g., start time instead of finish time) can yield suboptimal 
@@ -390,7 +386,7 @@ with the original items.
   </ul>
 </section>
 
-<section id="applications">
+<section id="applications" section-title="Real-World Applications">
   <h2>Real-World Applications</h2>
   <ul>
     <li><strong>Task Scheduling:</strong> Operating systems and cloud platforms use interval scheduling to assign jobs to CPUs or VMs, maximizing throughput and resource utilization.</li>
@@ -403,7 +399,7 @@ with the original items.
   </ul>
 </section>
 
-<section id="summary">
+<section id="summary" section-title="Summary & Key Takeaways">
   <h2>Summary & Key Takeaways</h2>
   <p>
     Greedy algorithms build a solution by making the best local choice at each step, without revisiting prior decisions. When the <strong>greedy-choice property</strong> and <strong>optimal substructure</strong> hold, this yields an optimal result; otherwise it may serve as a fast approximation.
@@ -418,7 +414,7 @@ with the original items.
   </ul>
 </section>
 
-<section id="links">
+<section id="links" section-title="Related Links and Resources">
   <h2>Related Links and Resources</h2>
   <ul>
     <li><a href="https://en.wikipedia.org/wiki/Greedy_algorithm" target="_blank">Wikipedia: Greedy Algorithm</a> Broad overview, applications, and external references.</li>
@@ -427,7 +423,7 @@ with the original items.
   </ul>
 </section>
   
-<section id="reading-questions">
+<section id="reading-questions" section-title="Reading Comprehension Questions">
   <h2>Reading Comprehension Questions</h2>
   <ol>
     <li>What is the <strong>greedy-choice property</strong>?</li>
@@ -456,7 +452,7 @@ with the original items.
     </ol>
   </div>
 </section>
-<section id="activities">
+<section id="activities" section-title="In-Class Activities">
   <h2>In-Class Activities</h2>
   <ol>
     <li><strong>Counterexample/Proof:</strong>
@@ -501,7 +497,7 @@ with the original items.
   </ol>
 </section>
 
-<section id="problems">
+<section id="problems" section-title="Homework Problems">
   <h2>Homework Problems</h2>
 
   <h3>Basic</h3>

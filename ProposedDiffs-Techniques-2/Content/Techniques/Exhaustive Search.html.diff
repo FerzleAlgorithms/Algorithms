@@ -1,0 +1,112 @@
+--- a/Content/Techniques/Exhaustive Search.html
++++ b/Content/Techniques/Exhaustive Search.html
+@@ -23,7 +23,7 @@
+   
+   <!-- Motivation & Introduction -->
+   
+-  <section id="introduction">
++  <section id="introduction" section-title="Introduction">
+     <h2>Introduction</h2>
+     <p>
+       Exhaustive Search is a subtype of Brute Force in which we explicitly
+@@ -43,7 +43,7 @@
+   </p>
+   </section>
+ 
+-  <section id="examples">
++  <section id="examples" section-title="Examples">
+     <h2>Examples</h2>
+ 
+     <!-- Example 1: Subset-Sum -->
+@@ -171,7 +171,7 @@
+   
+   
+ <!-- Canonical Algorithms -->
+-<section id="algorithms">
++<section id="algorithms" section-title="Algorithms Using This Technique">
+   <h2>Algorithms Using This Technique</h2>
+   <ul>
+     <li>
+@@ -213,7 +213,7 @@
+   </ul>
+ </section>
+ 
+-  <section id="applicability">
++  <section id="applicability" section-title="When to Use">
+   <h2>When to Use</h2>
+   <ul>
+     <li>
+@@ -259,7 +259,7 @@
+ 
+ 
+ 
+-<section id="limitations">
++<section id="limitations" section-title="Limitations">
+   <h2>Limitations</h2>
+   <ul><li>
+       <strong>Exponential (or Worse) Growth &amp; Unsuitability for Large Inputs:</strong>
+@@ -308,7 +308,7 @@
+ </section>
+ 
+ 
+-<section id="tips">
++<section id="tips" section-title="Implementation Tips &amp; Common Pitfalls">
+   <h2>Implementation Tips &amp; Common Pitfalls</h2>
+   <ul>
+   <li>
+@@ -402,7 +402,7 @@
+ </section>
+ 
+ 
+-<section id="applications">
++<section id="applications" section-title="Real-World Applications">
+   <h2>Real-World Applications</h2>
+   <ul>
+   <li>
+@@ -445,7 +445,7 @@
+     </li>
+   </ul>
+ </section>
+-<section id="summary">
++<section id="summary" section-title="Summary &amp; Key Takeaways">
+   <h2>Summary &amp; Key Takeaways</h2>
+   <p>
+     Exhaustive Search is a special case of Brute Force where we generate every possible candidate in the solution space and test each one without pruning. This approach guarantees correctness by mirroring the problem definition directly, even though it may perform a huge amount of extra work.
+@@ -467,6 +467,7 @@
+   </ul>
+ </section>
+ 
++<section id="related-links-and-resources" section-title="Related Links and Resources">
+ <h2>Related Links and Resources</h2>
+ <ul>
+   <li><a href="https://en.wikipedia.org/wiki/Brute-force_search#Generate_and_test" target="_blank">Exhaustive Search (Wikipedia)</a> Overview of the "generate &amp; test" paradigm, its complexity, and how it fits under the brute-force umbrella.</li>
+@@ -481,8 +482,9 @@
+ 
+ 
+ <!-- Reading Comprehension Questions -->
+-<section id="reading-questions">
+-  <h2>Reading Comprehension Questions</h2>
++<section id="reading-questions" section-title="Reading Comprehension Questions">
++  
++</section><h2>Reading Comprehension Questions</h2>
+   <ol>
+     <li>
+       <b>What differentiates Exhaustive Search from a more general Brute Force method?</b><br>
+@@ -550,7 +552,7 @@
+ </section>
+ 
+ <!-- In-Class Activities -->
+-<section id="activities">
++<section id="activities" section-title="In-Class Activities">
+   <h2>In-Class Activities</h2>
+   <ol>
+     <li>
+@@ -581,7 +583,7 @@
+ </section>
+ 
+ 
+-<section id="problems">
++<section id="problems" section-title="Homework Problems">
+   <h2>Homework Problems</h2>
+ 
+   <h3>Basic</h3>

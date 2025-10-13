@@ -22,13 +22,16 @@
   <h1>Divide-and-Conquer</h1>
   
   <!-- Motivation & Introduction -->
-  <section id="introduction">
+  <section id="introduction" section-title="Introduction">
   <h2>Introduction</h2>
   <p>
     Divide-and-Conquer is a powerful algorithmic paradigm that solves a problem by breaking it into two or more smaller subproblems of the same type, recursively solving each subproblem, and then combining their solutions to produce an answer to the original problem. This approach underpins many classic algorithms such as Merge Sort and Quicksort, and often yields asymptotically faster solutions than straightforward iterative methods.
   </p>
+  </section>
 
-<h3>Analyzing Divide-and-Conquer Algorithms</h3>
+  
+<section id="analyze" section-title="Analyzing Divide-and-Conquer Algorithms">
+<h2>Analyzing Divide-and-Conquer Algorithms</h2>
   <p>
     A common way to analyze many divide-and-conquer algorithms is to express their running time with a recurrence relation. Formally, if a problem of size \(n\) can be divided into \(a\) subproblems each of size \(n/b\), and the cost to combine those subsolutions is \(f(n)\), then the overall running time \(T(n)\) satisfies
   </p>
@@ -92,8 +95,7 @@
   </p>
 </section>
 
-  <section id="examples">
-    <h2>Examples</h2>
+  <section id="example1" section-title="Example 1: Exponentiation">
 
     <div class="example-box">
       <strong class="example-title">Example 1: Exponentiation (Divide-and-Conquer)</strong>
@@ -114,9 +116,7 @@
     return left * right
 </code></pre>
 <p>Here is a demonstration that visualizes the recursive calls used in this algorithm.</p>
-
-      <!-- If a demo is available, embed it here; otherwise, remove this container. -->
-      <div class="embeddedDemoContainer">
+<div class="embeddedDemoContainer">
         <iframe
           class="embeddedDemo"
           src="/Algorithms/Content/Demos/Divide-and-Conquer/Exponentiation Demo.html"
@@ -176,7 +176,9 @@
   and combining the solutions.
       </p>
     </div>
+</section>
 
+  <section id="example2" section-title="Example 2: Merge Sort">
     <div class="example-box">
       <strong class="example-title">Example 2: Merge Sort</strong>
       <p>
@@ -245,10 +247,11 @@ Merge(L, R):  // Merge two already-sorted lists L and R
       </p>
      
     </div>
-  </section>
+</section>
+
   
   
-<section id="algorithms-using-technique">
+<section id="algorithms-using-technique" section-title="Algorithms Using This Technique">
   <h2>Algorithms Using This Technique</h2>
   <ul>
     <li>
@@ -289,7 +292,7 @@ Merge(L, R):  // Merge two already-sorted lists L and R
   </ul>
 </section>
 
-<section id="applicability">
+<section id="applicability" section-title="When to Use">
   <h2>When to Use</h2>
   The following are some of the reasons that algorithms like Quicksort, Merge Sort, Strassen's Algorithm, 
   and divide-and-conquer algorithms for problems like Convex Hull, Closest Pair, Discrete Fourier Transforms,
@@ -350,7 +353,7 @@ Merge(L, R):  // Merge two already-sorted lists L and R
   </p>
 </section>
 
-<section id="limitations">
+<section id="limitations" section-title="Limitations">
   <h2>Limitations</h2>
   <ul>
     <li>
@@ -400,7 +403,7 @@ Merge(L, R):  // Merge two already-sorted lists L and R
     </li>
   </ul>
 </section>
-<section id="implementation-tips">
+<section id="implementation-tips" section-title="Implementation Tips">
   <h2>Implementation Tips</h2>
   <ul>
     <li>
@@ -459,7 +462,7 @@ Merge(L, R):  // Merge two already-sorted lists L and R
   </ul>
 </section>
 
-<section id="common-pitfalls">
+<section id="common-pitfalls" section-title="Common Pitfalls">
   <h2>Common Pitfalls</h2>
   <ul>
     <li>
@@ -506,7 +509,7 @@ Merge(L, R):  // Merge two already-sorted lists L and R
 </section>
 
 
-<section id="real-world-applications">
+<section id="real-world-applications" section-title="Real-World Applications">
   <h2>Real-World Applications</h2>
   <ul>
     <li>
@@ -549,7 +552,7 @@ Merge(L, R):  // Merge two already-sorted lists L and R
   </ul>
 </section>
 
-<section id="summary">
+<section id="summary" section-title="Summary &amp; Key Takeaways">
   <h2>Summary &amp; Key Takeaways</h2>
   <p>
     Divide-and-conquer works by <em>dividing</em> a problem of size \(n\) into \(a\) independent subproblems of size \(n/b\), <em>conquering</em> each by recursion, and <em>combining</em> their results in \(O(f(n))\) time.  Writing \(f(n)=O(n^d)\) for some constant \(d\ge0\) gives the recurrence
@@ -592,6 +595,7 @@ Merge(L, R):  // Merge two already-sorted lists L and R
   </p>
 </section>
 
+<section id="related-links-and-resources" section-title="Related Links and Resources">
 <h2>Related Links and Resources</h2>
 <ul>
   <li><a href="https://en.wikipedia.org/wiki/Divide-and-conquer_algorithm" target="_blank">Divide-and-conquer algorithm (Wikipedia)</a> Overview of the paradigm, examples such as Merge Sort and Quicksort, and discussion of the recurrence \(T(n)=a\,T(n/b)+f(n)\).</li>
@@ -604,7 +608,8 @@ Merge(L, R):  // Merge two already-sorted lists L and R
 </ul>
 
 
-<section id="reading-questions">
+
+</section><section id="reading-questions" section-title="Reading Comprehension Questions">
   <h2>Reading Comprehension Questions</h2>
   <ol>
     <li>
@@ -732,7 +737,7 @@ Merge(L, R):  // Merge two already-sorted lists L and R
   </div>
 </section>
 
-<section id="in-class-activities">
+<section id="in-class-activities" section-title="In-Class Activities">
   <h2>In-Class Activities</h2>
   <ol>
     <li>
@@ -804,10 +809,8 @@ Merge(L, R):  // Merge two already-sorted lists L and R
     </li>
   </ol>
 </section>
-<section id="problems">
+<section id="problems" section-title="Homework Problems">
   <h2>Homework Problems</h2>
-
-  <section id="basic-problems">
     <h3>Basic Problems</h3>
     <ol>
       <li>
@@ -894,9 +897,6 @@ Merge(L, R):  // Merge two already-sorted lists L and R
   </ol>
 </li>
     </ol>
-  </section>
-  
-<section id="advanced-problems">
   <h2>Advanced Problems</h2>
   <ol>
     <li>
@@ -1074,8 +1074,6 @@ Merge(L, R):  // Merge two already-sorted lists L and R
 </li>
 
   </ol>
-</section>
-  
 </section>
 
 

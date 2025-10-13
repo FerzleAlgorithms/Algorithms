@@ -1,0 +1,132 @@
+--- a/Content/Techniques/Dynamic Programming.html
++++ b/Content/Techniques/Dynamic Programming.html
+@@ -22,7 +22,7 @@
+   <h1>Dynamic Programming</h1>
+ 
+   <!-- Motivation & Introduction -->
+-  <section id="introduction">
++  <section id="introduction" section-title="Introduction">
+     <h2>Introduction</h2>
+     <p>
+       Dynamic programming (DP) is a powerful technique for solving optimization and counting problems by 
+@@ -62,7 +62,7 @@
+ 
+ 
+ 
+-<section id="examples">
++<section id="examples" section-title="Examples">
+   <h2>Examples</h2>
+   
+   <div class="example-box">
+@@ -346,7 +346,7 @@
+     </p>
+   </section>
+   
+-<section id="algorithms">
++<section id="algorithms" section-title="Algorithms Using This Technique">
+   <h2>Algorithms Using This Technique</h2>
+   The following are dynamic programming algorithms or problems where a dynamic programming algorithm exists, but does not have an official name, so we just list the name of the problem.
+   <ul>
+@@ -363,7 +363,7 @@
+   </ul>
+ </section>
+ 
+-<section id="when">
++<section id="when" section-title="When to Use">
+   <h2>When to Use</h2>
+   <ul>
+     <li><strong>Overlapping Subproblems:</strong> Identical subproblems recur and can be computed once and reused.</li>
+@@ -375,7 +375,7 @@
+   </ul>
+ </section>
+ 
+-<section id="Limitations">
++<section id="Limitations" section-title="Limitations">
+   <h2>Limitations</h2>
+   <ul>
+     <li><strong>High Memory Usage:</strong> For some problems, the lookup table can be fairly large. For instance, the table for the 0-1 knapsack  (which you will hopefully
+@@ -388,7 +388,7 @@
+   </ul>
+ </section>
+ 
+-<section id="tips">
++<section id="tips" section-title="Implementation Tips">
+   <h2>Implementation Tips</h2>
+   <ul>
+     <li><strong>Choose Bottom-Up vs. Top-Down:</strong> Bottom-up tabulation often yields clearer, faster loops when you need to compute all subproblems; Top-down memoization is more efficient if only a subset of subproblems is required, and is quicker to write and easier to debug.</li>
+@@ -404,7 +404,7 @@
+   </ul>
+ </section>
+ 
+-<section id="pitfalls">
++<section id="pitfalls" section-title="Common Pitfalls">
+   <h2>Common Pitfalls</h2>
+   <ul>
+     <li><strong>Off-by-One Errors:</strong> Loop indices and table dimensions often mismatch; ensure your loops cover exactly the intended range.</li>
+@@ -416,7 +416,7 @@
+   </ul>
+ </section>
+ 
+-<section id="applications">
++<section id="applications" section-title="Real-World Applications">
+   <h2>Real-World Applications</h2>
+   <ul>
+     <li><strong>Network Routing:</strong> Computing shortest or least-cost paths in large-scale networks via dynamic programming on path costs (e.g. Bellman–Ford in distance-vector routing).</li>
+@@ -430,7 +430,7 @@
+   </ul>
+ </section>
+ 
+-<section id="summary">
++<section id="summary" section-title="Summary &amp; Key Takeaways">
+   <h2>Summary &amp; Key Takeaways</h2>
+   <p>
+     Dynamic programming is a method for solving complex problems by breaking them down into simpler subproblems, storing the results of those subproblems, and combining them to build up an optimal solution. It relies on two core properties:
+@@ -454,7 +454,7 @@
+   </p>
+ </section>
+ 
+-<section id="resources">
++<section id="resources" section-title="Related Links and Resources">
+   <h2>Related Links and Resources</h2>
+   <ul>
+     <li><a href="https://en.wikipedia.org/wiki/Dynamic_programming" target="_blank">Dynamic Programming</a> (Wikipedia) Overview of dynamic programming concepts, history, and key examples.</li>
+@@ -467,7 +467,7 @@
+ </section>
+ 
+ 
+-<section id="reading-questions">
++<section id="reading-questions" section-title="Reading Comprehension Questions">
+   <h2>Reading Comprehension Questions</h2>
+   <ol>
+     <li>What two core properties does dynamic programming rely on?</li>
+@@ -489,8 +489,9 @@
+     <li>Give pseudocode for an algorithm that uses the rolling array optimization idea to compute the 
+     \(n\)-th Fibonacci number in \(O(n)\) time and \(O(1)\) space.
+     See the following demonstration for inspiration.</li>
+-  </ol>      
+-  <div class="embeddedDemoContainer"><iframe class="embeddedDemo" src="/Algorithms/Content/Demos/Dynamic Programming/Fibonacci Best Demo.html"></iframe>
++  </ol></section>
++<section id="demo" section-title="Interactive Demo">
++<div class="embeddedDemoContainer"><iframe class="embeddedDemo" src="/Algorithms/Content/Demos/Dynamic Programming/Fibonacci Best Demo.html"></iframe>
+       </div><br>
+   
+   <button id="toggleAnswers" class="show-answer" aria-expanded="false">
+@@ -575,7 +576,8 @@
+ </div>
+ </section>
+ 
+-<section id="activities">
++
++<section id="activities" section-title="In-Class Activities">
+   <h2>In-Class Activities</h2>
+   <ol> 
+     <li><strong>Fibonacci Numbers:</strong> Have one group of students go up on the board and draw the recursion tree showing how to compute
+@@ -614,7 +616,7 @@
+    </ol>
+ </section>
+ 
+- <section id="problems">
++ <section id="problems" section-title="Homework Problems">
+   <h2>Homework Problems</h2>
+   <h3>Basic</h3>
+   <ol>

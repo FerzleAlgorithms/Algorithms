@@ -1,0 +1,11 @@
+--- a/Content/Techniques/Introduction.html
++++ b/Content/Techniques/Introduction.html
+@@ -17,7 +17,7 @@
+ </script>
+ </head>
+ <body>
+-<section id="design-techniques">
++<section id="design-techniques" section-title="Introduction to Design Techniques">
+   <h1>Introduction to Design Techniques</h1>
+ 
+   <p>

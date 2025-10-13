@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Technique: Greedy Algorithms</title>
+  <script src="/Algorithms/scripts/chapterScripts.js"></script>
+  <link rel="stylesheet" href="/Algorithms/css/style.css">
+  <link rel="stylesheet" href="/Algorithms/css/chapter.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js"></script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-DQ5LVZVFDC"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-DQ5LVZVFDC');
+</script>
+</head>
+<body>
+  <h1>Greedy Algorithms</h1>
+
+  <!-- Motivation & Introduction -->
+    <section id="introduction" section-title="Introduction">
+  <h2>Introduction</h2>
+  <p>
+    Greedy algorithms build a solution iteratively by making the most appropriate/optimal choice available at each step.
+    When the following two properties hold, this approach is guaranteed to produce an optimal solution:
+  </p>
+  <ul>
+    <li>
+      <strong>Greedy-choice property:</strong>
+      A global optimal solution can be reached by making a locally optimal (greedy) choice at each step,
+      without reconsidering previous choices.
+    </li>
+    <li>
+      <strong>Optimal substructure:</strong>
+      A problem exhibits optimal substructure if once you make any optimal first choice, 
+      the leftover instance is of the same form, and solving that smaller instance optimally 
+      and combining it with your initial choice yields a globally optimal solution.
+    </li>
+  </ul>
+  <p>
+    Bringing these together: the greedy-choice property lets us make the best local decision at each step, 
+    and optimal substructure ensures that each decision leaves a smaller problem that can still be solved optimally.
+    Together, they guarantee the greedy method yields a global optimum.
+  </p>
+  <p>
+    In order to guarantee that an algorithm produces an optimal solution, a problem must exhibit both properties:
+  </p>
+  <ul>
+    <li>
+      If it does not exhibit the greedy-choice property, making only locally optimal choices may lead to a suboptimal global solution.
+    </li>
+    <li>
+      If it does not exhibit optimal substructure, solving each subproblem optimally does not ensure a globally optimal outcome.
+    </li>
+  </ul>
+  <p>
+    The general method of proving each property follows a general pattern:
+  </p>
+  <ul>
+    <li>
+      <strong>Greedy-choice property:</strong> Use an exchange argument that shows any optimal solution can be transformed to one that begins with the greedy choice without losing optimality.
+    </li>
+    <li><strong>Optimal substructure:</strong> Demonstrate that the tail of any optimal solution&mdash;after its first decision&mdash;remains optimal for the residual subproblem, often via contradiction.
+    </li>
+  </ul>
+      
+  <p>
+    Because they never backtrack, greedy methods are often simple to implement and run in near-linear time
+    (or \(O(n\log n)\) when sorting is involved, which is not uncommon).
+    Even when the greedy-choice property fails, 
+    they can yield <em>pretty good</em> approximations 
+    quickly&mdash;how close depends on the particular problem.
+  </p>
+</section>
+
+
+  <!-- Pseudocode Skeleton -->
+  <section id="pseudocode" section-title="Pseudocode Skeleton">
+    <h2>Pseudocode Skeleton</h2>
+    <p>Although they are not all identical, many greedy algorithms follow the same basic pattern:
+    <pre><code>greedyAlgorithm(items):
+    solution = empty
+    sort or prioritize items
+    for each item in items:
+        if item can be added to solution feasibly:
+            add item to solution
+    return solution</code></pre>
+  </section>
+  </p>
+
+
+  <!-- Worked Examples -->
+  <section id="examples" section-title="Examples">
+    <h2>Examples</h2>
+    <p>Here are two classic examples of the greedy technique.</p>
+    
+    <div class="example-box">
+  <strong class="example-title">Example 1: Interval Scheduling</strong>
+
+  <p>
+    Given a collection of \(n\) intervals (requests), each with a start time \(s_i\) and finish time \(f_i\), the goal is to select the largest possible subset of non-overlapping intervals.  
+    For full details, see the <a class="problem" href="?path=Problems/Other/Interval Scheduling">Interval Scheduling problem page</a>.
+  </p>
+<p>
+  This problem is easily solved by a greedy algorithm: always pick the interval with the earliest finish time that does not overlap with the ones you have already selected. By choosing the first finishing job first, you leave maximum room for the rest. The easiest way to accomplish this is to sort the intervals in increasing order according to finish time, then scan the list, choosing an interval if its start time is not before the previous finish time, and skipping it otherwise.This leads to the
+  following pseducode.
+</p>
+
+  <pre><code>intervalScheduling(intervals):
+    sort intervals ascending by f_i
+    selected = empty list
+    lastFinish = -infinity
+    for each interval in intervals:
+        if interval.start &gt;= lastFinish:
+            add interval to selected
+            lastFinish = interval.finish
+    return selected</code></pre>
+  
+<p>
+We can prove that the greedy algorithm produces an optimal solution by proving the problem has the two required properties.
+<ul>
+<li><strong>Greedy-Choice:</strong>
+We use an "exchange" argument. 
+Let \(G\) be the schedule produced by the greedy algorithm and \(S\) be any optimal schedule.
+Assume the intervals are stored in increasing order by finish time in each schedule. 
+Suppose the first interval chosen by \(G\) finishes at \(f(g_1)\) and the first interval in \(S\) finishes at \(f(o_1)\). Since \(g_1\) is the interval with the earliest finish time, \(f(g_1)\le f(o_1)\). If \(o_1\ne g_1\), replace \(o_1\) with \(g_1\) in \(S\); the new schedule remains feasible and retains optimal size. Repeating this exchange for each subsequent interval shows that \(G\) selects at least as many intervals as \(S\), establishing that the greedy strategy is optimal.
+</li><li>
+  <strong>Optimal Substructure:</strong>
+  Once you take the first interval (the one finishing earliest), the remaining task is exactly another interval scheduling instance on the intervals that start at or after its finish time.  
+  Any optimal schedule for this reduced set, when appended to your first choice, yields an optimal schedule for the full collection.  
+  If there were a better way to schedule the remaining intervals, swapping in that improved schedule would strictly increase the total number of intervals&mdash;contradicting the optimality of the original greedy solution.
+</li>
+</ul>
+
+<p>
+Let's see the algorithm in action.
+</p></section>
+<section id="demo" section-title="Interactive Demo">
+<div class="embeddedDemoContainer">
+    <iframe
+      class="embeddedDemo"
+      src="/Algorithms/Content/Demos/Greedy/Interval Scheduling Demo.html"
+      allow="fullscreen"
+      name="Interval-Scheduling-demo"
+    ></iframe>
+  </div>
+
+  <p>
+    <strong>Time Complexity:</strong> This one is simple to analyze: sorting takes \(O(n\log n)\) time 
+    and the single scan takes \(O(n)\) time, so the overall complexity is \(O(n\log n + n) = O(n\log n)\).
+    </p>
+    <p> 
+    <strong>Space Complexity:</strong> The algorithm requires a constant amount of extra space
+    plus up to \(O(n)\) space to store the output list.
+  </p>
+  <p>
+   The only thing that makes this algorithm a little difficult to implement is the fact that we are 
+   sorting intervals instead of just numbers. But sorting data that contains multiple fields
+   on one of those fields is necessary in many algorithms, and hopefully
+   you are (or will become) comfortable implementing this idea.
+   Some languages have mechanisms that make this easier in practice (e.g. Java's <code>Comparable</code>
+   interface).
+  </p>
+</div>
+
+    <div class="example-box">
+      <strong class="example-title">Example 2: Fractional Knapsack</strong>
+      <p>Given \(n\) items, where item \(i\) has value \(v_i\) and weight \(w_i\),
+  and a knapsack with capacity \(W,\) the fractional knapsack problem asks us to 
+  maximize total value by selecting whole or fractional items whose total weight
+  does not exceed \(W\).
+  If you are not familiar with this problem, see the 
+  <a class="problem" href="?path=Problems/Optimization/Fractional Knapsack">Fractional Knapsack</a>
+  problem page before continuing.
+</p>
+ <p>The greedy solution works by computing the density \(p_i = v_i / w_i\) for each item, 
+ sorting all items in descending order of \(p_i\), and then iteratively taking as much of the 
+ current highest-density item as will fit until the knapsack is full. 
+ Because taking more of the item with the greatest value per unit weight can never reduce the 
+ total value achieved by any other feasible combination, the greedy strategy maximizes the final value.
+ We will give a more formal/complete justification that the algorithm is correct a bit later.
+ </p>
+<p>Here is pseudocode for the algorithm based on the description:
+</p>
+<pre><code>// Input
+// Items: list of records with fields  
+//   .value: the value v_i of each item  
+//   .weight: the weight w_i of each item  
+// W: The capacity of the knapsack. that is, the maximum total weight
+fractionalKnapsack(Items, W):
+    # 1. Compute value-per-weight ratio for each item
+    for each item in Items do
+        item.ratio = item.value / item.weight
+    end for
+
+    # 2. Sort items by descending ratio
+    sort Items so that
+        Items[0].ratio &gt;= Items[1].ratio &gt;= ... &gt;= Items[n-1].ratio
+
+    remaining = W
+    totalValue = 0
+
+    # 3. Greedily fill the knapsack
+    for each item in Items do
+        if item.weight &lt;= remaining
+            # take the whole item
+            totalValue = totalValue + item.value
+            remaining = remaining - item.weight
+        else
+            # take only the fraction that fits
+            fraction = remaining / item.weight
+            totalValue = totalValue + item.value * fraction
+            break    # knapsack is full
+        end if
+    end for
+
+    return totalValue
+</code></pre>
+
+<p>
+This pseudocode only computes and returns the maximum value obtainable.
+It can easily be modified to return the list of items to take, although
+there is a subtlety here: We sorted the items, so we need to make sure
+when we return the taken items that they are correctly associated
+with the original items.
+</p>
+<p>Here is a demonstration of the algorithm in action.
+</p>
+
+  <div class="embeddedDemoContainer">
+  <iframe
+    class="embeddedDemo"
+    src="/Algorithms/Content/Demos/Greedy/Fractional Knapsack Demo.html"
+    allow="fullscreen"
+    name="Fractional-Knapsack-demo"
+  ></iframe>
+</div>
+    
+    <p>
+    To prove that the algorithm computes an optimal solution, we will show that the problem exhibits
+    optimal substructure and the greedy-choice property.
+    </p>
+    <ul>
+      <li>
+        <strong>Optimal Substructure:</strong>
+        Let \((A,W)\) be an instance of fractional knapsack with items \(A\) and knapsack weight \(W,\) and let  
+        \(S\) be an optimal solution for \((A,W)\) with value \(V\). 
+        Let \(k\) be some item that \(S\) includes with fractional amount \(x_k\).  
+        We define a subproblem as solution as follows:
+        <ul>
+          <li>
+            \(S' = S \setminus \{k\}\), the part of the original solution excluding the fraction of item \(k\).
+          </li>
+          <li>
+            \(W' = W - x_k\,w_k\), the remaining capacity after reserving room for a fraction \(x_k\) of item \(k\).
+          </li>
+          <li>
+            \(A'\) is the item set identical to \(A\), except item \(k\) now has only \((1-x_k)w_k\) weight left.
+          </li>
+          <li>\(V'=V-v_k\cdot x_k\), is the value of \(S'\).
+        </ul>
+        Then \((A',W')\) is a smaller knapsack instance, and \(S'\) fills it exactly.  
+        We need to prove that \(S'\) is optimal for \((A',W')\). 
+        <br> 
+        Suppose, for contradiction, that \(S'\) is <em>not</em> optimal for \((A',W')\).  
+        Then there is some other solution \(T'\) of weight \(\le W'\) with value \(V_{T'}>V'\). 
+        But if we take \(x_k\) of item \(k\) (as \(S\) did) and then follow it with \(T'\), 
+        we get a valid solution for \((A,W)\) whose value is \(V_{T'}+v_k\cdot x_k \gt V' + v_k\cdot x_k = V\).
+        But since \(S\) was optimal, this is a contradiction since it is a better solution. 
+        Therefore \(S'\) <em>must</em> be optimal for \((A',W')\).  
+        Since this holds for <em>any</em> optimal \(S\), the fractional-knapsack problem has optimal substructure.
+      </li>
+
+      <li>
+        <strong>Greedy-Choice Property:</strong> Let \(i\) be an item with highest density \(p_i = v_i/w_i\). 
+        Taking as much as possible of \(i\) cannot worsen the final total value, 
+        because any optimal solution that does not begin with item \(i\) can be modified 
+        by swapping in \(i\) for an equal-weight portion of any other items since none have a higher density,
+        so the swap cannot decrease the value.
+      </li>
+   </ul>
+      
+      <p><strong>Time Complexity:</strong> \(O(n\log n)\) for sorting, plus \(O(n)\) time
+      for selecting, for a total of \(O(n\log n + n)= O(n\log n)\) time.
+      </p>
+      <p><strong>Space Complexity:</strong> Requires \(O(n)\) extra space for the density array,
+      plus a constant amount of additional space for indexing variables and such.</p>
+      
+      <p>
+      It should be noted that the greedy algorithm does not guarantee an optimal solution to the 
+      <a class="problem" href="?path=Problems/Optimization/0-1 Knapsack">0-1 Knapsack</a>
+      in which you are forced to either take an entire item or not at all.
+      For more details about this algorithm, see the full 
+      <a class="problem" href="?path=Algorithms/Greedy/Fractional Knapsack">Fractional Knapsack Algorithm</a> page.
+      </p>
+    </div>
+</section>
+
+
+  <section id="algorithms" section-title="Algorithms Using This Technique">
+    <h2>Algorithms Using This Technique</h2>
+    <ul>
+      <li><strong>Activity Selection (Interval Scheduling):</strong> 
+      Choose the next job that finishes earliest to maximize the number of non-overlapping activities.</li>
+      <li><a class="problem" href="?path=Algorithms/Greedy/Fractional Knapsack">Fractional Knapsack Algorithm:</a> 
+      Take items (or fractions) in decreasing order of value-to-weight ratio to maximize total value under a weight limit.</li>
+      <li><a  class="problem" href="?path=Algorithms/Greedy/Huffman Encoding">Huffman Encoding:</a> Builds an optimal prefix code by repeatedly merging least frequent symbols.</li>
+      <li><a  class="problem" href="?path=Algorithms/Greedy/Kruskals Algorithm">Kruskal's Algorithm:</a> Selects cheapest edges one by one to build a minimum spanning tree.</li>
+      <li><a  class="problem" href="?path=Algorithms/Greedy/Prims Algorithm">Prim's Algorithm:</a> Grows a minimum spanning tree starting from a single vertex, 
+      adding the cheapest edge from the existing tree to a new vertex.</li>
+      <li><a  class="problem" href="?path=Algorithms/Greedy/Dijkstra">Dijkstra's Algorithm:</a> Greedily selects the vertex with the shortest path 
+      to grow the single-source shortest-path tree.</li>
+       <li><strong>Job Sequencing with Deadlines and Profit:</strong> Schedule jobs in order of decreasing profit, placing each job in the latest available slot before its deadline to maximize total profit.</li>
+    <li><strong>Coin Change (Canonical Coin Systems):</strong> Repeatedly take the largest coin denomination not exceeding the remaining amount to minimize the total number of coins.</li>
+    <li><strong>Minimizing Maximum Lateness:</strong> Sort jobs by earliest due date first and schedule in that order to minimize the maximum lateness across all jobs.</li>
+
+    </ul>
+  </section>
+
+  <section id="when" section-title="When to Use">
+    <h2>When to Use</h2>
+    <ul>
+      <li><strong>Greedy Choice:</strong> When the greedy-choice property holds (a local optimum leads to a global optimum).
+        <ul>
+        <li><strong>Obvious Argument:</strong> When it is clear that the greedy-choice property holds.</li>
+        <li><strong>Exchange Argument:</strong> When you can prove correctness using an exchange argument.</li>
+        <li><strong>Matroid Structure:</strong> When the feasible solution set forms a matroid or satisfies similar combinatorial properties.</li>
+        </ul>
+      </li>
+      <li><strong>Optimal Substructure:</strong> When the problem has optimal substructure (optimal solutions to subproblems build an optimal global solution).</li>
+      <li><strong>No Backtracking Needed:</strong> When choices are irreversible and you never need to revisit earlier decisions.</li>
+      <li><strong>Efficiency:</strong> When you need a simple, fast, one-pass algorithm with low memory overhead.</li>
+      <li><strong>Approximation:</strong> When approximate or heuristic solutions are acceptable, for example for NP-hard problems.</li>
+    </ul>
+  </section>
+
+  <section id="limitations" section-title="Limitations">
+    <h2>Limitations</h2>
+    <ul>
+      <li><strong>Greedy Property Failure:</strong> Greedy choices may not lead to an optimal solution if the greedy-choice property does not hold.</li>
+      <li><strong>Proof Difficulty:</strong> Difficult to prove correctness for some problems; counterexamples and edge cases can be subtle.</li>
+      <li><strong>Global Dependencies:</strong> Often not suitable when decisions interact in complex ways or require global coordination.</li>
+      <li><strong>Local View Only:</strong> Lack of lookahead can miss better solutions that require considering future consequences.</li>
+      <li><strong>No Backtracking:</strong> Irreversible choices mean the algorithm cannot correct mistakes made earlier.</li>
+      <li><strong>Sensitivity to Ordering:</strong> Performance can depend heavily on input order and tie-breaking rules.</li>
+      <li><strong>Approximation Bounds:</strong> Greedy heuristics may yield no guaranteed approximation ratio for some NP-hard problems.</li>
+    </ul>
+  </section>
+
+  <section id="tips" section-title="Implementation Tips">
+    <h2>Implementation Tips</h2>
+    <ul>
+      <li><strong>Pre-Sort Input:</strong> Sort your data by the greedy criterion up front (e.g., finish time or value/weight ratio) 
+      to avoid extra work inside the selection loop.</li>  
+      <li><strong>Composite Sorting:</strong> When sorting by multiple fields, either use a composite key (e.g., a tuple of criteria) 
+      or perform stable sorts in reverse priority order so that secondary criteria are preserved.</li>
+        <li><strong>Preserve Original Items:</strong> If you reorder the input (as in Fractional Knapsack), work on a copy of the list 
+        or store each item's original index or ID so you can map back to the original collection when producing the final output.</li>
+      <li><strong>Use the Right Data Structure:</strong> If you need to repeatedly extract the next best element, 
+      use a priority queue or heap for \(O(\log n)\) access and updates.</li>
+      <li><strong>Precompute Metrics:</strong> Compute and store ratios, costs, or weights in your item objects so comparisons are constant-time.</li>
+      <li><strong>Explicit Tie-Breaking:</strong> Define a clear rule for ties (e.g., smaller index, shorter duration) to ensure deterministic results.</li>
+      <li><strong>Avoid Floating-Point Pitfalls:</strong> For ratio-based decisions, use a high-precision type to prevent rounding bugs.</li>
+      <li><strong>Handle Edge Cases:</strong> Check for empty inputs, zero capacity, or all items fitting trivially to avoid out-of-bounds 
+      or division-by-zero errors.</li>
+      <li><strong>Validate Assumptions:</strong> Add comments or assertions to document why the greedy-choice property and optimal substructure 
+      hold for your problem.</li>
+      <li><strong>In-Place Updates:</strong> When possible, perform swaps and updates in place to minimize extra memory usage and improve 
+      cache performance.</li>
+    </ul>
+  </section>
+
+<section id="pitfalls" section-title="Common Pitfalls">
+  <h2>Common Pitfalls</h2>
+  <ul>
+    <li><strong>Incorrect Criterion:</strong> Using the wrong sorting key (e.g., start time instead of finish time) can yield suboptimal 
+    or incorrect selections.</li>
+    <li><strong>Assumption Violations:</strong> Applying a greedy algorithm when the greedy-choice property or optimal substructure does not hold leads to incorrect results.</li>
+    <li><strong>Tie-Breaking Ambiguity:</strong> Failing to define or implement consistent tie-break rules can produce nondeterministic or wrong outputs.</li>
+    <li><strong>Lost Item Mapping:</strong> Forgetting to track original indices after sorting may return the wrong items in the final solution.</li>
+    <li><strong>Floating-Point Errors:</strong> Relying on floating-point ratios without adequate precision control can cause round-off mistakes in comparisons.</li>
+    <li><strong>Edge-Case Oversights:</strong> Neglecting cases like empty input, zero capacity, or trivial fits can lead to crashes or incorrect behavior.</li>
+    <li><strong>Unnecessary Backtracking:</strong> Adding backtracking logic is a sign the greedy choice is not valid for the problem.</li>
+    <li><strong>Overconfidence on NP-Hard Problems:</strong> Expecting exact optima for problems like 0-1 Knapsack where greedy algorithms only 
+    produce an approximations.</li>
+  </ul>
+</section>
+
+<section id="applications" section-title="Real-World Applications">
+  <h2>Real-World Applications</h2>
+  <ul>
+    <li><strong>Task Scheduling:</strong> Operating systems and cloud platforms use interval scheduling to assign jobs to CPUs or VMs, maximizing throughput and resource utilization.</li>
+    <li><strong>Data Compression:</strong> Huffman coding underpins ZIP, JPEG, and MP3 formats by greedily building optimal prefix codes for symbol frequencies.</li>
+    <li><strong>Network Routing:</strong> Dijkstra's algorithm is used in IP routing and navigation systems to find shortest paths through large-scale networks.</li>
+    <li><strong>Load Balancing:</strong> Fractional knapsack ideas guide proportional distribution of workload or traffic across servers under capacity constraints.</li>
+    <li><strong>Resource Allocation:</strong> Used in allocating network bandwidth, memory, or CPU resources by repeatedly granting each application&mdash;ordered by descending priority or utility&mdash;the maximum share it needs (up to the remaining capacity) before moving on to the next.</li>
+    <li><strong>Currency Dispensing:</strong> ATMs and vending machines use a greedy coin-change approach (for canonical denominations) to minimize the number of coins dispensed.</li>
+    <li><strong>Spanning Tree Design:</strong> Kruskal's and Prim's MST algorithms can be used to help plan efficient layouts for electrical grids, telecommunications networks, and road systems.</li>
+  </ul>
+</section>
+
+<section id="summary" section-title="Summary & Key Takeaways">
+  <h2>Summary & Key Takeaways</h2>
+  <p>
+    Greedy algorithms build a solution by making the best local choice at each step, without revisiting prior decisions. When the <strong>greedy-choice property</strong> and <strong>optimal substructure</strong> hold, this yields an optimal result; otherwise it may serve as a fast approximation.
+  </p>
+  <ul>
+    <li><strong>Core Idea:</strong> At each iteration, pick the element that looks best now (earliest finish time, highest value-weight ratio, smallest cost, etc.) and move on.</li>
+    <li><strong>Guarantees:</strong> Correctness hinges on the greedy-choice property and optimal substructure, 
+    often proved via an exchange argument or matroid theory (an advanced mathematics topic beyond the scope of this book).</li>
+    <li><strong>Performance:</strong> Many greedy algorithms run in \(O(n\log n)\) time due to sorting or priority-queue operations, with low extra space overhead.</li>
+    <li><strong>When to Reach For It:</strong> Use greedy methods when you have a clear local-to-global argument, irreversible decisions, and simple data structures; or when you need a fast heuristic for a hard problem.</li>
+    <li><strong>Watch Out:</strong> Do not apply greedy if choices interact globally, if you need backtracking, or if no clear optimal substructure exists.</li>
+  </ul>
+</section>
+
+<section id="links" section-title="Related Links and Resources">
+  <h2>Related Links and Resources</h2>
+  <ul>
+    <li><a href="https://en.wikipedia.org/wiki/Greedy_algorithm" target="_blank">Wikipedia: Greedy Algorithm</a> Broad overview, applications, and external references.</li>
+    <li><a href="https://www.geeksforgeeks.org/greedy-algorithms/" target="_blank">GeeksforGeeks: Greedy Algorithms</a> Tutorial with problem examples and code implementations.</li>
+    <li><strong>Cormen et al., <em>Introduction to Algorithms</em>, 4th Edition</strong> Chapter 15 is the authoritative textbook treatment on greedy algorithms.</li>
+  </ul>
+</section>
+  
+<section id="reading-questions" section-title="Reading Comprehension Questions">
+  <h2>Reading Comprehension Questions</h2>
+  <ol>
+    <li>What is the <strong>greedy-choice property</strong>?</li>
+    <li>What does <strong>optimal substructure</strong> mean?</li>
+    <li>Why does the interval scheduling algorithm select the interval with the earliest finish time?</li>
+    <li>In fractional knapsack, how is the item <em>density</em> defined and why is it important?</li>
+    <li>What is an <strong>exchange argument</strong> and how does it prove correctness for greedy algorithms?</li>
+    <li>Give one example of a problem where a greedy algorithm fails to produce an optimal solution.</li>
+    <li>What is the typical time complexity for greedy algorithms and what causes it?</li>
+    <li>How can <strong>tie-breaking</strong> rules affect the outcome of a greedy algorithm?</li>
+  </ol>
+  <button id="toggleAnswers" class="show-answer" aria-expanded="false">
+    Show Answers
+  </button>
+  <div id="answers" class="answer" hidden>
+    <ol>
+      <li><strong>Answer:</strong> A property that allows a local optimal choice at each step to lead to a global optimum without revisiting previous choices.</li>
+      <li><strong>Answer:</strong> Optimal substructure means an optimal solution contains optimal solutions to its subproblems.</li>
+      <li><strong>Answer:</strong> Because choosing the interval that finishes first leaves the largest remaining time for scheduling additional intervals.</li>
+      <li><strong>Answer:</strong> Density is defined as \(v_i/w_i\), the value-to-weight ratio.
+      Chosing items in decreasing order of value per unit weight ensures an optimal solution.</li>
+      <li><strong>Answer:</strong> An exchange argument shows that swapping any choice in an optimal solution with the greedy choice maintains feasibility and does not decrease the solution's quality.</li>
+      <li><strong>Answer:</strong> For example, in the 0-1 knapsack problem greedy by density fails because items cannot be fractioned.</li>
+      <li><strong>Answer:</strong> Typically \(O(n)\) time, unless sorting is involved in which case it is \(O(n \log n)\) time.</li>
+      <li><strong>Answer:</strong> Inconsistent tie-breaking can lead to different valid solutions; defining a clear rule ensures deterministic and correct outcomes.</li>
+    </ol>
+  </div>
+</section>
+<section id="activities" section-title="In-Class Activities">
+  <h2>In-Class Activities</h2>
+  <ol>
+    <li><strong>Counterexample/Proof:</strong>
+    Pick either Interval Scheduling or Fractional Knapsack and try to find a counterexample that shows that
+    the greedy algorithm doesn't alwayts work. Alternatively, convince yourself that the greedy algorithm will
+    indeed always produce and optimal solution. Have one or more students give clear arguments for their case.
+    </li>
+    <li>
+      <strong>Exchange Argument Workshop:</strong>
+      In small groups, use colored cards to represent two schedules&mdash;one greedy (interval scheduling) and one 'optimal'.  
+      Step through the exchange argument by swapping later-finishing intervals for earlier ones until both match.
+    </li>
+    <li>
+      <strong>Design and Test a Greedy Strategy:</strong>
+      Give each pair a coin system that is not canonical (for example {1, 3, 4}).  
+      Have them propose and simulate a greedy coin-change algorithm, then find a counterexample where it fails.
+    </li>
+    <li>
+      <strong>Fractional Knapsack Simulation:</strong>
+      Each student receives a set of 5 items with given values and weights and a capacity.  
+      Manually compute densities \(p_i = v_i / w_i\), sort the items by density, and fill the knapsack with fractions.  
+      Compare with a brute-force check for the same instance.
+    </li>
+    <li>
+      <strong>Greedy versus Non-Greedy Debate:</strong>
+      Pick a problem. 
+      Split the class: half argue that a greedy strategy works for a given problem, half argue that it does not.  
+      Each side presents either a proof sketch or a counterexample.
+    </li>
+        <li>
+      <strong>Minimum Stabbing Points:</strong>  
+      You are given a set of \(n\) closed intervals \([s_i, f_i]\) on the real line.  
+      Design a greedy algorithm that selects the smallest possible set of points \(P\) such that every interval contains at least one point in \(P\).  
+      Provide pseudocode, analyze its time complexity, and give a brief proof of correctness.
+    </li>
+    <li>
+      <strong>Optimal Rope Merging:</strong>  
+      You have \(n\) ropes with lengths \(l_1, l_2, \dots, l_n\).  Merging any two ropes of lengths \(a\) and \(b\) costs \(a + b\) and produces a new rope of length \(a + b\).  
+      Design a greedy strategy to merge all ropes into one at minimum total cost.  
+      Provide pseudocode, analyze its time complexity (hint: consider an appropriate data structure), and justify why your greedy choice yields an optimal solution.
+    </li>
+  </ol>
+</section>
+
+<section id="problems" section-title="Homework Problems">
+  <h2>Homework Problems</h2>
+
+  <h3>Basic</h3>
+  <ol>
+    <li>
+      <strong>Canonical Coin Change:</strong><br>
+      For U.S. coin denominations \(\{1,5,10,25\}\), design a greedy algorithm to make change for any amount \(C\).  
+      Clearly define what the greedy choice is and prove that the greedy choice minimizes the number of coins.
+    </li>
+    <li>
+      <strong>Non-Canonical Coin Change:</strong><br>
+      For the coin system \(\{1,3,4\}\), design a greedy algorithm to make change and find 
+      an explicit amount where it fails to be optimal. Then propose a modification that fixes the counterexample.
+      Give a clear justification for why the modifies algorithm is correct.
+    </li>
+    <li>
+      <strong>Minimum Stabbing Points:</strong><br>
+      Given \(n\) closed intervals on the line, devise a greedy algorithm that chooses the smallest set of points so each interval contains at least one point.  
+      Explain your choice and prove correctness.
+    </li>
+    <li>
+      <strong>Rope Merging:</strong><br>
+      You have \(n\) ropes of lengths \(l_1, \dots, l_n\). Merging two ropes of lengths \(a\) and \(b\) costs \(a + b\).  
+      Give a greedy strategy to minimize total merge cost, analyze its complexity, and argue why it is optimal.
+    </li>
+  </ol>
+
+  <h3>Advanced</h3>
+  <ol>
+    <li>
+      <strong>Minimizing Maximum Lateness:</strong><br>
+      Each job \(i\) has processing time \(t_i\) and deadline \(d_i\).  
+      Design a greedy algorithm to schedule all jobs so as to minimize the maximum lateness \(\max_i(C_i - d_i)\), where \(C_i\) is completion time.  
+      Justify why sorting by earliest deadline works.
+    </li>
+    <li>
+      <strong>Job Sequencing with Deadlines and Profit:</strong><br>
+      You have jobs with deadlines \(d_i\) and profits \(p_i\). Each job takes unit time.  
+      Devise a greedy strategy to maximize total profit by scheduling at most one job per time slot.  
+      Analyze your algorithm and prove why it works (clearly define what the greedy choice is and prove that
+      the greedy-choice proprty holds).
+    </li>
+    <li>
+      <strong>Greedy Set Cover Approximation:</strong><br>
+      Given a universe \(U\) and a collection of subsets \(S_1, \dots, S_m\), 
+      design a greedy algorithm that attempts to cover \(U\) with the fewest possible subsets.
+      Clearly explain what your greedy choice is. Determine the computational complexity of your algorithm.
+      If you algorithm is correct (i.e. it always give an optimal solution), give a proof. If it is not,
+      give a counterexample.
+    </li>
+  </ol>
+</section>
+
+</body>
+</html>

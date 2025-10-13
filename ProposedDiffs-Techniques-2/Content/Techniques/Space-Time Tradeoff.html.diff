@@ -1,0 +1,136 @@
+--- a/Content/Techniques/Space-Time Tradeoff.html
++++ b/Content/Techniques/Space-Time Tradeoff.html
+@@ -22,7 +22,7 @@
+   <h1>Technique: Space-Time Tradeoff</h1>
+ 
+   <!-- Introduction -->
+-   <section id="introduction">
++   <section id="introduction" section-title="Introduction">
+     <h2>Introduction</h2>
+     <p>A <strong>space-time tradeoff</strong> in algorithm design arises when we allocate extra memory to store 
+     useful information (e.g. lookup/memoization tables, caches of partial results, or precomputed results)
+@@ -39,7 +39,7 @@
+   </section>
+ 
+   <!-- Worked Examples -->
+-  <section id="examples">
++  <section id="examples" section-title="Examples">
+     <h2>Examples</h2>
+ 
+     <div class="example-box">
+@@ -106,8 +106,9 @@
+       the minimum. This allows the algorithm to create a smaller counting array.
+       By default, the minimum is ignored and the algorithm proceeds exactly as described above.
+       If you want to see the space-saving version in action, check the "Offset by min" button.
+-      You will be asked later to give the pseudocode for that version.</p>
+-      <div class="embeddedDemoContainer">
++      You will be asked later to give the pseudocode for that version.</p></section>
++<section id="demo" section-title="Interactive Demo">
++<div class="embeddedDemoContainer">
+         <iframe class="embeddedDemo" src="/Algorithms/Content/Demos/Space-Time Tradeoff/Counting Sort (Simple) Demo.html">
+         </iframe>
+       </div>
+@@ -236,9 +237,10 @@
+     using a binary search tree \(\left(O(\log n)\right)\), this is a clear example of a space-time tradeoff.
+   </p>
+ </div>
+-  </section>
+-
+- <section id="algorithms">
++</section>
++
++
++ <section id="algorithms" section-title="Algorithms Using This Technique">
+   <h2>Algorithms Using This Technique</h2>
+   <p>The following algorithms and data structures leverage space-time tradeoffs by investing extra memory (e.g. lookup tables, auxiliary arrays, caching structures) to gain faster running times.</p>
+   <ul>
+@@ -284,7 +286,7 @@
+   </ul>
+ </section>
+   
+- <section id="when">
++ <section id="when" section-title="When to Use">
+   <h2>When to Use</h2>
+   <ul>
+     <li><strong>Preprocessing Benefit:</strong> When you can invest time and memory upfront to build an auxiliary structure (e.g., tables, indexes, caches) that speeds up later operations. (Clearly there is some overlap between 
+@@ -298,7 +300,7 @@
+ </section>
+ 
+   
+-  <section id="limitations">
++  <section id="limitations" section-title="Limitations">
+   <h2>Limitations</h2>
+   <ul>
+     <li><strong>High Space Requirements:</strong> Techniques that trade space for time often need large auxiliary structures&mdash;lookup tables, caches, or indices&mdash;that may be infeasible when memory is constrained.</li>
+@@ -310,7 +312,7 @@
+ </section>
+ 
+   
+- <section id="implementation">
++ <section id="implementation" section-title="Implementation Tips">
+   <h2>Implementation Tips</h2>
+   <ul>
+     <li><strong>Size Parameters Carefully:</strong> Choose auxiliary structure sizes (e.g., table or bucket counts) as powers of two and/or based on expected load to balance memory and speed.
+@@ -339,7 +341,7 @@
+ </section>
+ 
+   
+- <section id="pitfalls">
++ <section id="pitfalls" section-title="Common Pitfalls">
+   <h2>Common Pitfalls</h2>
+   <ul>
+     <li><strong>Neglecting Preprocessing Overhead:</strong> Failing to account for the upfront time and memory cost can lead to slower overall performance when operations are infrequent.</li>
+@@ -353,7 +355,7 @@
+   </ul>
+ </section>
+ 
+-<section id="applications">
++<section id="applications" section-title="Real-World Applications">
+   <h2>Real-World Applications</h2>
+   <ul>
+     <li><strong>CPU Caches and Branch Predictors:</strong> Hardware uses fast SRAM caches and branch history tables to reduce average memory and control-flow latency by trading silicon area for speed.</li>
+@@ -368,7 +370,7 @@
+   </ul>
+ </section>
+ 
+-<section id="summary">
++<section id="summary" section-title="Summary and Key Takeaways">
+   <h2>Summary and Key Takeaways</h2>
+   <p>
+     Space-time tradeoff techniques leverage extra memory&mdash;through tables, caches, indexes, or auxiliary structures&mdash;to accelerate computation by reducing per-operation cost. They shine when you have repeated or latency-sensitive operations on a bounded domain and sufficient RAM, but carry upfront preprocessing and maintenance overhead and can introduce cache, fragmentation, or concurrency challenges.
+@@ -382,7 +384,7 @@
+   </ul>
+ </section>
+ 
+-<section id="resources">
++<section id="resources" section-title="Related Links and Resources">
+   <h2>Related Links and Resources</h2>
+   <ul>
+     <li><a href="https://en.wikipedia.org/wiki/Time%E2%80%93space_tradeoff">Wikipedia: Time-space tradeoff</a> General overview and examples of space-time tradeoffs in computer science.</li>
+@@ -390,7 +392,7 @@
+   </ul>
+ </section>
+ 
+-  <section id="reading-questions">
++  <section id="reading-questions" section-title="Reading Comprehension Questions">
+   <h2>Reading Comprehension Questions</h2>
+   <ol>
+     <li>What is the main goal of applying a space-time tradeoff in algorithm design?</li>
+@@ -460,7 +462,7 @@
+ </section>
+ 
+ 
+-<section id="activities">
++<section id="activities" section-title="In-Class Activities">
+   <h2>In-Class Activities</h2>
+   <ol>
+     <li><strong>Counting Sort by Hand:</strong> In groups of three, students are given a short list of integers 
+@@ -485,7 +487,7 @@
+ </section>
+ 
+ 
+- <section id="problems">
++ <section id="problems" section-title="Homework Problems">
+   <h2>Homework Problems</h2>
+   <h3>Basic</h3>
+   <ol>

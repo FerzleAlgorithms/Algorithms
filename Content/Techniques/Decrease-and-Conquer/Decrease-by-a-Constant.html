@@ -25,7 +25,7 @@
   <h1>Decrease-by-a-Constant</h1>
 
  <!-- Decrease by a Constant -->
-  <section id="decrease-by-constant">
+  <section id="decrease-by-constant" section-title="Introduction">
     <h2>Introduction</h2>
     <p>
       In this variant, each recursive call handles an input of size \(n-1\) (or \(n-c\) for some constant \(c\)), 
@@ -37,9 +37,10 @@
       there is no call stack.
       We will see how these traits manifest in the Factorial and Insertion Sort examples.
     </p>
+    </section>
     
     
-    <h2>Examples</h2>
+  <section id="exampl1" section-title="Example 1: Factorial">
     <div class="example-box">
       <strong class="example-title">Example 1: Factorial (Decrease-by-a-Constant)</strong>
       <p>
@@ -119,7 +120,9 @@
           Thus the recursive factorial algorithm runs in linear time.
         </p>
     </div>
+    </section>
     
+  <section id="exampl2" section-title="Example 2: Insertion Sort">
     <div class="example-box">
   <strong class="example-title">Example 2: Insertion Sort (Decrease-by-a-Constant)</strong>
   <p>
@@ -152,8 +155,9 @@
   for the complete details of this analysis.
   </p>
 </div>
+</section>
 
-  <section id="algorithms">
+  <section id="algorithms" section-title="Algorithms Using This Technique">
     <h2>Algorithms Using This Technique</h2>
     <ul>
         <li><strong>Recursive Factorial</strong>: computes \(n!\) by the recurrence \(n! = n \times (n-1)!\), running in \(O(n)\) time.</li>
@@ -165,7 +169,7 @@
       </ul>
   </section>
 
-<section id="applicability">
+<section id="applicability" section-title="When to Use">
   <h2>When to Use</h2>
   <p>Apply decrease-by-a-constant in problems where a single, slightly smaller instance suffices to build the full solution efficiently:</p>
   <ul>
@@ -176,7 +180,7 @@
   </ul>
 </section>
 
-<section id="limitations">
+<section id="limitations" section-title="Limitations">
   <h2>Limitations</h2>
   <p>Decrease-by-a-constant may be less suitable in these scenarios:</p>
   <ul>
@@ -187,7 +191,7 @@
   </ul>
 </section>
 
-<section id="implementation-tips">
+<section id="implementation-tips" section-title="Implementation Tips">
   <h2>Implementation Tips</h2>
   <ul>
     <li><strong>Clear base case:</strong> Define and test your termination condition (e.g., \(n \le 1\) or a small threshold) to avoid infinite recursion or loops.</li>
@@ -197,7 +201,7 @@
   </ul>
 </section>
 
-<section id="common-pitfalls">
+<section id="common-pitfalls" section-title="Common Pitfalls">
   <h2>Common Pitfalls</h2>
   <ul>
     <li><strong>Missing or incorrect base case:</strong> Failing to stop when \(n \le 1\) (or your chosen threshold) can lead to infinite recursion or loops.</li>
@@ -207,7 +211,7 @@
   </ul>
 </section>
 
-<section id="real-world-applications">
+<section id="real-world-applications" section-title="Real-World Applications">
   <h2>Real-World Applications</h2>
   <p>Decrease-by-a-constant techniques power many practical systems, especially where the problem is solved by reducing one element at a time:</p>
   <ul>
@@ -217,7 +221,7 @@
 </section>
 
 
-<section id="summary">
+<section id="summary" section-title="Summary and Key Takeaways">
   <h2>Summary and Key Takeaways</h2>
   <ul>
     <li><strong>Core idea:</strong> Solve a problem by reducing the input size from \(n\) to \(n - c\) 
@@ -246,7 +250,7 @@
   </ul>
 </section>
 
-<section id="reading-questions-constant">
+<section id="reading-questions-constant" section-title="Reading Comprehension Questions">
   <h2>Reading Comprehension Questions</h2>
   <ol> <li>
       <strong>Factorial Recurrence</strong><br>
@@ -295,7 +299,7 @@
   </div>
 </section>
 
-<section id="activities-constant">
+<section id="activities-constant" section-title="In-Class Activities">
   <h2>In-Class Activities</h2>
   <ol>
    <li>
@@ -336,7 +340,7 @@
   </ol>
 </section>
 
-<section id="problems-constant">
+<section id="problems-constant" section-title="Homework Problems">
   <h2>Homework Problems</h2>
   <ol> 
   <li>

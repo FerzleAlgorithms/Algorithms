@@ -24,6 +24,7 @@
 <body>
 <h1>Decrease-by-a-Constant-Factor</h1>
 
+<section id="introduction" section-title="Introduction">
 <h2>Introduction</h2>
   <p>
     Decrease-by-a-Constant-Factor algorithms first do some work to identify and discard a fixed fraction of the 
@@ -37,10 +38,10 @@
     Because each step eliminates a constant fraction, there are only \(O(\log_b n)\) levels of recursion, 
     and the total runtime is the per-level work multiplied by this logarithmic depth.
   </p>
+  <p>The two most basic applications of this approach are Binary Search and Exponentiation by Squaring, as we will see next.</p>
+  </section>
   
-  <h2>Examples</h2>
-  <p>The two most basic applications of this approach are Binary Search and Exponentiation by Squaring.</p>
-
+<section id="examples" section-title="Example 3: Exponentiation by Squaring">
     <div class="example-box">
       <strong class="example-title">Example 3: Exponentiation By Squaring (Decrease-by-a-Constant-Factor)</strong>
       
@@ -74,8 +75,7 @@
 <p>Since this halves the input size at each call, this is a clear example of decrease-by-a-constant-factor
 with \(b=2\). Here is a demonstration of the algorithm in action.
 </p>
-        <!-- If a demo is available, embed it here; otherwise, remove this container. -->
-      <div class="embeddedDemoContainer">
+<div class="embeddedDemoContainer">
         <iframe
           class="embeddedDemo"
           src="/Algorithms/Content/Demos/Decrease-and-Conquer/Exponentiation By Squaring Demo.html"
@@ -83,8 +83,12 @@ with \(b=2\). Here is a demonstration of the algorithm in action.
           name="BinaryExp-DecrFactor-demo"
         ></iframe>
       </div>
-<p><strong>Time Complexity:</strong><br>
-Let \(T(n)\) be the time to compute \(x^n\) using exponentiation by squaring. Each recursive step halves the exponent, so we get the recurrence relation:
+      
+      
+<section id="complexity" section-title="Complexity">
+<section id="time-complexity" section-title="Time Complexity">
+<H3>Time Complexity:</H3>
+<p>Let \(T(n)\) be the time to compute \(x^n\) using exponentiation by squaring. Each recursive step halves the exponent, so we get the recurrence relation:
 \[
   T(n) = T\left(\left\lfloor \frac{n}{2} \right\rfloor\right) + O(1)
 \]
@@ -114,6 +118,7 @@ the binary representation of integers:
     \lfloor \log_2 n \rfloor + 1.
   \]</p>
 
+  <section id="lemma-proof" section-title="Proof">
   <p><strong>Proof:</strong></p>
   <ul>
     <li>
@@ -166,18 +171,21 @@ the binary representation of integers:
       Therefore, the number of bits required to represent \(n\) in binary is \(\lfloor \log_2 n \rfloor + 1\).
     </li>
   </ul>
-</div>
+  </section>
+  </div>
 
 <p>
 We can now use this lemma to analyze the algorithm without using a recurrence. The exponentiation-by-squaring algorithm computes \(x^n\) by repeatedly halving the exponent and squaring intermediate results. At each step, it checks whether the current exponent is even or odd and, if odd, multiplies by an extra factor of \(x\). The key insight is that dividing the exponent by 2 corresponds to removing the least significant bit of its binary representation. Thus, the number of steps the algorithm performs is exactly the number of bits in \(n\), which is \(\lfloor \log_2 n \rfloor + 1\). Since each step involves at most two multiplications and a few simple operations, the total running time is \(O(\log n)\).
 </p>
-
+</section>
+<section id="Space-complexity" section-title="Space Complexity">
+<H3>Space Complexity:</H3>
 <p>
-  <strong>Space Complexity:</strong><br>
   Each recursive call adds a constant amount of stack space. Since the depth of recursion is \(O(\log n)\), the space complexity is also \(O(\log n)\).
   An iterative version can reduce the space complexity to \(O(1)\).
 </p>
-  
+  </section>
+  </section>
 	  
 <p>
 We should note that this algorithm can be presented slightly differently so it falls under
@@ -192,6 +200,8 @@ to correspond to using the binary representation of the exponent, although not e
 </p>
 
     </div>
+</section>
+<section id="example4" section-title="Example 4: Binary Search">
 <div class="example-box">
   <strong class="example-title">Example 4: Binary Search (Decrease-by-a-Constant-Factor)</strong>
   <p>
@@ -235,7 +245,7 @@ to correspond to using the binary representation of the exponent, although not e
     <p>
     The following demonstration shows the algorithm in action.
     </p>
-  <div class="embeddedDemoContainer">
+<div class="embeddedDemoContainer">
     <iframe
       class="embeddedDemo"
       src="/Algorithms/Content/Demos/Decrease-and-Conquer/Binary Search Demo.html"
@@ -261,11 +271,11 @@ to correspond to using the binary representation of the exponent, although not e
   As with the previous example, the space requirement is \(O(\log n)\),
   but it can be reduced to \(O(1)\) by implementing it iteratively.
 </p>
-</div>
+</div></section>
 
 
 
-<section id="algorithms">
+<section id="algorithms" section-title="Algorithms Using This Technique">
   <h2>Algorithms Using This Technique</h2>
     <ul>
       <li><strong>Binary Search</strong>: hHalves a sorted array each step, achieving \(O(\log n)\) time.</li>
@@ -279,19 +289,24 @@ to correspond to using the binary representation of the exponent, although not e
 </section>
 
 
-  <h2>When to Use</h2>
+  <section id="when-to-use" section-title="When to Use">
+<h2>When to Use</h2>
   <ul>
     <li><strong>Constant-factor shrink:</strong> When you can reduce the size by a constant factor (for instance, halving) each step and pay only small extra work&mdash;classic cases are binary search and exponentiation by squaring.</li>
     <li><strong>Low per-step overhead:</strong> When the extra work beyond the recursive call is \(O(1)\) or otherwise negligible, so a long chain of reductions still runs in \(O(\log n)\).</li>
     <li><strong>Simplicity over branching:</strong> When the problem's structure does not naturally split into independent subproblems, and a logarithmic "peel-away" approach is clearer and easier to maintain.</li>
   </ul>
 
-  <h2>Limitations</h2>
+  
+</section><section id="limitations" section-title="Limitations">
+<h2>Limitations</h2>
   <ul>
     <li><strong>High constant overhead:</strong> When each reduction step entails significant work&mdash;such as choosing a precise median pivot&mdash;the extra constant factors can outweigh the depth advantage on moderate inputs.</li>
   </ul>
 
-  <h2>Implementation Tips</h2>
+  
+</section><section id="implementation-tips" section-title="Implementation Tips">
+<h2>Implementation Tips</h2>
   <ul>
     <li><strong>Consistent integer reduction:</strong> When shrinking by a factor, apply floor or ceiling division uniformly (e.g., \(\lfloor n / 2 \rfloor\)) to prevent off-by-one errors.</li>
     <li><strong>Clear base case:</strong> Define and test your termination condition (e.g., \(n \le 1\) or a small threshold) to avoid infinite recursion or loops.</li>
@@ -300,14 +315,18 @@ to correspond to using the binary representation of the exponent, although not e
     <li><strong>Hybrid cutoff:</strong> When a subproblem's size falls below a tuned cutoff (e.g., \(n \le 16\)), switch to a direct iterative or closed-form method to avoid unnecessary recursive calls.</li>
   </ul>
 
-  <h2>Common Pitfalls</h2>
+  
+</section><section id="common-pitfalls" section-title="Common Pitfalls">
+<h2>Common Pitfalls</h2>
   <ul>
     <li><strong>Off-by-one in size reduction:</strong> Mixing \(\lfloor n / b \rfloor\) and \(\lceil n / b \rceil\) inconsistently may leave subproblems unchanged or skip elements.</li>
     <li><strong>Unintended array copies:</strong> Using slicing or subarray creation inside each call adds \(O(n)\) work per step, turning an \(O(\log n)\) or \(O(n \log n)\) approach into \(O(n^2)\).</li>
     <li><strong>Missing or incorrect base case:</strong> Failing to stop when \(n \le 1\) (or your chosen threshold) can lead to infinite recursion or loops.</li>
   </ul>
 
-  <h2>Real-World Applications</h2>
+  
+</section><section id="real-world-applications" section-title="Real-World Applications">
+<h2>Real-World Applications</h2>
   <ul>
     <li><strong>Cryptographic protocols:</strong> Exponentiation by squaring accelerates modular exponentiation in RSA, Diffie-Hellman key exchange, and digital signature algorithms.</li>
     <li><strong>Database systems, search engines, file systems, etc.:</strong> Binary search and similar algorithms are used extensively for efficient lookup in sorted data.</li>
@@ -316,7 +335,9 @@ to correspond to using the binary representation of the exponent, although not e
 
 
 
-  <h2>Summary &amp; Key Takeaways</h2>
+  
+</section><section id="summary-amp-key-takeaways" section-title="Summary &amp; Key Takeaways">
+<h2>Summary &amp; Key Takeaways</h2>
   <ul>
     <li><strong>Approach:</strong> Each step shrinks the input from \(n\) to about \(\lfloor n / b \rfloor\) (commonly \(b = 2\)), discarding a constant fraction.</li>
     <li><strong>Recursion depth:</strong> \(O(\log_b n)\) levels of recursion (or loop iterations).</li>
@@ -333,7 +354,8 @@ to correspond to using the binary representation of the exponent, although not e
     <li><strong>Space complexity:</strong> \(O(\log n)\) stack space for a naive recursive version (or \(O(1)\) if implemented iteratively or via tail-call optimization), plus any extra workspace per level.</li>
   </ul>
 
-<section id="reading-questions-constant">
+
+</section><section id="reading-questions-constant" section-title="Reading Comprehension Questions">
   <h2>Reading Comprehension Questions</h2>
   <ol> <li>
       <strong>Logarithmic Reduction</strong><br>
@@ -382,7 +404,7 @@ to correspond to using the binary representation of the exponent, although not e
   </div>
 </section>
 
-<section id="activities-constant">
+<section id="activities-constant" section-title="In-Class Activities">
   <h2>In-Class Activities</h2>
   <ol>
       <li>
@@ -415,7 +437,7 @@ to correspond to using the binary representation of the exponent, although not e
   </ol>
 </section>
 
-<section id="problems-constant">
+<section id="problems-constant" section-title="Homework Problems">
   <h2>Homework Problems</h2>
   <ol>
   <li>

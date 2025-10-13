@@ -22,7 +22,7 @@
   <h1>Transform-and-Conquer</h1>
 
   <!-- Motivation & Introduction -->
-  <section id="introduction">
+  <section id="introduction" section-title="Introduction">
     <h2>Introduction</h2>
         <p>
       Transform-and-Conquer is a versatile algorithmic strategy that solves a problem by transforming it into a different instance or representation in which the solution is easier or more efficient to compute, then mapping the result back to the original problem. There are three kinds of transformations that are commonly used.
@@ -58,9 +58,7 @@
     </ul>
   </section>
 
- <section id="examples">
-    <h2>Examples</h2>
-
+ <section id="example1" section-title="Example 1: Presorting">
  <div class="example-box">
       <strong class="example-title">Example 1: Presorting</strong>
       <p>
@@ -81,8 +79,9 @@
          a substantial improvement for large inputs.
       </p>
     </div>
+  </section>
     
-    
+ <section id="example2" section-title="Example 2: Horner's Rule">
 <div class="example-box">
   <strong class="example-title">Example 2: Horner's Rule</strong>
   <p>
@@ -114,8 +113,7 @@
   Then it walks through the steps of tha actual algorithm, showing how the steps match up with the factored form
   of the polynomial.
 </p>
-
-  <div class="embeddedDemoContainer">
+<div class="embeddedDemoContainer">
     <iframe
       class="embeddedDemo"
       src="/Algorithms/Content/Demos/Transform-and-Conquer/Horners Rule Demo.html"
@@ -131,7 +129,9 @@
     for i from n-1 down to 0:
         result = a[i] + x * result
     return result  </code></pre>
-    <p>Horner's Rule eliminates the need for explicit power computations and performs exactly one 
+    <p>
+      <strong>Complexity:</strong>
+      Horner's Rule eliminates the need for explicit power computations and performs exactly one 
     multiplication and one addition per coefficient in a single loop, for a total of \(n\) 
     multiplications and \(n\) additions. Therefore, it runs in \(O(n)\) time and uses \(O(1)\) 
     extra space (ignoring input storage).</p>
@@ -146,7 +146,9 @@
     See the <a href="?path=Algorithms/Transform-and-Conquer/Horners Rule.html">Horner's Rule</a> 
     page for more details.</p>
   </div>
+  </section>
 
+ <section id="example3" section-title="Example 3: Heapsort">
 <div class="example-box">
   <strong class="example-title" id="heapsort-example">Example 3: Heapsort</strong>
 
@@ -209,9 +211,10 @@
   in practice Quicksort and Heap Sort outperform it.
   </p>
 </div>
-  </section>
+</section>
+
   
-<section id="algorithms">
+<section id="algorithms" section-title="Algorithms Using This Technique">
   <h2>Algorithms Using This Technique</h2>
   <ul>
     <li>
@@ -240,7 +243,7 @@
 </section>
 
 
-<section id="when">
+<section id="when" section-title="When to Use">
   <h2>When to Use</h2>
   <p>Transform-and-conquer shines in situations where a one-time change of form or structure unlocks asymptotic speedups or simplifies future operations. For instance:</p>
   <ul>
@@ -264,7 +267,7 @@
   </ul>
 </section>
 
-<section id="limitations">
+<section id="limitations" section-title="Limitations">
   <h2>Limitations</h2>
   <ul>
     <li>
@@ -285,7 +288,7 @@
   </ul>
 </section>
   
-  <section id="tips">
+  <section id="tips" section-title="Implementation Tips">
   <h2>Implementation Tips</h2>
   <ul>
     <li>
@@ -306,7 +309,7 @@
   </ul>
 </section>
 
- <section id="pitfalls">
+ <section id="pitfalls" section-title="Common Pitfalls">
   <h2>Common Pitfalls</h2>
   <ul>
     <li>
@@ -330,7 +333,7 @@
   </ul>
 </section>
 
-<section id="applications">
+<section id="applications" section-title="Real-World Applications">
   <h2>Real-World Applications</h2>
   <ul>
     <li>
@@ -349,14 +352,14 @@
 </section>
 
 
-<section id="summary">
+<section id="summary" section-title="Summary & Key Takeaways">
   <h2>Summary & Key Takeaways</h2>
   <p>
     Transform-and-conquer techniques apply one-time transformations&mdash;such as preprocessing, representation changes, and subproblem reduction&mdash;to expose more efficient algorithms than direct methods. This approach is most valuable when a transformation unlocks faster operations across many queries, when mapping to specialized data structures or mathematical forms yields asymptotic speed-ups, or when established algorithmic templates (e.g., FFT, Gaussian elimination) can be leveraged. Always weigh the cost of transformation against the overall performance benefits, verify that problem invariants and numerical stability are maintained, and choose this technique when it clearly simplifies or accelerates the target problem.
   </p>
 </section>
 
-<section id="resources">
+<section id="resources" section-title="Related Links and Resources">
   <h2>Related Links and Resources</h2>
   <ul>
     </li>
@@ -376,7 +379,7 @@
 </section>
 
   
- <section id="reading-questions">
+ <section id="reading-questions" section-title="Reading Comprehension Questions">
   <h2>Reading Comprehension Questions</h2>
   <ol>
     <li>Name the three main categories of transform-and-conquer techniques, and give one example of each.</li>
@@ -439,7 +442,7 @@
   </div>
 </section>
 
-<section id="activities">
+<section id="activities" section-title="In-Class Activities">
   <h2>In-Class Activities</h2>
   <ol>
     <li><strong>BuildHeap Variations:</strong>
@@ -490,7 +493,7 @@
   </ol>
 </section>
 
-<section id="problems">
+<section id="problems" section-title="Homework Problems">
   <h2>Homework Problems</h2>
   <h3>Basic</h3>
   <ol>

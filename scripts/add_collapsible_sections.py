@@ -120,13 +120,21 @@ def wrap_sections_in_body(body_html: str) -> str:
             continue
         # Determine the end of this section (start of next h2 or end of body)
         next_start = sections[i+1][0] if i+1 < len(sections) else len(body_html)
-        segment = body_html[start:next_start]
+        # Avoid swallowing the start of an existing <section> that appears before the next H2.
+        # If we wrap across an existing section-open, we can detach that section's heading/content.
+        next_section_m = re.search(r"<\s*section\b", body_html[start:next_start], re.IGNORECASE)
+        wrap_end = start + next_section_m.start() if next_section_m else next_start
+        pre_segment = body_html[start:wrap_end]
+        post_segment = body_html[wrap_end:next_start]
 
         title_text = normalize_title(extract_title_text(h2_inner))
         sec_id = slugify(title_text)
 
-        wrapped = f'<section id="{sec_id}" section-title="{title_text}">\n{segment}\n</section>'
+        wrapped = f'<section id="{sec_id}" section-title="{title_text}">\n{pre_segment}\n</section>'
         result.append(wrapped)
+        # Preserve any existing <section> openers (and intermediate content) that occurred before next H2
+        if post_segment:
+            result.append(post_segment)
 
         idx = next_start
 

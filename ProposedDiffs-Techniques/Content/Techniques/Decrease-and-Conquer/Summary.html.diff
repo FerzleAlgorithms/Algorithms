@@ -1,0 +1,47 @@
+--- a/Content/Techniques/Decrease-and-Conquer/Summary.html
++++ b/Content/Techniques/Decrease-and-Conquer/Summary.html
+@@ -24,7 +24,7 @@
+ </head>
+ <body>
+   <h1>Decrease-and-Conquer Summary</h1>
+-  <section id="summary">
++  <section id="summary" section-title="Summary and Key Takeaways">
+   <h2>Summary and Key Takeaways</h2>
+   <p>After reading about the three different flavors of decrease-and-conauer, hopefully these are some of
+   the things you learned.
+@@ -79,7 +79,7 @@
+   
+   
+   
+-<section id="related-links">
++<section id="related-links" section-title="Related Links and Resources">
+   <h2>Related Links and Resources</h2>
+   <ul>
+     <li><a href="https://www.geeksforgeeks.org/dsa/decrease-and-conquer/" target="_blank">Decrease and Conquer Algorithm (GeeksforGeeks)</a></li>
+@@ -91,7 +91,7 @@
+   
+   
+   
+-<section id="reading-questions-constant">
++<section id="reading-questions-constant" section-title="Reading Comprehension Questions">
+   <h2>Reading Comprehension Questions</h2>
+   <ol><li>
+       <strong>Paradigm Steps</strong><br>
+@@ -165,7 +165,7 @@
+   </div>
+ </section>
+ 
+-<section id="activities-constant">
++<section id="activities-constant" section-title="In-Class Activities">
+   <h2>In-Class Activities</h2>
+   <ol>    
+   <li>
+@@ -217,7 +217,7 @@
+   </ol>
+ </section>
+ 
+-<section id="problems-constant">
++<section id="problems-constant" section-title="Homework Problems">
+   <h2>Homework Problems</h2>
+   <ol>
+     <li>

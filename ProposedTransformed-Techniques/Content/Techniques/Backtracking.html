@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Backtracking</title>
+  <script src="/Algorithms/scripts/chapterScripts.js"></script>
+  <link rel="stylesheet" href="/Algorithms/css/style.css">
+  <link rel="stylesheet" href="/Algorithms/css/chapter.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js"></script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <style>
+ <style>
+  .chessboard-wrapper {
+    display: inline-block;
+    border: 1px solid #888;
+    margin-top: 0.5em;
+  }
+
+  .chessboard {
+    border-collapse: collapse;
+    table-layout: fixed;
+  }
+
+  .chessboard td {
+    width: 1.5em;
+    height: 1.5em;
+    aspect-ratio: 1 / 1;
+    text-align: center;
+    vertical-align: middle;
+    font-weight: bold;
+    font-size: 1em;
+    font-color: 
+  }
+
+  .light {
+    background-color: #f8f4e6;
+  }
+
+  .dark {
+    background-color: #8b5a2b;
+  }
+</style>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-DQ5LVZVFDC"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-DQ5LVZVFDC');
+</script>
+</head>
+<body>
+  <h1>Backtracking</h1>
+
+ <!-- Motivation & Introduction -->
+<section id="introduction" section-title="Introduction">
+  <h2>Introduction</h2>
+  <p>
+    Backtracking is a general algorithmic technique for solving problems incrementally,
+    building candidates to the solutions piece by piece and abandoning a candidate
+    ("backtracking") as soon as it is determined that this candidate cannot possibly
+    lead to a valid solution. It is especially useful for combinatorial search and
+    constraint-satisfaction problems where the solution space is large but can be
+    pruned by early detection of infeasible partial solutions.
+  </p>
+  <p>
+    A motivating example is the <em>subset-sum</em> problem: given a set of integers
+    \(\{a_1, a_2, \dots, a_n\}\) and a target \(T\), find a subset whose elements sum
+    to \(T\). A backtracking approach tries to include or exclude each \(a_i\) in turn,
+    and as soon as the partial sum exceeds \(T\), it abandons that branch.
+  </p>
+  <p>
+    Backtracking works well on problems such as:
+    <ul>
+      <li>Subset-sum and knapsack-style searches</li>
+      <li>Permutation and combination generation</li>
+      <li>Constraint satisfaction (e.g. graph coloring, Sudoku)</li>
+      <li>Combinatorial puzzles (e.g. n-queens, magic squares)</li>
+      <li>Path-finding in graphs with constraints (e.g. Hamiltonian paths)</li>
+    </ul>
+  </p>
+  <p>
+    In this chapter we will present two canonical examples of using backtracking to solve problems:
+    the <em>subset-sum</em> problem and the <em>N-queens</em> problem.
+  </p>
+</section>
+
+  
+  <!-- Worked Examples -->
+  <section id="examples" section-title="Examples">
+    <h2>Examples</h2>
+	
+ <div class="example-box">
+  <strong class="example-title">Example 1: Subset-Sum Problem</strong>
+  <p>
+    In the <em>subset-sum</em> problem, given a set \(S = \{a_1, a_2, \dots, a_n\}\)
+    (typically stored in an array)
+    and a target \(T\), we want to find a subset of \(S\) whose elements sum to \(T\).
+    For example, if \(S=\{2, 5, 7, 11, 13\}\) and \(T=18\), then there is at least one solution:  
+    \(\{2, 5, 11\}\). But if \(T=19\), then there is not (check for yourself).
+    For more details about this problem, see the
+    <a class="problem" href="?path=Problems/Other/Subset Sum">Subset Sum</a> problem page.
+  </p>
+  <p>
+    The backtracking algorithm to solve subset sum explores each element either including or excluding it,
+    and prunes any branch where the partial sum exceeds \(T\).
+    So, for instance, we decide to see what happens if we take the first item. Once we have done
+    that we decide to take the second item. And so on. At some point we try to take an item and the
+    value makes the sum of the elements in the subset add to a number larger than the target. So
+    we backtrack and then see what happens if we do not take that item. 
+    If this is a bit confusing, do not worry. The following example should help you visualize
+    what is happenning.
+  </p></section>
+<section id="demo" section-title="Interactive Demo">
+<div class="embeddedDemoContainer">
+    <iframe class="embeddedDemo"
+      src="/Algorithms/Content/Demos/Backtracking/Subset Sum Demo.html">
+    </iframe>
+  </div>
+   <p>Now that you have a better idea of how it works, let us dive into the pseudocode.
+   In the following pseudocode, we assume for simplicity that the array \(S\) of values and the
+  target \(T\) are global variable (or fields). The sum of the current subset is maintained
+  and passed to recursive calls so it does not need to be recomputed from scratch.
+  The following implementation prints out the valid solutions, but could easily be modified
+  to return a list of valid solutions, or just a single solution. 
+  </p>
+  <pre><code>subset = []                      // create an empty set/array
+backtrackSubsetSum(0,subset,0);  // Get the algorithm rolling!
+
+backtrackSubsetSum(i, currentSubset, currentSum):
+    if currentSum == T:
+        output(currentSubset)    // Solution found!
+        return 
+    if i == n or currentSum > T: // No more items or target exceeded
+        return
+
+    // Include S[i]
+    currentSubset.add(S[i])
+    backtrackSubsetSum(i + 1, currentSubset, currentSum + S[i])
+
+    // Exclude S[i]
+    currentSubset.remove(S[i])
+    backtrackSubsetSum(i + 1, currentSubset, currentSum)
+</code></pre>
+
+<p><strong>Time complexity:</strong> In the worst case, backtracking explores all possible subsets of the input array, leading to a time complexity of \(O(2^n)\). This occurs when no pruning is possible and every branch must be evaluated. However, in practice pruning can significantly reduce the effective search space&mdash;especially when sums exceed the target early. Despite this, analyzing the exact time complexity of backtracking algorithms is often difficult, because the number of recursive calls depends heavily on the input data and the effectiveness of pruning. In such cases, probabilistic techniques like <em>Monte Carlo simulation</em> can be used to estimate average-case performance empirically by running the algorithm on many random inputs and observing trends.</p>
+
+<p>Although this algorithm has an exponential worst-case complexity, it is still a lot better than 
+the <a class="problem" href="?path=Techniques/Exhaustive%20Search">Exhuastive Search</a> algorithm
+since the backtracking algorithm has the potential to skip lots of invalid solutions. 
+</p>
+
+<p><strong>Space complexity:</strong> The algorithm requires \(O(n)\) space for the recursion stack and to store the current subset of values being considered. This assumes no memoization or additional data structures are used to avoid recomputation.</p>
+
+  <p><strong>Summary:</strong> The subset-sum problem is a classic and instructive example of the backtracking technique. It clearly demonstrates the recursive "take or don't take" paradigm, where each recursive call represents a binary decision: whether to include the current item in the subset. This naturally leads to a binary tree structure, where each level corresponds to a choice about one item, and each path from root to leaf represents a candidate subset. The algorithm explores these paths, pruning any that exceed the target early, which significantly reduces the number of recursive calls in many practical cases. This example highlights how backtracking can systematically explore the solution space using simple decisions, and how pruning and problem structure can make seemingly exponential problems tractable in many cases.</p>
+</div>
+
+
+   <div class="example-box">
+  <strong class="example-title">Example 2: N-Queens Problem</strong>
+  <p>
+    In the <em>N-Queens</em> problem, the goal is to place \(N\) queens on an \(N \times N\) chessboard
+    so that no two queens threaten each other. That means no two queens can be in the same row, column, or diagonal.
+    For example, when \(N=4\), one solution is to place queens in columns 2, 4, 1, and 3 of rows 1 through 4, respectively:
+    </p>
+<div class="chessboard-wrapper">
+  <table class="chessboard">
+    <tbody>
+      <tr>
+        <td class="light"></td>
+        <td class="dark">Q</td>
+        <td class="light"></td>
+        <td class="dark"></td>
+      </tr>
+      <tr>
+        <td class="dark"></td>
+        <td class="light"></td>
+        <td class="dark"></td>
+        <td class="light">Q</td>
+      </tr>
+      <tr>
+        <td class="light">Q</td>
+        <td class="dark"></td>
+        <td class="light"></td>
+        <td class="dark"></td>
+      </tr>
+      <tr>
+        <td class="dark"></td>
+        <td class="light"></td>
+        <td class="dark">Q</td>
+        <td class="light"></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+    <p>
+    For more details about this problem, see the
+    <a class="problem" href="?path=Problems/Other/N-Queens">N-Queens</a> problem page.
+  </p>
+  <p>
+    The backtracking algorithm for the N-Queens problem tries to place a queen in each row, one at a time,
+    moving left to right across columns. At each step, we check whether the current queen can be placed
+    without being attacked by any previously placed queen. If it is safe, we proceed to the next row.
+    If we reach a row where no valid placement is possible, we backtrack to the previous row and try
+    the next available column there. On ther other hand, if we place a queen on the final row, we have
+    a valid solution.
+    <br/>
+    If this is a bit confusing, do not worry. The following example should help you visualize
+    what is happening. We reccomend running through the \(N=5\) case, and working partially through the
+    \(N=7\) case, looking at the board, tree, and comments to see what is happening.
+  </p>
+  <div class="embeddedDemoContainer">
+    <iframe class="embeddedDemo"
+      src="/Algorithms/Content/Demos/Backtracking/N-Queens Demo.html">
+    </iframe>
+  </div>
+  
+  <p>
+    Now that you have a better idea of how it works, let us dive into the pseudocode.
+    In the following version, we place queens row by row from top to bottom,
+    and we use an array <code>board</code> where <code>board[r]</code> specifies the column where the queen 
+    is placed in row \(r\). For instance, if \(N=4\) and <code>board=[1, 3, 2]</code>, that means
+    that we place a queen in the first column of the first row, the third column of the second row,
+    the second column of the third row, and the fourth row is unplaced. In other
+    words, the board looks like this:</p>
+    <div class="chessboard-wrapper">
+  <table class="chessboard">
+    <tbody>
+      <tr>
+        <td class="light">Q</td>
+        <td class="dark"></td>
+        <td class="light"></td>
+        <td class="dark"></td>
+      </tr>
+      <tr>
+        <td class="dark"></td>
+        <td class="light"></td>
+        <td class="dark">Q</td>
+        <td class="light"></td>
+      </tr>
+      <tr>
+        <td class="light"></td>
+        <td class="dark">Q</td>
+        <td class="light"></td>
+        <td class="dark"></td>
+      </tr>
+      <tr>
+        <td class="dark"></td>
+        <td class="light"></td>
+        <td class="dark"></td>
+        <td class="light"></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+    
+    <p>Hopefully you can see that that array is not a valid partial solution since the two queens in the
+    center are attacking each other.
+    </p>
+    <p>
+    The algorithm we present finds <em>all</em> solutions, 
+    so we also use a list <code>solutions</code> to store all of the solutions. 
+    For simplicity, we assume <code>solutions</code> and <code>board</code> are both global variables.
+  </p>
+  <p>
+  The algorithm tries to place the queen in each of the \(N\) possible columns of the first row, and then
+  recursively tries all valid solutions of filling in the rest of the board. 
+  As is often the case, we will assume 0-indexing of our array, so the row/column indices are 0 through
+  \(N-1\) (The demo above added one to the indices for display purposes).
+  Given that fact, it should be clear that if the algorithm  gets to the \(N\)-th row (which does not exist), 
+  the board must be filled. 
+  With this background, we are ready for the pseudocode.
+  </p>
+  <pre><code>solveNQueens(N):
+    solutions = empty list   // global list of solutions 
+    board = array of size N  // gloabl array of current partial solution  
+    backtrack(0)             // Get the backtracking started
+    return solutions         // Obviously we need to return the solutions
+
+backtrackQueens(row): 
+    if row == N:                     // All queens have been placed!
+        solutions.add(board.copy())  // Add current configuration to solution list
+        return                       // No more rows to go, so no recursive call
+            
+    for col from 0 to N - 1:          // Try every column on this row
+        if isValid(row, col):         // If no other queens are attacking this cell
+            board[row] = col          // place new queen and
+            backtrackQueens(row + 1)  //     move on to the next row
+    
+isValid(row, col):
+    // Return true if none of the current queens are attacking this spot
+    //     or false if at least one queen is attacking this spot.
+    // Details left to the activities/exercises.
+</code></pre>
+
+<p>In some backtracking algorithms, it is necessary to undo changes made to partial solutions.
+(Did you catch that with the subset sum algorithm? If not, go back and find it.)
+But with this algorithm there is no needs since each choice is overwritten on each step.
+</p>
+
+<p><strong>Time complexity:</strong> In the worst case, the algorithm considers all \(N^N\) ways of placing queens in each row,
+  though most configurations are pruned early due to invalid placements.
+  A tighter upper bound is \(O(N!)\), since there can be at most one queen per column, but
+  pruning makes actual performance much better for many values of \(N\).
+  As with many backtracking problems, the complexity is hard to pin down precisely, since it depends
+  heavily on pruning and problem structure.</p>
+
+<p><strong>Space complexity:</strong> The algorithm uses \(O(N)\) space for the <code>cols</code> array and
+  \(O(N)\) space for the recursion stack, since we place one queen per row.
+  Notice that the space required is <em>not</em> \(O(N^2)\) since we do not actually ever store
+  a chess board.</p>
+
+<p><strong>Summary:</strong> The N-Queens problem is a classic example of backtracking where each step involves
+  choosing among a small set of valid options. It demonstrates how constraints (like attacking positions)
+  can be used to prune large parts of the search space early. The recursive structure of trying placements
+  row by row and backtracking when necessary gives rise to a tree of decisions,
+  with each level representing a queen's placement in a new row. The problem elegantly illustrates how
+  backtracking can navigate large combinatorial spaces effectively by ruling out invalid options early.</p>
+</div>
+</section>
+
+  
+  
+  
+<!-- Pseudocode Skeleton OPTIONAL. Only if it makes sense for the technique.-->
+<section id="pseudocode" section-title="Pseudocode Skeleton">
+  <h2>Pseudocode Skeleton</h2>
+  <p>
+    As we have seen, backtracking works by gradually building a partial solution one choice at a time,
+    checking at each step whether it can still lead to a valid complete solution.
+    If the partial solution is complete, we record it; otherwise we generate all
+    possible next choices, prune those that violate constraints, and recurse on each
+    promising extension. After exploring one branch, we remove the last choice
+    (backtrack) and try the next. Here is a generic backtracking algorithm based on this idea:
+  </p>
+  <pre><code>backtrack(partialSolution):
+    if isCompleteSolution(partialSolution):
+        output(partialSolution)
+        return
+    for choice in getChoices(partialSolution):
+        if isPromising(choice, partialSolution):
+            partialSolution.add(choice)
+            backtrack(partialSolution)
+            partialSolution.remove(choice)</code></pre>
+    <p>
+    Note that not all backtracking algorithms fit this exact pattern, but many, including the
+    algorithms for both the subset sum and the N-Queens problem, do. 
+    In order to implement a backtracking algorithm using this skeleton, 
+    you need to figure out what it means to implement each
+    of the following functions.
+    <ul>
+    <li><code>isCompleteSolution</code>: Based on the criteria for the given problem, you need to determine
+    if the partial solution is actually a full solution. 
+    For instance, with subset sum, we return true if and only if the numbers
+    in the partial solution add up to the target. 
+    For N-Queens, return true if and only if \(N\) queens have been placed.</li>
+    <li><code>getChoices</code>: Determine what choices can be added to the current solution.
+    Sometimes this step only adds known valid choices, making the next function, <code>isPromising</code>,
+    unnecessary. For subset sum, the choices are to take or not take the next available number on the list.
+    This may or may not be promising since adding it may go over the target value.
+    For N-Queens, they are the columns, some of which will not be promising (except on the first row).
+    </li>
+    <li><code>isPromising</code>: Determine whether or not the partial solution with the new choice added 
+    is still promising. For instance, with subset sum, if the sum is above the target, it is not promising,
+    and otherwise it is. For N-queens, a spot is promising if and only if none of the current
+    queens is attacking it.</li>
+    </ul>
+    It is also sometimes necessary to add additional parameters to the various functions, depending on 
+    both the algorithm and the chosen programming language. For instance, using object-oriented programming
+    in Java, the class fields may have the required information and the skeleton above may work fine. But in
+    other contexts, you need to know information that is not readily available&mdash;e.g. the list of possible
+    values and the target for the subset sum problem.
+    </p>
+    <p>
+    Backtracking can also be implemented iteratively, but then you have to explicietly maintain a stack
+    of partial solutions and the implementation gets a bit more complicated. 
+    If the depth of the recursive calls is high enough, it can be worth it. 
+    But in most cases the recursive implemention is sufficient (and much easier!).
+    </p>
+</section>
+
+<section id="algorithms" section-title="Algorithms Using This Technique">
+  <h2>Algorithms Using This Technique</h2>
+  <ul>
+    <li><strong>Subset Sum:</strong> Decide for each element whether to include it in a subset whose sum equals a target value. Prune branches where the running sum exceeds the target.</li>
+    <li><strong>N-Queens:</strong> Place \(N\) queens on an \(N \times N\) chessboard so that no two queens attack each other. Try one queen per row and backtrack when a placement leads to a conflict.</li>
+    <li><strong>Permutations:</strong> Generate all possible orderings of a set of elements by placing each unused element in the next position. Backtrack when no valid choices remain.</li>
+    <li><strong>Combinations:</strong> Generate all subsets of size \(k\) from a set of size \(n\) by making include/exclude decisions. Prune when the number of remaining elements is insufficient to complete the subset.</li>
+    <li><strong>0-1 Knapsack:</strong> Select a subset of items with given weights and values to maximize total value without exceeding the weight capacity. Prune branches when the weight limit is exceeded or the remaining items cannot improve the current best solution.</li>
+    <li><strong>Graph Coloring:</strong> Assign colors to vertices such that no adjacent vertices share the same color. Try each color option and backtrack when constraints are violated.</li>
+    <li><strong>Sudoku Solver:</strong> Fill a grid so that every row, column, and block contains all digits from 1 to 9. Try each valid number in each empty cell, backtracking when conflicts arise.</li>
+    <li><strong>Hamiltonian Path and Cycle:</strong> Visit each vertex of a graph exactly once (and return to the start in the cycle version). Extend the path step by step and prune invalid continuations.</li>
+    <li><strong>Knights Tour:</strong> Move a knight to visit every square on a chessboard exactly once. Try each legal move recursively and backtrack when stuck.</li>
+    <li><strong>Magic Squares:</strong> Fill a square with distinct integers so that the sums of each row, column, and diagonal are equal. Prune early when partial sums make the goal impossible.</li>
+    <li><strong>Crossword and Word Fillers:</strong> Place words into a grid with intersection constraints. Try each placement and backtrack when the grid becomes invalid.</li>
+    <li><strong>Map Coloring:</strong> Color each region of a map so that no adjacent regions share a color. Similar to graph coloring and solved in the same way.</li>
+  </ul>
+</section>
+
+ 
+<section id="when" section-title="When to Use">
+  <h2>When to Use</h2>
+  <ul>
+    <li><strong>Large solution space, but most candidates are invalid:</strong> Use backtracking when the number of potential solutions is exponential, but many of them can be rejected early by checking constraints.</li>
+    <li><strong>Constraints are easy to check incrementally:</strong> Backtracking works best when you can efficiently test whether a partial solution is still valid without needing to compute everything from scratch.</li>
+    <li><strong>You need to find all solutions or just one valid one:</strong> Backtracking can be used to find one solution, all solutions, or count the number of solutions depending on how you implement the recursion.</li>
+    <li><strong>The search tree is highly prunable:</strong> If most branches of the search space can be eliminated quickly due to constraint violations, backtracking is far more efficient than exhaustive search.</li>
+    <li><strong>The problem has a recursive substructure:</strong> Backtracking is often naturally implemented with recursion, making it suitable when the problem structure supports recursive decomposition.</li>
+    <li><strong>Other techniques do not apply:</strong> Use backtracking when greedy algorithms make poor choices or when dynamic programming is difficult to apply due to overlapping subproblems being hard to identify or cache effectively. Backtracking can be a good fallback when other techniques fail.</li>
+  </ul>
+</section>
+
+<section id="Limitations" section-title="Limitations">
+  <h2>Limitations</h2>
+  <ul>
+    <li><strong>Exponential time complexity in the worst case:</strong> Even with pruning, backtracking often explores a large portion of the solution space, leading to exponential runtimes for many problems.</li>
+    <li><strong>Performance depends heavily on pruning:</strong> Without effective pruning strategies, backtracking degrades to exhaustive search, making it impractical for large input sizes.</li>
+  <li><strong>Often inefficient for optimization problems without careful pruning:</strong> While backtracking can find the optimal solution, a straightforward implementation is typically not efficient for optimization problems unless significant effort is put into pruning the search space. In such cases, techniques like branch-and-bound or dynamic programming may be more effective.</li>
+    <li><strong>Hard to analyze precisely:</strong> The actual number of recursive calls depends on the input and how quickly unpromising branches are pruned, making time complexity difficult to analyze or predict.</li>
+    <li><strong>May require significant memory for deep recursion:</strong> For problems with large depth, recursion can lead to stack overflows or inefficient use of memory unless optimized or rewritten iteratively.</li>
+    <li><strong>Other techniques may be more efficient:</strong> Backtracking is often a fallback when greedy or dynamic programming techniques cannot be applied. If a problem has optimal substructure and overlapping subproblems, dynamic programming may solve it much more efficiently. If locally optimal decisions lead to a global optimum, greedy algorithms are usually faster and easier to implement.</li>
+  </ul>
+</section>
+
+<section id="tips" section-title="Implementation Tips">
+  <h2>Implementation Tips</h2>
+  <ul>
+    <li><strong>Use helper functions:</strong> Backtracking algorithms are usually recursive. Define a clean recursive helper function that takes only the parameters needed for the current decision.</li>
+    <li><strong>Track the current partial solution:</strong> Maintain a variable to represent the current state&mdash;such as a list, array, or string&mdash;and update it as you go. Be sure to undo changes (i.e., backtrack) before returning from the recursive call (when relevant&mdash;for some problems this happens automatically).</li>
+    <li><strong>Check constraints early:</strong> The sooner you can identify and discard invalid choices, the smaller your search tree will be. Try to check constraints before making recursive calls.</li>
+    <li><strong>Pass state efficiently:</strong> If the language allows it, avoid copying large data structures unnecessarily. In many cases, modifying and then undoing changes (e.g., using push/pop or add/remove) is more efficient than creating new objects each time.</li>
+    <li><strong>Be clear about base cases:</strong> Clearly define what a complete solution looks like and handle it explicitly before making further recursive calls.</li>
+    <li><strong>Use global variables carefully:</strong> In simple recursive implementations, it can be helpful to use global or outer-scope variables to accumulate results, but make sure they are updated and reset correctly to avoid errors across recursive branches.</li>
+    <li><strong>Think about pruning strategies:</strong> Any logic you can add to detect dead ends early&mdash;such as constraint checks or bounding conditions&mdash;can significantly reduce runtime.</li>
+    <li><strong>Consider using sets or boolean arrays for tracking:</strong> If you need to avoid repeats (e.g., in permutations or the N-Queens problem), data structures like boolean arrays or sets can make checking membership fast and clean.</li>
+  </ul>
+</section>
+
+<section id="pitfalls" section-title="Common Pitfalls">
+  <h2>Common Pitfalls</h2>
+  <ul>
+    <li><strong>Forgetting to undo changes:</strong> If you modify the partial solution (e.g., adding an element), make sure to undo the change (e.g., remove it) before returning. Otherwise, you will carry incorrect state into other branches.</li>
+    <li><strong>Misplaced base case checks:</strong> Placing base cases after recursive calls or failing to check them at all can result in extra work or infinite recursion.</li>
+    <li><strong>Recording solutions without making a copy:</strong> When storing a valid solution, make sure to save a deep copy of the current state. Otherwise, all entries in the solution list may end up pointing to the same (and eventually modified) object.</li>
+    <li><strong>Checking constraints too late:</strong> If you delay checking whether a partial solution is valid, the algorithm may explore large portions of the tree unnecessarily. Check constraints as early as possible.</li>
+    <li><strong>Confusing when to return vs continue:</strong> Returning too early can prevent other valid solutions from being found. Make sure you only return when the current branch should be fully abandoned.</li>
+    <li><strong>Improper loop bounds:</strong> Many backtracking problems involve looping over possible choices. Off-by-one errors or incorrect start indices can skip valid options or cause infinite recursion.</li>
+    <li><strong>Mixing up indices and values:</strong> In problems involving arrays, it is common to confuse an element's value with its index. Be careful when looping or making recursive calls that you are using the right one.</li>
+    <li><strong>Ignoring efficiency concerns:</strong> Writing backtracking code that works but is too slow on larger inputs is a common issue. Without pruning or smart constraint checks, even simple problems can become intractable.</li>
+  </ul>
+</section>
+
+<section id="applications" section-title="Real-World Applications">
+  <h2>Real-World Applications</h2>
+  <ul>
+    <li><strong>Constraint satisfaction problems:</strong> Many real-world scheduling, planning, and resource allocation problems can be modeled as constraint satisfaction problems (CSPs). Examples include employee shift scheduling, university exam timetabling, and meeting room assignments. Backtracking is often used as a foundation for solving these problems, especially with constraint propagation.</li>
+
+    <li><strong>Solving puzzles and games:</strong> Puzzles like Sudoku, crosswords, Kakuro, and logic grid puzzles are often solved using backtracking algorithms that try out candidate entries and backtrack when constraints are violated.</li>
+
+    <li><strong>Combinatorial design and configuration:</strong> Problems like circuit board layout, seating arrangements, and product configuration (e.g., in custom manufacturing or software installations) often involve satisfying a set of constraints over combinatorial choices.</li>
+
+    <li><strong>Software testing and verification:</strong> Backtracking is used in systematic exploration of input spaces or execution paths for programs, especially in symbolic execution and model checking, where only feasible paths should be followed.</li>
+
+    <li><strong>Solving logic and constraint-based queries:</strong> Prolog and other logic programming languages rely on backtracking to search for variable bindings that satisfy logical rules and constraints.</li>
+
+    <li><strong>Bioinformatics:</strong> Problems like DNA sequence alignment, motif finding, and structure prediction sometimes involve exploring large search spaces with constraints, making backtracking a useful core technique (though often augmented with heuristics).</li>
+
+    <li><strong>Robotics and AI pathfinding (with constraints):</strong> When movement or action plans must obey complex rules (e.g., avoid dynamic obstacles, satisfy power limits, or reach multiple objectives), backtracking-style search can be part of the planning system.</li>
+  </ul>
+</section>
+
+<section id="summary" section-title="Summary & Key Takeaways">
+  <h2>Summary & Key Takeaways</h2>
+  <p>
+    Backtracking is a versatile algorithmic technique used for solving problems where the solution space is large but can be efficiently pruned using constraints. It systematically builds partial solutions and abandons paths that are no longer promising, making it far more efficient than brute-force exhaustive search in many situations.
+  </p>
+  <ul>
+    <li><strong>Structure:</strong> Most backtracking algorithms are recursive and follow the pattern of building a solution step by step, checking constraints, and undoing steps when necessary (backtracking).</li>
+    <li><strong>Applicability:</strong> This technique is ideal for constraint satisfaction problems, generating combinations or permutations, solving puzzles, and many decision or search problems.</li>
+    <li><strong>Efficiency:</strong> While backtracking can explore exponentially many possibilities in the worst case, pruning unpromising branches early makes many practical problems solvable.</li>
+    <li><strong>Examples:</strong> Canonical problems like Subset Sum and N-Queens illustrate the basic ideas. More advanced examples include Sudoku solving, graph coloring, and Hamiltonian path detection.</li>
+    <li><strong>Limitations:</strong> Backtracking is not always efficient for optimization problems unless enhanced with techniques like branch-and-bound. It also relies heavily on good constraint checks and pruning logic.</li>
+    <li><strong>Design considerations:</strong> Writing a good backtracking algorithm involves identifying when a solution is complete, generating valid next choices, and detecting when a partial solution can no longer lead to success.</li>
+    <li><strong>Practical use:</strong> Backtracking is widely used in software engineering, AI, verification, bioinformatics, and other fields where flexible exploration under constraints is required.</li>
+  </ul>
+  <p>
+    When other techniques like greedy algorithms or dynamic programming do not apply&mdash;or when the problem space is naturally tree-shaped with many early rejections&mdash;backtracking is a powerful, elegant, and often surprisingly effective approach.
+  </p>
+</section>
+
+<section id="related-links-and-resources" section-title="Related Links and Resources">
+<h2>Related Links and Resources</h2>
+<ul>
+  <li><a href="https://www.geeksforgeeks.org/backtracking-algorithms/" target="_blank">GeeksforGeeks: Backtracking Algorithms</a> Tutorials and walkthroughs of classic backtracking problems.</li>
+  <li><a href="https://en.wikipedia.org/wiki/Backtracking" target="_blank">Wikipedia: Backtracking</a> A general overview with references and historical context.</li>
+</ul>
+
+  
+ <section id="reading-questions" section-title="Reading Comprehension Questions">
+  
+</section><h2>Reading Comprehension Questions</h2>
+  <ol>
+    <li>What is the basic idea behind the backtracking technique?</li>
+    <li>How is backtracking different from exhaustive search?</li>
+    <li>What makes a partial solution "promising" in the context of backtracking?</li>
+    <li>Why is it important to undo changes (i.e., backtrack) before returning from a recursive call?</li>
+    <li>How does backtracking apply to the subset sum problem?</li>
+    <li>In the N-Queens problem, why is it efficient to place one queen per row?</li>
+    <li>What role does pruning play in improving the performance of backtracking algorithms?</li>
+    <li>Why might backtracking not be the best choice for some optimization problems?</li>
+    <li>What is the purpose of the base case in a recursive backtracking algorithm?</li>
+    <li>When is it unnecessary to explicitly undo changes in a backtracking solution?</li>
+  </ol>
+  <button id="toggleAnswers" class="show-answer" aria-expanded="false">
+    Show Answers
+  </button>
+  <div id="answers" class="answer" hidden>
+    <ol>
+      <li>
+        <strong>Answer:</strong><br>
+        Backtracking incrementally builds candidates for the solution and abandons paths that cannot lead to a valid solution.
+      </li>
+      <li>
+        <strong>Answer:</strong><br>
+        Backtracking uses constraint checks to prune invalid branches early, while exhaustive search explores all possibilities blindly.
+      </li>
+      <li>
+        <strong>Answer:</strong><br>
+        A partial solution is promising if it still has the potential to lead to a valid or optimal solution.
+      </li>
+      <li>
+        <strong>Answer:</strong><br>
+        Because otherwise, leftover state from previous choices can corrupt future recursive calls and lead to incorrect results.
+      </li>
+      <li>
+        <strong>Answer:</strong><br>
+        It explores subsets by choosing whether to include or exclude each element, pruning when the sum exceeds the target.
+      </li>
+      <li>
+        <strong>Answer:</strong><br>
+        Because no two queens can be in the same row, so we only need to choose a valid column for each row.
+      </li>
+      <li>
+        <strong>Answer:</strong><br>
+        Pruning eliminates parts of the search tree that cannot possibly lead to a valid solution, saving time.
+      </li>
+      <li>
+        <strong>Answer:</strong><br>
+        Because backtracking explores the entire space unless enhanced with techniques like pruning or branch-and-bound, making it inefficient for some optimization tasks.
+      </li>
+      <li>
+        <strong>Answer:</strong><br>
+        The base case checks whether a complete and valid solution has been reached and determines whether to record or return it.
+      </li>
+      <li>
+        <strong>Answer:</strong><br>
+        When the decision simply overwrites the old value (e.g., placing a queen at a specific row index), there's no need to undo it.
+      </li>
+    </ol>
+  </div>
+</section>
+
+<section id="activities" section-title="In-Class Activities">
+  <h2>In-Class Activities</h2>
+  <ol>
+    <li><strong>Subset Sum Tree Walkthrough:</strong> Given the set \(S = \{3, 7, 9, 11\}\) and target \(T = 18\), use the subset sum algorithm to generate the full decision tree by hand. Circle branches that get pruned because the sum exceeds the target.</li>
+    <li><strong>Explore N-Queens Tree Structure:</strong> Run the N-Queens demo for \(N = 5\). Watch how the tree is built and when backtracking occurs. Identify at least two nodes where pruning happens and explain why.</li>
+    <li><strong>Implement and Analyze <code>isValid</code> for N-Queens:</strong> Work in pairs to implement the <code>isValid</code> function for the N-Queens problem. Make sure your implementation checks for column and diagonal conflicts <em>efficiently</em>. Test your version with sample board states. Discuss the computational complexity of your algorithm.</li>
+    <li><strong>Permutations with Backtracking:</strong> Use the backtracking skeleton to solve the permutations problem: generate all permutations of the list \([1, 2, \ldots, n]\). Identify what <code>isCompleteSolution</code>, <code>getChoices</code>, and <code>isPromising</code> should do in this case. Draw the resulting tree for the list \([1, 2, 3]\), and then for \([1, 2, 3, 4]\).</li>
+    <li><strong>Call Stack Simulation with Index Cards:</strong> Simulate a recursive backtracking call stack using index cards to generate all binary strings of length 4 with no two consecutive 1s. Add and remove cards to represent state changes as the recursion proceeds.</li>
+    <li><strong>Manual Trace of N-Queens for \(N = 4\):</strong> Trace the N-Queens backtracking algorithm for \(N = 4\) using pen and paper. At each step, write down the current state of the board and the available column choices. Stop when the first valid solution is found.</li>
+    <li><strong>Modify Subset Sum to Return All Solutions:</strong> Modify the provided subset sum algorithm so that it returns all valid solutions instead of just printing them. Compare your version with another group’s and discuss trade-offs in recursion structure and return values.</li>
+    <li><strong>Generate Binary Strings with No Consecutive 1s:</strong> Write a backtracking algorithm that generates all binary strings of length \(n\) that do not contain two consecutive 1s. How does pruning improve performance? What does the tree look like (draw it for \(n=5\))?</li>
+    <li><strong>Subset Sum with Limited Repeats:</strong> Given \(S = \{2, 3, 5\}\) and \(T = 8\), write a backtracking algorithm to find all combinations that sum to the target, where each number can be used at most twice. Discuss how you enforce the usage limit.</li>
+    <li><strong>Sorting with Subset Sum</strong>
+    Discuss whether or not sorting the numbers in the set, either ascending or descending, could/would make the
+    backtracking algorithm more efficient. Provide clear arguments for your case.
+    </li>
+    <li><strong>Monte Carlo Tree Estimation for N-Queens:</strong> A Monte Carlo simulation can be used to estimate the size of the backtracking tree for \(N = 8\) by simulating random queen placements, one row at a time. At each level, choose a valid column uniformly at random (from the safe options for that row). When a placement reaches a dead end or a full solution, record how many valid choices were available at each row along that path.
+<br>
+To estimate the total number of nodes in the backtracking tree, assume the tree is roughly symmetric and multiply the number of valid choices per level to get the number of leaves. Then, add up the number of nodes at each level. For example, if a trial has 5 valid choices at row 0, 3 at row 1, and 2 at row 2, then:
+<ul>
+  <li>Level 0 (root): 1 node</li>
+  <li>Level 1: 5 nodes</li>
+  <li>Level 2: \(5 \times 3 = 15\) nodes</li>
+  <li>Level 3 (leaves): \(5 \times 3 \times 2 = 30\) nodes</li>
+</ul>
+So the total estimated number of nodes in the tree is:
+\[
+1 + 5 + 15 + 30 = 51.
+\]
+
+Now try this process by hand 2–4 times for \(N = 8\): simulate queen placements row by row, recording the number of valid columns at each step. Use your data to estimate the full size of the backtracking tree. How does your estimate compare with \(8^8 = 16,\!777,\!216\) or \(8! = 40,\!320\)?
+<br>
+(Note: In real applications, one would do hundreds or thousands of simulations and average them to compute a 
+more accurate approximation of the size of the tree.)</li>
+  </ol>
+</section>
+
+<section id="problems" section-title="Homework Problems">
+  <h2>Homework Problems</h2>
+  <ol>
+    <li><strong>Subset Sum Decision Tree:</strong> For \(S = \{4, 6, 7, 10\}\) and target \(T = 16\), draw the portion of the subset sum backtracking tree explored by the algorithm. Clearly indicate which branches are pruned and where solutions are found.</li>
+    <li><strong>Return Instead of Print:</strong> Modify the subset sum algorithm from the page so that it returns a list of all valid solutions instead of printing them. Then apply it to \(S = \{1, 3, 4, 5, 6\}\) and \(T = 9\).</li>
+    <li><strong>Visualize N-Queens with Backtracking:</strong> Use pen and paper to trace the backtracking process for \(N = 4\), recording the order in which rows and columns are tried. How many recursive calls are made? How many solutions are found?</li>
+    <li><strong>Implement N-Queens Validator:</strong> 
+    Write your own version of the <code>isValid</code> function for N-Queens using either an array or 
+    set-based representation. Test it for \(N=6\) on the partial board \([2, 5, 3]\) 
+    and determine which columns are valid for row 3 
+    (assuming row numbering starts at 0, of course).</li>
+    <li><strong>Generate Balanced Parentheses:</strong> Write a backtracking algorithm to generate all well-formed strings of \(n\) pairs of parentheses. For example, for \(n = 3\), one solution is <code>"(()())"</code>. How do you decide which choices are valid at each step?</li>
+    <li><strong>Sum to Target with Digits:</strong> Use backtracking to find all ways to insert plus signs between the digits of "123456" (e.g., "12+34+5+6") so that the resulting expression sums to 21. Return all valid expressions.</li>
+    <li><strong>Binary Strings with No Triple 1s:</strong> Write a backtracking algorithm to generate all binary strings of length 6 that do not contain three consecutive 1s. How does your algorithm prune invalid partial solutions?</li>
+    <li><strong>Letter Tile Permutations:</strong> Given a multiset of letters (e.g., \([A, A, B]\)), write a backtracking algorithm that generates all distinct permutations. Be careful not to generate duplicates.</li>
+    <li><strong>Sudoku Row Filler:</strong> Write a backtracking algorithm to fill in a single row of a Sudoku puzzle given some initial digits and constraints from the columns and box. Assume digits 1–9 and no repeats.</li>
+    <li><strong>Design Your Own Problem:</strong> Create a small problem that can be solved with backtracking. Clearly describe the constraints and what makes a solution valid. Then write a short paragraph explaining how your algorithm would explore the solution space.</li>
+    <li><strong>Monte Carlo Tree Size Estimate:</strong>
+    Simulate 5 random trials of queen placement for the N-Queens problem  for \(N = 9\). 
+    At each row, record the number of valid column choices available. 
+    Then, estimate the total size of the backtracking tree.
+    (See <em>In-Class Activity 10</em> for more details on how to do the computations.)  
+    Finally, average your estimates. How does your estimate compare with \(9!\)?</li>
+
+  </ol>
+</section>
+
+
+</body>
+</html>

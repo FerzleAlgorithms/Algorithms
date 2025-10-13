@@ -1,0 +1,11 @@
+--- a/Content/Techniques/Decrease-and-Conquer/Introduction.html
++++ b/Content/Techniques/Decrease-and-Conquer/Introduction.html
+@@ -24,7 +24,7 @@
+ <body>
+   <h1>Decrease-and-Conquer</h1>
+ <!-- Motivation & Introduction -->
+-  <section id="introduction">
++  <section id="introduction" section-title="Introduction">
+     <h2>Introduction</h2>
+     Decrease-and-Conquer is an algorithmic paradigm in which a problem is solved by 
+     reducing it to a single smaller instance of the same problem and solving that problem, typically recursively. 

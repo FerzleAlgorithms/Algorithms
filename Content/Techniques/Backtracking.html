@@ -9,7 +9,6 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github.min.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js"></script>
   <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-  <style>
  <style>
   .chessboard-wrapper {
     display: inline-block;
@@ -30,7 +29,7 @@
     vertical-align: middle;
     font-weight: bold;
     font-size: 1em;
-    font-color: 
+    font-color: black;
   }
 
   .light {
@@ -54,7 +53,7 @@
   <h1>Backtracking</h1>
 
  <!-- Motivation & Introduction -->
-<section id="introduction">
+<section id="introduction" section-title="Introduction">
   <h2>Introduction</h2>
   <p>
     Backtracking is a general algorithmic technique for solving problems incrementally,
@@ -86,11 +85,7 @@
   </p>
 </section>
 
-  
-  <!-- Worked Examples -->
-  <section id="examples">
-    <h2>Examples</h2>
-	
+  <section id="example1" section-title="Example 1: Subset Sum">
  <div class="example-box">
   <strong class="example-title">Example 1: Subset-Sum Problem</strong>
   <p>
@@ -112,7 +107,7 @@
     If this is a bit confusing, do not worry. The following example should help you visualize
     what is happenning.
   </p>
-  <div class="embeddedDemoContainer">
+<div class="embeddedDemoContainer">
     <iframe class="embeddedDemo"
       src="/Algorithms/Content/Demos/Backtracking/Subset Sum Demo.html">
     </iframe>
@@ -154,8 +149,9 @@ since the backtracking algorithm has the potential to skip lots of invalid solut
 
   <p><strong>Summary:</strong> The subset-sum problem is a classic and instructive example of the backtracking technique. It clearly demonstrates the recursive "take or don't take" paradigm, where each recursive call represents a binary decision: whether to include the current item in the subset. This naturally leads to a binary tree structure, where each level corresponds to a choice about one item, and each path from root to leaf represents a candidate subset. The algorithm explores these paths, pruning any that exceed the target early, which significantly reduces the number of recursive calls in many practical cases. This example highlights how backtracking can systematically explore the solution space using simple decisions, and how pruning and problem structure can make seemingly exponential problems tractable in many cases.</p>
 </div>
+</section>
 
-
+  <section id="example2" section-title="Example 2: N-Queens">
    <div class="example-box">
   <strong class="example-title">Example 2: N-Queens Problem</strong>
   <p>
@@ -318,13 +314,10 @@ But with this algorithm there is no needs since each choice is overwritten on ea
   with each level representing a queen's placement in a new row. The problem elegantly illustrates how
   backtracking can navigate large combinatorial spaces effectively by ruling out invalid options early.</p>
 </div>
+</section>
 
-  </section>
-  
-  
-  
 <!-- Pseudocode Skeleton OPTIONAL. Only if it makes sense for the technique.-->
-<section id="pseudocode">
+<section id="pseudocode" section-title="Pseudocode Skeleton">
   <h2>Pseudocode Skeleton</h2>
   <p>
     As we have seen, backtracking works by gradually building a partial solution one choice at a time,
@@ -380,7 +373,7 @@ But with this algorithm there is no needs since each choice is overwritten on ea
     </p>
 </section>
 
-<section id="algorithms">
+<section id="algorithms" section-title="Algorithms Using This Technique">
   <h2>Algorithms Using This Technique</h2>
   <ul>
     <li><strong>Subset Sum:</strong> Decide for each element whether to include it in a subset whose sum equals a target value. Prune branches where the running sum exceeds the target.</li>
@@ -399,7 +392,7 @@ But with this algorithm there is no needs since each choice is overwritten on ea
 </section>
 
  
-<section id="when">
+<section id="when" section-title="When to Use">
   <h2>When to Use</h2>
   <ul>
     <li><strong>Large solution space, but most candidates are invalid:</strong> Use backtracking when the number of potential solutions is exponential, but many of them can be rejected early by checking constraints.</li>
@@ -411,7 +404,7 @@ But with this algorithm there is no needs since each choice is overwritten on ea
   </ul>
 </section>
 
-<section id="Limitations">
+<section id="Limitations" section-title="Limitations">
   <h2>Limitations</h2>
   <ul>
     <li><strong>Exponential time complexity in the worst case:</strong> Even with pruning, backtracking often explores a large portion of the solution space, leading to exponential runtimes for many problems.</li>
@@ -423,7 +416,7 @@ But with this algorithm there is no needs since each choice is overwritten on ea
   </ul>
 </section>
 
-<section id="tips">
+<section id="tips" section-title="Implementation Tips">
   <h2>Implementation Tips</h2>
   <ul>
     <li><strong>Use helper functions:</strong> Backtracking algorithms are usually recursive. Define a clean recursive helper function that takes only the parameters needed for the current decision.</li>
@@ -437,7 +430,7 @@ But with this algorithm there is no needs since each choice is overwritten on ea
   </ul>
 </section>
 
-<section id="pitfalls">
+<section id="pitfalls" section-title="Common Pitfalls">
   <h2>Common Pitfalls</h2>
   <ul>
     <li><strong>Forgetting to undo changes:</strong> If you modify the partial solution (e.g., adding an element), make sure to undo the change (e.g., remove it) before returning. Otherwise, you will carry incorrect state into other branches.</li>
@@ -451,7 +444,7 @@ But with this algorithm there is no needs since each choice is overwritten on ea
   </ul>
 </section>
 
-<section id="applications">
+<section id="applications" section-title="Real-World Applications">
   <h2>Real-World Applications</h2>
   <ul>
     <li><strong>Constraint satisfaction problems:</strong> Many real-world scheduling, planning, and resource allocation problems can be modeled as constraint satisfaction problems (CSPs). Examples include employee shift scheduling, university exam timetabling, and meeting room assignments. Backtracking is often used as a foundation for solving these problems, especially with constraint propagation.</li>
@@ -470,7 +463,7 @@ But with this algorithm there is no needs since each choice is overwritten on ea
   </ul>
 </section>
 
-<section id="summary">
+<section id="summary" section-title="Summary & Key Takeaways">
   <h2>Summary & Key Takeaways</h2>
   <p>
     Backtracking is a versatile algorithmic technique used for solving problems where the solution space is large but can be efficiently pruned using constraints. It systematically builds partial solutions and abandons paths that are no longer promising, making it far more efficient than brute-force exhaustive search in many situations.
@@ -489,6 +482,7 @@ But with this algorithm there is no needs since each choice is overwritten on ea
   </p>
 </section>
 
+<section id="related-links-and-resources" section-title="Related Links and Resources">
 <h2>Related Links and Resources</h2>
 <ul>
   <li><a href="https://www.geeksforgeeks.org/backtracking-algorithms/" target="_blank">GeeksforGeeks: Backtracking Algorithms</a> Tutorials and walkthroughs of classic backtracking problems.</li>
@@ -496,7 +490,8 @@ But with this algorithm there is no needs since each choice is overwritten on ea
 </ul>
 
   
- <section id="reading-questions">
+ 
+</section><section id="reading-questions" section-title="Reading Comprehension Questions">
   <h2>Reading Comprehension Questions</h2>
   <ol>
     <li>What is the basic idea behind the backtracking technique?</li>
@@ -559,7 +554,7 @@ But with this algorithm there is no needs since each choice is overwritten on ea
   </div>
 </section>
 
-<section id="activities">
+<section id="activities" section-title="In-Class Activities">
   <h2>In-Class Activities</h2>
   <ol>
     <li><strong>Subset Sum Tree Walkthrough:</strong> Given the set \(S = \{3, 7, 9, 11\}\) and target \(T = 18\), use the subset sum algorithm to generate the full decision tree by hand. Circle branches that get pruned because the sum exceeds the target.</li>
@@ -596,7 +591,7 @@ more accurate approximation of the size of the tree.)</li>
   </ol>
 </section>
 
-<section id="problems">
+<section id="problems" section-title="Homework Problems">
   <h2>Homework Problems</h2>
   <ol>
     <li><strong>Subset Sum Decision Tree:</strong> For \(S = \{4, 6, 7, 10\}\) and target \(T = 16\), draw the portion of the subset sum backtracking tree explored by the algorithm. Clearly indicate which branches are pruned and where solutions are found.</li>

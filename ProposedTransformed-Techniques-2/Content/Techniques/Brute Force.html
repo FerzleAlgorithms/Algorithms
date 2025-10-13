@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Technique: Brute Force</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js"></script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <script src="/Algorithms/scripts/chapterScripts.js"></script>
+  <link rel="stylesheet" href="/Algorithms/css/style.css">
+  <link rel="stylesheet" href="/Algorithms/css/chapter.css">
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-DQ5LVZVFDC"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-DQ5LVZVFDC');
+</script>
+</head>
+<body>
+  <h1>Brute Force</h1>
+  
+  <!-- Motivation & Introduction -->
+<section id="introduction" section-title="Introduction">
+  <h2>Introduction</h2>
+  <p>
+    Brute Force algorithms use the most straightforward approach—implementing a solution exactly as defined 
+	in the problem without 
+	worrying about efficiency. By following the problem’s specification verbatim (for example, 
+	using the recursive formula for Fibonacci numbers or directly computing each term of a polynomial), 
+	you guarantee correct results and gain insight into the problem’s structure. 
+	Although this may involve redundant steps and doesn’t scale well for large inputs, 
+	it offers a simple solution that’s quick to implement and, by closely mirroring the specification, 
+	is less prone to errors than more complex techniques.
+  </p>
+</section>
+
+  <section id="examples" section-title="Examples">
+    <h2>Examples</h2>
+    
+    
+     <div class="example-box">
+    <strong class="example-title">Example 1: Naive Fibonacci</strong>
+    <p>
+    The most obvious way to computethe \(n\)th 
+    <a class="problem" href="?path=Problems/Other/Fibonacci">Fibonacci number</a>,
+     \(F(n)\),  is by  directly using the recursive definition:</p>
+    <pre><code>function fib(n):
+    if n <= 1:
+      return n
+    else:
+      return fib(n-1) + fib(n-2)</code></pre>
+<p>If you are unfamilair with Fibonacci numbers, you should read the 
+    <a class="problem" href="?path=Problems/Other/Fibonacci">Fibonacci number</a> page
+    before continuing.</p>
+    <p>Here is an example that shows the recursive calls made to 
+    compute \(F(5)\) using the naive algorithm.</p></section>
+<section id="demo" section-title="Interactive Demo">
+<div class="embeddedDemoContainer">
+      <iframe
+        class="embeddedDemo"
+        src="/Algorithms/Content/Demos/Brute Force/Fibonacci 5 Naive Demo.html"
+        allow="fullscreen"
+        name="FibonacciRecursive-demo-5"
+        style="height: 300px; min-height: 300px;"
+      ></iframe>
+    </div>
+    <p>Because each call splits into two more calls (unless it hits a base case), the total number of calls grows exponentially—roughly \(O(2^n)\).
+    But we can be more precise. 
+    Since this algorithm computes \(F(n)\) by adding a bunch of 0s and 1s, 
+    the time it takes is actually about
+      \[
+      O(F(n))=O\left(
+           \frac{1}{\sqrt{5}}
+           \left( \left(\frac{1 + \sqrt{5}}{2}\right)^{n} 
+	                \;-\; 
+              \left(\frac{1 - \sqrt{5}}{2}\right)^{n}
+           \right)
+            \right)
+      = O\left(\frac{1}{\sqrt{5}}\left(\frac{1 + \sqrt{5}}{2}\right)^{n}\right).
+  \]
+    <p>
+      Thus, this algorithm does not work well for values of \(n\) that are very large.
+      For more details about this algorithm and a full analysis, see the 
+      <a class="problem" href="?path=Algorithms/Brute%20Force/Fibonacci Numbers">Fibonacci Numbers (Brute Force)</a>
+      algorithm page.
+    </p>
+    <p>Hopefully it is pretty clear that this is <em>not</em> a good use of 
+    the brute force technique! In fact, elsewhere we present several alternative algorithms
+    for computing Fibonacci numbers that are much more efficient than this. </p>
+  </div>
+  
+  <div class="example-box">
+    <strong class="example-title">Example 2: Polynomial Evaluation</strong>
+    <p>
+      Suppose you have a degree-\(n\) polynomial with coefficients 
+      \(a_{0},a_{1},\dots,a_{n}\), and you want to compute 
+      \[
+        P(x) \;=\; a_{0} \;+\; a_{1}x \;+\; \cdots \;+\; a_{d}x^{n}
+      \]
+      for some given value of \(x\).
+      This is an example of the 
+      <a class="problem" 
+      href="?path=Problems/Foundational/Polynomial%20Evaluation">Polynomial Evaluation</a> problem.
+      You should read that page if you are unfamiliar with the problem.
+      In a Brute Force approach to solving it, you follow the definition directly: 
+      for each term \(a_{i}x^{i}\), you multiply \(a_{i}\)
+      by \(x\) \(i\) times, mirroring the definition of each power.
+      You then add that to a running total. Here is an example of pseudocode for this algorithm,
+      where \(A\) is an array of the \(n+1\) coefficients, and 
+      \(x\) is the value to evaluate the polynomial at.
+    </p>
+
+    <pre><code>function evalPoly(A, n ,x):
+    result = 0
+    for i from 0 to n:
+        term = A[i]
+        for j from 1 to i:
+            term = term * x
+        result = result + term
+    return result
+</code></pre>
+<p>
+Here is a simple example that walks through the evaluation of a polynomial of degree 6
+using the algorithm.</p>
+    <div class="embeddedDemoContainer">
+      <iframe
+        class="embeddedDemo"
+        src="/Algorithms/Content/Demos/Brute Force/Polynomial Evaluation (Quadratic) Demo.html"
+        allow="fullscreen"
+        name="BF-poly-eval-demo"
+        style="height: 450px; min-height: 450px;"
+      ></iframe>
+    </div>
+    <p>
+      Next, we determine the computational complexity of the algorithm.
+      Note that the inner loop multiplies \(\text{A}[i]\) by \(x\) exactly \(i\) times, 
+      mirroring the definition of each power. 
+      Because for each \(i\) (from \(0\) through \(n\)) you perform \(i\) multiplications, 
+      the total work is on the order of
+      \[
+        \sum_{i=0}^{n} i \;=\; \frac{n(n+1)}{2} \;=\; O(n^{2}).
+      \]
+    </p>
+    <p>
+      Although straightforward to implement, this approach spends a lot of time recomputing 
+      powers from scratch. 
+      Later we explore two alternatives that improve the running time to \(O(n)\). 
+      One uses an accumulator for the powers so it does not have to compute each one from scratch, 
+      and the other one (called Horner’s Rule) rewrites the polynomial as a nested product 
+      so that it only needs a single loop of \(n\) multiplications and additions.
+      Although they are both \(O(n)\),
+      the latter is slighlty faster because it uses about half as many multiplications.
+    </p>
+    <p>For a more detailed discussion of the Brute Force algorithm, go to 
+      <a class="problem" href="?path=Algorithms/Brute%20Force/Polynomial%20Evaluation">
+      Polynomail Evaluation Brute Force</a>.
+    </p>
+  </div>
+</section>
+
+
+
+<!-- Canonical Algorithms -->
+<section id="algorithms" section-title="Algorithms Using This Technique">
+  <h2>Algorithms Using This Technique</h2>
+  The following list breifly describes brute force techniques to solve various problems.
+  <ul>
+    <li>
+      <strong>
+        Polynomial Evaluation
+      </strong>
+      – Compute each term \(a_i x^i\) by multiplying \(i\) copies of \(x\) and summing.
+    </li>
+    <li>
+      <strong>
+        Fibonacci Numbers 
+      </strong>
+      – Compute \(F(n)\) by direct recursion: \(F(n) = F(n-1) + F(n-2)\), with \(F(0)=0, F(1)=1\).
+    </li>
+    <li>
+      <strong>
+        Sequential Search
+      </strong>
+      – Scan an array or list from start to finish to find a target value.
+    </li>
+    <li>
+      <strong>
+        Selection Sort
+      </strong>
+      – Repeatedly find the maximum element in the unsorted portion and swap it into place.
+    </li>
+    <li>
+      <strong>
+        Bubble Sort
+      </strong>
+      – Repeatedly pass through the array, swapping adjacent out‐of‐order elements until sorted.
+    </li>
+    <li>
+      <strong>
+        Subset Sum
+      </strong>
+      – Enumerate all subsets of a set and check each subset’s sum against a target value.
+    </li>
+    <li>
+      <strong>
+        Permutation Generation
+      </strong>
+      – Generate all permutations of an array or string by recursively swapping elements.
+    </li>
+    <li>
+      <strong>
+        Pattern Matching
+      </strong>
+      – Slide the pattern along the text and compare character by character at each position.
+    </li>
+    <li>
+      <strong>
+        Matrix Multiplication
+      </strong>
+      – Compute each entry of the product matrix by summing over row–column products.
+    </li>
+    <li>
+      <strong>Traveling Salesman</strong>
+      – Try all permutations of cities to find the minimum‐cost tour.
+    </li>
+    <li>
+      <strong>Factorial</strong>
+      </strong>
+      – Compute \(n!\) by straightforward recursion or an iterative loop.
+    </li>
+    <li>
+      <strong>
+      Prime Testing
+      </strong>
+      – Test each integer from 2 up to \(\sqrt{n}\) for divisibility to check primality.
+    </li>
+  </ul>
+</section>
+
+<!-- Applicability -->
+<section id="applicability" section-title="When to Use">
+  <h2>When to Use</h2>
+  <ul>
+    <li>
+      <strong>Small Input Sizes:</strong> Works well when the problem’s parameters (e.g., array size) remain low enough that a straightforward, brute-force approach completes quickly.
+    </li>
+    <li>
+      <strong>Specification-Driven Accuracy:</strong> When you need a guaranteed-correct, “follow-the-definition” implementation with minimal risk of subtle logic errors.
+    </li>
+    <li>
+      <strong>Rapid Prototyping &amp; Debugging:</strong> When you want a quick proof-of-concept or baseline to verify problem constraints and outputs before investing time in optimization.
+    </li>
+    <li>
+      <strong>Educational or Illustrative Purposes:</strong> When demonstrating how a problem works “from first principles” or teaching algorithmic fundamentals—clarity outweighs performance.
+    </li>
+    <li>
+      <strong>Limited Development Time:</strong> When deadlines demand a working solution now, and you can tolerate slower runtimes in exchange for faster coding and fewer bugs.
+    </li>
+    <li>
+      <strong>Fallback for Small Cases in a Hybrid Approach:</strong> When combining multiple techniques (e.g., use brute force for base cases and switch to a more advanced method once inputs exceed a threshold).
+    </li>
+    <li>
+      <strong>Resource Constraints Favor Simplicity:</strong> When you’re coding in an environment where complex libraries or frameworks aren’t available, and a direct loop or recursion is the most practical option.
+    </li>
+  </ul>
+  <p>
+    In essence, choose brute force when correctness and simplicity matter more than speed—especially for small-to-moderate inputs, initial prototyping, or educational clarity. As soon as input sizes grow or performance becomes critical, consider more efficient techniques.
+  </p>
+</section>
+  
+<section id="limitations" section-title="Limitations">
+  <h2>Limitations</h2>
+  <ul>
+    <li>
+      <strong>Unnecessary Repetition:</strong> Since the brute-force method often recomputes the same values or explores the same partial solutions repeatedly, it can waste significant time even on moderately sized inputs.
+    </li>
+    <li>
+      <strong>Exponential or High Polynomial Time:</strong> For many problems (e.g., recursive Fibonacci), the running time grows as quickly, and for other enumeration tasks (e.g., subsets, permutations) it can be exponential. In practice, this quickly becomes infeasible as the size of the problem increases.
+    </li>
+    <li>
+      <strong>High Constant Factors:</strong> Even if the asymptotic growth is reasonable, the overhead from redundant loops or recursive calls can introduce large constants that make the brute-force approach slow in real‐world scenarios.
+    </li>
+    <li>
+      <strong>Deep Recursion Risks:</strong> Recursive brute-force implementations may hit maximum call stack limits or cause stack overflow for larger inputs, forcing either iterative rewrites or explicit stack management.
+    </li>
+    <li>
+      <strong>Lack of Pruning:</strong> Because brute force “checks everything,” it cannot skip obviously irrelevant branches. It won’t take advantage of partial information (e.g., partial sums already exceeding a target), so it can’t terminate early unless a valid solution is found.
+    </li>
+    <li>
+      <strong>Memory Overhead (for Recursion or Candidate Storage):</strong> If the algorithm builds large data structures (e.g., storing all subsets or maintaining deep recursion state), it can exhaust memory even when the time complexity seems manageable.
+    </li>
+    <li>
+      <strong>Poor Insight into Problem Structure:</strong> Brute-force solutions reveal less about patterns or constraints that could lead to more efficient algorithms. Relying too long on brute force can obscure opportunities for pruning, dynamic programming, or greedy strategies.
+    </li>
+    <li>
+      <strong>Not Suitable for Real-Time or Resource-Constrained Environments:</strong> In contexts with strict time, power, or memory budgets (e.g., embedded systems, mobile apps), brute-force methods often exceed allowable limits, necessitating more specialized techniques.
+    </li>
+  </ul>
+  <p>
+    In summary, while brute force is easy to write and guarantees a correct result, these drawbacks—redundancy, high time/memory costs, and lack of pruning—mean it quickly becomes impractical for larger or more complex instances.
+  </p>
+</section>
+
+<!-- Implementation Tips & Common Pitfalls -->
+<section id="tips" section-title="Implementation Tips &amp; Common Pitfalls">
+  <h2>Implementation Tips &amp; Common Pitfalls</h2>
+  <ul>
+    <li>
+      <strong>Handle base cases explicitly:</strong> Always check for trivial or empty inputs before diving into recursive calls or loops. For example, in a Fibonacci implementation ensure you handle <code>n ≤ 1</code> so the recursion terminates correctly. In a subset‐generation routine, verify that an empty set is returned when the input size is zero.
+    </li>
+    <li>
+      <strong>Avoid redundant computations:</strong> If your algorithm repeatedly computes the same intermediate value, consider accumulating it instead of recomputing from scratch. For instance, when evaluating a polynomial, maintain a <code>term</code> variable that multiplies by <code>x</code> each loop iteration rather than recomputing <code>x<sup>i</sup></code> from zero. In a naive Fibonacci, you might memoize or cache results to prevent exponential recomputation.
+    </li>
+    <li>
+      <strong>Watch recursion depth:</strong> Deep recursion can lead to stack overflows or excessive memory use. If you’re exploring all combinations of an <em>n</em>-element set, the recursion depth can reach <em>n</em>. For large <em>n</em>, convert to an iterative approach or use an explicit stack. Similarly, if you call <code>fib(n)</code> for large <em>n</em>, consider switching to an iterative or memoized version when <em>n</em> exceeds a safe threshold.
+    </li>
+    <li>
+      <strong>Mind data types and overflow:</strong> When your brute-force loop multiplies values many times or builds large structures, you risk integer overflow or floating-point precision loss. For example, computing <code>x<sup>d</sup></code> by repeated multiplication can overflow a 32-bit integer if <em>d</em> is large. Use a larger numeric type or a big-integer library when necessary.
+    </li>
+    <li>
+      <strong>Generate candidates efficiently:</strong> Hard-coding nested loops for each case quickly becomes unmanageable. Instead, use a general recursive or iterative pattern that can handle any size. For example, generate all subsets via a “choose/not-choose” recursion so you don’t need a separate loop for each subset size. This same pattern applies whether you’re listing all binary strings of length <em>n</em> or enumerating permutations.
+    </li>
+    <li>
+      <strong>Test on small inputs first:</strong> Validate correctness by running your brute-force code on minimal cases (e.g., <code>fib(3)</code> or a 3-term polynomial). Print intermediate values or recursion traces to confirm that you’re visiting every candidate or computing every term correctly. This makes it easier to catch off-by-one errors or omitted cases before scaling up.
+    </li>
+  </ul>
+</section>
+
+
+<!-- Real-World Applications -->
+<section id="applications" section-title="Real-World Applications">
+  <h2>Real-World Applications</h2>
+  <ul>
+    <li>
+      <strong>Cryptanalysis &amp; Password Cracking:</strong>
+      Trying every possible key or password until a match is found. For short passwords or limited cipher keys, a brute-force search can be practical, and sometimes it is the only option.
+    </li>
+    <li>
+      <strong>Configuration Testing &amp; QA:</strong>
+      Exhaustively testing combinations of feature toggles, software settings, or hardware parameters in small embedded systems or firmware to catch edge-case bugs.
+    </li>
+    <li>
+      <strong>Small-Scale Constraint Satisfaction:</strong>
+      Solving Sudoku or other logic puzzles by enumerating all possibilities when only a few empty cells remain. In many puzzle apps, a brute-force solver runs nearly instantly for 9×9 grids.
+    </li>
+    <li>
+      <strong>Baseline Benchmarking:</strong>
+      Measuring performance of optimized algorithms by comparing against a simple brute-force implementation. For example, comparing a dynamic-programming subset-sum solver to a brute-force subset enumeration on small sets.
+    </li>
+    <li>
+      <strong>Hyperparameter Search in Machine Learning:</strong>
+      For models with a small number of discrete hyperparameters, a brute-force grid search (e.g., trying all combinations of learning rate, depth, and regularization) can be acceptable.
+    </li>
+    <li>
+      <strong>Resource-Limited Automation:</strong>
+      In scenarios where development time is very short and the input size guaranteed small (e.g., command-line tools that process only a few items), a brute-force approach avoids premature optimization.
+    </li>
+  </ul>
+</section>
+
+<!-- Summary -->
+<section id="summary" section-title="Summary &amp; Key Takeaways">
+  <h2>Summary &amp; Key Takeaways</h2>
+  <p>
+    Brute Force involves applying the problem’s definition exactly—trying every possibility or following a formula verbatim—trading performance for simplicity. It provides a clear, easy-to-implement solution that is less prone to subtle bugs and serves as a reliable correctness check.
+  </p>
+  <p>
+    Key points to remember:
+  </p>
+  <ul>
+    <li><strong>Correctness over speed:</strong> By mirroring the specification directly, brute-force guarantees the right answer, even if it performs extra work.</li>
+    <li><strong>Quadratic or exponential growth:</strong> 
+    Many brute‐force methods run in \(O(d^2)\) or \(O(2^n)\), so even on moderately sized inputs 
+    they can become prohibitively slow.</li>
+    <li><strong>Ideal for small inputs and prototyping:</strong> Use brute force when data sizes are limited, or when you need a quick proof-of-concept before implementing a more advanced algorithm.</li>
+    <li><strong>Useful baseline:</strong> Brute-force solutions act as benchmarks to compare against optimized approaches (e.g., most of the other techniques we will discuss).</li>
+    <li><strong>Watch coding pitfalls:</strong> Avoid off-by-one errors, unnecessary recomputation (accumulate powers when possible), and excessive recursion depth.</li>
+    <li><strong>Transition when needed:</strong> As soon as input size or performance requirements increase, switch to a more efficient technique that leverages pruning, caching, or a different algorithmic strategy.
+    </li>
+  </ul>
+</section>
+
+<section id="related-links-and-resources" section-title="Related Links and Resources">
+<h2>Related Links and Resources</h2>
+<ul>
+  <li><a href="https://en.wikipedia.org/wiki/Brute-force_search" target="_blank">Brute-force search (Wikipedia)</a> – A concise overview of the brute-force technique, its variants, and complexity analysis.</li>
+  <li><a href="https://www.geeksforgeeks.org/brute-force-approach-and-its-pros-and-cons/" target="_blank">Brute Force Algorithms (GeeksforGeeks)</a> – Illustrated examples and code snippets for common brute-force methods like linear search and selection sort.</li>
+</ul>
+</section>
+
+
+
+
+<!-- Reading Comprehension Questions -->
+<section id="reading-questions" section-title="Reading Comprehension Questions">
+  <h2>Reading Comprehension Questions</h2>
+  <ol>
+    <li>
+      In your own words, what does it mean for a brute-force algorithm to “follow the problem’s specification verbatim,” and why is this approach less error-prone?
+    </li>
+    <li>
+      According to the Fibonacci example, why is the runtime of the naive recursive <code>fib(n)</code> implementation expressed as 
+      \[
+        O\bigl(F(n)\bigr) \;=\; O\!\Bigl(\tfrac{1}{\sqrt{5}}\bigl(\tfrac{1 + \sqrt{5}}{2}\bigr)^{n}\Bigr)\,?
+      \]
+      What does this tell you about how the cost grows as \(n\) increases?
+    </li>
+    <li>
+      In the polynomial-evaluation example, the nested-loop version takes 
+      \(\displaystyle O\Bigl(\sum_{i=0}^{n}i\Bigr) = O(n^{2})\) time. 
+      Explain why each term \(a_{i} x^{i}\) costs \(i\) multiplications and how that leads to quadratic growth.
+    </li>
+    <li>
+      List three situations from the “When to Use” section where a brute-force solution is a good choice, and explain why each scenario favors simplicity over performance.
+    </li>
+    <li>
+      The “Limitations” section mentions “lack of pruning” and “deep recursion risks.” Pick one of these limitations and describe a concrete example from the page that illustrates why it is problematic.
+    </li>
+    <li>
+      Choose one canonical algorithm listed under “Algorithms Using This Technique,” and briefly describe how brute force applies to it (e.g., what is being checked or computed exhaustively?).
+    </li>
+    <li>
+      Draw the full recursion tree for computing \(F(6)\) using the naive Fibonacci algorithm. Label each node with its argument, and count the total number of calls made.
+    </li>
+    <li>
+      Using the naive polynomial algorithm, evaluate 
+      \[
+        P(x) = 2 \;+\; 3x \;-\; x^{2} \;+\; 5x^{3} \;-\; 4x^{4}
+      \]
+      at \(x = 2\). Show the step-by-step multiplications of each \(x^{i}\) and the running total as each term is added.
+    </li>
+  </ol>
+
+  <button id="toggleAnswers" class="show-answer" aria-expanded="false">
+    Show Answers
+  </button>
+  <div id="answers" class="answer" hidden>
+    <ol>
+      <li>
+        <strong>Answer:</strong><br>
+        To “follow the problem’s specification verbatim” means implementing exactly what the problem statement says—no shortcuts or hidden optimizations. For example, computing Fibonacci by literally calling \(F(n-1)\) and \(F(n-2)\) until reaching \(n ≤ 1\). Because every step corresponds directly to the definition, the code is less prone to subtle logic errors (e.g., off-by-one mistakes or incorrect base-case handling).
+      </li>
+      <li>
+        <strong>Answer:</strong><br>
+        The naive <code>fib(n)</code> implementation makes recursive calls until it reaches the base cases (\(F(0)=0\), \(F(1)=1\)). Each call eventually adds a 0 or 1. The total number of calls is proportional to \(F(n)\) itself. Since
+        \[
+          F(n) = \frac{1}{\sqrt{5}}\Bigl(\tfrac{1 + \sqrt{5}}{2}\Bigr)^{n} - \ldots,
+        \]
+        we write the cost as 
+        \[
+          O\bigl(F(n)\bigr) \;=\; O\!\Bigl(\tfrac{1}{\sqrt{5}}\bigl(\tfrac{1 + \sqrt{5}}{2}\bigr)^{n}\Bigr).
+        \]
+        As \(n\) grows, \(\bigl(\tfrac{1 + \sqrt{5}}{2}\bigr)^{n}\) (approximately \(1.618^n\)) grows exponentially, so the runtime becomes impractically large for moderate \(n\).
+      </li>
+      <li>
+        <strong>Answer:</strong><br>
+        For each \(i = 0\) to \(n\), we compute 
+        \[
+          \text{term} = a_{i} x^{i}
+        \]
+        by starting with \(\text{term} = a_{i}\) and multiplying by \(x\) exactly \(i\) times. Thus, computing \(a_{i}x^{i}\) costs \(i\) multiplications. Summing those costs from \(i=0\) to \(n\) gives
+        \[
+          \sum_{i=0}^{n} i \;=\; \frac{n(n+1)}{2} \;=\; O(n^{2}).
+        \]
+        Hence, the nested loops produce quadratic growth.
+      </li>
+      <li>
+        <strong>Answer:</strong><br>
+        1. <strong>Small Input Sizes:</strong> When \(n\) or \(d\) is small (e.g., computing <code>fib(5)</code> or evaluating a 3-term polynomial), brute force completes very quickly with minimal code.<br>
+        2. <strong>Specification-Driven Accuracy:</strong> If you need a bulletproof, “do exactly what the problem says” solution—such as a simple sequential search in a small array—brute force minimizes the chance of bugs.<br>
+        3. <strong>Educational/Illustrative Purposes:</strong> Demonstrating how an algorithm works “from first principles,” like showing the full recursion tree for <code>fib(5)</code>, where clarity outweighs performance.
+      </li>
+      <li>
+        <strong>Answer:</strong><br>
+        • <strong>Lack of Pruning:</strong> The naive Fibonacci code never notices that subproblems repeat; it recomputes the same values instead of stopping early or caching results—this leads to exponentially many calls.<br>
+        • <strong>Deep Recursion Risks:</strong> The <code>fib(n)</code> function calls itself twice for each \(n ≥ 2\). If you tried <code>fib(50)</code>, recursion depth could exceed call-stack limits, causing a stack overflow. Enumerating all subsets of a large set also pushes recursion depth to the size of the set, risking runtime errors.
+      </li>
+      <li>
+        <strong>Answer:</strong><br>
+        <strong>Selection Sort:</strong> Each pass scans the unsorted portion of the array to find the minimum (or maximum) element and swaps it into place. For an array of length \(n\), you do \(\sum_{k=1}^{n} k = O(n^{2})\) comparisons. This directly implements “select the next smallest element” by checking every candidate without skipping any.
+      </li>
+      <li>
+        <strong>Answer:</strong><br>
+        Below is a partial recursion tree for \(F(6)\). Each node is labeled with its argument:
+
+        <pre><code>
+                  fib(6)
+                 /       \
+             fib(5)      fib(4)
+             /    \      /    \
+         fib(4) fib(3) fib(3) fib(2)
+         /   \   /   \   /   \   /  \
+        fib(3) fib(2) ... etc. ...    fib(0)
+        
+        ... (Continue until all leaves are fib(1) or fib(0).
+             Your tree should have 25 nodes.)</code></pre>
+
+        If we let \(\text{Calls}(k)\) represent the nuumber of calls made by <code>fibA(k)</code>,
+        a precise count of calls is 
+        \[
+        \begin{aligned}
+        \text{Calls}(6) 
+          &= 1 + \text{Calls}(5) + \text{Calls}(4) \\
+          &= 1 + \bigl(1 + \text{Calls}(4) + \text{Calls}(3)\bigr)
+                + \bigl(1 + \text{Calls}(3) + \text{Calls}(2)\bigr) \\
+          &= 1 + (1 + (1 + \text{Calls}(3) + \text{Calls}(2)) + (1 + \text{Calls}(2) + \text{Calls}(1))) \\
+          &\quad + (1 + (1 + \text{Calls}(2) + \text{Calls}(1)) + (1 + \text{Calls}(1) + \text{Calls}(0))) \\
+          &\;=\; \ldots = 25 \quad\text{total calls.}
+        \end{aligned}
+        \]
+        Hence, computing \(F(6)\) by naive recursion makes 25 function calls in total.
+      </li>
+      <li>
+        <strong>Answer:</strong><br>
+        We want to evaluate 
+        \[
+          P(2) = 2 + 3\cdot2 - 1\cdot2^{2} + 5\cdot2^{3} - 4\cdot2^{4}.
+        \]
+        Using the naive algorithm:
+
+        <ol>
+          <li>\(i = 0:\) \(\text{term} = a_{0} = 2.\) No multiplications needed (since \(2^{0} = 1\)). Running total = \(2.\)</li>
+          <li>\(i = 1:\) \(\text{term} = a_{1} = 3.\) Multiply by \(x\) once: \(3 \times 2 = 6.\) Running total = \(2 + 6 = 8.\)</li>
+          <li>\(i = 2:\) \(\text{term} = a_{2} = -1.\) Multiply by \(x\) twice: 
+            \[
+              -1 \times 2 = -2,\quad -2 \times 2 = -4.
+            \]
+            Running total = \(8 + (-4) = 4.\)
+          </li>
+          <li>\(i = 3:\) \(\text{term} = a_{3} = 5.\) Multiply by \(x\) three times:
+            \[
+              5 \times 2 = 10,\quad 10 \times 2 = 20,\quad 20 \times 2 = 40.
+            \]
+            Running total = \(4 + 40 = 44.\)
+          </li>
+          <li>\(i = 4:\) \(\text{term} = a_{4} = -4.\) Multiply by \(x\) four times:
+            \[
+              -4 \times 2 = -8,\quad -8 \times 2 = -16,\quad -16 \times 2 = -32,\quad -32 \times 2 = -64.
+            \]
+            Running total = \(44 + (-64) = -20.\)
+          </li>
+        </ol>
+        Therefore, \(P(2) = -20.\)
+      </li>
+    </ol>
+  </div>
+</section>
+
+<!-- In-Class Activities -->
+<section id="activities" section-title="In-Class Activities">
+  <h2>In-Class Activities</h2>
+  <ol>
+    <li>
+      <strong>Empirical Timing Comparison:</strong>
+      Have students implement both the naive <code>fib(n)</code> and a memoized version
+      (maybe given to them, maybe make them create one, maybe create one with them). 
+      Choose values of <code>n</code> (e.g., 5, 10, 20, 25, 30, 35, 50) and measure execution time for each. 
+      Discuss how the runtime scales and why memoization avoids repeated work.
+    </li>
+    <li>
+      <strong>Polynomial Loop Trace:</strong>
+      Provide a specific polynomial (for example, \(P(x) = 13 - 4 x - 3 x^2 + 15 x^3 - 9 x^4\)) 
+      and a value of \(x\) (e.g., 5). Have students walk through the nested loops step-by-step
+      and record each intermediate “term” and running total. 
+      Discuss how many multiplications occur and why it’s \(O(n^2)\).
+    </li>
+    <li><strong>Improved Polynomial Evaluation Algorithm:</strong>
+    Give an algorithm to evaluate a polynomial that takes only \(O(n)\) time be keeping track
+    of the cumulated power of \(x\). Explain why it works and why its complexity is \(O(n)\).
+    Use it and the naive one to evaluate a polynomial and compare the number of additions
+    and multiplications used by each.
+    </li>
+    <li>
+      <strong>Recursion Tree Drawing:</strong>
+      Ask students to draw the full recursion tree for <code>fib(7)</code> on paper, 
+      labeling each node with its argument. 
+      Then count the number of calls and highlight which subproblems repeat.
+    </li>
+    <li>
+      <strong>Exact Complexity of Naive Fibonacci:</strong>
+      Given that they have seen trees of up to size 7 for computing Fibonacci numbers
+      using the naive algorithm, have them determine an exact formula
+      for the number of computations needed by the naive algorithm to compute \(F(n)\).
+      Have them confirm that it leads to the complexity previously stated.
+    </li>    
+    <li><strong>Improved Fibonacci Algorithm:</strong>
+    Discuss how you can modify the naive Fibonacci algorithm to use an array to keep track
+    Determine the computational complexity of the improved algorithm. of
+    and look up already computed values to significantly reduce the time it requires.
+    Implement and test the algorithm against the naive one.
+    </li>
+    <li>
+      <strong>Sequential Search Demonstration:</strong>
+      Give students an unsorted array of 10–15 integers and a target value. 
+      Have them walk through a brute-force sequential search by checking each element in order. 
+      Record the number of comparisons required in the best, average, and worst cases.
+    </li>
+  </ol>
+</section>
+
+<section id="problems" section-title="Homework Problems">
+  <h2>Homework Problems</h2>
+
+  <h3>Basic</h3>
+  <ol>
+    <li>
+      <strong>Sequential Search:</strong> Given an unsorted list of integers, write a brute-force scan to find both the minimum and maximum values. Record the number of comparisons in the best, average, and worst cases.
+    </li>
+    <li>
+      <strong>Bubble Sort:</strong> Implement bubble sort on an array of <code>n</code> elements. Count the number of swaps and comparisons required for (a) a nearly sorted array, (b) a random array, and (c) a reverse-sorted array.
+    </li>
+    <li>
+      <strong>Selection Sort:</strong> Implement selection sort on an array of <code>n</code> elements. Compare the total number of comparisons and swaps with bubble sort on the same test data.
+    </li>
+    <li>
+      <strong>Naive Prime Testing:</strong> Given a positive integer \(n\), 
+      implement a brute-force check for primality by testing divisibility of every integer from 2 up to \(\sqrt{n}\). For \(n = 289\) and \(n = 997\), record how many divisions are performed in each case.
+    </li>
+    <li>
+      <strong>Magic Square Generation (3×3):</strong> 
+      Write a brute-force routine to generate all 3×3 magic squares 
+      (entries 1 through 9, each used exactly once). 
+      How many squares did your algorithm generate during its search?
+      How many distinct magic squares exist (rotations/reflections count separately)? 
+      Display each valid square.
+    </li>
+    <li>
+      <strong>Subset Enumeration (Small Set):</strong> Given the set \(\{A,B,C,D\}\), manually list all subsets in lexicographic order. Then write a brute-force “choose/not-choose” recursion to generate the same list, verifying that your code’s output matches your manual enumeration.
+    </li>
+  </ol>
+ <h3>Advanced</h3>
+  <ol>
+    <li>
+      <strong>Naive String Matching:</strong> Implement the brute-force substring search: for a text \(T\) and pattern \(P\), slide \(P\) over \(T\) and compare character by character at each position. Test your code on (a) a random text of length 5,000 with a pattern of length 100, and (b) a repetitive text like “AAAA…A” (length 5,000) with pattern “AAAB”. Report the total number of character comparisons in each case.
+    </li>
+    <li>
+      <strong>Nearest Pair of Points (2D):</strong> Given a list of \(n\) points \((x_i, y_i)\) in the plane, design a brute-force algorithm to find the pair of points with the smallest Euclidean distance. Show that your method takes \(O(n^2)\) distance computations, and test it on a set of 100 random points.
+    </li>
+    <li>
+      <strong>Polynomial Multiplication (Naive Convolution):</strong> Given two polynomials 
+      \[
+        A(x) = \sum_{i=0}^{d} a_i x^i, 
+        \quad
+        B(x) = \sum_{j=0}^{e} b_j x^j,
+      \]
+      write a brute-force algorithm to compute their product
+      \[
+        C(x) = A(x)\cdot B(x) \;=\; \sum_{k=0}^{d+e} \Bigl(\sum_{i+j=k} a_i b_j\Bigr)x^k.
+      \]
+      Count how many individual multiplications and additions occur when \(d = 50\) and \(e = 50\). Implement this for two random polynomials of those degrees and report the actual counts.
+    </li>
+    <li>
+      <strong>Perfect Square Detection:</strong> For a given positive integer \(n\), design a brute-force algorithm that tests whether \(n\) is a perfect square by trying every integer \(i\) from 1 up to \(\lfloor \sqrt{n} \rfloor\) and checking if \(i^2 = n\). For \(n = 10{,}000\) and \(n = 123{,}456\), record how many integer-squaring operations are performed in each case.
+    </li>
+    <li>
+      <strong>Matrix Symmetry Check:</strong> Given an \(n \times n\) matrix \(M\), write a brute-force routine to verify whether \(M\) is symmetric (i.e., \(M[i][j] = M[j][i]\) for all \(i,j\)). Count the number of comparisons needed for an 8×8 matrix, and discuss how this scales as \(n\) grows.
+    </li>
+    <li>
+      <strong>Nearest Larger Element:</strong> For an array of \(n\) integers, design a brute-force algorithm that, for each element \(a_i\), finds the first element to its right that is larger than \(a_i\). If no such element exists, report -1. Show that this takes \(O(n^2)\) comparisons. Test your code on an array of size 200 with random values.
+    </li>
+    <li>
+      <strong>Cartesian Product Generation:</strong> Given two sets \(A\) of size \(m\) and \(B\) of size \(n\), write a brute-force nested-loop algorithm to generate all \(m \times n\) ordered pairs \((a,b)\). For \(m=10\) and \(n=15\), list the first 10 pairs and count the total number of iterations in your loops.
+    </li>
+    <li>
+      <strong>Graph Completeness Check:</strong> Given an undirected graph represented by an adjacency matrix of size \(n \times n\), write a brute-force algorithm to determine whether the graph is complete (i.e., every pair of distinct vertices is connected by an edge). Count how many edge checks your code performs for \(n = 12\).
+    </li>
+    <li>
+      <strong>Greatest Common Divisor (GCD) by Brute Force:</strong> Given two positive integers \(a\) and \(b\), design a brute-force algorithm that finds \(\gcd(a,b)\) by testing every integer \(d\) from \(\min(a,b)\) down to 1 and returning the first \(d\) that divides both. For \(a = 462\) and \(b = 1071\), record how many divisor tests are required.
+    </li>
+    <li>
+      <strong>Matrix Transpose (In-Place):</strong> Given an \(n \times n\) matrix stored in a 2D array, write a brute-force in-place transpose function that swaps \(M[i][j]\) with \(M[j][i]\) for all \(i < j\). Measure the number of element swaps for a 100×100 matrix and describe how the cost scales with \(n\).
+    </li>
+  </ol>
+</section>
+
+</body>
+</html>

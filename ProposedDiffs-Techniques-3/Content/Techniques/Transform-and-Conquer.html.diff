@@ -1,0 +1,135 @@
+--- a/Content/Techniques/Transform-and-Conquer.html
++++ b/Content/Techniques/Transform-and-Conquer.html
+@@ -22,7 +22,7 @@
+   <h1>Transform-and-Conquer</h1>
+ 
+   <!-- Motivation & Introduction -->
+-  <section id="introduction">
++  <section id="introduction" section-title="Introduction">
+     <h2>Introduction</h2>
+         <p>
+       Transform-and-Conquer is a versatile algorithmic strategy that solves a problem by transforming it into a different instance or representation in which the solution is easier or more efficient to compute, then mapping the result back to the original problem. There are three kinds of transformations that are commonly used.
+@@ -58,7 +58,7 @@
+     </ul>
+   </section>
+ 
+- <section id="examples">
++ <section id="examples" section-title="Examples">
+     <h2>Examples</h2>
+ 
+  <div class="example-box">
+@@ -113,9 +113,9 @@
+   This is not really part of the algorithm, but it helps to show what the algorithm is doing and why it works.
+   Then it walks through the steps of tha actual algorithm, showing how the steps match up with the factored form
+   of the polynomial.
+-</p>
+-
+-  <div class="embeddedDemoContainer">
++</p></section>
++<section id="demo" section-title="Interactive Demo">
++<div class="embeddedDemoContainer">
+     <iframe
+       class="embeddedDemo"
+       src="/Algorithms/Content/Demos/Transform-and-Conquer/Horners Rule Demo.html"
+@@ -209,9 +209,10 @@
+   in practice Quicksort and Heap Sort outperform it.
+   </p>
+ </div>
+-  </section>
++</section>
++
+   
+-<section id="algorithms">
++<section id="algorithms" section-title="Algorithms Using This Technique">
+   <h2>Algorithms Using This Technique</h2>
+   <ul>
+     <li>
+@@ -240,7 +241,7 @@
+ </section>
+ 
+ 
+-<section id="when">
++<section id="when" section-title="When to Use">
+   <h2>When to Use</h2>
+   <p>Transform-and-conquer shines in situations where a one-time change of form or structure unlocks asymptotic speedups or simplifies future operations. For instance:</p>
+   <ul>
+@@ -264,7 +265,7 @@
+   </ul>
+ </section>
+ 
+-<section id="limitations">
++<section id="limitations" section-title="Limitations">
+   <h2>Limitations</h2>
+   <ul>
+     <li>
+@@ -285,7 +286,7 @@
+   </ul>
+ </section>
+   
+-  <section id="tips">
++  <section id="tips" section-title="Implementation Tips">
+   <h2>Implementation Tips</h2>
+   <ul>
+     <li>
+@@ -306,7 +307,7 @@
+   </ul>
+ </section>
+ 
+- <section id="pitfalls">
++ <section id="pitfalls" section-title="Common Pitfalls">
+   <h2>Common Pitfalls</h2>
+   <ul>
+     <li>
+@@ -330,7 +331,7 @@
+   </ul>
+ </section>
+ 
+-<section id="applications">
++<section id="applications" section-title="Real-World Applications">
+   <h2>Real-World Applications</h2>
+   <ul>
+     <li>
+@@ -349,14 +350,14 @@
+ </section>
+ 
+ 
+-<section id="summary">
++<section id="summary" section-title="Summary & Key Takeaways">
+   <h2>Summary & Key Takeaways</h2>
+   <p>
+     Transform-and-conquer techniques apply one-time transformations&mdash;such as preprocessing, representation changes, and subproblem reduction&mdash;to expose more efficient algorithms than direct methods. This approach is most valuable when a transformation unlocks faster operations across many queries, when mapping to specialized data structures or mathematical forms yields asymptotic speed-ups, or when established algorithmic templates (e.g., FFT, Gaussian elimination) can be leveraged. Always weigh the cost of transformation against the overall performance benefits, verify that problem invariants and numerical stability are maintained, and choose this technique when it clearly simplifies or accelerates the target problem.
+   </p>
+ </section>
+ 
+-<section id="resources">
++<section id="resources" section-title="Related Links and Resources">
+   <h2>Related Links and Resources</h2>
+   <ul>
+     </li>
+@@ -376,7 +377,7 @@
+ </section>
+ 
+   
+- <section id="reading-questions">
++ <section id="reading-questions" section-title="Reading Comprehension Questions">
+   <h2>Reading Comprehension Questions</h2>
+   <ol>
+     <li>Name the three main categories of transform-and-conquer techniques, and give one example of each.</li>
+@@ -439,7 +440,7 @@
+   </div>
+ </section>
+ 
+-<section id="activities">
++<section id="activities" section-title="In-Class Activities">
+   <h2>In-Class Activities</h2>
+   <ol>
+     <li><strong>BuildHeap Variations:</strong>
+@@ -490,7 +491,7 @@
+   </ol>
+ </section>
+ 
+-<section id="problems">
++<section id="problems" section-title="Homework Problems">
+   <h2>Homework Problems</h2>
+   <h3>Basic</h3>
+   <ol>

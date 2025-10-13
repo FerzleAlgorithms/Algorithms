@@ -1,0 +1,84 @@
+<head>
+  <meta charset="UTF-8">
+  <title>Techniques: Introduction</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js"></script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <script src="/Algorithms/scripts/chapterScripts.js"></script>
+  <link rel="stylesheet" href="/Algorithms/css/style.css">
+  <link rel="stylesheet" href="/Algorithms/css/chapter.css">
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-DQ5LVZVFDC"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-DQ5LVZVFDC');
+</script>
+</head>
+<body>
+<section id="design-techniques" section-title="Introduction to Design Techniques">
+  <h1>Introduction to Design Techniques</h1>
+
+  <p>
+    Designing efficient algorithms requires more than just clever coding; it demands a clear strategy for how to tackle different classes of problems. In this section, we survey the major algorithmic paradigms that will form the backbone of this book.
+  </p>
+  <p>
+    We organize these techniques into five broad categories, each reflecting a distinct way to structure computation, manage resources, or exploit problem structure. Subsequent chapters will explore many of these methods in detail, with examples, analyses, and exercises.
+  </p>
+
+  <h2>1. Brute-force &amp; enumeration</h2>
+  <p>
+    Brute-force and enumeration methods systematically explore a space of possible solutions. They serve as simple baselines or as building blocks for more advanced pruning and optimization strategies. While often exponential in the worst case, they can be practical for small input sizes or highly constrained search spaces.
+  </p>
+  <ul>
+    <li><strong>Brute force</strong>: Implement a solution exactly as defined in the problem without worrying about efficiency. This method is conceptually straightforward but be too prohbitive for large values of input.</li>
+    <li><strong>Exhaustive search</strong>: Enumerate every possible candidate solution from a well-defined search space, then test each candidate to see if it satisfies the problem's constraints. This generalizes brute force to structured domains like strings, subsets, or combinatorial objects.</li>
+    <li><strong>Backtracking</strong>: Perform a depth-first search with incremental solution construction, abandoning partial solutions as soon as they violate constraints. This can dramatically reduce the search space compared to naive enumeration.</li>
+    <li><strong>Branch-and-bound</strong>: Enhance backtracking by maintaining bounds on the best possible outcome and pruning branches that cannot improve on the current best. Common in optimization problems like integer programming or combinatorial optimization.</li>
+  </ul>
+
+  <h2>2. Recursion-based</h2>
+  <p>
+    Recursion-based paradigms solve problems by reducing them to smaller subproblems of the same form. 
+    There are two main techniques of this type.
+  </p>
+  <ul>
+    <li><strong>Decrease-and-conquer</strong>: Reduce the problem size by a constant, fixed, or proportional amount and solve the smaller instance recursively. Examples include insertion sort and the Euclidean algorithm for computing \(\gcd(a,b)\).</li>
+    <li><strong>Divide-and-conquer</strong>: Split the input into two or more (ideally, roughly equal) parts, solve each recursively, then combine the results. Classic examples are Merge Sort, Quicksort, Quickhull.</li>
+  </ul>
+
+  <h2>3. Transformations and Reductions</h2>
+  <p>
+    Transformation and reduction techniques reshape a problem instance or map it to another problem for which efficient algorithms already exist. This paradigm emphasizes clever preprocessing or theoretical connections between distinct problem domains. It can yield asymptotic improvements or enable reuse of well-studied solvers.
+  </p>
+  <ul>
+    <li><strong>Transform-and-conquer</strong>: Change the representation or scale of the input (for example, presorting keys or mapping to a different data structure), then apply a simpler algorithm. FFT and presorted-array algorithms illustrate this approach.</li>
+    <li><strong>Reductions to known problems</strong>: Convert a new problem into a standard one (such as maximum flow or shortest paths) so that existing algorithms or hardness results apply. Widely used in both practical software design and complexity-theoretic proofs.</li>
+  </ul>
+
+  <h2>4. Optimization frameworks</h2>
+  <p>
+    Optimization frameworks build solutions incrementally or by combining local decisions to achieve global objectives. They trade off time, space, or solution quality to meet performance goals. These methods often admit polynomial-time algorithms for problems that resist naive enumeration.
+  </p>
+  <ul>
+    <li><strong>Greedy algorithms</strong>: Make the best local choice at each step, hoping to reach a globally optimal solution. Examples include Huffman Encoding, and Prim's and Kruskal's algorithms for minimum spanning tree.</li>
+    <li><strong>Dynamic programming</strong>: Break problems into overlapping subproblems and store intermediate results to avoid redundant work. Fundamental examples are computing Fibonacci numbers and solving the 0-1 Knapsack problem.</li>
+    <li><strong>Space-time tradeoffs</strong>: Use additional memory (such as lookup tables or memoization) to reduce running time. Common in string matching with suffix arrays or hash tables for constant-time queries.</li>
+  </ul>
+
+  <h2>5. Advanced topics</h2>
+  <p>
+    Advanced topics expand the range of algorithmic design to handle more complicated problems.
+  </p>
+  <ul>
+    <li><strong>Randomized algorithms</strong>: Incorporate random choices to simplify logic or improve expected performance. Examples include randomized Quicksort and Monte Carlo methods.</li>
+    <li><strong>Approximation algorithms</strong>: Produce near-optimal solutions with provable guarantees for NP-hard problems. Techniques include greedy-based approximations and linear programming relaxations.</li>
+  </ul>
+
+  <h2>Summary</h2>
+  <p>
+    In this chapter, we have introduced five key categories of algorithmic design techniques, each with its own strengths and typical use cases. From the simplicity of brute force to the sophistication of dynamic programming and randomized methods, these paradigms will reappear throughout the book. In subsequent sections, we will delve into many of these techniques in detail, analyze their performance, and illustrate them with concrete examples and exercises.
+  </p>
+</section>
+</body>

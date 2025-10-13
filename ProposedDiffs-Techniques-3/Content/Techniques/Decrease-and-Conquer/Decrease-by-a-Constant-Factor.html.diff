@@ -1,0 +1,155 @@
+--- a/Content/Techniques/Decrease-and-Conquer/Decrease-by-a-Constant-Factor.html
++++ b/Content/Techniques/Decrease-and-Conquer/Decrease-by-a-Constant-Factor.html
+@@ -24,6 +24,7 @@
+ <body>
+ <h1>Decrease-by-a-Constant-Factor</h1>
+ 
++<section id="introduction" section-title="Introduction">
+ <h2>Introduction</h2>
+   <p>
+     Decrease-by-a-Constant-Factor algorithms first do some work to identify and discard a fixed fraction of the 
+@@ -38,7 +39,9 @@
+     and the total runtime is the per-level work multiplied by this logarithmic depth.
+   </p>
+   
+-  <h2>Examples</h2>
++  
++</section><section id="examples" section-title="Examples">
++<h2>Examples</h2>
+   <p>The two most basic applications of this approach are Binary Search and Exponentiation by Squaring.</p>
+ 
+     <div class="example-box">
+@@ -75,7 +78,9 @@
+ with \(b=2\). Here is a demonstration of the algorithm in action.
+ </p>
+         <!-- If a demo is available, embed it here; otherwise, remove this container. -->
+-      <div class="embeddedDemoContainer">
++      
++</section><section id="demo" section-title="Interactive Demo">
++<div class="embeddedDemoContainer">
+         <iframe
+           class="embeddedDemo"
+           src="/Algorithms/Content/Demos/Decrease-and-Conquer/Exponentiation By Squaring Demo.html"
+@@ -83,6 +88,7 @@
+           name="BinaryExp-DecrFactor-demo"
+         ></iframe>
+       </div>
++</section>
+ <p><strong>Time Complexity:</strong><br>
+ Let \(T(n)\) be the time to compute \(x^n\) using exponentiation by squaring. Each recursive step halves the exponent, so we get the recurrence relation:
+ \[
+@@ -235,7 +241,8 @@
+     <p>
+     The following demonstration shows the algorithm in action.
+     </p>
+-  <div class="embeddedDemoContainer">
++  <section id="demo" section-title="Interactive Demo">
++<div class="embeddedDemoContainer">
+     <iframe
+       class="embeddedDemo"
+       src="/Algorithms/Content/Demos/Decrease-and-Conquer/Binary Search Demo.html"
+@@ -243,6 +250,7 @@
+       name="BinarySearch-DecrFactor-demo"
+     ></iframe>
+   </div>
++</section>
+   <p>
+   <strong>Time Complexity:</strong><br>
+   Let \(T(n)\) denote the running time of Binary Search on a list of length \(n\).  
+@@ -265,7 +273,7 @@
+ 
+ 
+ 
+-<section id="algorithms">
++<section id="algorithms" section-title="Algorithms Using This Technique">
+   <h2>Algorithms Using This Technique</h2>
+     <ul>
+       <li><strong>Binary Search</strong>: hHalves a sorted array each step, achieving \(O(\log n)\) time.</li>
+@@ -279,19 +287,24 @@
+ </section>
+ 
+ 
+-  <h2>When to Use</h2>
++  <section id="when-to-use" section-title="When to Use">
++<h2>When to Use</h2>
+   <ul>
+     <li><strong>Constant-factor shrink:</strong> When you can reduce the size by a constant factor (for instance, halving) each step and pay only small extra work&mdash;classic cases are binary search and exponentiation by squaring.</li>
+     <li><strong>Low per-step overhead:</strong> When the extra work beyond the recursive call is \(O(1)\) or otherwise negligible, so a long chain of reductions still runs in \(O(\log n)\).</li>
+     <li><strong>Simplicity over branching:</strong> When the problem's structure does not naturally split into independent subproblems, and a logarithmic "peel-away" approach is clearer and easier to maintain.</li>
+   </ul>
+ 
+-  <h2>Limitations</h2>
++  
++</section><section id="limitations" section-title="Limitations">
++<h2>Limitations</h2>
+   <ul>
+     <li><strong>High constant overhead:</strong> When each reduction step entails significant work&mdash;such as choosing a precise median pivot&mdash;the extra constant factors can outweigh the depth advantage on moderate inputs.</li>
+   </ul>
+ 
+-  <h2>Implementation Tips</h2>
++  
++</section><section id="implementation-tips" section-title="Implementation Tips">
++<h2>Implementation Tips</h2>
+   <ul>
+     <li><strong>Consistent integer reduction:</strong> When shrinking by a factor, apply floor or ceiling division uniformly (e.g., \(\lfloor n / 2 \rfloor\)) to prevent off-by-one errors.</li>
+     <li><strong>Clear base case:</strong> Define and test your termination condition (e.g., \(n \le 1\) or a small threshold) to avoid infinite recursion or loops.</li>
+@@ -300,14 +313,18 @@
+     <li><strong>Hybrid cutoff:</strong> When a subproblem's size falls below a tuned cutoff (e.g., \(n \le 16\)), switch to a direct iterative or closed-form method to avoid unnecessary recursive calls.</li>
+   </ul>
+ 
+-  <h2>Common Pitfalls</h2>
++  
++</section><section id="common-pitfalls" section-title="Common Pitfalls">
++<h2>Common Pitfalls</h2>
+   <ul>
+     <li><strong>Off-by-one in size reduction:</strong> Mixing \(\lfloor n / b \rfloor\) and \(\lceil n / b \rceil\) inconsistently may leave subproblems unchanged or skip elements.</li>
+     <li><strong>Unintended array copies:</strong> Using slicing or subarray creation inside each call adds \(O(n)\) work per step, turning an \(O(\log n)\) or \(O(n \log n)\) approach into \(O(n^2)\).</li>
+     <li><strong>Missing or incorrect base case:</strong> Failing to stop when \(n \le 1\) (or your chosen threshold) can lead to infinite recursion or loops.</li>
+   </ul>
+ 
+-  <h2>Real-World Applications</h2>
++  
++</section><section id="real-world-applications" section-title="Real-World Applications">
++<h2>Real-World Applications</h2>
+   <ul>
+     <li><strong>Cryptographic protocols:</strong> Exponentiation by squaring accelerates modular exponentiation in RSA, Diffie-Hellman key exchange, and digital signature algorithms.</li>
+     <li><strong>Database systems, search engines, file systems, etc.:</strong> Binary search and similar algorithms are used extensively for efficient lookup in sorted data.</li>
+@@ -316,7 +333,9 @@
+ 
+ 
+ 
+-  <h2>Summary &amp; Key Takeaways</h2>
++  
++</section><section id="summary-amp-key-takeaways" section-title="Summary &amp; Key Takeaways">
++<h2>Summary &amp; Key Takeaways</h2>
+   <ul>
+     <li><strong>Approach:</strong> Each step shrinks the input from \(n\) to about \(\lfloor n / b \rfloor\) (commonly \(b = 2\)), discarding a constant fraction.</li>
+     <li><strong>Recursion depth:</strong> \(O(\log_b n)\) levels of recursion (or loop iterations).</li>
+@@ -333,7 +352,8 @@
+     <li><strong>Space complexity:</strong> \(O(\log n)\) stack space for a naive recursive version (or \(O(1)\) if implemented iteratively or via tail-call optimization), plus any extra workspace per level.</li>
+   </ul>
+ 
+-<section id="reading-questions-constant">
++
++</section><section id="reading-questions-constant" section-title="Reading Comprehension Questions">
+   <h2>Reading Comprehension Questions</h2>
+   <ol> <li>
+       <strong>Logarithmic Reduction</strong><br>
+@@ -382,7 +402,7 @@
+   </div>
+ </section>
+ 
+-<section id="activities-constant">
++<section id="activities-constant" section-title="In-Class Activities">
+   <h2>In-Class Activities</h2>
+   <ol>
+       <li>
+@@ -415,7 +435,7 @@
+   </ol>
+ </section>
+ 
+-<section id="problems-constant">
++<section id="problems-constant" section-title="Homework Problems">
+   <h2>Homework Problems</h2>
+   <ol>
+   <li>
