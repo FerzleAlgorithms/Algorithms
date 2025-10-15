@@ -287,11 +287,12 @@ function hookIframeContent(iframe) {
   innerDoc.querySelectorAll('a[href]:not([href^="?path="])')
     .forEach(a => a.target = '_top');
   */
+ // Make non-?path= links open in top window, except hash-only anchors
  innerDoc.querySelectorAll('a[href]:not([href^="?path="])').forEach(a => {
-   // only set a target if none was explicitly given
-   if (!a.hasAttribute('target')) {
-     a.target = '_top';
-   }
+   const href = (a.getAttribute('href') || '').trim();
+   // Allow in-page hash navigation to work inside the iframe
+   if (href.startsWith('#')) return;
+   if (!a.hasAttribute('target')) a.target = '_top';
  });
 
   // Auto‐resize any embeddedDemo iframes
@@ -365,6 +366,12 @@ function hookIframeContent(iframe) {
           .section-toolbar { display:flex; gap:.5rem; align-items:center; margin:.25rem 0 .5rem 0; }
           .section-toolbar button { background:none; border:1px solid #ddd; border-radius:4px; padding:.15rem .5rem; cursor:pointer; }
           .section-toolbar button:hover { background:#f7f7f7; }
+          /* Optional trailing divider: when enabled, draw a bottom rule under the last section at any level */
+          body.show-trailing-dividers section.collapsible-ready:last-of-type {
+            border-bottom: 1px solid #e0e0e0;
+            padding-bottom: .35rem;
+            margin-bottom: .5rem;
+          }
         `;
         (doc.head || doc.documentElement).appendChild(style);
       }
@@ -387,6 +394,20 @@ function hookIframeContent(iframe) {
       };
       const openTargets = getOpenTargets();
 
+      // Enable trailing divider if requested by page or parent URL param (?trailing=1)
+      try {
+        let trailing = false;
+        try {
+          const search = window.parent?.location?.search || window.location.search || '';
+          const params = new URLSearchParams(search);
+          const v = (params.get('trailing') || '').toLowerCase();
+          trailing = ['1','true','yes','on'].includes(v);
+        } catch {}
+        if (trailing || doc.body.hasAttribute('data-trailing-dividers')) {
+          doc.body.classList.add('show-trailing-dividers');
+        }
+      } catch {}
+
       const slugify = (txt) => String(txt || '')
         .toLowerCase()
         .normalize('NFKD')
@@ -405,8 +426,14 @@ function hookIframeContent(iframe) {
       const defaultOpenSlugs = new Set(['problem-solved','design-and-strategy']);
       sections.forEach((section, index) => {
         const titleAttr = section.getAttribute('section-title') || section.getAttribute('data-section-title') || '';
-        const id = (section.getAttribute('id') || '').trim();
+        let id = (section.getAttribute('id') || '').trim();
         const slug = slugify(titleAttr);
+
+        // Ensure the section is addressable via a stable ID for deep links
+        if (!id) {
+          id = slug || `section-${index + 1}`;
+          try { section.setAttribute('id', id); } catch {}
+        }
 
         // Compute nested depth (1 = top-level child of body)
         let depth = 1;
@@ -471,6 +498,17 @@ function hookIframeContent(iframe) {
           const next = btn.getAttribute('aria-expanded') !== 'true';
           setExpanded(next);
           if (next) ensureEmbeddedDemoHeights();
+
+          // When expanding a section, update the parent URL hash to this section's ID
+          if (next) {
+            try {
+              const p = window.parent;
+              if (p && p.history && p.location) {
+                const newUrl = `${p.location.pathname}${p.location.search}#${encodeURIComponent(id)}`;
+                p.history.replaceState(p.history.state, '', newUrl);
+              }
+            } catch {}
+          }
         });
 
         // Determine initial state
@@ -541,6 +579,48 @@ function hookIframeContent(iframe) {
       // Swallow errors to avoid affecting live content loading
       console.error('Collapsible setup error:', e);
     }
+  })(innerDoc);
+
+  // Support deep-linking: scroll to element matching parent hash
+  (function handleHashScroll(doc) {
+    const scrollToId = (id) => {
+      if (!id) return;
+      try {
+        const target = doc.getElementById(id) || doc.querySelector(`[name="${CSS.escape(id)}"]`);
+        if (!target) return;
+        // Expand any collapsed ancestor sections to ensure visibility
+        let node = target;
+        while (node && node !== doc.body) {
+          if (node.classList && node.classList.contains('collapsible-ready')) {
+            const btn = node.querySelector(':scope > h1 .section-toggle, :scope > h2 .section-toggle, :scope > h3 .section-toggle, :scope > h4 .section-toggle, :scope > h5 .section-toggle, :scope > h6 .section-toggle');
+            const body = node.querySelector(':scope > .section-body');
+            if (btn) btn.setAttribute('aria-expanded', 'true');
+            if (body) body.hidden = false;
+          }
+          node = node.parentElement;
+        }
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      } catch {}
+    };
+
+    // Initial pass using parent's hash (preferred), else iframe's own hash
+    let hash = '';
+    try { hash = window.parent?.location?.hash || window.location.hash || ''; }
+    catch { hash = window.location.hash || ''; }
+    if (hash && hash.startsWith('#')) scrollToId(hash.slice(1));
+
+    // Listen for parent hash changes while this doc is active
+    try {
+      const onHash = () => {
+        const h = window.parent.location.hash;
+        if (h && h.startsWith('#')) scrollToId(h.slice(1));
+      };
+      window.parent.addEventListener('hashchange', onHash);
+      // Clean up when iframe unloads
+      (doc.defaultView || window).addEventListener('unload', () => {
+        try { window.parent.removeEventListener('hashchange', onHash); } catch {}
+      }, { once: true });
+    } catch {}
   })(innerDoc);
 }
 
@@ -717,6 +797,17 @@ async function loadContent(relativePath) {
         });
       }
       window.addEventListener('resize', resizeIframe);
+
+      // After content is ready, if parent URL has a hash, scroll to it
+      try {
+        const h = window.location.hash;
+        if (h && h.startsWith('#')) {
+          const d2 = getIframeDocument(iframe);
+          const id = h.slice(1);
+          const el = d2 && (d2.getElementById(id) || d2.querySelector(`[name="${CSS.escape(id)}"]`));
+          if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      } catch {}
     };
   } catch (e) {
     iframe.style.display = 'none';

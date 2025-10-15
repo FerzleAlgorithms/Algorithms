@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Quickselect</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js"></script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <script src="/Algorithms/scripts/chapterScripts.js"></script>
+  <link rel="stylesheet" href="/Algorithms/css/style.css">
+  <link rel="stylesheet" href="/Algorithms/css/chapter.css">
+</head>
+<body>
+  <h1>Quickselect</h1>
+
+  <section id="problem-solved" section-title="Problem Solved">
+  <h2>Problem Solved</h2>
+  <p>
+    Quickselect solves the
+    <a class="problem" href="?path=Problems%2FFoundational%2FK-th%20Order%20Statistic">K-th Order Statistic</a>
+    problem.
+  </p>
+  </section>
+
+<section id="design" section-title="Design and Strategy">
+  <h2>Design and Strategy</h2>
+  <p>
+  Quickselect is a <strong>decrease-and-conquer</strong> algorithm for finding the
+  <em>k</em>-th smallest element in an unordered array. Arrays are indexed from 0,
+  so the element of rank <em>k</em> is the one that would appear at index
+  <code>k-1</code> if the array were sorted.
+</p>
+
+<p>
+  Like Quicksort, Quickselect partitions the array around a chosen pivot, placing
+  smaller elements on one side and larger ones on the other. But instead of sorting
+  both sides, it keeps only the side that might contain the desired element.
+  Each partition step narrows the active portion of the array until the pivot lands
+  exactly where the <em>k</em>-th smallest element belongs.
+</p>
+
+<p>
+  Conceptually, Quickselect works within a subarray <code>A[lo..hi]</code>.
+  After each partition, the pivot’s final index <code>p</code> tells us how many
+  elements are smaller than it. If <code>p</code> matches the desired position,
+  we are done. If <code>p</code> is too high, we recurse on the left half;
+  if too low, on the right. The problem size decreases each step until only one
+  element remains.
+</p>
+
+<p>Here is a high-level description:</p>
+
+<ol>
+  <li>If <code>lo == hi</code>, return <code>A[lo]</code>.</li>
+  <li>Partition <code>A[lo..hi]</code> around a pivot (typically <code>A[lo]</code>).</li>
+  <li>Let <code>p</code> be the pivot’s final index.</li>
+  <li>If <code>p == k-1</code>, return <code>A[p]</code> — the <em>k</em>-th smallest element.</li>
+  <li>If <code>p &gt; k-1</code>, recursively select in <code>A[lo..p-1]</code>.</li>
+  <li>If <code>p &lt; k-1</code>, recursively select in <code>A[p+1..hi]</code>.</li>
+</ol>
+<p>
+  Here is a simple example of the idea, where the details of how the partition step are left unspecified.
+</p>
+<div class="example-box" id="qs-mini">
+  <strong class="example-title">Example:</strong>
+  <p>
+    Find the 4th smallest in <code>[5, 2, 8, 6, 1, 4, 3, 7]</code>.
+    At each step, we pick the first element of the current window as the pivot.
+    Indices are 0-based; target index is <code>k-1 = 3</code>.
+  </p>
+
+  <style>
+    .legend {
+  display: block;          /* becomes a block */
+  width: max-content;      /* shrink to fit content */
+  margin-left: auto;       /* slide to the right edge of its parent */
+  margin-right: 0;
+  gap: 12px;
+  font-size: 12px;
+  color: #555;
+  background: #fafafa;
+  border: 1px solid #ddd;
+  padding: 4px 8px;
+  margin-top: 4px;
+  margin-bottom: 8px;
+}
+    /* Scoped to #qs-mini so it won’t affect other pages */
+    #qs-mini { font-family: 'Fira Code', 'Source Code Pro', Menlo, Consolas, monospace; }
+    #qs-mini .legend { text-align: right; display:block; gap:12px; align-items:center; font-size:12px; 
+      color:#555; background:#fafafa; border:1px solid #ddd; padding:4px 8px; 
+      margin-left: auto; margin-right: 10px; margin-bottom: 8px; }
+    #qs-mini .legend .box { width:18px; height:12px; border:1px solid #333; display:inline-block; }
+    #qs-mini .legend .inactive { background:#cccccc; }
+    #qs-mini .legend .active   { background:#f8f8ff; }
+    #qs-mini .legend .pivot    { background:#fff3cd; }
+    #qs-mini .legend .target   { background:#e0f7e9; }
+
+    #qs-mini .mini-grid { display:grid; grid-template-columns: 400px repeat(8, 42px); gap:6px 6px; align-items:center; }
+    #qs-mini .row-label { font-size:12px; color:#555; }
+    #qs-mini .cells { display:contents; }
+    #qs-mini .cell { width:42px; height:30px; border:1px solid #333; background:#f8f8ff; display:flex; align-items:center; justify-content:flex-end; padding-right:6px; }
+    #qs-mini .cell.inactive { background:#cccccc; }
+    #qs-mini .cell.pivot { background:#fff3cd; }
+    #qs-mini .cell.target { box-shadow: inset 0 0 0 4px #9be7c4; }
+    #qs-mini .note { font-size:12px; color:#555; margin-top:6px; }
+    #qs-mini .found { color:#0b7a00; font-weight:600; margin-left:8px; }
+
+    /* Narrow screens: shrink cells a bit */
+    @media (max-width: 720px) {
+      #qs-mini .mini-grid { grid-template-columns: 1fr repeat(8, 34px); }
+      #qs-mini .cell { width:34px; padding-right:4px; }
+    }
+  </style>
+
+  <div class="legend" aria-label="Legend">
+    <span><b>Legend:</b> </span>
+    <span class="box inactive"></span> discarded
+    <span class="box active"></span> in window
+    <span class="box pivot"></span> pivot
+    <span class="box target"></span> k-1 (index 3)
+  </div>
+
+  <div class="mini-grid" role="group" aria-label="Quickselect trace grid">
+    <!-- Row 0 -->
+    <div class="row-label">Step 0 — original (lo=0, hi=7, k-1=3)</div>
+    <div class="cells">
+      <div class="cell">5</div>
+      <div class="cell">2</div>
+      <div class="cell">8</div>
+      <div class="cell target">6</div>
+      <div class="cell">1</div>
+      <div class="cell">4</div>
+      <div class="cell">3</div>
+      <div class="cell">7</div>
+    </div>
+
+    <!-- Row 1 -->
+    <div class="row-label">Step 1 — partition by 5 → recurse left (0..3)</div>
+    <div class="cells">
+      <div class="cell">2</div>
+      <div class="cell">1</div>
+      <div class="cell">4</div>
+      <div class="cell target">3</div>
+      <div class="cell pivot">5</div>
+      <div class="cell inactive">8</div>
+      <div class="cell inactive">6</div>
+      <div class="cell inactive">7</div>
+    </div>
+
+    <!-- Row 2 -->
+    <div class="row-label">Step 2 — partition 0..3 by 2 → recurse right (2..3)</div>
+    <div class="cells">
+      <div class="cell inactive">1</div>
+      <div class="cell pivot">2</div>
+      <div class="cell">4</div>
+      <div class="cell target">3</div>
+      <div class="cell inactive">5</div>
+      <div class="cell inactive">8</div>
+      <div class="cell inactive">6</div>
+      <div class="cell inactive">7</div>
+    </div>
+
+    <!-- Row 3 -->
+    <div class="row-label">Step 3 — partition 2..3 by 4 → found at p=3<span class="found">answer: 4</span></div>
+    <div class="cells">
+      <div class="cell inactive">1</div>
+      <div class="cell inactive">2</div>
+      <div class="cell inactive">3</div>
+      <div class="cell pivot target">4</div>
+      <div class="cell inactive">5</div>
+      <div class="cell inactive">8</div>
+      <div class="cell inactive">6</div>
+      <div class="cell inactive">7</div>
+    </div>
+  </div>
+ </p>
+</div>
+</section>
+
+
+  <section id="demo" section-title="Interactive Demo">
+  <p>
+    The interactive demo below illustrates how each partition step narrows the interval until the
+    algorithm locates the requested element.
+    This implementation uses the 
+    <a class="problem"  href="https://cusack.hope.edu/Algorithms/?path=Algorithms/Decrease-and-Conquer/Hoare%20Partition">Hoare Partition</a>
+    algorithm.
+  </p>
+  <div class="embeddedDemoContainer">
+    <iframe class="embeddedDemo"
+            src="/Algorithms/Content/Demos/Decrease-and-Conquer/Quickselect Demo.html"
+            allow="fullscreen"
+            name="Quickselect-demo">
+    </iframe>
+  </div>
+  </section>
+
+  <section id="code" section-title="Implementation in Java, C++, Python">
+  <h2>Implementation in Java, C++, Python</h2>
+  The following implementations make use of a <code>partition</code> algorithm. 
+  This can be implemented as Hoare partition, Lomuto partition, or any other partioning algorithm,
+  and we leave it to the reader to plug in their preferred algorithm.
+  The initial call is typically 
+  <code>quickselect(A, 0, n-1, k)</code>, where \(n\) is the size of array \(A\).
+  It is assumed that <code>lo &le; k &le; hi</code> for each call.
+  Also, don't forget that the <em>k</em>-th element is at index <em>k-1</em>.
+  <div class="tab-group">
+    <div class="tabs" role="tablist">
+      <button id="tab-java" class="tablink active" data-lang="java" role="tab" aria-controls="java" aria-selected="true">Java</button>
+      <button id="tab-cpp" class="tablink" data-lang="cpp" role="tab" aria-controls="cpp" aria-selected="false">C++</button>
+      <button id="tab-python" class="tablink" data-lang="python" role="tab" aria-controls="python" aria-selected="false">Python</button>
+    </div>
+    <div id="java" class="code-container active" role="tabpanel" aria-labelledby="tab-java">
+      <pre><code class="language-java">int quickselect(int[] A, int lo, int hi, int k) {
+    if (lo == hi) 
+        return A[lo];
+
+    int target = k - 1;
+    int p = partition(A, lo, hi);
+    if (p == target) 
+        return A[p];
+    if (p > target)  
+        return quickselect(A, lo, p - 1, k);
+    else             
+        return quickselect(A, p + 1, hi, k);
+}
+</code></pre>
+    </div>
+    <div id="cpp" class="code-container" role="tabpanel" aria-labelledby="tab-cpp">
+      <pre><code class="language-cpp">int quickselect(int A[], int lo, int hi, int k) {
+    if (lo == hi) 
+        return A[lo];
+
+    int target = k - 1;
+    int p = partition(A, lo, hi);
+    if (p == target) 
+        return A[p];
+    if (p > target)  
+        return quickselect(A, lo, p - 1, k);
+    else             
+        return quickselect(A, p + 1, hi, k);
+}
+</code></pre>
+    </div>
+    <div id="python" class="code-container" role="tabpanel" aria-labelledby="tab-python">
+      <pre><code class="language-python">def quickselect(A, lo, hi, k):
+    if lo == hi:
+        return A[lo]
+
+    target = k - 1
+    p = partition(A, lo, hi)
+    if p == target:
+        return A[p]
+    if p > target:
+        return quickselect(A, lo, p - 1, k)
+    else:
+        return quickselect(A, p + 1, hi, k)</code></pre>
+    </div>
+  </div>
+  </section>
+<section id="analysis" section-title="Time/Space Analysis">
+  <h2>Time/Space Analysis</h2>
+
+  <p><strong>Time Complexity:</strong>
+    Quickselect’s running time depends on how balanced each partition is.
+    Each partition step looks at every element in the current portion of the array once,
+    so a single partition costs \(O(n)\).
+    The total time depends on how many times we have to partition before finding the
+    element of rank \(k\).
+  </p>
+
+  <p><strong>Average case.</strong>
+    On average, the pivot splits the array into reasonably balanced parts.
+    Since we only recurse on one of those parts, the amount of work quickly shrinks.
+    The average running time turns out to be \(O(n)\)&mdash;about the same reasoning used
+    to show that Quicksort averages \(O(n \log n)\), except that Quickselect keeps
+    only one branch instead of two.
+  </p>
+
+  <p><strong>Best case.</strong>
+    If the first pivot happens to land exactly where it belongs (for example,
+    the pivot is the \(k\)-th smallest), then the algorithm performs one partition
+    and stops.
+    Even this "best case" still takes \(O(n)\) time, since the initial partition
+    must examine every element once.
+  </p>
+
+  <p><strong>Worst case.</strong>
+    If the pivot is always the smallest or largest element, each partition only
+    removes one item, leaving a subproblem of size \(n-1\).
+    This gives the recurrence \(T(n) = T(n-1) + O(n)\), leading to \(O(n^2)\) time.
+    The situation is the same kind of bad luck that makes Quicksort's worst case
+    quadratic when the pivot choices are poor (for example, picking the first element
+    in an already sorted array).
+  </p>
+
+  <p><strong>Improving pivot choice.</strong>
+    Randomly choosing the pivot or using a heuristic such as "median of three"
+    keeps partitions roughly balanced most of the time, so the expected running time
+    remains linear in practice.
+    There are even special deterministic methods (like the median-of-medians algorithm)
+    that guarantee \(O(n)\) time in every case, though they are slower in constant
+    factors and less common in real programs.
+  </p>
+<p><strong>Space Complexity:</strong>
+  The recursive version of Quickselect uses very little extra memory beyond the array itself,
+  since partitioning is done in place. 
+  However, each recursive call adds a frame to the call stack. 
+  The recursion depth is proportional to how many partitions occur:
+  about \(O(\log n)\) levels on average, and up to \(O(n)\) in the worst case 
+  if the pivot choices are poor.
+  The space use can be reduced to \(O(1)\) by rewriting Quickselect iteratively, 
+  since only one subarray is active at a time.
+</p>
+  <p><strong>Summary:</strong>
+    Quickselect runs in \(O(n)\) time on average and in the best case, and \(O(n^2)\)
+    in the worst case.
+    It uses constant extra space aside from the recursion stack.
+    In practice, with a decent pivot rule, it is extremely fast for selecting a
+    single element such as the median.
+  </p>
+</section>
+
+<section id="variations" section-title="Variations/Improvements">
+  <h2>Variations/Improvements</h2>
+  <ul>
+    <li><strong>Randomized Pivot:</strong>
+      Choosing the pivot randomly helps avoid the consistent bad splits that cause the quadratic worst case.
+      This simple change makes the expected running time linear for all inputs, even if the data are sorted or patterned.
+    </li>
+
+    <li><strong>Median of Medians:</strong>
+      This deterministic strategy selects an approximate median as the pivot,
+      guaranteeing a balanced split and therefore \(O(n)\) time even in the worst case.
+      Its overhead is higher, so it's mostly used when predictable timing is more important than raw speed.
+    </li>
+
+    <li><strong>Iterative Version:</strong>
+      Replacing recursion with a loop avoids function call overhead and keeps the extra space constant (\(O(1)\)).
+      It's useful in environments where recursion depth or stack memory is limited.
+    </li>
+  </ul>
+</section>
+
+<section id="links" section-title="Links to Resources">
+  <h2>Links to Resources</h2>
+  <ul>
+    <li><a href="https://en.wikipedia.org/wiki/Quickselect" target="_blank">
+      Wikipedia: Quickselect</a> Overview, history, and variants such as the median-of-medians method.</li>
+    <li><a href="https://www.geeksforgeeks.org/quickselect-algorithm/" target="_blank">
+      GeeksforGeeks: Quickselect Algorithm</a> Step-by-step explanation with code examples and complexity discussion.</li>
+    <li><a href="https://en.wikipedia.org/wiki/Median_of_medians" target="_blank">
+      Wikipedia: Median-of-Medians</a> Description of the deterministic selection method guaranteeing \(O(n)\) worst-case time.</li>
+  </ul>
+</section>
+
+<section id="reading-questions" section-title="Reading Comprehension Questions">
+  <h2>Reading Comprehension Questions</h2>
+  <ol>
+    <li><strong>Goal & Rank vs. Index:</strong> What problem does Quickselect solve, and where would the \(k\)-th smallest appear in a sorted array?</li>
+
+    <li><strong>Working Window:</strong> In the description, what does the subarray \(A[\text{lo}..\text{hi}]\) represent during the algorithm?</li>
+
+    <li><strong>Pivot Test:</strong> After partitioning, how does comparing the pivot's final index \(p\) with \(k-1\) determine whether we return, go left, or go right?</li>
+
+    <li><strong>Relation to Quicksort:</strong> How is Quickselect similar to Quicksort, and what key difference makes its work smaller on average?</li>
+
+    <li><strong>Running Time Intuition:</strong> Briefly explain why the average time is \(O(n)\) but the worst case is \(O(n^2)\). What does the best case look like?</li>
+
+    <li><strong>Pivot Strategy:</strong> How do randomized pivots (or median-of-three) affect performance in practice, and why?</li>
+
+    <li><strong>Space Usage:</strong> For the recursive version, what is the extra space on average and in the worst case? How can it be reduced?</li>
+
+    <li><strong>Off-by-One Check:</strong> If you call <code>quickselect(A, 0, n-1, 4)</code>, which rank are you asking for and which index should contain the answer?</li>
+  </ol>
+
+  <button id="toggleAnswers" class="show-answer" aria-expanded="false">Show Answers</button>
+  <div id="answers" class="answer" hidden>
+    <ol>
+      <li><strong>Answer:</strong> It finds the \(k\)-th smallest element. In a sorted array it would be at index \(k-1\).</li>
+
+      <li><strong>Answer:</strong> The current search window—the portion of the array that might still contain the answer. Everything outside it is already known to be irrelevant.</li>
+      
+      <li><strong>Answer:</strong> 
+        After the partition step, the pivot’s final index <code>p</code> tells how many elements are smaller than it. 
+        If <code>p == k-1</code>, the pivot is exactly the element of rank <em>k</em>. 
+        If <code>p &gt; k-1</code>, too many elements are smaller, so the desired one must be in the left subarray <code>A[lo..p-1]</code>. 
+        If <code>p &lt; k-1</code>, there are too few smaller elements, so the algorithm continues in the right subarray <code>A[p+1..hi]</code>. 
+        This comparison tells Quickselect which part of the array can still contain the target, and it discards the rest.
+      </li>
+
+      <li><strong>Answer:</strong> Both use a partition step. Quicksort recurses on <em>both</em> sides to fully sort; Quickselect recurses on only the side that can contain the \(k\)-th element.</li>
+
+      <li><strong>Answer:</strong> Average \(O(n)\): partitions are reasonably balanced and we follow just one branch. Thus,
+        a large number of elements are discarded each time so the number of operations done at each level is shrinking rapidly,
+        leading to just a linear number of operations on average.
+        Worst \(O(n^2)\): consistently terrible pivots shrink the window by 1 each time. Best \(O(n)\): the first pivot lands at \(k-1\), but we still pay for one linear partition.</li>
+
+      <li><strong>Answer:</strong> They make consistently bad splits unlikely, keeping partitions roughly balanced on typical inputs, so expected time stays linear in practice.</li>
+
+      <li><strong>Answer:</strong> Extra space is about \(O(\log n)\) on average and \(O(n)\) in the worst case
+        since that is the depth of the call stack, and each call uses only \(O(1)\) space. 
+        An iterative version reduces the total extra space to just \(O(1)\).</li>
+
+      <li><strong>Answer:</strong> You're asking for the 4th smallest (rank 4), which should end up at index \(3\) in the array.</li>
+    </ol>
+  </div>
+</section>
+<section id="activities" section-title="In-Class Activities">
+  <h2>In-Class Activities</h2>
+  <ol>
+    <li><strong>Trace Quickselect:</strong> 
+      Work through Quickselect by hand on a small array (e.g., <code>[7, 2, 5, 9, 1, 8]</code>) to find the 3rd and 6th smallest elements. 
+      Track <code>lo</code>, <code>hi</code>, and pivot index <code>p</code> at each step.
+    </li>
+
+    <li><strong>Compare with Sorting:</strong> 
+      Count the number of comparisons needed to find the \(k\)-th smallest element versus fully sorting the array. 
+      Discuss why Quickselect is faster when you only need one element.
+    </li>
+
+    <li><strong>Try a Worst Case:</strong> 
+      Run Quickselect on a sorted array while always choosing the first element as the pivot. 
+      Record how many partitions and recursive calls are made.
+    </li>
+
+    <li><strong>Pivot Strategies:</strong> 
+      Repeat the same experiment using a random pivot and a "median-of-three" pivot rule. 
+      Compare how balanced the partitions are and how the total work changes.
+    </li>
+
+    <li><strong>Handling Duplicates (Trace):</strong> 
+      Apply Quickselect to an array with many duplicate values, such as 
+      <code>[4, 2, 4, 5, 4, 3, 2, 4]</code>.  
+      Observe what happens when the pivot value appears multiple times. 
+      Does the algorithm still return the correct element? 
+      Which side does it recurse on?
+    </li>
+
+    <li><strong>Handling Duplicates:</strong> 
+     Discuss what it means to solve the \(k\)-th order statistic problem when an array has
+     duplicate values. Does anything about the definition change? 
+     Are there multiple valid ways of looking at it?
+     Do we need different algorithms depending on how we look at it?
+    </li>
+    <li><strong>Handling Duplicates (Three-Way Partition):</strong> 
+      Modify Quickselect to use a three-way partition that separates elements into 
+      "less than," "equal to," and "greater than" groups.
+      Try it on several inputs and determine if it seems to be helpful or not.
+    </li>
+
+    <li><strong>Rewriting Iteratively:</strong> 
+      Convert the recursive Quickselect into an iterative version. 
+      How much extra space is required by this version?
+      How does it compare with the recursive version?
+      Which version is easier to understand/implement? 
+    </li>
+
+    <li><strong>Beyond Two Parts:</strong> 
+      Try to imagine a version of Quickselect that divides the array into three equal parts (like a "ternary" search).  
+      Why does't this improve performance for this problem?
+    </li>
+  </ol>
+</section>
+
+<section id="problems" section-title="Homework Problems">
+  <h2>Homework Problems</h2>
+  <ol>
+    <li><strong>Basic Trace (first-pivot rule):</strong>
+      Using Quickselect with <em>first element of the current window</em> as the pivot and 1-based rank \(k\),
+      trace the steps to find the 4th smallest in <code>[12, 5, 19, 2, 22, 9, 4, 14, 25, 6, 7]</code>.
+      For each partition, report <code>lo</code>, <code>hi</code>, the pivot value, and the pivot's final index <code>p</code>, and indicate the next window.
+    </li>
+
+    <li><strong>Off-by-one sanity check:</strong>
+      For array <code>[8, 4, 6, 2, 9, 3]</code>, list the (index, value) pair that corresponds to the 1st, 3rd, and 6th smallest elements <em>after sorting</em>.
+      Then state which <code>k</code> you would pass to <code>quickselect(A, 0, n-1, k)</code> for each.
+    </li>
+
+    <li><strong>Worst-case behavior:</strong>
+      Run Quickselect on the sorted array <code>[1, 2, 3, 4, 5, 6, 7, 8]</code> with the first-pivot rule to find the 7th smallest.
+      Count the number of partitions and total comparisons (assume a standard single pass partition that inspects each element in the current window once).
+      Generalize: for size \(n\), how many partitions and comparisons in this worst-case pattern?
+    </li>
+
+    <li><strong>Randomized pivot (two trials):</strong>
+      On <code>[34, 4, 14, 8, 21, 2, 43, 9, 20, 7, 3, 29, 6, 11]</code> find the 5th smallest twice, each time choosing the pivot uniformly at random from the current window.
+      Record the pivot chosen, window size, and comparisons per partition.
+    </li>
+
+    <li><strong>Duplicates:</strong>
+      Using the first-pivot rule and a <em>two-way</em> partition, run Quickselect to find the 5th smallest in
+      <code>[4, 2, 4, 1, 5, 4, 3, 2, 2, 4, 3, 1, 5]</code>.
+      Show each step and indicate which side you recurse on when <em>pivot value appears multiple times</em>.
+    </li>
+
+    <li><strong>Iterative Quickselect:</strong>
+      Give pseudocode for an <em>iterative</em> version of Quickselect 
+      (replace recursion with a <code>while</code> loop that updates <code>lo</code> and <code>hi</code>).
+      Compare/contrast it with the recursive version in terms of time, space, and simplicity of the code.
+      
+    </li>
+
+    <li><strong>Median-of-three heuristic:</strong>
+      Modify the pivot rule to pick the median of the first, middle, and last elements of the current window.
+      Run on <code>[1,2,3,4,5,6,7,8,9,10]</code> to find the 7th smallest and compare the number of partitions and comparisons to the first-pivot rule.
+    </li>
+  </ol>
+</section>
+
+
+</body>
+</html>
