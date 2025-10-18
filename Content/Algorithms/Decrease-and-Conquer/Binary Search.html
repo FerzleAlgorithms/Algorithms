@@ -434,9 +434,12 @@
       <li><strong>First or Last Occurrence:</strong> In arrays with duplicate values, small adjustments to the midpoint
         test let us return the first or last index of a target. This is useful in frequency counting or range queries.
       </li>
-      <li><strong>Ternary Search:</strong> When searching for the maximum or minimum of a unimodal function rather than
-        an exact value, a related approach called <em>ternary search</em> divides the interval into three parts instead
-        of two. It still runs in \(O(\log n)\) time but fits continuous optimization settings better.</li>
+      <li><strong>Ternary Search:</strong>
+      When the goal is to find the maximum or minimum of a <em>unimodal</em> function—one that first increases and then decreases, or vice versa—a related approach called <strong>ternary search</strong> can be used. 
+      Instead of dividing the interval into two parts as in binary search, it divides it into <strong>three</strong>. 
+      At each step, the algorithm compares function values at two interior points and discards one-third of the range, keeping only the side that contains the optimum. 
+      It still runs in \(O(\log n)\) time for discrete domains and is particularly useful for <em>continuous optimization</em> settings.
+      </li>
       <li><strong>Floating-Point or Infinite Domains:</strong> The same idea extends beyond arrays—for example, to
         search for a real number satisfying a condition (like solving \(f(x)=0\)) by halving an interval until it is
         small enough.</li>

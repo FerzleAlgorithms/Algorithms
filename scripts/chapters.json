@@ -15,7 +15,8 @@
       "Decrease-and-Conquer": [
         "Binary Search.html",
         "Hoare Partition.html",
-        "Insertion Sort.html"
+        "Insertion Sort.html",
+        "Quickselect.html"
       ]
     },
     {
@@ -183,7 +184,6 @@
     "Links.html",
     {
       "DRAFTS": [
-        "Algorithms/Decrease-and-Conquer/Quickselect DRAFT.html",
         "Algorithms/Decrease-and-Conquer/Topological Sort DRAFT.html",
         "Algorithms/Exhaustive Search/Topological Sort (DFS) DRAFT.html",
         "Algorithms/Greedy/Fractional Knapsack DRAFT.html",

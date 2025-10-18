@@ -350,8 +350,13 @@ public class ConvexHullQuickHull {
 
     public static List&lt;Point&gt; convexHull(Point[] pts) {
         if (pts.length &lt;= 1) return Arrays.asList(pts);
-        Arrays.sort(pts, (a, b) -&gt; a.x != b.x ? Integer.compare(a.x, b.x) : Integer.compare(a.y, b.y));
-        Point A = pts[0], B = pts[pts.length - 1];
+        // Find leftmost (A) and rightmost (B)
+        Point A = pts[0], B = pts[0];
+        for (int i = 1; i &lt; pts.length; i++) {
+            Point p = pts[i];
+            if (p.x &lt; A.x || (p.x == A.x &amp;&amp; p.y &lt; A.y)) A = p;
+            if (p.x &gt; B.x || (p.x == B.x &amp;&amp; p.y &gt; B.y)) B = p;
+        }
         List&lt;Point&gt; upper = new ArrayList&lt;&gt;();
         List&lt;Point&gt; lower = new ArrayList&lt;&gt;();
         for (Point p : pts) {
@@ -403,28 +408,36 @@ static void buildHull(const Point& A, const Point& B,
                           std::vector&lt;Point&gt;& out) {
     if (S.empty()) { out.push_back(A); return; }
     // farthest by area (no sqrt)
-    const Point* far = nullptr; long long best = -1;
-    for (const auto& p : S) {
+    int farIdx = -1; long long best = -1;
+    for (int i = 0; i &lt; S.size(); ++i) {
+        const Point&amp; p = S[i];
         long long a2 = triArea2(A, B, p);
-        if (a2 &gt; best) { best = a2; far = &p; }
+        if (a2 &gt; best) { best = a2; farIdx = i; }
     }
+    const Point&amp; far = S[farIdx];
     std::vector&lt;Point&gt; S1, S2;
-    for (const auto& p : S) {
-        if (cross(A, *far, p) &gt; 0) S1.push_back(p);
-        else if (cross(*far, B, p) &gt; 0) S2.push_back(p);
+    for (int i = 0; i &lt; S.size(); ++i) {
+        const Point&amp; p = S[i];
+        if (cross(A, far, p) &gt; 0) S1.push_back(p);
+        else if (cross(far, B, p) &gt; 0) S2.push_back(p);
     }
-    buildHull(A, *far, S1, out);
-    buildHull(*far, B, S2, out);
+    buildHull(A, far, S1, out);
+    buildHull(far, B, S2, out);
 }
 
 std::vector&lt;Point&gt; convexHullQuickHull(std::vector&lt;Point&gt; pts) {
     if (pts.size() &lt;= 1) return pts;
-    std::sort(pts.begin(), pts.end(), [](const Point& a, const Point& b){
-        return a.x &lt; b.x || (a.x == b.x && a.y &lt; b.y);
-    });
-    Point A = pts.front(), B = pts.back();
+    // Find leftmost (A) and rightmost (B)
+    Point A, B; bool first = true;
+    for (int i = 0; i &lt; pts.size(); ++i) {
+        const Point&amp; p = pts[i];
+        if (first) { A = p; B = p; first = false; continue; }
+        if (p.x &lt; A.x || (p.x == A.x &amp;&amp; p.y &lt; A.y)) A = p;
+        if (p.x &gt; B.x || (p.x == B.x &amp;&amp; p.y &gt; B.y)) B = p;
+    }
     std::vector&lt;Point&gt; upper, lower;
-    for (const auto& p : pts) {
+    for (int i = 0; i &lt; pts.size(); ++i) {
+        const Point&amp; p = pts[i];
         long long c = cross(A, B, p);
         if (c &gt; 0) upper.push_back(p);
         else if (c &lt; 0) lower.push_back(p);
@@ -454,10 +467,16 @@ def tri_area2(o: Point, a: Point, b: Point) -> int:
 def quickhull(points: List[Point]) -> List[Point]:
     if len(points) <= 1:
         return points[:]
-    pts = sorted(points, key=lambda p: (p.x, p.y))
-    A, B = pts[0], pts[-1]
-    upper = [p for p in pts if cross(A, B, p) > 0]
-    lower = [p for p in pts if cross(B, A, p) > 0]
+    # Find leftmost (A) and rightmost (B) via simple scan
+    A = points[0]
+    B = points[0]
+    for p in points[1:]:
+        if p.x < A.x or (p.x == A.x and p.y < A.y):
+            A = p
+        if p.x > B.x or (p.x == B.x and p.y > B.y):
+            B = p
+    upper = [p for p in points if cross(A, B, p) > 0]
+    lower = [p for p in points if cross(B, A, p) > 0]
     hull: List[Point] = []
     _build_hull(A, B, upper, hull)
     _build_hull(B, A, lower, hull)
@@ -467,17 +486,18 @@ def _build_hull(A: Point, B: Point, S: List[Point], out: List[Point]) -> None:
     if not S:
         out.append(A)
         return
-    far = max(S, key=lambda p: tri_area2(A, B, p))
+    # Farthest point by simple scan
+    far = S[0]
+    best = tri_area2(A, B, far)
+    for p in S[1:]:
+        a2 = tri_area2(A, B, p)
+        if a2 > best:
+            best = a2
+            far = p
     S1 = [p for p in S if cross(A, far, p) > 0]
     S2 = [p for p in S if cross(far, B, p) > 0]
     _build_hull(A, far, S1, out)
-    _build_hull(far, B, S2, out)
-
-if __name__ == "__main__":
-    pts = [Point(0,3), Point(1,1), Point(2,2), Point(4,4),
-           Point(0,0), Point(1,2), Point(3,1), Point(3,3)]
-    h = quickhull(pts)
-    print("Convex Hull:", h)</code></pre>
+    _build_hull(far, B, S2, out)</code></pre>
       </div>
     </div>
     <p>
@@ -510,7 +530,7 @@ if __name__ == "__main__":
     <p><strong>Time Complexity:</strong></p>
     <p>There are three main parts of QuickHull:
     <ul>
-      <li>Sorting the list of \(n\) points in \(O(n\log n)\) time.</li>
+      <li>Finding the leftmost and rightmost points in \(O(n)\) time (linear scan).</li>
       <li>Partitioning the points into the upper and lower parts in \(O(n)\) time.</li>
       <li>Making two calls to <code>buildHull</code>, the time of which can vary.</li>
     </ul>
@@ -529,19 +549,17 @@ if __name__ == "__main__":
       </li>
       <li>Recurses on those two subsets.
     </ul>
-    Thus, \(T(n)=T(k)+T(n-k-a)+O(n)\), and the overall complexity of QuickHull is \(O(n\log n + T(n))\).
+    Thus, \(T(n)=T(k)+T(n-k-a)+O(n)\), and the overall complexity of QuickHull is \(O(n + T(n))\), dominated by the recursion.
     What \(T(n)\) solves to depends heavily on the input.
     <ul>
       <li><em>Best case:</em> If the farthest point tends to split each set roughly in half,
         then each call does two subcalls of size about \(n/2\), leading to
         \(T(n) = 2T(n/2) + O(n) = O(n \log n)\)
-        (the same as Mergesort or Quicksort in the best case), leading
-        to an overall complexity of \(O(n\log n+n\log n)=O(n\log n)\).</li>
+        (the same as Mergesort or Quicksort in the best case), leading to an overall complexity of \(O(n\log n)\).</li>
       <li><em>Worst case:</em> If many or all of the points lie on the convex hull
         (e.g., points evenly spaced on a circle), then every recursive split leaves almost all points
         for the next level. The recurrence is closer to
-        \(T(n) = T(n-1) + O(n)=O(n^2)\), analogous to Quicksort's worst case.
-        Then the total complexity is \(O(n\log n + n^2)=O(n^2)\).</li>
+        \(T(n) = T(n-1) + O(n)=O(n^2)\), analogous to Quicksort's worst case. Then the total complexity is \(O(n^2)\).</li>
       <li><em>Average case:</em> For random or "typical" data, many points fall in the interior and are
         discarded quickly, so the value of \(a\) is often large. At each level of recursion,
         only the boundary points tend to survive into deeper subcalls. This makes the effective recurrence
