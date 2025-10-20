@@ -1,0 +1,318 @@
+0-1 Knapsack (Dynamic Programming) Demo
+0-1 Knapsack Problem
+About This Textbook
+Advanced
+Advanced Problems
+Advanced topics
+AI Resources
+Algorithm: DFS-Based Topological Sort
+Algorithmic Variations
+Algorithm: Source Removal (Kahn's Algorithm)
+Algorithms Using This Technique
+All Four Edge Types in Directed Graphs
+All-Pairs Shortest Path
+Alternative Approaches
+Alternative Convex Hull Algorithms
+Analyzing Divide-and-Conquer Algorithms
+Answers
+Applications for Both Directed and Undirected Graphs
+Applications of Edge Classification
+Applications Specific to Directed Graphs
+Applications Specific to Undirected Graphs
+Array Partition
+Articles/Books
+Average Case
+Backtracking
+Bad Character Heuristic
+Basic
+Basic Definition
+Basic Operations
+Basic Problems
+Basic Pseudocode
+Best Case
+Binary Exponentiation (Left-to-Right)
+Binary Exponentiation (Right-to-Left)
+Binary Search
+Binary Search Demo
+Bogo Sort Demo
+Boyer–Moore Algorithm
+Breadth-First Search
+Breadth-First Search Demo
+Brute Force
+Brute-force &amp; enumeration
+Bubble Sort
+Bubble Sort Demo
+Bucket Sort
+Bucket Sort Demo
+Build Heap Demo
+Building the Bad Character Table
+Building the Good Suffix Table (Demo Style)
+buildMaxHeap(A)
+Caiden Sunlin
+Chain Matrix Multiplication
+Challenges &amp; Problem Sites
+Charles Cusack
+ChatGPT (OpenAI's large language model)
+Claude Sonnet (Anthropic's large language model)
+Closest Pair
+Code Implementations
+Coin Row (Dynamic Programming) Demo
+Common Algorithms/Techniques
+Common Data Structures
+Common Pitfalls
+Comparison with DFS Approach
+Computing Fibonacci Numbers
+Connor Vachon
+Contact
+Contributors
+Convex Hull
+Convex Hull Brute-Force Demo
+Core Algorithm
+Core Algorithm Problems
+Core Insight: Sources Define Valid Starting Points
+Counting Sort
+Counting Sort Demo
+Counting Sort (Simple Version) Demo
+Credits, etc.
+D0
+Decrease-and-Conquer
+Decrease-and-Conquer Summary
+Decrease-by-a-Constant
+Decrease-by-a-Constant-Factor
+Demonstration
+Depth-First Search
+Depth-First Search Demo
+Depth-First Search Demo (Directed Graphs)
+Design and Strategy
+Detailed Analysis
+Detailed Pseudocode
+Details
+Development Timeline
+DFS on Directed Graphs
+DFS on Undirected Graphs
+Divide-and-Conquer
+DP Table (F[0..n])
+Dynamic Programming
+Edge Classifications After BFS
+Edge List
+Edge Types in Undirected Graphs
+Edit Distance
+Encyclopedic References
+Enhanced Applications
+Essential: Cycle Detection
+Euclidean Algorithm (Recursive) Demo
+Exact String Matching
+Example
+Example 1
+Example 2a: Fibonacci Numbers (Top-Down)
+Example 2b: Fibonacci Numbers (Bottom-Up)
+Examples
+Exhaustive Search
+Exponentiation
+Exponentiation by Squaring (Recursive) Demo
+Exponentiation Demo (Naive Divide & Conquer)
+Extensions for Weighted Graphs
+Extensions & Post-processing
+extractMax(A, heapSize)
+ExtractMax Demo
+Factorial (Recursive) Demo
+Fibonacci: Dynamic Programming (Bottom-Up) Demo
+Fibonacci Iterative Demo
+Fibonacci Numbers (Brute Force)
+Floyd's Algorithm Demo
+Fractional Knapsack
+Fractional Knapsack Demo
+Funding &amp; Acknowledgments
+Geometric Primitives
+Glossary
+Good Suffix Heuristic
+Graph
+Graph Analysis Applications
+Graph Editors &amp; Pathfinding Tools
+Graph Traversal
+Greatest Common Divisor (GCD)
+Greedy Algorithms
+Greedy Interval Scheduling
+Hash-Chaining Visualization
+Hashing Table:
+heapify(A, i, heapSize)
+Heapify Demo
+Heap Insert Demo
+Heap Representation Demo
+Heaps
+Heapsort
+Heapsort Demo
+Helpful Links and Resources
+High-Level Algorithm
+Hoare's Partition
+Hoare's Partition Demo
+Homework Problems
+Horner's Rule
+Horner’s Rule
+Horspool's Algorithm
+Horspool's Algorithm Demo
+Horspool Shift Table Construction
+How to Cite
+How to Navigate
+How to Use This Book
+Huffman Encoding Demo
+Hybrids & Strategy Tweaks
+Implementation in Java, C++, Python
+Implementation Tips
+Implementation Tips &amp; Common Pitfalls
+In-class Activities
+Input
+insert(A, value, heapSize)
+Insertion Sort
+Insertion Sort Demo
+Interactive Algorithm Visualizations
+Interactive Demo
+Interactive Demo: Directed Graphs
+Interactive Demo: Undirected Graphs
+Interval Scheduling
+Interval Scheduling Demo
+Introduction
+Introduction &amp; Purpose
+Introduction to Design Techniques
+Key Differences from DFS Approach
+Key Differences from Standard DFS
+Kruskal's Algorithm Demo
+K-th Order Statistic
+Latest News
+License
+Limitations
+Links of Interest
+Links to Resources
+Main Array
+Matrix‐Multiplcation Fibonacci Demo
+Matrix Multiplication
+Matrix Multiplication (Brute Force)
+Matrix Multiplication Demo
+Matrix Multiplication Demo (Divide and Conquer)
+Matrix Multiplication (Divide and Conquer)
+Matrix Multiplication Divide-and-Conquer (Inplace) Demo
+Maximum Flow
+Merge
+Merge Demo
+Merge Procedure Analysis
+Merge Sort
+Merge Sort Demo
+Mini Demo
+Minimum Coin Change
+Minimum Spanning Tree
+Motivation/Applications
+My Other Resources
+Naïve Recursive Fibonacci Demo
+Naive Recursive Fibonacci Demo (n = 5)
+N-Queens
+N-Queens Backtracking Demo
+N-Queens (Exhaustive Search)
+Optimal Character Encoding
+Optimization frameworks
+Optional on First Read (Helpful on Review)
+Other Books
+Other Optimizations
+Other Tools
+Outline
+Output
+Overview
+Parallel/Batch Variants
+Partitioning Algorithm Options
+Performance Optimizations
+Performance Tweaks (asymptotics unchanged, constants better)
+Pivot Selection Methods
+Platforms
+Policy Choices (correctness & output)
+Polynomial Evaluation
+Polynomial Evaluation (Brute Force)
+Polynomial Evaluation (Brute-Force Linear)
+Polynomial Evaluation (Brute-Force Quadratic)
+Post-Traversal Classification Using Timestamps
+Practical Optimizations
+Prim's Algorithm Demo
+Priority Queue
+Priority Queue (Tree Forest)
+Problem Description
+Problems
+Problem Solved
+Problem Statement
+Pseudocode
+Pseudocode Skeleton
+Queens: Exhaustive Search Demo
+QuickHull
+QuickHull Algorithm Demo
+QuickHull — Mini (Fixed Points)
+Quickselect
+Quick Select Demo
+Quickselect Demo (5th smallest)
+Quicksort
+Quick Sort Demo
+R0
+Radix Sort
+Radix Sort Demo
+Reading Comprehension Questions
+Real-World Applications
+Recursion-based
+Recursive Steps (not real arrays--conceptual)
+Related Links and Resources
+Repositories &amp; Archives
+Required for Every Chapter
+Robustness (numeric & degeneracy)
+Searching (an array)
+Selection Sort
+Selection Sort Demo
+Sequential Search
+Sequential Search Demo
+Single-Source Shortest Path
+Solutions
+Sorting
+Sorting Algorithm Visualizers
+Space Complexity:
+Spanning Tree
+Specialized DFS Variants
+Step Details
+Strassen's Algorithm Demo
+Strassen's Matrix Multiplication
+String Matching (Boyer–Moore) Demo
+String Matching (Brute Force)
+String Matching (Exhaustive) Demo
+Subset Sum
+Subset Sum Backtracking Tree
+Subset Sum (Exhaustive Search)
+Subset-Sum Exhaustive-Search Demo
+Summary
+Summary &amp; Key Takeaways
+Summary and Key Takeaways
+Summary: Edge Classification Table
+Summary & Key Takeaways
+Technique: Space-Time Tradeoff
+Time and Space Analysis
+Time Complexity:
+Time/Space Analysis
+Timestamps and Their Purpose
+Top-Down DP Fibonacci Demo
+Topological Sort
+Topological Sort Demo (Source Removal)
+Topological Sort Demo (with Cycle Detection)
+Topological Sort (DFS)
+Topological Sort (Source Removal)
+Transform-and-Conquer
+Transformations and Reductions
+Travelling Salesman Problem
+Tutorials &amp; Learning Resources
+Two Implementation Approaches
+UNDER CONSTRUCTION!
+Understanding the Output
+Variable-Size-Decrease
+Variants/Related Problems
+Variations and Improvements
+Variations/Improvements
+Vertex States and Color Scheme
+Vertex Table
+Videos
+Warshall’s Algorithm Demo
+When to Use
+Why DFS Works for Topological Sorting
+Why This Formula Works
+Why This is Decrease-and-Conquer
+Worst Case

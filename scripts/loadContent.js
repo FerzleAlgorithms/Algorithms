@@ -65,7 +65,7 @@ const TECHNIQUES_ORDER = [...ALGORITHMS_ORDER];
 const getCurrentPath = () =>
   history.state?.path ||
   new URLSearchParams(window.location.search).get('path') ||
-  'home';
+  'Home/About';
 
 // Ensure each segment of a path is properly URI‐encoded (but not double‐encoded)
 const normalizePath = (path) =>
@@ -144,7 +144,7 @@ const navigateTo = (rawPath) => {
 };
 
 const loadFromURLParams = () => {
-  const rawPath = new URLSearchParams(window.location.search).get('path') || 'home';
+  const rawPath = new URLSearchParams(window.location.search).get('path') || 'Home/About';
   highlightActiveLink(rawPath);
   loadContent(`${normalizePath(rawPath)}.html`);
 };
@@ -632,7 +632,7 @@ const buildMenu = (chapters) => {
       <button id="expandAll" class="link-style">Expand All</button>
       <button id="collapseAll" class="link-style">Collapse All</button>
     </div>
-    <ul><li><a href="?path=home">Home</a></li></ul>
+    <ul> </ul>
   `;
   const menuRoot = menuContainer.querySelector('ul');
 
@@ -888,7 +888,7 @@ window.removeEventListener('popstate', loadFromURLParams);
 window.addEventListener('popstate', (event) => {
   const state = event.state || {};
   pendingScrollRestore = typeof state.scrollY === 'number' ? state.scrollY : 0;
-  const rawPath = state.path || 'home';
+  const rawPath = state.path || 'Home/About';
   highlightActiveLink(rawPath);
   loadContent(`${normalizePath(rawPath)}.html`);
 });

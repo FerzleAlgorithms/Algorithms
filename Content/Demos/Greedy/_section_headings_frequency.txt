@@ -1,0 +1,318 @@
+   43  Reading Comprehension Questions
+   43  In-Class Activities
+   32  Examples
+   31  Implementation in Java, C++, Python
+   31  Design and Strategy
+   30  Variants/Related Problems
+   30  Time/Space Analysis
+   30  Problem Description
+   30  Motivation/Applications
+   30  Common Algorithms/Techniques
+   29  Problem Solved
+   29  Output
+   29  Input
+   29  Homework Problems
+   24  Variations/Improvements
+   24  Links to Resources
+   14  Problems
+   12  Introduction
+   11  When to Use
+   11  Real-World Applications
+   11  Limitations
+   11  Algorithms Using This Technique
+    9  Related Links and Resources
+    9  Implementation Tips
+    9  Common Pitfalls
+    6  Vertex Table
+    6  Summary &amp; Key Takeaways
+    6  Basic
+    6  Advanced
+    4  Code Implementations
+    3  Variations and Improvements
+    3  Summary & Key Takeaways
+    3  Summary and Key Takeaways
+    3  Pseudocode
+    3  Problem Statement
+    3  Helpful Links and Resources
+    3  Example
+    3  Demonstration
+    2  Understanding the Output
+    2  Summary
+    2  Recursive Steps (not real arrays--conceptual)
+    2  Pseudocode Skeleton
+    2  Practical Optimizations
+    2  Merge
+    2  Main Array
+    2  Implementation Tips &amp; Common Pitfalls
+    2  Graph
+    2  Fractional Knapsack
+    2  Enhanced Applications
+    2  Alternative Approaches
+    1  Worst Case
+    1  Why This is Decrease-and-Conquer
+    1  Why This Formula Works
+    1  Why DFS Works for Topological Sorting
+    1  Warshall’s Algorithm Demo
+    1  Videos
+    1  Vertex States and Color Scheme
+    1  Variable-Size-Decrease
+    1  UNDER CONSTRUCTION!
+    1  Two Implementation Approaches
+    1  Tutorials &amp; Learning Resources
+    1  Travelling Salesman Problem
+    1  Transformations and Reductions
+    1  Transform-and-Conquer
+    1  Topological Sort (Source Removal)
+    1  Topological Sort (DFS)
+    1  Topological Sort Demo (with Cycle Detection)
+    1  Topological Sort Demo (Source Removal)
+    1  Topological Sort
+    1  Top-Down DP Fibonacci Demo
+    1  Timestamps and Their Purpose
+    1  Time Complexity:
+    1  Time and Space Analysis
+    1  Technique: Space-Time Tradeoff
+    1  Summary: Edge Classification Table
+    1  Subset-Sum Exhaustive-Search Demo
+    1  Subset Sum (Exhaustive Search)
+    1  Subset Sum Backtracking Tree
+    1  Subset Sum
+    1  String Matching (Exhaustive) Demo
+    1  String Matching (Brute Force)
+    1  String Matching (Boyer–Moore) Demo
+    1  Strassen's Matrix Multiplication
+    1  Strassen's Algorithm Demo
+    1  Step Details
+    1  Specialized DFS Variants
+    1  Spanning Tree
+    1  Space Complexity:
+    1  Sorting Algorithm Visualizers
+    1  Sorting
+    1  Solutions
+    1  Single-Source Shortest Path
+    1  Sequential Search Demo
+    1  Sequential Search
+    1  Selection Sort Demo
+    1  Selection Sort
+    1  Searching (an array)
+    1  Robustness (numeric & degeneracy)
+    1  Required for Every Chapter
+    1  Repositories &amp; Archives
+    1  Recursion-based
+    1  Radix Sort Demo
+    1  Radix Sort
+    1  R0
+    1  Quick Sort Demo
+    1  Quicksort
+    1  Quickselect Demo (5th smallest)
+    1  Quick Select Demo
+    1  Quickselect
+    1  QuickHull — Mini (Fixed Points)
+    1  QuickHull Algorithm Demo
+    1  QuickHull
+    1  Queens: Exhaustive Search Demo
+    1  Priority Queue (Tree Forest)
+    1  Priority Queue
+    1  Prim's Algorithm Demo
+    1  Post-Traversal Classification Using Timestamps
+    1  Polynomial Evaluation (Brute-Force Quadratic)
+    1  Polynomial Evaluation (Brute-Force Linear)
+    1  Polynomial Evaluation (Brute Force)
+    1  Polynomial Evaluation
+    1  Policy Choices (correctness & output)
+    1  Platforms
+    1  Pivot Selection Methods
+    1  Performance Tweaks (asymptotics unchanged, constants better)
+    1  Performance Optimizations
+    1  Partitioning Algorithm Options
+    1  Parallel/Batch Variants
+    1  Overview
+    1  Outline
+    1  Other Tools
+    1  Other Optimizations
+    1  Other Books
+    1  Optional on First Read (Helpful on Review)
+    1  Optimization frameworks
+    1  Optimal Character Encoding
+    1  N-Queens (Exhaustive Search)
+    1  N-Queens Backtracking Demo
+    1  N-Queens
+    1  Naive Recursive Fibonacci Demo (n = 5)
+    1  Naïve Recursive Fibonacci Demo
+    1  My Other Resources
+    1  Minimum Spanning Tree
+    1  Minimum Coin Change
+    1  Mini Demo
+    1  Merge Sort Demo
+    1  Merge Sort
+    1  Merge Procedure Analysis
+    1  Merge Demo
+    1  Maximum Flow
+    1  Matrix Multiplication Divide-and-Conquer (Inplace) Demo
+    1  Matrix Multiplication (Divide and Conquer)
+    1  Matrix Multiplication Demo (Divide and Conquer)
+    1  Matrix Multiplication Demo
+    1  Matrix Multiplication (Brute Force)
+    1  Matrix Multiplication
+    1  Matrix‐Multiplcation Fibonacci Demo
+    1  Links of Interest
+    1  License
+    1  Latest News
+    1  K-th Order Statistic
+    1  Kruskal's Algorithm Demo
+    1  Key Differences from Standard DFS
+    1  Key Differences from DFS Approach
+    1  Introduction to Design Techniques
+    1  Introduction &amp; Purpose
+    1  Interval Scheduling Demo
+    1  Interval Scheduling
+    1  Interactive Demo: Undirected Graphs
+    1  Interactive Demo: Directed Graphs
+    1  Interactive Demo
+    1  Interactive Algorithm Visualizations
+    1  Insertion Sort Demo
+    1  Insertion Sort
+    1  insert(A, value, heapSize)
+    1  Hybrids & Strategy Tweaks
+    1  Huffman Encoding Demo
+    1  How to Use This Book
+    1  How to Navigate
+    1  How to Cite
+    1  Horspool Shift Table Construction
+    1  Horspool's Algorithm Demo
+    1  Horspool's Algorithm
+    1  Horner’s Rule
+    1  Horner's Rule
+    1  Hoare's Partition Demo
+    1  Hoare's Partition
+    1  High-Level Algorithm
+    1  Heapsort Demo
+    1  Heapsort
+    1  Heaps
+    1  Heap Representation Demo
+    1  Heap Insert Demo
+    1  Heapify Demo
+    1  heapify(A, i, heapSize)
+    1  Hashing Table:
+    1  Hash-Chaining Visualization
+    1  Greedy Interval Scheduling
+    1  Greedy Algorithms
+    1  Greatest Common Divisor (GCD)
+    1  Graph Traversal
+    1  Graph Editors &amp; Pathfinding Tools
+    1  Graph Analysis Applications
+    1  Good Suffix Heuristic
+    1  Glossary
+    1  Geometric Primitives
+    1  Funding &amp; Acknowledgments
+    1  Fractional Knapsack Demo
+    1  Floyd's Algorithm Demo
+    1  Fibonacci Numbers (Brute Force)
+    1  Fibonacci Iterative Demo
+    1  Fibonacci: Dynamic Programming (Bottom-Up) Demo
+    1  Factorial (Recursive) Demo
+    1  ExtractMax Demo
+    1  extractMax(A, heapSize)
+    1  Extensions & Post-processing
+    1  Extensions for Weighted Graphs
+    1  Exponentiation Demo (Naive Divide & Conquer)
+    1  Exponentiation by Squaring (Recursive) Demo
+    1  Exponentiation
+    1  Exhaustive Search
+    1  Example 2b: Fibonacci Numbers (Bottom-Up)
+    1  Example 2a: Fibonacci Numbers (Top-Down)
+    1  Example 1
+    1  Exact String Matching
+    1  Euclidean Algorithm (Recursive) Demo
+    1  Essential: Cycle Detection
+    1  Encyclopedic References
+    1  Edit Distance
+    1  Edge Types in Undirected Graphs
+    1  Edge List
+    1  Edge Classifications After BFS
+    1  Dynamic Programming
+    1  DP Table (F[0..n])
+    1  Divide-and-Conquer
+    1  DFS on Undirected Graphs
+    1  DFS on Directed Graphs
+    1  Development Timeline
+    1  Details
+    1  Detailed Pseudocode
+    1  Detailed Analysis
+    1  Depth-First Search Demo (Directed Graphs)
+    1  Depth-First Search Demo
+    1  Depth-First Search
+    1  Decrease-by-a-Constant-Factor
+    1  Decrease-by-a-Constant
+    1  Decrease-and-Conquer Summary
+    1  Decrease-and-Conquer
+    1  D0
+    1  Credits, etc.
+    1  Counting Sort (Simple Version) Demo
+    1  Counting Sort Demo
+    1  Counting Sort
+    1  Core Insight: Sources Define Valid Starting Points
+    1  Core Algorithm Problems
+    1  Core Algorithm
+    1  Convex Hull Brute-Force Demo
+    1  Convex Hull
+    1  Contributors
+    1  Contact
+    1  Connor Vachon
+    1  Computing Fibonacci Numbers
+    1  Comparison with DFS Approach
+    1  Common Data Structures
+    1  Coin Row (Dynamic Programming) Demo
+    1  Closest Pair
+    1  Claude Sonnet (Anthropic's large language model)
+    1  ChatGPT (OpenAI's large language model)
+    1  Charles Cusack
+    1  Challenges &amp; Problem Sites
+    1  Chain Matrix Multiplication
+    1  Caiden Sunlin
+    1  buildMaxHeap(A)
+    1  Building the Good Suffix Table (Demo Style)
+    1  Building the Bad Character Table
+    1  Build Heap Demo
+    1  Bucket Sort Demo
+    1  Bucket Sort
+    1  Bubble Sort Demo
+    1  Bubble Sort
+    1  Brute-force &amp; enumeration
+    1  Brute Force
+    1  Breadth-First Search Demo
+    1  Breadth-First Search
+    1  Boyer–Moore Algorithm
+    1  Bogo Sort Demo
+    1  Binary Search Demo
+    1  Binary Search
+    1  Binary Exponentiation (Right-to-Left)
+    1  Binary Exponentiation (Left-to-Right)
+    1  Best Case
+    1  Basic Pseudocode
+    1  Basic Problems
+    1  Basic Operations
+    1  Basic Definition
+    1  Bad Character Heuristic
+    1  Backtracking
+    1  Average Case
+    1  Articles/Books
+    1  Array Partition
+    1  Applications Specific to Undirected Graphs
+    1  Applications Specific to Directed Graphs
+    1  Applications of Edge Classification
+    1  Applications for Both Directed and Undirected Graphs
+    1  Answers
+    1  Analyzing Divide-and-Conquer Algorithms
+    1  Alternative Convex Hull Algorithms
+    1  All-Pairs Shortest Path
+    1  All Four Edge Types in Directed Graphs
+    1  Algorithm: Source Removal (Kahn's Algorithm)
+    1  Algorithmic Variations
+    1  Algorithm: DFS-Based Topological Sort
+    1  AI Resources
+    1  Advanced topics
+    1  Advanced Problems
+    1  About This Textbook
+    1  0-1 Knapsack Problem
+    1  0-1 Knapsack (Dynamic Programming) Demo

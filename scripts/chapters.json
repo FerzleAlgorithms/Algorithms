@@ -38,6 +38,8 @@
     },
     {
       "Greedy": [
+        "Fractional Knapsack.html",
+        "Interval Scheduling.html",
         "Merge.html"
       ]
     },
@@ -176,6 +178,10 @@
       ]
     }
   ],
+  "Home": [
+    "About.html",
+    "How to Use.html"
+  ],
   "More": [
     "AI Resources.html",
     "Books.html",
@@ -186,8 +192,6 @@
       "DRAFTS": [
         "Algorithms/Decrease-and-Conquer/Topological Sort DRAFT.html",
         "Algorithms/Exhaustive Search/Topological Sort (DFS) DRAFT.html",
-        "Algorithms/Greedy/Fractional Knapsack DRAFT.html",
-        "Algorithms/Greedy/Interval Scheduling DRAFT.html",
         "Algorithms/Space-Time Tradeoff/Boyer-Moore_DRAFT.html",
         "Algorithms/Transform-and-Conquer/Horners Rule DRAFT.html"
       ]

@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Fractional Knapsack</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js"></script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <script src="/Algorithms/scripts/chapterScripts.js"></script>
+  <link rel="stylesheet" href="/Algorithms/css/style.css">
+  <link rel="stylesheet" href="/Algorithms/css/chapter.css">
+</head>
+
+<body>
+  <h1>Fractional Knapsack</h1>
+
+  <section id="problem-solved" section-title="Problem Solved">
+    <h2>Problem Solved</h2>
+    <p>
+      In this section we will describe the greedy algorithm to solve the
+      <a class="problem" href="?path=Problems%2FOptimization%2FFractional%20Knapsack">Fractional Knapsack</a>
+      problem.
+    </p>
+  </section>
+
+  <section id="design" section-title="Design and Strategy">
+    <h2>Design and Strategy</h2>
+
+    <p>
+      Recall that in an instance of the <em>fractional knapsack</em> problem, each item
+      has a value \(v_i\) and weight \(w_i\), the knapsack has a capacity \(W\),
+      and items may be taken in arbitrary fractions.
+      The objective is to maximize total value subject to the weight limit.
+      It turns out that this problem yields easily to a greedy algorithm based
+      on a simple rule: An object with a higher value-to-weight ratio
+      (also called value density) is a better
+      use of space than one with a lower ratio. This leads to the following algorithm.
+    </p>
+
+    <h3>High-Level Algorithm</h3>
+    <ol>
+      <li>Compute each item's value density \(r_i = v_i / w_i\)</li>
+      <li>Sort items by \(r_i\) in descending order.</li>
+      <li>Initialize <code>totalValue = 0</code> and <code>remaining = W</code>.</li>
+      <li>Scan items in order (descending by value density):
+        <ol>
+          <li>If an item fits entirely, take it; update <code>totalValue</code> and <code>remaining</code>.</li>
+          <li>Otherwise, take the fraction that fits and stop (capacity is now full).</li>
+        </ol>
+      </li>
+    </ol>
+
+    <p>
+      This greedy approach provides an optimal solution to the <em>fractional knapsack</em> problem
+      because the contribution of each item grows linearly with how much of it is taken.
+      Every unit of weight from an item with a higher value density yields more benefit than a unit from a lower-density
+      item.
+      Thus, filling the knapsack by always taking as much as possible of the remaining highest-density item
+      must lead to the maximum total value.
+    </p>
+
+    <h3>Pseudocode</h3>
+    <p>Here is a more detailed version of the algorithm that processes items in order of decreasing value density
+      while keeping track of the total value collected and the remaining capacity.
+    </p>
+    <ol>
+      <li>For each item \(i\), compute \(r_i = v_i / w_i\).</li>
+      <li>Sort items by \(r_i\) in descending order.</li>
+      <li>Set \( \text{totalValue} = 0 \) and \( \text{remaining} = W \).</li>
+      <li>For each item \(i\) in sorted order:
+        <ol>
+          <li>If \( \text{remaining} = 0 \), stop.</li>
+          <li>If \( w_i \le \text{remaining} \):
+            <ul>
+              <li>\( \text{totalValue} \gets \text{totalValue} + v_i \)</li>
+              <li>\( \text{remaining} \gets \text{remaining} - w_i \)</li>
+            </ul>
+          </li>
+          <li>Else (only a fraction fits):
+            <ul>
+              <li>Let \( f = \text{remaining} / w_i \).</li>
+              <li>\( \text{totalValue} \gets \text{totalValue} + f \cdot v_i \)</li>
+              <li>\( \text{remaining} \gets 0 \) and stop.</li>
+            </ul>
+          </li>
+        </ol>
+      </li>
+      <li>Return \( \text{totalValue} \).</li>
+    </ol>
+    <p>More work is needed to extract the items and amounts to take, but we leave that to the reader.</p>
+
+  <section id="example" section-title="Example">
+    <h3>Example</h3>
+    <div class="example-box">
+      <strong class="example-title">Fractional Knapsack Example</strong>
+
+      <!-- 1) Items as given (now labeled A..G in presented order) -->
+      <p><em>Instance.</em> Capacity \(W = 35\). Items (value, weight):</p>
+      <ul>
+        <li>A: \((100, 20)\)</li>
+        <li>B: \((120, 30)\)</li>
+        <li>C: \((21, 2)\)</li> <!-- tweaked from (20,2) to break the 10.0 tie -->
+        <li>D: \((31, 5)\)</li> <!-- tweaked from (30,5) to break the 6.0 tie -->
+        <li>E: \((70, 7)\)</li>
+        <li>F: \((80, 16)\)</li>
+        <li>G: \((60, 10)\)</li>
+      </ul>
+
+      <!-- 2) Densities (unsorted) -->
+      <p><em>Compute densities.</em> \(r_i = v_i / w_i\)</p>
+      <table class="example-table">
+        <thead>
+          <tr>
+            <th>Item</th>
+            <th>Value</th>
+            <th>Weight</th>
+            <th>Density \(v/w\)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>A</td>
+            <td>100</td>
+            <td>20</td>
+            <td>5.0</td>
+          </tr>
+          <tr>
+            <td>B</td>
+            <td>120</td>
+            <td>30</td>
+            <td>4.0</td>
+          </tr>
+          <tr>
+            <td>C</td>
+            <td>21</td>
+            <td>2</td>
+            <td>10.5</td>
+          </tr>
+          <tr>
+            <td>D</td>
+            <td>31</td>
+            <td>5</td>
+            <td>6.2</td>
+          </tr>
+          <tr>
+            <td>E</td>
+            <td>70</td>
+            <td>7</td>
+            <td>10.0</td>
+          </tr>
+          <tr>
+            <td>F</td>
+            <td>80</td>
+            <td>16</td>
+            <td>5.0</td>
+          </tr>
+          <tr>
+            <td>G</td>
+            <td>60</td>
+            <td>10</td>
+            <td>6.0</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- 3) Sort by density (descending) -->
+      <p><em>Sort by density (descending).</em> Items with equal density may appear in any order.</p>
+      <table class="example-table">
+        <thead>
+          <tr>
+            <th>Rank</th>
+            <th>Item</th>
+            <th>Value</th>
+            <th>Weight</th>
+            <th>Density \(v/w\)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>1</td>
+            <td>C</td>
+            <td>21</td>
+            <td>2</td>
+            <td>10.5</td>
+          </tr>
+          <tr>
+            <td>2</td>
+            <td>E</td>
+            <td>70</td>
+            <td>7</td>
+            <td>10.0</td>
+          </tr>
+          <tr>
+            <td>3</td>
+            <td>D</td>
+            <td>31</td>
+            <td>5</td>
+            <td>6.2</td>
+          </tr>
+          <tr>
+            <td>4</td>
+            <td>G</td>
+            <td>60</td>
+            <td>10</td>
+            <td>6.0</td>
+          </tr>
+          <tr>
+            <td>5</td>
+            <td>A</td>
+            <td>100</td>
+            <td>20</td>
+            <td>5.0</td>
+          </tr>
+          <tr>
+            <td>6</td>
+            <td>F</td>
+            <td>80</td>
+            <td>16</td>
+            <td>5.0</td>
+          </tr>
+          <tr>
+            <td>7</td>
+            <td>B</td>
+            <td>120</td>
+            <td>30</td>
+            <td>4.0</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- 4) Greedy sweep with remaining capacity and chosen/partial flags -->
+      <p><em>Greedy sweep.</em> Take full items while they fit; take a fraction of the first item that does not fully
+        fit.</p>
+      <table class="example-table">
+        <thead>
+          <tr>
+            <th>Order</th>
+            <th>Item</th>
+            <th>Value</th>
+            <th>Weight</th>
+            <th>Density</th>
+            <th>Fraction Taken</th>
+            <th>Value Added</th>
+            <th>Remaining Capacity</th>
+            <th>Chosen?</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr style="background:#eaffea;">
+            <td>1</td>
+            <td>C</td>
+            <td>21</td>
+            <td>2</td>
+            <td>10.5</td>
+            <td>\(1\)</td>
+            <td>\(21\)</td>
+            <td>\(35-2=33\)</td>
+            <td>Yes (full)</td>
+          </tr>
+          <tr style="background:#eaffea;">
+            <td>2</td>
+            <td>E</td>
+            <td>70</td>
+            <td>7</td>
+            <td>10.0</td>
+            <td>\(1\)</td>
+            <td>\(70\)</td>
+            <td>\(33-7=26\)</td>
+            <td>Yes (full)</td>
+          </tr>
+          <tr style="background:#eaffea;">
+            <td>3</td>
+            <td>D</td>
+            <td>31</td>
+            <td>5</td>
+            <td>6.2</td>
+            <td>\(1\)</td>
+            <td>\(31\)</td>
+            <td>\(26-5=21\)</td>
+            <td>Yes (full)</td>
+          </tr>
+          <tr style="background:#eaffea;">
+            <td>4</td>
+            <td>G</td>
+            <td>60</td>
+            <td>10</td>
+            <td>6.0</td>
+            <td>\(1\)</td>
+            <td>\(60\)</td>
+            <td>\(21-10=11\)</td>
+            <td>Yes (full)</td>
+          </tr>
+          <tr style="background:#fff6d8;">
+            <td>5</td>
+            <td>A</td>
+            <td>100</td>
+            <td>20</td>
+            <td>5.0</td>
+            <td>\(f=\tfrac{11}{20}\)</td>
+            <td>\(100\cdot\tfrac{11}{20}=55\)</td>
+            <td>\(11-11=0\)</td>
+            <td><strong>Partial</strong></td>
+          </tr>
+          <tr>
+            <td>6</td>
+            <td>F</td>
+            <td>80</td>
+            <td>16</td>
+            <td>5.0</td>
+            <td>—</td>
+            <td>—</td>
+            <td>0</td>
+            <td>No</td>
+          </tr>
+          <tr>
+            <td>7</td>
+            <td>B</td>
+            <td>120</td>
+            <td>30</td>
+            <td>4.0</td>
+            <td>—</td>
+            <td>—</td>
+            <td>0</td>
+            <td>No</td>
+          </tr>
+        </tbody>
+      </table>
+      <p style="margin-top:0.5em; font-size:0.95em;">
+        <strong>Legend:</strong> <span
+          style="background:#eaffea; padding:0 0.3em; border:1px solid #cfe8cf;">full</span> items,
+        <span style="background:#fff6d8; padding:0 0.3em; border:1px solid #efd9a6;">partial</span> item.
+      </p>
+
+      <p><em>Total value.</em> \(21 + 70 + 31 + 60 + 55 = 237\).</p>
+      <p style="margin-top:0.5em;">
+        We process items in decreasing value density and maintain both the <strong>total value</strong> and the
+        <strong>remaining capacity</strong>.
+        The first four items fit entirely; the fifth is taken at fraction \(f=\tfrac{11}{20}\) to fill the knapsack.
+      </p>
+
+    </div>
+  </section>
+
+  <p>
+    Note: This greedy approach is only optimal for the fractional knapsack problem and not the 
+    <a class="problem" href="?path=Problems%2FOptimization%2F0-1%20Knapsack">0-1 Knapsack Problem</a>
+    where items cannot be split. The greedy approach will sometimes yeild suboptimal solutions in that case.
+    If you have not yet encountered that variant, you will soon&mdash;it provides a valuable contrast to the fractional case.
+  </p>
+  </section>
+
+  <section id="demo" section-title="Interactive Demo">
+    <div class="embeddedDemoContainer">
+      <iframe class="embeddedDemo" src="/Algorithms/Content/Demos/Greedy/Fractional Knapsack Demo.html"
+        allow="fullscreen" name="fractional-knapsack-demo"></iframe>
+    </div>
+  </section>
+
+  <section id="code" section-title="Implementation in Java, C++, Python">
+    <h2>Implementation in Java, C++, Python</h2>
+    <p>
+      The core idea is the same in all three implementations: compute the value-to-weight ratio for each item,
+      sort the items by that ratio in decreasing order, and then take as much as possible of each item until the
+      knapsack is full. Each version maintains a running total of value and the remaining capacity.
+      These implementations assume all item weights are strictly positive; handling zero-weight or zero-value items
+      would require a few extra checks but does not change the main greedy idea. In every language, built-in sorting
+      functions are used to keep the focus on the algorithm rather than the mechanics of sorting.
+    </p>
+    <ul>
+      <li><strong>Java:</strong>
+        Each item is represented by a simple <code>Item</code> class that stores its value and weight and defines
+        how items compare to one another. By implementing <code>Comparable&lt;Item&gt;</code>, each object can order itself
+        relative to others based on its value-to-weight ratio. The <code>compareTo</code> method uses
+        <code>Double.compare(r2, r1)</code> to sort items in descending order, so higher-value-per-weight items appear first
+        when calling <code>Arrays.sort(items)</code>.
+      </li>
+      <li><strong>C++:</strong>
+        The function <code>compare()</code> defines how two <code>Item</code> objects are ordered—by comparing their
+        value-to-weight ratios. The standard library function <code>sort()</code> takes three arguments: the beginning of the
+        array (<code>items</code>), the position just past the end (<code>items + n</code>), and the comparison function to
+        use (<code>compare</code>). This sorts the array of items in decreasing order of ratio before the greedy filling step.
+      </li>
+      <li><strong>Python:</strong> 
+      In Python, items are represented as pairs <code>(value, weight)</code>. A small helper function
+      <code>ratio()</code> computes each item’s value-to-weight ratio, which is used as the sorting key.
+      The built-in <code>sort()</code> method then orders the list in decreasing ratio before the greedy filling loop.
+      </li>
+    </ul>
+    <div class="tab-group">
+      <div class="tabs" role="tablist">
+        <button id="tab-java" class="tablink active" data-lang="java" role="tab" aria-controls="java"
+          aria-selected="true">Java</button>
+        <button id="tab-cpp" class="tablink" data-lang="cpp" role="tab" aria-controls="cpp"
+          aria-selected="false">C++</button>
+        <button id="tab-python" class="tablink" data-lang="python" role="tab" aria-controls="python"
+          aria-selected="false">Python</button>
+      </div>
+      <div id="java" class="code-container active" role="tabpanel" aria-labelledby="tab-java">
+        <pre><code class="language-java">class Item implements Comparable<Item> {
+  int value, weight;
+  Item(int v, int w) { value = v; weight = w; }
+
+  @Override
+  public int compareTo(Item other) {
+    double r1 = (double) value / weight;
+    double r2 = (double) other.value / other.weight;
+    return Double.compare(r2, r1); // descending
+  }
+}
+
+double fractionalKnapsack(Item[] items, int capacity) {
+  // Sort by value-to-weight ratio (descending).
+  Arrays.sort(items);
+
+  double total = 0.0;
+  for (Item it : items) {
+    if (capacity == 0) break;
+    if (it.weight <= capacity) {
+      capacity -= it.weight;
+      total += it.value;
+    } else {
+      total += it.value * (capacity / (double) it.weight);
+      capacity = 0;
+    }
+  }
+  return total;
+}</code></pre>
+      </div>
+      <div id="cpp" class="code-container" role="tabpanel" aria-labelledby="tab-cpp">
+        <pre><code class="language-cpp">#include &lt;algorithm&gt;
+
+struct Item {
+  int value, weight;
+};
+
+bool compare(Item a, Item b) {
+  return (double)a.value/a.weight > (double)b.value/b.weight;
+}
+
+double fractionalKnapsack(Item items[], int n, int capacity) {
+  std::sort(items, items+n, compare);
+  double total = 0.0;
+  for (int i = 0; i < n; i++) {
+    if (capacity &gt;= items[i].weight) {
+      capacity -= items[i].weight;
+      total += items[i].value;
+    } else {
+      total += items[i].value * ((double)capacity / items[i].weight);
+      break;
+    }
+  }
+  return total;
+}</code></pre>
+      </div>
+      <div id="python" class="code-container" role="tabpanel" aria-labelledby="tab-python">
+        <pre><code class="language-python">def fractional_knapsack(items, capacity):
+    # Helper function to compute value-to-weight ratio
+    def ratio(item):
+        value, weight = item
+        return value / weight
+
+    # Sort by ratio in decreasing order
+    items.sort(key=ratio, reverse=True)
+
+    total = 0.0
+    for value, weight in items:
+        if capacity == 0:
+            break
+        if weight <= capacity:
+            capacity -= weight
+            total += value
+        else:
+            total += value * (capacity / weight)
+            capacity = 0
+    return total</code></pre>
+      </div>
+    </div>
+    <p>
+      These implementations are intentionally simple to put the focus on the greedy structure. In practice, you might also
+      return which items (and what fraction) were taken, and/or precompute ratios to avoid repeated division in the sort key.
+      Neither change affects the time complexity, but will affect the constants.
+    </p>
+  </section>
+
+  <section id="analysis" section-title="Time/Space Analysis">
+  <h2>Time/Space Analysis</h2>
+  <p>
+    <strong>Time Complexity:</strong>
+    Sorting the \(n\) items by their value-to-weight ratio takes \(O(n \log n)\), and the subsequent greedy scan
+    runs in \(O(n)\). The overall time complexity is therefore \(O(n \log n)\).
+  </p>
+  <p>
+  <strong>Space Complexity:</strong>
+  As presented above, the algorithm requires only \(O(1)\) additional space if sorting is performed in place.
+  Explicitly storing the value-to-weight ratios would require \(O(n)\) space, and implementing the algorithm
+  to return the list of selected items (and fractions) would also use up to \(O(n)\) additional space.
+</p>
+  </section>
+
+  <section id="variations" section-title="Variations and Improvements">
+  <h2>Variations and Improvements</h2>
+  <ul>
+    <li><strong>0-1 Knapsack (contrast):</strong> When each item must be taken whole, the density rule is not optimal.
+      The greedy algorithm can serve as a fast heuristic to obtain approximate solutions, but it will sometimes be
+      suboptimal. Exact solutions typically use dynamic programming or branch-and-bound.</li>
+
+    <li><strong>Unbounded (Repeated Items Allowed):</strong>
+      When fractional amounts are permitted, allowing repeated items adds no new complexity&mdash;the same density-based
+      greedy rule still produces an optimal solution. If items must be taken whole 
+      (i.e. an unbounded version of the 0-1 knapsack problem), the greedy method is still not guaranteed to be optimal.
+    </li>
+
+    <li><strong>Avoiding Full Sort:</strong>
+      Instead of completely sorting all \(n\) items by ratio, it is possible to use a linear-time selection or partition
+      algorithm to find the "cutoff" item&mdash;the one that would be partially taken. 
+      All items with higher ratios are taken fully, and the cutoff item is taken in part.
+      This approach runs in \(O(n)\) expected time (and \(O(n)\) worst case using the median-of-medians method, although
+      the overhead of this is almost certainly not worth it).
+    </li>
+    <li><strong>Ties and Stability:</strong>
+      Items with equal value-to-weight ratios can be taken in any order without affecting the total value.
+      If you care which one becomes the partial item, you can break ties using another criterion&mdash;such as smaller weight,
+      larger value, or original input order. These choices do not change the optimal total but may affect which item is taken fractionally.
+    </li>
+
+    <li><strong>Numerical Robustness:</strong>
+      Comparing value-to-weight ratios directly using division can introduce rounding errors with floating-point arithmetic.
+      Instead of testing whether \(v_1 / w_1 &gt; v_2 / w_2\),
+      multiply both sides by the positive denominators and compare integer products:
+      \(v_1 \cdot w_2 &gt; v_2 \cdot w_1\).
+      This cross-multiplication avoids division entirely and yields the same ordering without precision loss.
+    </li>
+
+    <li><strong>Returning the Solution:</strong>
+      If we also want to know which items (and what fractions) are taken, the algorithm must record that information while filling the knapsack.
+      Storing these selections requires up to \(O(n)\) additional space but provides a complete description of the optimal solution.
+    </li>
+  </ul>
+</section>
+
+<section id="links" section-title="Links to Resources">
+  <h2>Links to Resources</h2>
+  <ul>
+    <li>
+      <a href="https://en.wikipedia.org/wiki/Knapsack_problem" target="_blank">Wikipedia: Knapsack problem</a>
+      Overview of variants (including fractional) and standard algorithms.
+    </li>
+    <li>
+      <a href="https://www.geeksforgeeks.org/dsa/fractional-knapsack-problem/" target="_blank">GeeksforGeeks: Fractional Knapsack</a>
+      Step-by-step greedy solution with code and dry run.
+    </li>
+    <li>
+      <a href="https://www.hello-algo.com/en/chapter_greedy/fractional_knapsack_problem/" target="_blank">Hello Algo: Fractional knapsack</a>
+      Concise explanation, figures, and why greedy is optimal.
+    </li>
+    <li>
+      <a href="https://xlinux.nist.gov/dads//HTML/fractionalKnapsack.html" target="_blank">NIST DADS: Fractional knapsack</a>
+      Short definitional entry from NIST's algorithm dictionary.
+    </li>
+  </ul>
+</section>
+
+<section id="reading-questions" section-title="Reading Comprehension Questions">
+  <h2>Reading Comprehension Questions</h2>
+  <ol>
+    <li><strong>Greedy Choice:</strong>
+      What is the key idea behind the greedy rule for the fractional knapsack problem?
+    </li>
+    <li><strong>Order of Processing:</strong>
+      Why does the algorithm sort items by value-to-weight ratio before filling the knapsack?
+    </li>
+    <li><strong>Partial Items:</strong>
+      How does the algorithm handle the first item that does not fit entirely?
+    </li>
+    <li><strong>Optimality:</strong>
+      Why is the greedy method guaranteed to produce an optimal solution for the fractional case but not for the 0-1 case?
+    </li>
+    <li><strong>Algorithm Trace:</strong>
+      In the worked example, which item is taken only partially, and why does the algorithm stop afterward?
+    </li>
+    <li><strong>Complexity:</strong>
+      What are the time and space complexities of the algorithm, and which step dominates the running time?
+    </li>
+    <li><strong>Extensions:</strong>
+      How could you modify the algorithm if you also wanted to know which items (and what fractions) were chosen?
+    </li>
+  </ol>
+
+  <button id="toggleAnswers" class="show-answer" aria-expanded="false">Show Answers</button>
+  <div id="answers" class="answer" hidden>
+    <ol>
+      <li><strong>Answer:</strong>
+        It always takes as much as possible of the remaining item with the highest value-to-weight ratio, since each unit of weight from that item provides the greatest possible increase in total value.
+      </li>
+      <li><strong>Answer:</strong>
+        Sorting ensures that items are considered in decreasing order of “value density,” so each greedy choice locally maximizes gain and leads to the global optimum.
+      </li>
+      <li><strong>Answer:</strong>
+        It takes the fraction that exactly fills the remaining capacity, adds the proportional value, and then stops because the knapsack is full.
+      </li>
+      <li><strong>Answer:</strong>
+        In the fractional case, value grows linearly with the fraction taken, and exchanging weight from a lower-density item to a higher-density one always improves or preserves value.
+        In the 0-1 case, items cannot be split, so such exchanges are not always possible and greedy may miss the best combination.
+      </li>
+      <li><strong>Answer:</strong>
+        Item A is taken partially once the capacity reaches 35; the algorithm stops because the knapsack is now full and no more weight can be added.
+      </li>
+      <li><strong>Answer:</strong>
+        Sorting dominates the runtime, giving \(O(n \log n)\) time and \(O(1)\) extra space if done in place. 
+        Storing ratios or item selections would increase space to \(O(n)\).
+      </li>
+      <li><strong>Answer:</strong>
+        You can store a list of \((\text{item}, \text{fraction})\) pairs as you fill the knapsack. 
+        This adds up to \(O(n)\) additional space but fully describes the chosen items.
+      </li>
+    </ol>
+  </div>
+</section>
+<section id="activities" section-title="In-Class Activities">
+  <h2>In-Class Activities</h2>
+  <ol>
+    <li>
+      <strong>Return the Chosen Items:</strong>
+      Modify the pseudocode so it also returns a list of items (and fractions) taken.
+      Verify your algorithm with the worked example on the page (and/or one from the demo).
+    </li>
+
+    <li>
+      <strong>Greedy on 0-1 Knapsack:</strong>
+      Create an instance of the 0-1 Knapsack problem whose optimal solution cannot be obtained
+      from the greedy algorithm. Explain why the algorithm fails.
+    </li>
+
+    <li>
+      <strong>Bounded Variant:</strong>
+      Suppose each item has a limited number of copies.
+      How would you modify the algorithm if fractional amounts are still allowed?
+      What if they are not?
+    </li>
+
+    <li>
+      <strong>Fractional versus 0-1 Knapsack:</strong>
+      Choose a few small datasets that can be used for both the fractional and 0-1 knapsack problems.
+      Compute the optimal solution for each dataset under both interpretations.
+      Compare the resulting total values. Do you notice a pattern?
+      What does this suggest about how the optimal fractional solution relates to the optimal 0-1 solution on the same data?
+    </li>
+    <li>
+      <strong>Which Seems Easier?</strong>
+      Between the fractional and 0-1 versions of the knapsack, which problem <em>feels</em> easier to solve, and why?
+      Defend your intuition. Then have a discussion about what the actual answer is. Your instructor may need to help
+      with this, especially if you haven't discussed the dynamic programming algorithm for 0-1 knapsack problem yet.
+    </li>
+  </ol>
+</section>
+
+<section id="problems" section-title="Homework Problems">
+  <h2>Homework Problems</h2>
+  <ol>
+    <li><strong>Full Trace (7 items):</strong>
+      Given items (value, weight) =
+      <code>[(24,4), (18,3), (20,10), (10,2), (12,6), (30,15), (25,5)]</code>
+      and capacity \(W = 20\):
+      <ol>
+        <li>Compute each item's value-to-weight ratio and sort in decreasing order.</li>
+        <li>Trace the greedy algorithm step by step, showing remaining capacity, fraction taken (if partial), and running total value.</li>
+        <li>Report the final total value.</li>
+      </ol>
+    </li>
+
+    <li><strong>Counterexample (0-1 Knapsack):</strong>
+      Construct a small 0-1 knapsack instance (5-7 items) where sorting by ratio and taking greedily is <em>not</em> optimal.
+      Provide:
+      <ol>
+        <li>The item list and capacity,</li>
+        <li>The greedy order and its total value,</li>
+        <li>The optimal 0-1 subset and its total value,</li>
+        <li>A brief explanation of why the greedy choice fails here.</li>
+      </ol>
+    </li>
+
+    <li><strong>Implementation and Output:</strong>
+      Implement the fractional knapsack algorithm in a language of your choice. Run it on
+      <code>[(70,10), (100,20), (120,30), (65,13), (40,8)]</code> with \(W=35\).
+      Output <em>both</em> the maximum value and the list of chosen items with fractions taken (e.g., \((\text{item}, \text{fraction})\)).
+      (Note: multiple items have the same ratio; the total value should be the same even if a different item becomes partial.)
+    </li>
+
+    <li><strong>Ties and Stability:</strong>
+      Create an input with at least three items sharing the same value-to-weight ratio but different weights.
+      Apply the greedy algorithm under two different tie-breakers (e.g., smaller weight first vs. original input order).
+      In each case, show which item becomes partial and confirm that the final total value is unchanged.
+    </li>
+
+    <li><strong>Numerical Robustness:</strong>
+      Write a comparator/key function that orders items by ratio <em>without</em> using division—compare
+      \(\,v_1/w_1\) and \(\,v_2/w_2\) by checking \(v_1\cdot w_2\) vs. \(v_2\cdot w_1\).
+      comparing using both methods to sort the items in
+      <code>[(1000003, 2000006), (500001, 1000000), (7,14), (9,18)]</code>.
+      List the resulting order and briefly justify what benefits cross-multiplication has.
+    </li>
+
+    <li><strong>Unbounded (Repeated Items Allowed):</strong>
+      Solve the fractional knapsack problem where you can take an unlimited number of copies of each item.
+      Give a clear pseudocode of your algorithm and analyze its time complexity.
+    </li>
+
+    <li><strong>Greedy for Time Allocation:</strong>
+  Suppose you have \(n\) independent projects, each offering a value rate \(r_i\) (dollars per hour) up to a maximum of \(t_i\) hours.
+  You have at most \(T\) total hours to spend.
+  Design a greedy algorithm to maximize the total value earned. Give the computational complexity of your algorithm. 
+</li>
+<li><strong>Greedy Coin Change:</strong>
+  You want to make a target amount using the fewest whole coins.
+  A natural greedy rule is to always take as many of the largest denomination as possible, 
+  then move to the next smaller one.
+  <ol>
+    <li>Apply this algorithm to U.S. coin denominations (1¢, 5¢, 10¢, 25¢) to make 63¢. Does it give the optimal solution?</li>
+    <li>Try it for a few other values. Does the greedy approach always work for U.S. coin denominations? Justify your answer.</li>
+    <li>Now design your own coin system where the same greedy rule sometimes fails to find the minimum number of coins.</li>
+    <li>Explain what is structurally different about the two coin systems—why does one always yield to the greedy algorithm while the other does not?</li>
+  </ol>
+</li>
+  </ol>
+</section>
+
+</body>
+
+</html>

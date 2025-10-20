@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Greedy Interval Scheduling</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js"></script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <script src="/Algorithms/scripts/chapterScripts.js"></script>
+  <link rel="stylesheet" href="/Algorithms/css/style.css">
+  <link rel="stylesheet" href="/Algorithms/css/chapter.css">
+</head>
+<body>
+  <h1>Greedy Interval Scheduling</h1>
+
+  <section id="problem-solved" section-title="Problem Solved">
+  <h2>Problem Solved</h2>
+  <p>
+    Greedy Interval Scheduling solves the
+    <a class="problem" href="?path=Problems%2FOptimization%2FInterval%20Scheduling">Interval Scheduling</a>
+    problem.
+  </p>
+  </section>
+
+  <section id="design" section-title="Design and Strategy">
+  <h2>Design and Strategy</h2>
+
+  <p>
+    The goal is to select as many non-overlapping intervals as possible. A natural local rule is:
+    <em>always take the interval that finishes earliest</em>. Intuitively, finishing sooner leaves the largest
+    remaining “window” for whatever comes next. This is a classic <strong>Greedy</strong> move: make an irrevocable,
+    locally optimal choice and never look back.
+    The optimality of this greedy rule can be proven using a standard exchange argument.
+  </p>
+
+  <div class="lemma">
+    <p><strong>Greedy-Choice (Exchange) Argument.</strong> Let <em>E</em> be the interval with the earliest finish time.
+      Suppose some optimal schedule <em>O</em> does not start with <em>E</em>, but with a different interval <em>X</em>.
+      Because <em>E</em> finishes no later than <em>X</em>, we can swap <em>X</em> out and start with <em>E</em> instead;
+      the rest of <em>O</em> still fits (or fits at least as well) after <em>E</em>. Thus there exists an optimal schedule
+      that begins with <em>E</em>. After taking <em>E</em>, the problem reduces to the same question on the intervals that
+      start at or after <em>finish(E)</em>. By induction on the number of remaining intervals, repeatedly taking the
+      earliest-finishing interval is optimal.</p>
+  </div>
+
+  <p><strong>Why not another rule?</strong> If the goal is to fit as many intervals as possible, why not pick the
+    ones that start earliest, or the shortest ones? It turns out those seemingly natural ideas can block better options down
+    the line. Choosing by earliest finish is the only rule that always leaves room for the rest, as the exchange argument confirms.</p>
+
+<p><strong>Algorithm outline.</strong> 
+The idea is simple: sort the intervals by finish time, then sweep through them once.
+For each interval, ask whether it begins after the last selected one ends—if it does, include it; otherwise, skip it.
+Here is the algorithm in pseudocode:
+</p>
+
+<ol class="spaced">
+  <li>Sort intervals by nondecreasing finish time (break ties arbitrarily or by later start).</li>
+  <li>Set \( currentEnd = -\infty \) and initialize an empty selection list.</li>
+  <li>For each interval \([\,start, end\,]\) in sorted order:
+    <ul>
+      <li>If \( start \ge currentEnd \), <em>select</em> it and set \( currentEnd = end \).</li>
+      <li>Otherwise, skip it.</li>
+    </ul>
+  </li>
+</ol>
+
+<div class="example-box">
+  <strong class="example-title">Worked Example (step-by-step):</strong>
+  <p>Intervals (unsorted):<br>
+    \(\small A(6,10),\ B(0,6),\ C(5,9),\ D(2,13),\ E(5,7),\ F(3,5),\ G(12,14),\ H(8,12),\ I(8,11),\ J(1,4),\ K(3,8)  \).</p>
+  <p><em>Sorted by finish time</em>: <br>
+    \(\small J(1,4),\ F(3,5),\ B(0,6),\ E(5,7),\ K(3,8),\ C(5,9),\ A(6,10),\ I(8,11),\ H(8,12),\ D(2,13),\ G(12,14) \).</p>
+  <ol class="spaced">
+    <li><strong>\(J(1,4)\)</strong>: \(1 \ge -\infty\) → select. \( currentEnd = 4 \).</li>
+    <li><strong>\(F(3,5)\)</strong>: \(3 < 4\) → overlaps → skip.</li>
+    <li><strong>\(B(0,6)\)</strong>: \(0 < 4\) → skip.</li>
+    <li><strong>\(E(5,7)\)</strong>: \(5 \ge 4\) → select. \( currentEnd = 7 \).</li>
+    <li><strong>\(K(3,8)\)</strong>: \(3 < 7\) → skip.</li>
+    <li><strong>\(C(5,9)\)</strong>: \(5 < 7\) → skip.</li>
+    <li><strong>\(A(6,10)\)</strong>: \(6 < 7\) → skip.</li>
+    <li><strong>\(I(8,11)\)</strong>: \(8 \ge 7\) → select. \( currentEnd = 11 \).</li>
+    <li><strong>\(H(8,12)\)</strong>: \(8 < 11\) → skip.</li>
+    <li><strong>\(D(2,13)\)</strong>: \(2 < 11\) → skip.</li>
+    <li><strong>\(G(12,14)\)</strong>: \(12 \ge 11\) → select. \( currentEnd = 14 \).</li>
+  </ol>
+  <p><strong>Selected set:</strong> \( \{E, G, I, J\} \) (4 intervals).</p>
+  <p><em>Tie-handling note.</em> If two intervals share the same finish time, either is safe; picking the later-starting one
+    can reduce “wasted” slack before it, but correctness does not depend on this tie-break.</p>
+</div>
+
+<p>
+This fits the <b>greedy</b> technique: we commit to the earliest-finishing interval at each step (a local optimum),
+and an exchange argument shows that doing so never harms the possibility of a globally optimal schedule.
+It can also be viewed as an instance of <b>transform-and-conquer</b>—the initial <em>presorting</em> of intervals
+by finish time transforms the data into an order where the greedy rule becomes both natural and provably optimal.
+</p>
+</section>
+
+  <section id="demo" section-title="Interactive Demo">
+    <p>The following demo gives a more graphical view of the algorithm so you can see more clearly why the strategy works.</p>
+  <div class="embeddedDemoContainer">
+    <iframe class="embeddedDemo"
+            src="/Algorithms/Content/Demos/Greedy/Interval Scheduling Demo.html"
+            allow="fullscreen"
+            name="Interval-Scheduling-demo">
+    </iframe>
+  </div>
+  </section>
+
+  <section id="code" section-title="Implementation in Java, C++, Python">
+  <h2>Implementation in Java, C++, Python</h2>
+  
+  <p>
+  The core idea is the same across all three implementations:
+  sort intervals by nondecreasing finish time, then sweep through them,
+  keeping an interval whenever its start is at or after the end of the last chosen interval.
+  Each version maintains a running variable \( \textit{currentEnd} \)
+  (or \( \textit{current_end} \)) and a count of chosen intervals.
+  These snippets intentionally return <em>only the number of non-overlapping intervals</em>,
+  not the schedule itself; returning the actual intervals is left to the reader as a small extension.
+  We assume valid inputs with \( \textit{start} \le \textit{end} \).
+  Tie-handling in these implementations is <em>not</em> explicit:
+  Java (\( \texttt{Arrays.sort} \) on \( \texttt{Comparable} \)) and Python (\( \texttt{list.sort} \))
+  are stable and will preserve the input order among equal finish times;
+  C++ uses \( \texttt{std::sort} \), which is not stable,
+  so equal-finish intervals may appear in any order.
+</p>
+<ul>
+  <li><strong>Java:</strong> Defines an <code>Interval</code> class implementing
+      <code>Comparable&lt;Interval&gt;</code> so that <code>Arrays.sort</code>
+      orders intervals by finish time. A simple loop keeps an interval when
+      \( \textit{start} \ge \textit{currentEnd} \), incrementing the count and updating
+      \( \textit{currentEnd} \).</li>
+
+  <li><strong>C++:</strong> Uses a <code>struct Interval</code> and a
+      <code>compare</code> function on <code>end</code>, passed to
+      <code>std::sort</code> for the presort. The greedy loop applies the same rule
+      \( \textit{start} \ge \textit{currentEnd} \) to decide which intervals to keep.</li>
+
+  <li><strong>Python:</strong> Represents each interval as a tuple
+      \( (\,\textit{start},\,\textit{end}\,) \) and sorts with
+      <code>list.sort</code> using a small key function \( \textit{end(iv)}=iv[1]\).
+	  This function simply returns the second point in the pair.
+      The single-pass loop selects intervals using the same
+      \( \textit{start} \ge \textit{current_end} \) test.</li>
+</ul>
+  <div class="tab-group">
+    <div class="tabs" role="tablist">
+      <button id="tab-java" class="tablink active" data-lang="java" role="tab" aria-controls="java" aria-selected="true">Java</button>
+      <button id="tab-cpp" class="tablink" data-lang="cpp" role="tab" aria-controls="cpp" aria-selected="false">C++</button>
+      <button id="tab-python" class="tablink" data-lang="python" role="tab" aria-controls="python" aria-selected="false">Python</button>
+    </div>
+    <div id="java" class="code-container active" role="tabpanel" aria-labelledby="tab-java">
+      <pre><code class="language-java">class Interval implements Comparable&lt;Interval&gt; {
+  int start, end;
+  Interval(int s, int e) { start = s; end = e; }
+
+  @Override
+  public int compareTo(Interval other) {
+    return Integer.compare(this.end, other.end); // ascending by finish time
+  }
+}
+
+int intervalSchedule(Interval[] intervals) {
+  // Handle empty input early
+  if (intervals.length == 0) return 0;
+  // Sort by finish time (ascending)
+  Arrays.sort(intervals);
+
+  // Seed from the first (earliest-finishing) interval
+  int count = 1;
+  int currentEnd = intervals[0].end;
+  for (int i = 1; i &lt; intervals.length; i++) {
+    Interval iv = intervals[i];
+    if (iv.start &gt;= currentEnd) {
+      count++;
+      currentEnd = iv.end;
+    }
+  }
+  return count;
+}</code></pre>
+    </div>
+    <div id="cpp" class="code-container" role="tabpanel" aria-labelledby="tab-cpp">
+      <pre><code class="language-cpp">#include &lt;algorithm&gt;
+#include &lt;vector&gt;
+
+struct Interval {
+  int start, end;
+};
+
+bool compare(const Interval&amp; a, const Interval&amp; b) {
+  return a.end &lt; b.end; // ascending by finish time
+}
+
+int intervalSchedule(std::vector&lt;Interval&gt;&amp; intervals) {
+  // Handle empty input early
+  if (intervals.empty()) return 0;
+  std::sort(intervals.begin(), intervals.end(), compare);
+  int count = 1;                    // take the first (earliest-finishing) interval
+  int currentEnd = intervals[0].end; // seed from its end time
+  int n = intervals.size();
+  for (int i = 1; i &lt; n; ++i) {
+    if (intervals[i].start &gt;= currentEnd) {
+      ++count;
+      currentEnd = intervals[i].end;
+    }
+  }
+  return count;
+}</code></pre>
+    </div>
+    <div id="python" class="code-container" role="tabpanel" aria-labelledby="tab-python">
+      <pre><code class="language-python">def end(iv):
+    return iv[1]
+
+def interval_schedule(intervals):
+    # Handle empty input early
+    if not intervals:
+        return 0
+    # Sort by finish time (ascending)
+    intervals.sort(key=end)
+    # Seed from the first (earliest-finishing) interval
+    count = 1
+    current_end = intervals[0][1]
+    for start, end_ in intervals[1:]:
+        if start &gt;= current_end:
+            count += 1
+            current_end = end_
+    return count</code></pre>
+    </div>
+  </div>
+  <p>
+    These implementations are intentionally minimal to emphasize the greedy structure and they
+    <em>only determine how many intervals</em> can be scheduled. To return the schedule, record each selected
+    interval (or its index) when chosen and return that list instead of just the count. 
+	This change does not affect asymptotic
+    time or space complexity. If desired, you can also standardize tie-breaking (e.g., prefer later starts among equal
+    finishes) without changing correctness.
+  </p>
+  </section>
+  <section id="analysis" section-title="Time/Space Analysis">
+	  <h2>Time/Space Analysis</h2>
+
+	  <p><strong>Time Complexity:</strong> 
+		The presorting step dominates the runtime. Sorting \( n \) intervals by finish time takes \( O(n \log n) \),
+		while the greedy sweep that follows runs in \( O(n) \).  
+		Therefore, the overall time complexity is \( O(n \log n) \).
+	  </p>
+
+	  <p><strong>Space Complexity:</strong> 
+		When sorting is done in place, only a few scalar variables are needed
+		(such as \( \textit{currentEnd} \) and the count), giving \( O(1) \) extra space.
+		If the sort produces a new list or array, the space cost rises to \( O(n) \).
+		Returning the actual intervals rather than just their count does not change asymptotic time,
+		but it requires storing up to \( O(n) \) selected intervals—still linear in space.
+	  </p>
+	</section>
+ 
+	 <section id="variations" section-title="Variations/Improvements">
+	  <h2>Variations/Improvements</h2>
+	  <p>There is not much to improve upon with this algorithm, other than returning the 
+	  intervals in the solution. However, there are a wide variety of scheduling problems.</p>
+	  <ul>
+		<li><strong>Weighted Interval Scheduling:</strong> 
+		  Assigns each interval a value or profit and seeks the subset with maximum total weight rather than the largest count.
+		  The greedy rule no longer works; a dynamic programming approach is required.</li>
+
+		<li><strong>Interval Partitioning (Minimizing Resources):</strong> 
+		  Flips the goal—given all intervals, minimize the number of machines or classrooms so that no overlaps share one.
+		  This version still uses sorting by start time but applies a different greedy rule.</li>
+
+		<li><strong>Scheduling with Overlaps or Buffers:</strong> 
+		  Some real systems permit limited overlaps or require setup gaps between intervals.
+		  These extensions often lead to priority-based or constraint-satisfaction formulations rather than pure greedy ones.</li>
+		<li><strong>Scheduling with Release Times and Deadlines:</strong> 
+		  Each job \( j \) has a release time \( r_j \) and a deadline \( d_j \); the task is to maximize the number of jobs
+		  completed within their available windows.  This generalization often uses dynamic programming or specialized greedy heuristics.</li>
+
+		<li><strong>Online Interval Scheduling:</strong> 
+		  Intervals arrive one by one, and decisions must be made immediately.
+		  Algorithms are compared by their <em>competitive ratio</em> against an optimal offline schedule.</li>
+
+		<li><strong>Multiple-Machine Scheduling:</strong> 
+		  Extends the single-machine case to \( m \) identical machines, balancing load or maximizing total scheduled time.
+		  Greedy or heap-based strategies are common.</li>
+
+	  </ul>
+	</section>
+
+	  <section id="links" section-title="Links to Resources">
+	  <h2>Links to Resources</h2>
+	  <ul> 
+		<li><a href="https://en.wikipedia.org/wiki/Interval_scheduling" target="_blank">Wikipedia: Interval Scheduling</a></li>
+		<li><a href="https://www.geeksforgeeks.org/greedy-algorithms-set-1-activity-selection-problem/">GeeksforGeeks: Activity Selection Problem</a></li>
+	  </ul>
+	  </section>
+
+<section id="reading-questions" section-title="Reading Comprehension Questions">
+  <h2>Reading Comprehension Questions</h2>
+  <ol>
+    <li><strong>Greedy rule:</strong> What local decision does the algorithm make at each step, and which quantity does it maintain to support that decision?</li>
+
+    <li><strong>Why it works:</strong> In one or two sentences, summarize the exchange argument that justifies choosing the earliest-finishing interval.</li>
+
+    <li><strong>Transform-and-Conquer:</strong> Why can the greedy interval scheduling algorithm
+	also be classified as a transform-and-conquer algorithm? What specific transformation simplifies the problem before applying the greedy rule?</li>
+
+    <li><strong>Selection condition:</strong> Write the precise condition (in symbols) that determines whether the current interval is taken. What does equality mean in this context?</li>
+
+    <li><strong>Complexities:</strong> State the overall time complexity and the extra space complexity when sorting is in place. How (if at all) do these change if we also return the actual selected intervals?</li>
+
+    <li><strong>Ties & stability:</strong> If two intervals share the same finish time, does the choice between them affect correctness? Does the stability of the sorting routine matter here?</li>
+
+    <li><strong>Counterexample instinct:</strong> Give a small example where sorting by <em>start</em> time and taking compatible intervals greedily produces a suboptimal set.</li>
+
+    <li><strong>Edge case check:</strong> Suppose the last chosen interval ends at 10. For a candidate interval with start 10 and end 13, is it selected? What about start 9 and end 13? Explain briefly.</li>
+  </ol>
+
+  <button id="toggleAnswers" class="show-answer" aria-expanded="false">Show Answers</button>
+  <div id="answers" class="answer" hidden>
+    <ol>
+      <li><strong>Answer:</strong> Always pick the interval that <em>finishes earliest</em> among those compatible with what’s already chosen, maintaining the running end time \( \textit{currentEnd} \) of the last selected interval.</li>
+
+      <li><strong>Answer:</strong> If an optimal schedule starts with some interval \(X\) instead of the earliest finisher \(E\), we can swap \(E\) in for \(X\) because \( \text{finish}(E) \le \text{finish}(X) \), keeping the rest feasible. Repeating this argument shows repeatedly picking the earliest finish remains optimal.</li>
+
+      <li><strong>Answer:</strong> It first <em>transforms</em> the problem by <em>presorting</em> all intervals by their finish times.
+	  This reordering turns the original unsorted selection problem into one where a single left-to-right sweep—and a simple greedy condition—produces the optimal set.
+	  The sort doesn't change the solution space, but it makes the greedy step straightforward and provably correct.</li>
+
+      <li><strong>Answer:</strong> Select the interval if \( \textit{start} \ge \textit{currentEnd} \). Equality (\(=\)) means back-to-back is allowed (no overlap), so the interval is taken.</li>
+
+      <li><strong>Answer:</strong> Time \( O(n \log n) \) (sorting dominates) and extra space \( O(1) \) if the sort is in place; otherwise \( O(n) \). Returning the schedule stores up to \( k \le n \) intervals, so space becomes \( O(k) \) (still \( O(n) \)); time remains \( O(n \log n) \).</li>
+
+      <li><strong>Answer:</strong> Correctness doesn’t depend on which equal-finish interval you choose; either choice keeps optimality. Sort stability can change <em>which</em> equal-finish interval appears first, but not correctness of the greedy outcome.</li>
+
+      <li><strong>Answer:</strong> Example: \(A=(1,10)\), \(B=(2,3)\), \(C=(3,4)\). Sorting by start and taking greedily yields \(\{A\}\) (size 1), while the optimal is \(\{B,C\}\) (size 2).</li>
+
+      <li><strong>Answer:</strong> Start \(=10\) meets \( \textit{start} \ge \textit{currentEnd} \), so it’s selected; start \(=9\) violates the condition and is skipped.</li>
+    </ol>
+  </div>
+</section>
+
+<section id="activities" section-title="In-Class Activities">
+  <h2>In-Class Activities</h2>
+  <ol>
+    <li><strong>Hand Trace:</strong> Apply the algorithm step by step on 6–10 unsorted intervals, first writing them in their original order and then in finish-time order. Mark which ones are chosen.</li>
+
+    <li><strong>Sorting Comparison:</strong> Run or simulate the algorithm twice—once sorting by start time and once by finish time—and explain why the results differ.</li>
+
+    <li><strong>Code Exercise:</strong> Implement the greedy interval scheduler in a language of your choice. Then modify it to also return the selected intervals, not just their count.</li>
+
+    <li><strong>Transform Step Focus:</strong> Discuss why the presorting step qualifies this as a <em>transform-and-conquer</em> algorithm. How does sorting make the greedy decision rule possible?</li>
+
+    <li><strong>Tie Handling:</strong> Create an example with two or more intervals that share the same finish time. Try different tie-breaking rules and verify that the total count remains optimal.</li>
+
+    <li><strong>Visual Timeline:</strong> Draw a horizontal timeline of all intervals and shade in the selected ones to illustrate how the algorithm skips overlapping regions.</li>
+
+    <li><strong>Counterexample Design:</strong> Construct an instance where a greedy strategy based on earliest start or shortest duration fails to find the optimal schedule.</li>
+	
+    <li><strong>Real-World Modeling:</strong> Model a real scheduling scenario (classrooms, bandwidth, interview slots, etc.) as an interval problem. Identify what "overlap" and "finish time" represent in your context. Discuss whether or not your problem seems like it would be solvable by a greedy algorithm.</li>
+
+    <li><strong>Greedy Rule Experiment:</strong> Invent your own scheduling rule (for example, choose the shortest interval first) and find a small example where it fails to be optimal.</li>
+
+    <li><strong>Greedy Comparison:</strong> Compare Interval Scheduling to another greedy algorithm you’ve studied, such as Fractional Knapsack or Kruskal’s Minimum Spanning Tree. What makes each greedy choice "safe" to commit to?</li>
+
+	<li><strong>Dual Problem Exploration:</strong> 
+	  Using the same set of intervals, compute both the maximum number of compatible intervals 
+	  (as in this chapter) and the minimum number of resources needed so that all intervals can run without overlapping. 
+	  Here, a "resource" could mean a classroom, machine, or worker—each can handle only one interval at a time. 
+	  The second problem (Interval Partitioning) asks for the fewest such resources required to schedule every interval, 
+	  and it can be solved with a different greedy rule based on earliest start times. 
+	  Compare how the two problems—maximizing usage vs. minimizing resources—mirror each other.
+	</li>
+  </ol>
+</section>
+
+<section id="problems" section-title="Homework Problems">
+  <h2>Homework Problems</h2>
+  <ol>
+    <li><strong>Step-by-Step Selection:</strong> 
+      Apply the greedy algorithm to the following intervals and show which are selected, in order.
+      Label each step clearly and indicate the value of \( \textit{currentEnd} \) after each selection.<br>
+      \(\small
+      A(1,4),\ B(3,5),\ C(0,6),\ D(5,7),\ E(3,9),\ F(5,9),\ G(6,10),\ H(8,11),\ I(8,12),\ J(2,14)
+      \)
+    </li>
+
+    <li><strong>Proof of Correctness:</strong> 
+      Prove that always selecting the earliest-finishing interval yields an optimal schedule.
+      Be explicit about your reasoning—state the inductive hypothesis or exchange argument clearly and justify each step.</li>
+
+    <li><strong>Interval Partitioning:</strong> 
+      Given a set of intervals that must all be scheduled, design a greedy algorithm to minimize the number of resources
+      (e.g., machines, classrooms) required so that no two overlapping intervals share one resource.
+      Describe your algorithm precisely, give its time complexity, and explain how it differs from the one used for Interval Scheduling.</li>
+
+    <li><strong>Transform Step Analysis:</strong> 
+      The algorithm begins with a presorting step that costs \(O(n \log n)\).
+      Suppose instead the intervals arrive already sorted by finish time.
+      What is the resulting time complexity, and what part of the algorithm dominates the cost now?</li>
+
+    <li><strong>Algorithm Extension:</strong> 
+      Modify the greedy algorithm so it returns the list of selected intervals instead of just the count.
+      Describe how much additional space and time this requires, and whether it changes the asymptotic complexity.</li>
+
+    <li><strong>Dual Perspective:</strong> 
+      Explain how Interval Scheduling (maximizing one resource’s usage) and Interval Partitioning (minimizing resources for full coverage)
+      represent two sides of the same underlying idea.
+      Provide a short example showing how both algorithms behave on the same set of intervals.</li>
+  </ol>
+</section>
+
+</body>
+</html>

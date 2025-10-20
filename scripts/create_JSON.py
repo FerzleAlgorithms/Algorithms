@@ -61,7 +61,7 @@ def build_menu_paths(chapters):
         return paths
 
     # Top-level: Home is always there (special case)
-    all_paths = ["home"]
+    all_paths = []
     for section, items in chapters.items():
         for path in recurse(items, section + "/"):
             all_paths.append(path)
