@@ -46,15 +46,22 @@
     .array-container { display: flex; gap: 10px; margin-top: 10px; margin-bottom: 10px; }
     h3 { margin: 5px 0; }
 
-    .legend-box {
+   .legend-box {
   display: inline-block;
   width: 12px;
   height: 12px;
   border: 1px solid black;
   margin: 0 4px;
   vertical-align: middle;
-}
+   }
 
+    /* Adaptive sizing: default fixed width, shrink uniformly only if needed */
+    :root { --cell-size: 40px; }
+    .subarray-row { display: flex; gap: 10px; flex-wrap: nowrap; align-items: flex-start; }
+    .subarray-row .element { width: var(--cell-size); height: 40px; }
+    /* Placeholders directly under subarray-row (invisible offset cells) */
+    .subarray-row > .element { width: var(--cell-size); height: 40px; }
+  
 .element {
   border: 1px solid #000;
 }
@@ -79,22 +86,29 @@
   <h2>Quick Select Demo</h2>
 
   <div id="controls">
-    <label>Size:
-  <input type="number" id="arraySize" min="8" max="20" value="16" size="2">
-</label>
-<button id="generate">Random Array</button>
-
-<label>K-th element:
-   <input type="number" id="kIndex" min="1" max="20" value="8" style="width: 40px;">
-  <button id="setKVal">Set k-val</button>
-</label>
-
-    <input type="text" id="customArray" placeholder="12,34,56,78" size="40">
-
-    <button id="useCustom">Create Array</button>
+    <div id="topControls" style="display:flex; gap:12px; align-items:center; flex-wrap:wrap; margin-bottom:8px;">
+      <label style="margin-right:4px;">k=
+        <input type="number" id="kIndex" min="1" max="20" value="8" style="width: 50px;">
+      </label>
+      <div id="sourceMode">
+        <label><input type="radio" name="srcMode" id="modeRandom" value="random" checked> Random</label>
+        <label style="margin-left:12px;"><input type="radio" name="srcMode" id="modeCustom" value="custom"> Custom</label>
+      </div>
+      <div id="randomControls" style="display:block;">
+        <label>Size:
+          <input type="number" id="arraySize" min="8" max="20" value="16" size="2">
+        </label>
+      </div>
+      <div id="customControls" style="display:none;">
+        <label>Array:
+          <input type="text" id="customArray" placeholder="12,34,56,78" size="40">
+        </label>
+      </div>
+    </div>
   </div>
 
   <div id="buttons" style="margin:10px 0;">
+    <button id="generate">Generate</button>
     <button id="prev" disabled>Previous</button>
     <button id="next" disabled>Next</button>
     <button id="play">Play</button>
@@ -135,6 +149,7 @@
 <script>
 (function(){
   let A = [], cur = 0, steps = [];
+  let originalA = [];
   let kthIndex = null;
   let userK = null; 
   const renderedSnapshots = new Set();
@@ -144,6 +159,19 @@
 
   function record(state) {
     steps.push(JSON.parse(JSON.stringify(state)));
+  }
+
+  function updateCellSize(n) {
+    // compute a cell width that fits within #boxes width; cap at 40, min 20
+    const container = document.getElementById('boxes');
+    if (!container || !n) return;
+    const rect = container.getBoundingClientRect();
+    const available = Math.max(0, rect.width);
+    const gap = 10; // matches CSS gap
+    const totalGaps = gap * Math.max(0, n - 1);
+    const raw = Math.floor((available - totalGaps) / n);
+    const cell = Math.max(20, Math.min(40, raw));
+    document.documentElement.style.setProperty('--cell-size', cell + 'px');
   }
 
   function render() {
@@ -310,6 +338,9 @@
       mainRow.appendChild(wrap);
     }
     mainC.appendChild(mainRow);
+
+    // Update adaptive cell size so both main and snapshots use the same width
+    updateCellSize(st.A.length);
 
     // Clear out old pivotIndices
     for (let d in pivotIndices) delete pivotIndices[d];
@@ -558,16 +589,15 @@ if (st.phase !== 'do-p' && st.phase !== 'base' && st.phase !== 'done') {
   if (low > high) return;
 
   // 1) only say “Quickselect [lo…hi] looking for k” on the very first (root) call
-if (depth === 0) {
-  record({
-    A: [...A],
-    low, high, depth,
-    phase: 'call',
-    highlightK: true,
-    // show the pseudocode call, but still echo the 1-based k
-    desc: `quickselect(A, 0, len(A) - 1, k - 1) looking for k = ${userK}`
-  });
-}
+  if (depth === 0) {
+    record({
+      A: [...A],
+      low, high, depth,
+      phase: 'call',
+      highlightK: true,
+      desc: `Call quickselect(A, 0, n-1, k=${k}) — looking for ${userK}-th smallest element`
+    });
+  }
 
 
   const pi = runPartition(A, low, high, depth);
@@ -601,7 +631,7 @@ if (depth === 0) {
       depth: depth + 1,
       phase: 'call',
       highlightK: true,
-      desc: `P < k: ${pi} < ${k} → return Quickselect(p+1,hi): Quickselect(${pi + 1},${high}) looking for k = ${k}`
+      desc: `P < k: ${pi} < ${k} → Quickselect(${pi + 1},${high}) looking for ${userK}-th smallest element`
     });
     quickSelect(A, pi + 1, high, k, depth + 1);
   }
@@ -674,7 +704,7 @@ if (depth === 0) {
           low, high,
           depth,
           phase: 'highlight-swap-pivot',
-          desc: `Swapping1 A[${j}] & A[${0}] (pivot)`
+          desc: `Swapping A[${j}] & A[${pivot}] (pivot)`
         });
         [arr[pivot], arr[j]] = [arr[j], arr[pivot]];
         record({
@@ -727,7 +757,14 @@ if (depth === 0) {
     const n = Math.min(Math.max(parseInt(document.getElementById('arraySize').value)||10,8),20);
     document.getElementById('arraySize').value = n;
     A = Array.from({length:n}, ()=>Math.floor(Math.random()*100));
+    originalA = [...A];
     document.getElementById('customArray').value = A.join(',');
+    // ensure k input is within [1..n]
+    const kInput = document.getElementById('kIndex');
+    kInput.max = String(n);
+    const reqK = parseInt(kInput.value, 10) || 1;
+    const clampK = Math.max(1, Math.min(n, reqK));
+    if (clampK !== reqK) kInput.value = String(clampK);
     steps = [];
     renderedSnapshots.clear();
     Object.keys(depthContainers).forEach(k => delete depthContainers[k]);
@@ -737,14 +774,16 @@ if (depth === 0) {
     const k = Math.max(1, Math.min(A.length, userK)) - 1;
     kthIndex = k;
 
-    quickSelect(A, 0, A.length - 1, k);
+    // run quickselect on a copy to avoid mutating A
+    const work = [...A];
+    quickSelect(work, 0, work.length - 1, k);
     record({
-      A:    [...A],
+      A:    [...work],
       low:  k,
       high: k,
       depth: 0,
       phase: 'done',
-      desc:  `Finished Quickselect — A[${k}] = ${A[k]}`
+      desc:  `Finished Quickselect — ${userK}-th smallest element = ${work[k]}`
     });
 
     cur = 0; render();
@@ -782,6 +821,7 @@ if (depth === 0) {
   const copy = [...arr];
   userK = parseInt(document.getElementById("kIndex").value, 10);      // ← assign global
   const k = Math.max(1, Math.min(copy.length, userK)) - 1;
+  kthIndex = k;
   quickSelect(copy, 0, copy.length - 1, k);
 
   record({
@@ -803,16 +843,20 @@ if (depth === 0) {
 
   // We no longer wire up prev-step/next-step directly,
   // because demoScripts.js will take over playback.
-  // IDs must be exactly “prev”, “next”, “play”, “speed”, “generate”, “useCustom”:
+  // IDs must be exactly “prev”, “next”, “play”, “speed” (controls above are local-only)
 
   // ─ expose onGenerate to demoScripts.js ─
   window.onGenerate = function(isCustom) {
     if (isCustom) {
       const txt = document.getElementById('customArray').value.trim();
-      return txt.split(',').map(s => parseInt(s.trim(), 10));
+      const arr = txt.split(',').map(s => parseInt(s.trim(), 10));
+      originalA = [...arr];
+      return arr;
     }
     const n = parseInt(document.getElementById('arraySize').value, 10);
-    return Array.from({ length: n }, () => Math.floor(Math.random() * 100));
+    const arr = Array.from({ length: n }, () => Math.floor(Math.random() * 100));
+    originalA = [...arr];
+    return arr;
   };
 
   // ─ expose genSteps to demoScripts.js ─
@@ -822,16 +866,20 @@ window.genSteps = function(arr) {
   Object.keys(depthContainers).forEach(k => delete depthContainers[k]);
   document.getElementById('subarrays').innerHTML = '';
 
-  const k = Math.floor(arr.length / 2); // or let the user specify it
-  quickSelect(arr, 0, arr.length - 1, k);
+  // respect user-selected k
+  const userKLocal = parseInt(document.getElementById('kIndex').value, 10);
+  const k = Math.max(1, Math.min(arr.length, userKLocal)) - 1;
+  kthIndex = k;
+  const work = [...arr];
+  quickSelect(work, 0, work.length - 1, k);
 
   record({
-    A:     [...arr],
+    A:     [...work],
     low:   k,
     high:  k,
     depth: 0,
     phase: 'done',
-    desc:  `Finished Quickselect — A[${k}] = ${arr[k]}`
+    desc:  `Finished Quickselect — ${userKLocal}-th smallest element = ${work[k]}`
   });
 
   return steps;
@@ -848,29 +896,55 @@ window.genSteps = function(arr) {
   // Finally, initialize so that “Generate” works on first load.
 window.addEventListener("DOMContentLoaded", () => {
   initDemo();
+  // set initial cell size and handle window resizes
+  const current = steps[0];
+  if (current && current.A) updateCellSize(current.A.length);
+  window.addEventListener('resize', () => {
+    const st = steps[cur] || steps[0];
+    if (st && st.A) updateCellSize(st.A.length);
+  });
 });
 
+// Toggle Random/Custom control visibility
+const randomRadio = document.getElementById("modeRandom");
+const customRadio = document.getElementById("modeCustom");
+const randomControls = document.getElementById("randomControls");
+const customControls = document.getElementById("customControls");
+
+function updateSourceVisibility() {
+  if (customRadio.checked) {
+    randomControls.style.display = 'none';
+    customControls.style.display = 'block';
+  } else {
+    randomControls.style.display = 'block';
+    customControls.style.display = 'none';
+  }
+}
+randomRadio.addEventListener('change', updateSourceVisibility);
+customRadio.addEventListener('change', updateSourceVisibility);
+// initialize visibility once
+updateSourceVisibility();
+
+// Single Generate button to generate from current mode
 document.getElementById("generate").addEventListener("click", () => {
-  A = onGenerate(false); // false means random
+  if (customRadio.checked) {
+    const txt = document.getElementById('customArray').value.trim();
+    A = txt ? txt.split(',').map(s => parseInt(s.trim(), 10)) : [];
+  } else {
+    const n = Math.min(Math.max(parseInt(document.getElementById('arraySize').value)||10,8),20);
+    document.getElementById('arraySize').value = n;
+    A = Array.from({ length: n }, () => Math.floor(Math.random() * 100));
+  }
+  originalA = [...A];
+  // clamp k to array length and update input max
+  const kInput = document.getElementById('kIndex');
+  kInput.max = String(A.length || 1);
+  const requestedK = parseInt(kInput.value, 10) || 1;
+  const clampedK = Math.max(1, Math.min(A.length || 1, requestedK));
+  if (clampedK !== requestedK) kInput.value = String(clampedK);
   restartDemoWith(A);
 });
 
-document.getElementById("useCustom").addEventListener("click", () => {
-  A = onGenerate(true); // true means use custom input
-  restartDemoWith(A);
-});
-
-
-// New — insert this (e.g. after your other .addEventListener calls, but before the end of the IIFE):
-document.getElementById("setKVal").addEventListener("click", () => {
-  // read the 1-based k from the input
-  userK = parseInt(document.getElementById("kIndex").value, 10);
-  // clamp to [1…A.length], convert to 0-based
-  const k = Math.max(1, Math.min(A.length, userK)) - 1;
-  kthIndex = k;
-  // (optionally give visual feedback:)
-  console.log(`Set k to ${userK} → index ${k}`);
-});
 
 let playInterval = null;
 let isPlaying = false;

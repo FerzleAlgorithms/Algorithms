@@ -505,6 +505,57 @@
       Modify the pivot rule to pick the median of the first, middle, and last elements of the current window.
       Run on <code>[1,2,3,4,5,6,7,8,9,10]</code> to find the 7th smallest and compare the number of partitions and comparisons to the first-pivot rule.
     </li>
+    <li><strong>Duplicates and Three-Way Partition:</strong>
+  Quickselect with a two-way partition (only "&lt; pivot" and "&gt;= pivot") can perform poorly when the pivot value occurs many times.
+  In this problem you will trace that behavior and then improve it with a three-way partition.
+
+  <ol type="a">
+    <li><em>Warm-up trace (two-way):</em>
+      Run Quickselect with the <u>first element of the current window</u> as pivot and a standard two-way partition to find the 5th smallest on
+      <code>A = [5, 2, 5, 5, 9, 5, 1, 5, 3, 5, 7, 5, 5]</code>.
+      For each partition show <code>lo</code>, <code>hi</code>, pivot value, pivot's final index <code>p</code>, and which side you recurse on.
+      Count comparisons for each partition (assume one pass over the current window).
+    </li>
+
+    <li><em>Observation:</em>
+      Comment on how efficient the algorithm was on that particular data set. 
+      What are your thoughts on whether or not we can do better when repeated values are present?
+    </li>
+
+    <li><em>Three-way partition:</em>
+      Modify partition to produce three regions in one pass: "&lt; pivot", "= pivot", "&gt; pivot".
+      Then Quickselect can decide in O(1) time whether:
+      <ul>
+        <li>the target rank lies in the "= pivot" block (done),</li>
+        <li>or it lies in the left block (recurse left),</li>
+        <li>or it lies in the right block (recurse right).</li>
+      </ul>
+      Give complete pseudocode for your new partition method.
+    </li>
+    <li><em>Complexity of three-way partition:</em>
+    What is the computational complexity of your new three-way partition algorithm? Justify your answer.</li>
+
+    <li><em>Run it again:</em>
+      Repeat (a) on the same array using your three-way partition.
+      Show the new sequence of windows and counts of comparisons/partitions.
+      Comment on whether or not the new partition seems to be doing its job well.
+    </li>
+
+    <li><em>Edge-case check:</em>
+      Consider <code>B = [4,4,4,4,4,4,4,4]</code>. For each rank \(k\in\{1,4,8\}\),
+      state what Quickselect should return and how many partitions your three-way version performs.
+      Does it perform as well as you expect? Explain.
+    </li>
+
+    <li><em>Brief conclusion:</em>
+      Is three-way partition worth doing when arrays have many repeated values? Explain.
+      Is three-way partition also worth doing when array do not have repeated values? 
+      In other words, is it at least as good as the regular paritition in this case or is there too much overhead?
+      In general, if you had to pick one, which version do you think you should use?
+    </li>
+  </ol>
+</li>
+
   </ol>
 </section>
 

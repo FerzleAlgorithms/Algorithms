@@ -150,6 +150,8 @@
     document.onmouseup = () => { dragNode = null; };
 
     let seen = new Set();
+
+    function eKey(a, b) { return a < b ? `${a}-${b}` : `${b}-${a}`; }
     function buildGraph(n) {
       seen = new Set();
       graph = {};
@@ -170,14 +172,13 @@
     }
 
     function addEdge(u, v) {
-      const key = u < v ? `${u}-${v}` : `${v}-${u}`;
+      const key = eKey(u, v);
       if (seen.has(key)) return;
       seen.add(key);
       const w = 1 + Math.floor(Math.random() * 19);
       graph[u].push({ v, w });
       graph[v].push({ v: u, w });
-      weightLookup[`${u}-${v}`] = w;
-      weightLookup[`${v}-${u}`] = w;
+      weightLookup[key] = w;
     }
 
     function draw(mst = []) {
@@ -188,10 +189,10 @@
         const ui = +u;
         for (let { v } of graph[ui]) {
           if (ui < v) {
-            const key = `${ui}-${v}`;
+            const key = eKey(ui, v);
             const line = document.createElementNS(svg.namespaceURI, 'line');
             const inMst = mst.some(e => (e[0] === ui && e[1] === v) || (e[0] === v && e[1] === ui));
-            line.className.baseVal = inMst ? 'edge mst' : 'edge';
+            line.setAttribute('class', inMst ? 'edge mst' : 'edge');
             svg.appendChild(line);
             edgeEls[key] = line;
             const label = document.createElementNS(svg.namespaceURI, 'text');
@@ -275,7 +276,7 @@
           changes: [], neighborMsgs: [], keys: key.slice(),
           parent: parent.slice(), visited: visited.slice(),
           mst: mst.slice(),
-          weight: mst.reduce((s,[a,b]) => s + weightLookup[`${a}-${b}`], 0),
+          weight: mst.reduce((s,[a,b]) => s + weightLookup[eKey(a,b)], 0),
           pq: pqb
         });
 
@@ -286,7 +287,7 @@
           type: 'remove', u, key: key[u], changes: [],
           neighborMsgs: [], keys: key.slice(), parent: parent.slice(),
           visited: visited.slice(), mst: mst.slice(),
-          weight: mst.reduce((s,[a,b]) => s + weightLookup[`${a}-${b}`], 0),
+          weight: mst.reduce((s,[a,b]) => s + weightLookup[eKey(a,b)], 0),
           pq: pqb.slice(1)
         });
 
@@ -310,7 +311,7 @@
           type: 'relax', u, changes, neighborMsgs,
           keys: key.slice(), parent: parent.slice(),
           visited: visited.slice(), mst: mst.slice(),
-          weight: mst.reduce((s,[a,b]) => s + weightLookup[`${a}-${b}`], 0),
+          weight: mst.reduce((s,[a,b]) => s + weightLookup[eKey(a,b)], 0),
           pq: pqa
         });
       }
