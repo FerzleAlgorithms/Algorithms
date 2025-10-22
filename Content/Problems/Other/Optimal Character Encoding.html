@@ -1,19 +1,20 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <title>Optimal Character Encoding</title>
   <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
   <link rel="stylesheet" href="../../../css/style.css">
   <link rel="stylesheet" href="../../../css/problem.css">
-<!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-DQ5LVZVFDC"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-  gtag('config', 'G-DQ5LVZVFDC');
-</script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DQ5LVZVFDC"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag() { dataLayer.push(arguments); }
+    gtag('js', new Date());
+    gtag('config', 'G-DQ5LVZVFDC');
+  </script>
 </head>
 
 <body>
@@ -27,10 +28,13 @@
       overall length of the encoded stream is minimized.
     </p>
     <p>
-      The codes must be <strong>prefix-free</strong>: no codeword is a prefix of another.
-      This ensures instantaneous decodability—once you’ve read a complete codeword,
-      you know exactly which character it represents, without needing delimiters or
-      lookahead.
+      We seek an optimal uniquely decodable binary code&mdash;that is, one in which each encoded
+      message can be interpreted in exactly one way. Decoding should also be fast.
+      With these goals in mind, and without loss of generality, we can restrict attention
+      to <strong>prefix-free</strong> (instantaneous) codes, since any feasible set of codeword
+      lengths for a uniquely decodable code can be realized by a prefix-free code with the same lengths.
+      The prefix property guarantees instantaneous decodability: once a codeword ends, the symbol is known
+      without lookahead.
     </p>
 
     <h3>Input</h3>
@@ -43,7 +47,7 @@
     <p>
       A prefix-free binary code for each character \(c_i\) that minimizes the total number of bits
       \[
-        \sum_i f_i \,\ell_i
+      \sum_i f_i \,\ell_i
       \]
       where \(\ell_i\) is the length of the code assigned to \(c_i\).
     </p>
@@ -59,7 +63,7 @@
     <p>
       Prefix-free codes are <em>instantaneously decodable</em>: as soon as the decoder
       sees a complete bit-pattern for one character, it can start decoding
-      the next character without any ambiguity or need to buffer extra bits.  Without the prefix property,
+      the next character without any ambiguity or need to buffer extra bits. Without the prefix property,
       you’d need special delimiters or potentially backtrack in the bitstream to figure out
       where one codeword ends and the next begins, which complicates both software and hardware
       implementations and slows down real-time decoding.
@@ -73,20 +77,20 @@
       <strong class="example-title">Example 1</strong><br>
       <strong>Input:</strong><br>
       \(
-        \{(A,45),\, (B,13),\, (C,12),\, (D,16),\, (E,9),\, (F,5)\}
+      \{(A,45),\, (B,13),\, (C,12),\, (D,16),\, (E,9),\, (F,5)\}
       \)
       <br><br>
       <strong>Output:</strong><br>
       One possible optimal prefix-free code:<br>
       \(
-        \begin{aligned}
-          A &\colon 0,\\
-          B &\colon 101,\\
-          C &\colon 100,\\
-          D &\colon 111,\\
-          E &\colon 1101,\\
-          F &\colon 1100.
-        \end{aligned}
+      \begin{aligned}
+      A &\colon 0,\\
+      B &\colon 101,\\
+      C &\colon 100,\\
+      D &\colon 111,\\
+      E &\colon 1101,\\
+      F &\colon 1100.
+      \end{aligned}
       \)
     </div>
 
@@ -95,20 +99,20 @@
       <strong class="example-title">Example 2</strong><br>
       <strong>Input:</strong><br>
       \(
-        \{(U,30),\, (V,25),\, (W,20),\, (X,15),\, (Y,7),\, (Z,3)\}
+      \{(U,30),\, (V,25),\, (W,20),\, (X,15),\, (Y,7),\, (Z,3)\}
       \)
       <br><br>
       <strong>Output:</strong><br>
       One optimal prefix-free code:<br>
       \(
-        \begin{aligned}
-          U &\colon 11,\\
-          V &\colon 10,\\
-          W &\colon 00,\\
-          X &\colon 011,\\
-          Y &\colon 0101,\\
-          Z &\colon 0100.
-        \end{aligned}
+      \begin{aligned}
+      U &\colon 11,\\
+      V &\colon 10,\\
+      W &\colon 00,\\
+      X &\colon 011,\\
+      Y &\colon 0101,\\
+      Z &\colon 0100.
+      \end{aligned}
       \)
     </div>
 
@@ -117,14 +121,14 @@
       <strong class="example-title">Example 3 (non-prefix code)</strong><br>
       <strong>Input:</strong><br>
       \(
-        \{(A,2),\, (B,1),\, (C,1)\}
+      \{(A,2),\, (B,1),\, (C,1)\}
       \)
       <br><br>
       <strong>Code (not prefix-free):</strong><br>
       \(
-        A\colon 0,\quad
-        B\colon 01,\quad
-        C\colon 1.
+      A\colon 0,\quad
+      B\colon 01,\quad
+      C\colon 1.
       \)
       <p class="note">
         This code is <em>not</em> prefix-free because the codeword for \(A\) (0) is a prefix of
@@ -152,4 +156,5 @@
     </ul>
   </section>
 </body>
+
 </html>

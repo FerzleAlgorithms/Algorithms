@@ -22,7 +22,7 @@
     font-family: monospace;
     min-height: 60px;
     white-space: pre-wrap;
-    width: 100vw;       /* viewport width */
+    width: 100%;        /* fill container, avoid horizontal overflow in iframe */
     overflow: hidden;   /* optional */
   }
 
@@ -55,11 +55,9 @@
   #queue-container {
     margin-top: 1em;
     padding: 1em;
+    /* Let it participate in normal flow so iframe height matches content */
     overflow-x: auto;
-    position: absolute;
-    left: 0;
-    width: 100vw;       /* viewport width */
-    overflow: hidden;   /* optional */
+    width: 100%;
   }
 
   /* New Play/Pause + Speed styles */
@@ -92,7 +90,7 @@
 
 <h3>Priority Queue (Tree Forest)</h3>
 <div id="queue-container">
-  <svg id="queue-svg" style="width: 100vw; height: 600px;"></svg>
+  <svg id="queue-svg" style="width: 100%;"></svg>
 </div>
 
 <script>
