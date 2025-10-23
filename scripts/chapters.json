@@ -39,6 +39,7 @@
     {
       "Greedy": [
         "Fractional Knapsack.html",
+        "Huffman Encoding.html",
         "Interval Scheduling.html",
         "Merge.html"
       ]
@@ -192,7 +193,7 @@
       "DRAFTS": [
         "Algorithms/Decrease-and-Conquer/Topological Sort DRAFT.html",
         "Algorithms/Exhaustive Search/Topological Sort (DFS) DRAFT.html",
-        "Algorithms/Greedy/Huffman Encoding DRAFT.html",
+        "Algorithms/Greedy/0-1 Knapsack DRAFT.html",
         "Algorithms/Space-Time Tradeoff/Boyer-Moore_DRAFT.html",
         "Algorithms/Transform-and-Conquer/Horners Rule DRAFT.html"
       ]

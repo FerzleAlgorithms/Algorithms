@@ -232,6 +232,9 @@ function buildAndWrap() {
       "BUTTON",
       "INPUT", 
       "OPTION",
+	  "TITLE",
+	  "SVG",
+	  "FIGURE",
       "STRONG"]);
   function acceptNode(node) {
     let el = node.parentElement;

@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Huffman Encoding</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js"></script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <script src="/Algorithms/scripts/chapterScripts.js"></script>
+  <link rel="stylesheet" href="/Algorithms/css/style.css">
+  <link rel="stylesheet" href="/Algorithms/css/chapter.css">
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DQ5LVZVFDC"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag() { dataLayer.push(arguments); }
+    gtag('js', new Date());
+    gtag('config', 'G-DQ5LVZVFDC');
+  </script>
+</head>
+
+<body>
+  <h1>Huffman Encoding</h1>
+
+  <section id="problem-solved" section-title="Problem Solved">
+    <h2>Problem Solved</h2>
+    <p>
+      Huffman Encoding solves the
+      <a class="problem" href="?path=Problems%2FOther%2FOptimal%20Character%20Encoding">Optimal Character Encoding</a>
+      problem.
+    </p>
+  </section>
+
+  <section id="design" section-title="Design and Strategy">
+    <h2>Design and Strategy</h2>
+    <p>
+      The goal of an <em>optimal prefix code</em> is to store data in as few bits as possible while still allowing
+      unambiguous decoding.
+      In standard text files, each character is often stored using a fixed-length encoding&mdash;such as 8 bits for
+      ASCII or 16 bits for Unicode.
+      That approach is simple but inefficient when certain characters appear far more frequently than others. For
+      example,
+      in English text, spaces, vowels, and a few consonants dominate, while others like <code>z</code> or <code>q</code>
+      appear rarely.
+    </p>
+    <p>
+      Huffman Encoding improves efficiency by assigning <em>shorter binary codes</em> to frequent characters and
+      <em>longer codes</em> to infrequent ones, based on their frequencies in the data.
+      The result is a <em>prefix-free</em> binary code&mdash;no code is the prefix of another&mdash;so decoding is
+      straightforward.
+      The total number of bits required to represent the entire message is minimized under this constraint.
+      We'll see how to compute a Huffman encoding after a quick example.
+    </p>
+
+
+    <section id="example" section-title="Example">
+      <div class="example-box" style="max-width: 860px;">
+        <strong class="example-title">Example</strong>
+        <p>Here is an example of a small set of characters and their frequencies in some file
+          with one possible Huffman Encoding of the data given in the final column.</p>
+        <table class="example-table left-align" style="max-width: 500px;">
+          <thead>
+            <tr>
+              <th>Symbol</th>
+              <th>Frequency</th>
+              <th>Code</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>C</td>
+              <td>12</td>
+              <td>011</td>
+            </tr>
+            <tr>
+              <td>F</td>
+              <td>45</td>
+              <td>1</td>
+            </tr>
+            <tr>
+              <td>A</td>
+              <td>5</td>
+              <td>0011</td>
+            </tr>
+            <tr>
+              <td>D</td>
+              <td>13</td>
+              <td>010</td>
+            </tr>
+            <tr>
+              <td>E</td>
+              <td>16</td>
+              <td>000</td>
+            </tr>
+            <tr>
+              <td>B</td>
+              <td>9</td>
+              <td>0010</td>
+            </tr>
+          </tbody>
+        </table>
+        <p>
+          You encode using the table and decode using the tree (see below).
+          With this encoding, "FACE" encodes as
+          <code>1 0011 011 000</code> → <code>10011011000</code>.
+        </p>
+        <p>
+          To decode, you follow the Huffman encoding tree (see the diagram below) as you read bit-by-bit.
+          Start at the root and follow each bit in sequence:
+          move left for 0 and right for 1 until you reach a leaf labeled with a character.
+          Then return to the root and continue with the next bit.
+          For example, decoding <code>01110011</code> by walking the tree bit-by-bit produces the sequence
+          <code>CFA</code>:
+          <code>011</code> → C, <code>1</code> → F, and <code>0011</code> → A.
+
+        </p>
+        <figure>
+        <svg width="500" height="290" xmlns="http://www.w3.org/2000/svg"
+          style="border:1px solid #888;background:#f9fbff">
+          <title id="huffcap" class="no-tooltip">Huffman tree for A-F</title>
+          <g font-family="monospace" font-size="12" transform="translate(-125,0)">
+            <!-- Root and first split (left=0, right=1) -->
+            <line x1="430" y1="30" x2="280" y2="90" stroke="#333" /><text x="345" y="62">0</text>
+            <line x1="430" y1="30" x2="580" y2="90" stroke="#333" /><text x="510" y="62">1</text>
+
+            <!-- Second level under left subtree: 55 splits into 30 (LL) and 25 (LR) -->
+            <line x1="280" y1="90" x2="210" y2="150" stroke="#333" /><text x="238" y="122">0</text>
+            <line x1="280" y1="90" x2="350" y2="150" stroke="#333" /><text x="318" y="122">1</text>
+
+            <!-- LL=30 splits into E:16 (left) and node 14 (right) -->
+            <line x1="210" y1="150" x2="170" y2="200" stroke="#333" /><text x="180" y="178">0</text>
+            <line x1="210" y1="150" x2="250" y2="190" stroke="#333" /><text x="240" y="175">1</text>
+
+            <!-- Node 14 splits into B:9 (left) and A:5 (right) -->
+            <line x1="260" y1="190" x2="240" y2="240" stroke="#333" /><text x="235" y="230">0</text>
+            <line x1="250" y1="190" x2="280" y2="240" stroke="#333" /><text x="275" y="230">1</text>
+
+            <!-- LR=25 splits into D:13 (left) and C:12 (right) -->
+            <line x1="350" y1="150" x2="310" y2="200" stroke="#333" /><text x="320" y="178">0</text>
+            <line x1="350" y1="150" x2="390" y2="200" stroke="#333" /><text x="375" y="178">1</text>
+
+            <!-- Node boxes (weights) -->
+            <rect x="410" y="15" width="40" height="30" fill="#eef" stroke="#333" />
+            <text x="430" y="34" text-anchor="middle">100</text>
+
+            <rect x="260" y="75" width="40" height="30" fill="#eef" stroke="#333" />
+            <text x="280" y="94" text-anchor="middle">55</text>
+
+            <circle cx="580" cy="100" r="14" fill="#ffd" stroke="#333" />
+            <text x="580" y="102" text-anchor="middle">F:45</text>
+            <text x="580" y="125" text-anchor="middle">1</text>
+
+            <rect x="190" y="135" width="40" height="30" fill="#eef" stroke="#333" />
+            <text x="210" y="154" text-anchor="middle">30</text>
+
+            <rect x="330" y="135" width="40" height="30" fill="#eef" stroke="#333" />
+            <text x="350" y="154" text-anchor="middle">25</text>
+
+            <!-- Node 14 box -->
+            <rect x="245" y="185" width="30" height="24" fill="#eef" stroke="#333" />
+            <text x="260" y="205" text-anchor="middle">14</text>
+
+            <!-- Leaves -->
+            <circle cx="170" cy="200" r="14" fill="#ffd" stroke="#333" />
+            <text x="170" y="204" text-anchor="middle">E:16</text>
+            <text x="170" y="225" text-anchor="middle">000</text>
+
+            <circle cx="240" cy="250" r="14" fill="#ffd" stroke="#333" />
+            <text x="240" y="254" text-anchor="middle">B:9</text>
+            <text x="240" y="275" text-anchor="middle">0010</text>
+
+            <circle cx="280" cy="250" r="14" fill="#ffd" stroke="#333" />
+            <text x="280" y="254" text-anchor="middle">A:5</text>
+            <text x="280" y="275" text-anchor="middle">0011</text>
+
+            <circle cx="310" cy="200" r="14" fill="#ffd" stroke="#333" />
+            <text x="310" y="204" text-anchor="middle">D:13</text>
+            <text x="310" y="225" text-anchor="middle">010</text>
+
+            <circle cx="390" cy="200" r="14" fill="#ffd" stroke="#333" />
+            <text x="390" y="204" text-anchor="middle">C:12</text>
+            <text x="390" y="225" text-anchor="middle">011</text>
+          </g>
+        </svg>
+          <figcaption>
+          <strong>Huffman tree for symbols A-F</strong> 
+        </figcaption>
+        </figure>
+        <p>
+          We will explain how to <em>construct</em> this tree next; for now, notice the most
+          frequent symbol <code>F</code> gets the shortest encoding, and the most infrequent letters, <code>A</code>
+          and <code>B</code>,
+          get the longest encoding.</p>
+      </div>
+    </section>
+    <p>
+      The Huffman encoding algorithm employs a <em>greedy strategy</em> to construct an optimal prefix code.
+      At each step, it merges the two least frequent symbols or subtrees into a new combined node
+      whose weight equals the sum of their frequencies.
+      Building the tree from the bottom up ensures that frequent symbols end up near the root with shorter codes,
+      while rare symbols are placed deeper and receive longer codes.
+      Once the tree is complete, each symbol's code is determined by the path from the root to its leaf:
+      move left for a <code>0</code> and right for a <code>1</code>.
+    </p>
+
+    <p>
+      Huffman encoding produces the most compact representation possible
+      <em>among all prefix-free, single-character codes</em> for a given set of symbol frequencies.
+      Methods that encode longer sequences or use fractional bit lengths
+      (such as arithmetic or range coding) can achieve slightly better compression
+      but operate under different principles.
+    </p>
+
+    <p>
+      The construction relies on a <em>min-priority queue</em> that always provides access to the two smallest remaining
+      nodes.
+      At each step, we remove those two nodes, merge them into a new node whose weight is their combined frequency,
+      and reinsert that node into the queue. Repeating this process until only one node remains yields the Huffman tree.
+    </p>
+
+    <p>
+      Given a set of symbols and their frequencies, which might be expressed as raw counts, 
+      probabilities that sum to 1, or percentages that sum to 100,
+      the steps below describe how to construct the Huffman tree.
+    </p>
+
+    <p><strong>Pseudocode.</strong></p>
+    <ol class="spaced">
+      <li>Create a leaf node for each symbol with weight \(f(c)\), and insert all leaves into a <em>min-heap</em> keyed
+        by weight.</li>
+      <li>While the heap contains more than one node:
+        <ol>
+          <li>Remove the two nodes with the smallest weights, call them \(u\) and \(v\).</li>
+          <li>Create a new internal node \(w\) with children \(u\) (edge 0) and \(v\) (edge 1), and weight \(f(u) +
+            f(v).\)</li>
+          <li>Insert \(w\) back into the heap.</li>
+        </ol>
+      </li>
+      <li>The remaining node in the heap becomes the root of the Huffman tree.</li>
+      <li>Assign binary codes by performing a depth-first traversal of the tree (left = 0, right = 1).</li>
+    </ol>
+    <section id="optimality" section-title="Why the Greedy Approach Is Optimal">
+      <h3>Why the Greedy Approach Is Optimal</h3>
+
+      <p>
+        Huffman's algorithm is based on a simple greedy rule: at each step, combine the two least frequent symbols (or
+        subtrees)
+        into a new node. The key question is why this local choice—pairing the two smallest weights first—always leads
+        to a globally
+        optimal prefix code. We give a brief overview of the proof of optimality here, but leave the full details to
+        more advanced texts.
+      </p>
+
+      <p>
+        The intuition is that the two least frequent symbols should appear deepest in the final tree because they
+        contribute the least
+        to the total weighted path length (frequency × code length). By merging them first, Huffman ensures they end up
+        as siblings
+        with the largest possible depth, minimizing their impact on the overall cost.
+      </p>
+
+      <p>
+        Formally, optimality can be shown using an <em>exchange argument</em>:
+        given any optimal prefix tree, if the two least frequent symbols are not siblings at the greatest depth,
+        they can be swapped with the pair that is without increasing the total cost.
+        This shows there exists an optimal tree where the two smallest frequencies are siblings.
+        Huffman's algorithm constructs exactly such a tree by making that choice repeatedly.
+      </p>
+
+      <p>
+        The algorithm also exhibits the <em>optimal substructure property</em>.
+        Once the two smallest symbols are combined into a single node of weight
+        \( f(u) + f(v) \), finding the optimal code for the remaining symbols&mdash;including this new node&mdash;is
+        equivalent to solving a smaller instance of the same problem.
+        Thus, each greedy step reduces the problem size by one while preserving optimality.
+      </p>
+
+      <p>
+        Together, these two properties&mdash;<em>greedy choice</em> and <em>optimal substructure</em>&mdash;guarantee
+        that Huffman encoding always produces an optimal prefix-free code for a given set of symbol frequencies.
+      </p>
+    </section>
+
+    <p>See the interactive demo to get a better picture of how the algorithm works.</p>
+  </section>
+
+  <section id="demo" section-title="Interactive Demo">
+    <p>
+      This demo starts with a string of text rather than a frequency table to keep things concrete.
+      Paste some text and click <em>Start</em> to watch the Huffman tree build step by step.
+      The top row shows the current min-priority queue (roots of subtrees). Use fullscreen if the queue gets wide.
+    </p>
+    <div class="embeddedDemoContainer">
+      <iframe class="embeddedDemo" src="/Algorithms/Content/Demos/Greedy/Huffman Encoding Demo.html" allow="fullscreen"
+        name="Huffman_Encoding-demo">
+      </iframe>
+    </div>
+  </section>
+
+  <section id="code" section-title="Implementation in Java, C++, Python">
+    <h2>Implementation in Java, C++, Python</h2>
+    <p>
+      All three implementations below follow the same structure:
+      each character and its frequency become a leaf node, and a
+      <em>min-priority queue</em> (heap) repeatedly merges the two smallest
+      subtrees until a single tree remains.
+      Each implementation returns the <em>root of the Huffman tree</em>,
+      which can then be used to generate the set of binary codes or to decode
+      an encoded message.
+      The input to each version is a mapping from symbols to their frequencies,
+      representing how often each symbol appears in the data.
+      Once the tree is complete, a recursive traversal assigns
+      binary codes to each symbol: <code>0</code> for a left edge,
+      <code>1</code> for a right edge.
+    </p>
+
+    <ul>
+      <li><strong>Java:</strong> Uses a <code>Map&lt;Character,Integer&gt;</code> to store symbol frequencies
+        and the built-in <code>PriorityQueue</code> class for the heap.</li>
+      <li><strong>C++:</strong> Uses a <code>const unordered_map&lt;char,int&gt;&amp;</code> as the frequency table
+        and <code>std::priority_queue</code> with a custom comparator to form a min-heap.</li>
+      <li><strong>Python:</strong> Uses a standard <code>dict</code> to map symbols to integer frequencies
+        and the <code>heapq</code> module for the heap.</li>
+    </ul>
+
+    <div class="tab-group">
+      <div class="tabs" role="tablist">
+        <button id="tab-java" class="tablink active" data-lang="java" role="tab" aria-controls="java"
+          aria-selected="true">Java</button>
+        <button id="tab-cpp" class="tablink" data-lang="cpp" role="tab" aria-controls="cpp"
+          aria-selected="false">C++</button>
+        <button id="tab-python" class="tablink" data-lang="python" role="tab" aria-controls="python"
+          aria-selected="false">Python</button>
+      </div>
+
+      <!-- Java Implementation -->
+      <div id="java" class="code-container active" role="tabpanel" aria-labelledby="tab-java">
+        <pre><code class="language-java">import java.util.*;
+
+class Node {
+    char ch;
+    int freq;
+    Node left, right;
+    Node(char ch, int freq) { this.ch = ch; this.freq = freq; }
+    Node(Node left, Node right) {
+        this.ch = '\0';
+        this.freq = left.freq + right.freq;
+        this.left = left; this.right = right;
+    }
+}
+class NodeComparator implements Comparator&lt;Node&gt; {
+    public int compare(Node a, Node b) {
+        return Integer.compare(a.freq, b.freq);
+    }
+}
+
+public class HuffmanEncoding {
+    public static Node buildHuffman(Map&lt;Character,Integer&gt; freq) {
+        PriorityQueue&lt;Node&gt; pq = new PriorityQueue&lt;&gt;(new NodeComparator());
+        for (Map.Entry&lt;Character, Integer&gt; e : freq.entrySet())
+            pq.add(new Node(e.getKey(), e.getValue()));
+
+        while (pq.size() &gt; 1) {
+            Node u = pq.poll(), v = pq.poll();
+            pq.add(new Node(u, v));
+        }
+        return pq.poll();
+    }</code></pre>
+      </div>
+
+      <!-- C++ Implementation -->
+      <div id="cpp" class="code-container" role="tabpanel" aria-labelledby="tab-cpp">
+        <pre><code class="language-cpp">#include &lt;queue&gt;
+#include &lt;unordered_map&gt;
+#include &lt;utility&gt;
+
+struct Node {
+    char ch; int freq;
+    Node *left, *right;
+    Node(char c, int f): ch(c), freq(f), left(nullptr), right(nullptr) {}
+    Node(Node* l, Node* r): ch('\\0'), freq(l-&gt;freq + r-&gt;freq), left(l), right(r) {}
+};
+
+struct Compare {
+    bool operator()(Node* a, Node* b) const { return a-&gt;freq &gt; b-&gt;freq; }
+};
+
+Node* buildHuffman(const unordered_map&lt;char,int&gt;&amp; freq) {
+    priority_queue&lt;Node*, vector&lt;Node*&gt;, Compare&gt; pq;
+    for (const pair&lt;const char, int&gt;& p : freq) pq.push(new Node(p.first, p.second));
+    while (pq.size() &gt; 1) {
+        Node* u = pq.top(); pq.pop();
+        Node* v = pq.top(); pq.pop();
+        pq.push(new Node(u, v));
+    }
+    return pq.top();
+}</code></pre>
+      </div>
+
+      <!-- Python Implementation -->
+      <div id="python" class="code-container" role="tabpanel" aria-labelledby="tab-python">
+        <pre><code class="language-python">import heapq
+class Node:
+    # Constructor: create a new node with a given frequency and optional character/children
+    def __init__(self, freq, ch=None, left=None, right=None):
+        self.freq, self.ch, self.left, self.right = freq, ch, left, right
+    
+    # Define "less than" for heap comparisons: smaller frequency = higher priority
+    def __lt__(self, other):
+        return self.freq &lt; other.freq
+
+def build_huffman(freq):
+    pq = [Node(f, ch) for ch, f in freq.items()]
+    heapq.heapify(pq)
+    while len(pq) &gt; 1:
+        u, v = heapq.heappop(pq), heapq.heappop(pq)
+        heapq.heappush(pq, Node(u.freq + v.freq, None, u, v))
+    return pq[0]</code></pre>
+      </div>
+    </div>
+
+    <p>
+      To obtain the final encoding, we perform a traversal of the Huffman tree starting from the root.
+      Each time the algorithm moves to a left child, it appends a <code>0</code> to the current bit string;
+      each time it moves to a right child, it appends a <code>1</code>.
+      When a leaf node is reached, that accumulated string becomes the code for the symbol stored there.
+      A simple recursive algorithm works well for this task: pass along the current prefix as an argument,
+      extend it by one bit at each level, and record the result when a leaf is found.
+      As we visit all leaves, we can build a complete <em>encoding table</em> that maps each symbol to its binary code.
+      This table allows efficient encoding of text, while the same tree structure can later be used for decoding by
+      following the bits
+      until a leaf is reached and outputting the corresponding symbol.
+    </p>
+  </section>
+
+  <section id="analysis" section-title="Time/Space Analysis">
+    <h2>Time/Space Analysis</h2>
+    <p><strong>Time Complexity:</strong>
+      Assume there are \(n\) distinct symbols with known frequencies.
+      All symbols can be placed into a min-priority queue in \(O(n)\) time using a standard heap construction.
+      The main loop then repeatedly removes the two smallest nodes, merges them, and reinserts the new node,
+      performing \(n - 1\) merge steps.
+      Each remove and insert operation takes \(O(\log n)\) time,
+      so the total time for all merges is \(O(n \log n)\).
+      Thus, the overall running time is \(O(n \log n)\).
+    </p>
+
+    <p><strong>Space Complexity:</strong> The final tree contains \(2n - 1\) nodes,
+      so the additional space needed is \(O(n)\).</p>
+
+    <p><strong>The Rest of the Story:</strong>
+      We did not detail how to build the <em>encoding table</em> from the tree or how to encode/decode text.
+      The table is obtained by a simple DFS over the Huffman tree (left = 0, right = 1), recording the bit string at
+      each leaf;
+      this takes \(O(n)\) time when there are \(n\) distinct symbols.
+      Using that table, encoding a text of length \(m\) characters runs in \(O(m)\) time (one lookup per character),
+      and decoding an encoded bitstream of length \(L\) bits runs in \(O(L)\) time by walking the tree bit-by-bit.
+    </p>
+  </section>
+
+  <section id="variations" section-title="Variations/Improvements">
+    <h2>Variations/Improvements</h2>
+    <p>Here are some variations/improvements on the basic Huffman coding scheme. We leave it to you to find sources
+      that explain these in more detail.
+    </p>
+    <ul class="spaced">
+      <li><strong>Canonical Huffman:</strong> Store only code lengths; reconstruct codes deterministically in
+        lexicographic order.
+        Faster decoder setup, smaller headers, and simple table-driven decoding.</li>
+
+      <li><strong>Length-Limited Huffman:</strong> Constrain max code length (e.g., 15 bits) for hardware/format limits.
+        Typically solved via <em>Package-Merge</em>; yields optimal codes under the length cap.</li>
+
+      <li><strong>Adaptive (Online) Huffman:</strong> Update the tree as symbols arrive (FGK/Vitter algorithms).
+        Avoids a two-pass process when frequencies are unknown or data streams continuously.</li>
+
+      <li><strong>Alphabetic (Hu-Tucker):</strong> If symbols must preserve sorted (alphabetic) order in the code tree,
+        Hu-Tucker produces an optimal alphabetic prefix code (Huffman does not enforce order).</li>
+
+      <li><strong>\(k\)-ary/4-way Heaps:</strong> Implementation detail that reduces heap height and can speed
+        construction in practice.
+        Useful for large alphabets or performance-critical builds.</li>
+
+      <li><strong>Table-Based Decoding:</strong> Build lookup tables from canonical lengths (e.g., first-\(N\)-bit
+        tables)
+        to decode multiple bits at a time for near \(O(1)\) average step cost.</li>
+
+      <li><strong>Blocking/\(n\)-gram Huffman:</strong> Code fixed-length symbol blocks (e.g., byte pairs) to capture
+        short-range dependence;
+        improves compression on some data at the cost of larger alphabets and tables.</li>
+
+      <li><strong>Hybrid Pipelines:</strong> Combine with <em>Run-Length Encoding</em> (RLE) before Huffman for long
+        runs,
+        or follow Huffman with bit-packing/byte-alignment steps for faster I/O.</li>
+
+      <li><strong>Shannon-Fano (contrast):</strong> A related top-down scheme that is simpler but not guaranteed
+        optimal;
+        useful as a teaching comparison to highlight why Huffman's greedy pairing is superior.</li>
+
+      <li><strong>Notes on Ties and Determinism:</strong> Tie-breaking between equal frequencies changes the specific
+        codes
+        but not total cost; use stable ordering (e.g., by symbol) for reproducible outputs.</li>
+    </ul>
+  </section>
+
+  <section id="links" section-title="Links to Resources">
+    <h2>Links to Resources</h2>
+    <ul class="resource-list">
+      <li>
+        <a href="https://en.wikipedia.org/wiki/Huffman_coding" target="_blank">Wikipedia: Huffman Coding</a>
+        Overview of the algorithm, proofs of optimality, and related coding schemes.
+      </li>
+      <li>
+        <a href="https://www.geeksforgeeks.org/huffman-coding-greedy-algo-3/" target="_blank">GeeksforGeeks: Huffman
+          Coding (Greedy Algorithm)</a>
+        Step-by-step explanation with examples and code in multiple languages.
+      </li>
+      <li>
+        <a href="https://www.programiz.com/dsa/huffman-coding" target="_blank">Programiz: Huffman Coding</a>
+        Clear walk-through with diagrams and pseudocode for encoding and decoding.
+      </li>
+    </ul>
+  </section>
+  <section id="reading-questions" section-title="Reading Comprehension Questions">
+    <h2>Reading Comprehension Questions</h2>
+    <ol class="spaced">
+      <li><strong>Goal & Setting:</strong> What problem does Huffman encoding solve, and what constraint do its codes
+        satisfy?</li>
+      <li><strong>Prefix-Free:</strong> What does "prefix-free" mean, and how does the tree representation guarantee it?
+      </li>
+      <li><strong>Greedy Step:</strong> What is the greedy choice in Huffman's algorithm and why is it reasonable?</li>
+      <li><strong>Data Structure:</strong> Which data structure is used to choose nodes during construction, and what
+        operation do we repeat?</li>
+      <li><strong>Loop Invariant:</strong> In the main loop, how does the number of nodes change each iteration, and
+        when do we stop?</li>
+      <li><strong>Complexity:</strong> Assuming <em>n</em> distinct symbols with known frequencies, what is the running
+        time to build the tree and why?</li>
+      <li><strong>Encoding Example:</strong> Using the example encoding table, what is the bitstring for the word
+        <code>CAFE</code>?</li>
+      <li><strong>Decoding Walk:</strong> Using the example's tree,
+        how would you decode the bitstring <code>01000110010</code>?</li>
+      <li><strong>Encoding Table:</strong> How do we produce the encoding table from the tree, and what is the time to
+        build it in terms of <em>n</em>?</li>
+      <li><strong>Ties & Canonical:</strong> What effect do frequency ties have on the codes, and what does a
+        "canonical" Huffman code standardize?</li>
+    </ol>
+
+    <button id="toggleAnswers" class="show-answer" aria-expanded="false">Show Answers</button>
+    <div id="answers" class="answer" hidden>
+      <ol class="spaced">
+        <li><strong>Answer:</strong> It finds an optimal variable-length binary code that minimizes total bits for a
+          given set of symbol frequencies, under the constraint that the code is prefix-free.</li>
+        <li><strong>Answer:</strong> No codeword is the prefix of another. In a binary tree with symbols only at leaves,
+          each root-to-leaf path is unique and cannot be a prefix of another leaf's path.</li>
+        <li><strong>Answer:</strong> Always merge the two least-frequent available nodes. It's reasonable because the
+          least frequent symbols should be deepest (longest codes), minimizing their contribution to the weighted path
+          length.</li>
+        <li><strong>Answer:</strong> A min-priority queue (heap). We repeatedly extract the two smallest-weight nodes,
+          merge them into a new node, and push the merged node back.</li>
+        <li><strong>Answer:</strong> Each iteration replaces two nodes with their merged parent, reducing the node count
+          by one. We stop when only a single node—the root—remains.</li>
+        <li><strong>Answer:</strong> \(O(n \log n)\). Using heap construction, inserting all \(n\) leaves is \(O(n)\),
+          and the \(n-1\) merge steps each do extract/insert in \(O(\log n)\).</li>
+        <li><strong>Answer:</strong> From the table: C → 011, A → 0011, F → 1, E → 000.
+          Concatenating these gives <code>01100111000</code>.</li>
+        <li><strong>Answer:</strong> Start at the root, follow bits left/right until a leaf is reached (emit that
+          symbol),
+          then return to the root and continue.
+          For the given example, <code>010</code>→D, <code>0011</code>→A, <code>0010</code>→B, yielding
+          <code>DAB</code>.</li>
+        <li><strong>Answer:</strong> Do a DFS from the root, appending 0 for left and 1 for right; record the current
+          path at each leaf. This visits all leaves once and takes \(O(n)\) time for \(n\) distinct symbols.</li>
+        <li><strong>Answer:</strong> Ties can change which exact bitstrings symbols get, but not the total cost. A
+          canonical Huffman code fixes the code <em>lengths</em> and assigns codes deterministically (e.g., by sorted
+          order), improving header compactness and decoder setup.</li>
+      </ol>
+    </div>
+  </section>
+
+  <section id="activities" section-title="In-Class Activities">
+    <h2>In-Class Activities</h2>
+    <ol class="spaced">
+      <li><strong>Digging Deeper into Huffman Encoding:</strong>
+        Consider the following characters and frequencies (Or choose your own): &nbsp; &nbsp;
+        <code>[A:85, B:9, C:2, D:13, E:16, F:25, G:8]</code>
+        <ol type='a'>
+          <li>Construct the Huffman tree step by step on paper, merging the smallest pairs each time.</li>
+          <li>Compare your intermediate and final trees with a neighbor's. Were they identical? Similar?
+            Can you explain any differences?
+          </li>
+          <li>Determine the encoding of each character</li>
+          <li>Compare your encodings with a neighbor's. Are they identical? Similar? Can you explain any differences?
+          </li>
+          <li>Verify that no code is a prefix of another. Explain why this is important and why it is a property of
+            Huffman codes.</li>
+          <li>Encode BAGGED using your Huffman codes.</li>
+          <li>Determine the total number of bits used for the encoding.</li>
+          <li>Compare the number of bits used in your Huffman encoding with an ASCII encoding (8 bits per character).
+          </li>
+        </ol>
+      </li>
+
+      <li><strong>Trace the Algorithm:</strong>
+        Using the interactive demo, follow the sequence of merges for the given frequency set.
+        Record the heap contents after each iteration and confirm that the correct two smallest nodes are chosen every
+        time.</li>
+
+      <li><strong>Decode with a Tree:</strong>
+        Provide a completed Huffman tree and an encoded bitstring such as <code>01110011</code>.
+        Have students decode it manually by walking the tree left and right.</li>
+
+      <li><strong>Compare Encodings:</strong>
+        Find a reasonable distribution of letters in a typical American novel or other type of writing
+        (use Google, AI, or whatever source you want).
+        Make sure it includes important characters like space, punctuation, and capitalization.
+        Use the Demo or code to build the Huffman tree for that distribution.
+        Determine the number of bits that would be required to encode a 100,000-character text
+        (or the entire text if your frequencies are counts rather than percentages) using both Huffman encoding
+        and a fixed-length encoding (e.g., ASCII). Are the results what you expect?</li>
+
+      <li><strong>Greedy Justification:</strong>
+        Explain why combining any pair other than the two smallest frequencies could lead to a longer total encoding.
+        Test this by intentionally making a "wrong" merge and computing the total cost of encoding some sample text.
+      </li>
+
+      <li><strong>Experiment with Frequencies:</strong>
+        Change one frequency in the table and predict how the Huffman codes will change before rebuilding the tree.</li>
+
+      <li><strong>Canonical Codes:</strong>
+        Provide two Huffman trees that have the same code lengths but different bit patterns.
+        Discuss how canonical Huffman coding could assign consistent, ordered codes to both.</li>
+      <li><strong>What's Needed to Store a File:</strong>
+        Ask students to think through what information must be saved in order for a Huffman-encoded file to be decoded
+        later.
+        Have them list all possibilities—such as the encoded bitstream itself, the code table (or a way to reconstruct
+        it), and possibly the original file length.
+        Then discuss different options for storing that information:
+        <ul>
+          <li>Saving the full Huffman tree structure.</li>
+          <li>Saving only code lengths and symbols (canonical Huffman form).</li>
+          <li>Embedding header metadata such as file size or padding bits.</li>
+        </ul>
+        How does each choice impact the overall file size and decoding complexity?
+        How does this change the effectiveness of Huffman encoding for small vs. large files?
+      </li>
+    </ol>
+  </section>
+
+  <section id="problems" section-title="Homework Problems">
+    <h2>Homework Problems</h2>
+    <ol class="spaced">
+      <li><strong>Build a Huffman Tree:</strong>
+        Given the symbols and frequencies <code>[A:86, B:7, C:53, D:9, E:90, F:10, G:8]</code>,
+        construct the Huffman tree step by step. Make sure to following the algorithm carefully, 
+        placing the two smallest-frequency nodes in the correct order when combining them!
+        Show the contents of the priority queue (include the full subtrees) after each merge
+        and give the final code for each symbol.</li>
+
+      <li><strong>Encode and Decode:</strong>
+        Using your Huffman codes from Problem&nbsp;1, encode the string <code>DEFACED</code>.</li>
+
+      <li><strong>Bit Savings:</strong>
+        Suppose a file contains the seven characters from Problem&nbsp;1 with frequencies totaling 1000 characters.
+        Compute the number of bits required using:
+        <ul>
+          <li>ASCII (8 bits per character)</li>
+          <li>A fixed 3-bit encoding (since 7 characters require at least 3 bits)</li>
+          <li>Your Huffman encoding</li>
+        </ul>
+        Comment on the savings achieved by Huffman encoding compared to the other two methods.
+      </li>
+
+      <li><strong>When Greedy Fails?</strong>
+        Try modifying the algorithm so it sometimes combines the smallest and the third-smallest items instead of the
+        two smallest.
+        Construct a small counterexample showing that this change can lead to a non-optimal encoding.</li>
+
+      <li><strong>Reconstructing the Tree:</strong>
+        Explain how a decoder could rebuild the Huffman tree if only the code lengths and symbols are stored (as in
+        canonical Huffman coding).
+        Why might this be more efficient than saving the full tree?</li>
+
+      <li><strong>Variable Cost Exploration:</strong>
+        Suppose you change the cost function so that moving left adds 2 bits and moving right adds 1 bit.
+        Would Huffman's algorithm still produce an optimal solution under this new cost?
+        Justify your answer.</li>
+    </ol>
+  </section>
+</body>
+
+</html>
