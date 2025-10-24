@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>0-1 Knapsack (Dynamic Programming)</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js"></script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <script src="/Algorithms/scripts/chapterScripts.js"></script>
+  <link rel="stylesheet" href="/Algorithms/css/style.css">
+  <link rel="stylesheet" href="/Algorithms/css/chapter.css">
+</head>
+
+<body>
+  <h1>0-1 Knapsack (Dynamic Programming)</h1>
+
+  <section id="problem-solved" section-title="Problem Solved">
+    <h2>Problem Solved</h2>
+    <p>
+      In this section we will discuss the dynamic programming algorithm to solve the
+      <a class="problem" href="?path=Problems%2FOptimization%2F0-1%20Knapsack">0-1 Knapsack Problem</a>.
+    </p>
+  </section>
+
+  <section id="design" section-title="Design and Strategy">
+    <h2>Design and Strategy</h2>
+    <p>
+      The 0-1 Knapsack problem is a classic use of Dynamic Programming (DP):
+      a technique that breaks a problem into smaller, overlapping subproblems and stores their results to avoid
+      recomputation.
+      A naive recursive solution considers each item in turn and branches on two choices: include it or exclude it.
+      This yields a binary recursion tree with up to \(2^n\) leaves and repeats many subcases.
+      For example, different decision paths may both end up considering the same situation&mdash;
+      say, "items 4 through 6 with 10 units of capacity left"&mdash;even though they reached it in different ways.
+      DP recognizes these repeated subproblems and reuses their results,
+      turning the exponential search into a polynomial-time table computation.
+    </p>
+    <p>
+      The key idea is to build the solution gradually, adding one item at a time.
+      Suppose we already know the best way to fill a knapsack of any smaller capacity using the first \(i-1\) items.
+      When we now consider item \(i\), there are two possibilities:
+      <em>take it</em> (if it fits) or <em>do <b>not</b> take it</em>.
+      If we skip it, the total value remains whatever was best for the first \(i-1\) items and the same capacity.
+      If we take it, we gain its value \(v_i\) but reduce our remaining capacity by \(w_i\),
+      so we must add \(v_i\) to the best value achievable with capacity \(w - w_i\) from the previous items.
+    </p>
+    <p>
+      This reasoning leads to a subproblem definition \(V(i, w)\): the maximum value achievable
+      using items \(0\) through \(i\) with total capacity \(w\).
+      We fill the table one item at a time, beginning with item 0.
+    </p>
+
+    <ul>
+      <li>
+        <em>Base case.</em> For item 0, if it does not fit (\(w_0 > w\)), the best value is 0.
+        Otherwise, we can take it, giving \(V(0, w) = v_0\) for all \(w \ge w_0\).
+        The first row of the table is filled accordingly.
+      </li>
+
+      <li>
+        <em>Recursive step.</em> For each item \(i > 0\) and capacity \(w\):
+        <ul>
+          <li>If the item is too heavy (\(w_i > w\)), we cannot take it, so we reuse the previous result
+            since the best we can do still only involves items \(0\) through \(i-1\):
+            \[V(i, w) = V(i-1, w)\]
+          </li>
+          <li>
+            Otherwise, we compare two options and keep the better one:
+            <ul>
+              <li>
+                Skip it, giving \[V(i, w) = V(i-1, w)\]
+              </li>
+              <li>Take it, gaining \(v_i\) plus the best achievable value
+                with the remaining capacity \(w - w_i\), i.e.,
+                \[V(i, w) = v_i + V(i-1, w - w_i)\]</li>
+            </ul>
+          </li>
+        </ul>
+      </li>
+    </ul>
+    <p>Putting it all together, we get the following recursive formula to compute the
+      optimal solution for the first \(i\) items and capacity \(w\):
+    </p>
+    <p style="text-align:center;">
+      \(V(i, w) =
+      \begin{cases}
+      0, & \text{if } i = 0 \text{ and } w_0 > w,\\[6pt]
+      v_0, & \text{if } i = 0 \text{ and } w_0 \le w,\\[6pt]
+      V(i-1, w), & \text{if } w_i > w,\\[6pt]
+      \max\big(V(i-1, w),\ v_i + V(i-1, w - w_i)\big), & \text{otherwise.}
+      \end{cases}\)
+    </p>
+    <p>
+      A bottom-up DP implementation fills a table of size \(n \times (W+1)\),
+      where each cell \(V(i, w)\) represents the best total value achievable
+      using items \(0\) through \(i\) with capacity \(w\).
+      The final entry \(V(n-1, W)\) gives the maximum total value.
+    </p>
+
+    <ol>
+      <li>For the first item \(i = 0\):
+        <ol>
+          <li>For each capacity \(w = 0..W\):
+            <ul>
+              <li>If \(w_0 \le w\), set \(V(0, w) = v_0\).</li>
+              <li>Otherwise, \(V(0, w) = 0\).</li>
+            </ul>
+          </li>
+        </ol>
+      </li>
+      <li>For each remaining item \(i = 1..n-1\):
+        <ol>
+          <li>For each capacity \(w = 0..W\):
+            <ul>
+              <li>If \(w_i \le w\), set
+                \(V(i, w) = \max(V(i-1, w),\ v_i + V(i-1, w - w_i))\).</li>
+              <li>Otherwise, \(V(i, w) = V(i-1, w)\).</li>
+            </ul>
+          </li>
+        </ol>
+      </li>
+      <li>Return \(V(n-1, W)\) as the maximum total value.</li>
+    </ol>
+
+    <p>
+      After the table is filled, \(V(n-1, W)\) gives the best total value. To recover items,
+      trace back from \((n-1, W)\). At each state \((i, w)\), compare \(V(i, w)\) with \(V(i-1, w)\):
+    </p>
+
+    <ul>
+      <li>
+        <strong>Case 1:</strong> \(V(i, w) > V(i-1, w)\).<br>
+        Item \(i\) was definitely taken.
+        Record \(i\) and move to \((i-1,\, w - w_i)\).
+      </li>
+
+      <li>
+        <strong>Case 2:</strong> \(V(i, w) = V(i-1, w)\).<br>
+        In this case, there is an optimal solution that does not include item \(i\).
+        <ul>
+          <li>If we are only interested in one possible solution, then we can assume \(i\)
+            was not taken and move to entry \((i-1, w)\).
+          </li>
+          <li>If we are interested in all solutions, we need to determine whether or not
+            \(v_i + V(i-1,\, w - w_i) = V(i, w)\) to know how to proceed:
+            <ul>
+              <li>If \(v_i + V(i-1,\, w - w_i) \lt V(i, w)\), \(i\) <b>is not</b> in an optimal
+                solution so we simply continue to entry \((i-1, w)\).</li>
+              <li>If \(v_i + V(i-1,\, w - w_i) = V(i, w)\), \(i\) <b>is</b> in an optimal
+                solution, so we explore two paths from here:
+                <ul>
+                  <li>Assume we take \(i\) and continue at entry \((i-1,\, w - w_i)\), and </li>
+                  <li>assume we do not take \(i\) and continue to entry \((i-1, w)\).</li>
+                </ul>
+              </li>
+            </ul>
+          </li>
+        </ul>
+      </li>
+    </ul>
+    <p>
+      Stop when \(i = 0\) or \(w = 0\). For \(i = 0\), include item 0 iff \(V(0, w) = v_0\)
+      (i.e., it fits), then finish.
+    </p>
+    <p>
+      If this still feels abstract, the demonstration below will make the process more concrete.
+      It shows both how the table of values is filled and how the optimal solution is then reconstructed
+      by tracing back through the entries.
+      Step through it slowly to see how each decision affects later values,
+      and how the final path reveals which items make up the best combination.
+    </p>
+  </section>
+
+  <section id="demo" section-title="Interactive Demo">
+    <div class="embeddedDemoContainer">
+      <iframe class="embeddedDemo" src="/Algorithms/Content/Demos/Dynamic%20Programming/0-1%20Knapsack%20Demo.html"
+        allow="fullscreen" name="Knapsack-demo">
+      </iframe>
+    </div>
+  </section>
+
+  <section id="code" section-title="Implementation in Java, C++, Python">
+    <h2>Implementation in Java, C++, Python</h2>
+    <p>
+      The following implementations use a bottom-up dynamic programming approach to compute
+      the value of the optimal solution, but not the items. Extending the code to include the
+      list of items is left to the reader.
+    </p>
+
+    <ul>
+      <li>
+        Input consists of two arrays of size \(n\), \(v[0..n-1]\) for values and \(w[0..n-1]\) for weights,
+        together with a total capacity \(W\).
+      </li>
+      <li>
+        A 2D table \(V\) of size \(n \times (W+1)\) is used, where entry \(V(i, c)\) stores
+        the best value obtainable using items \(0..i\) with capacity \(c\).
+      </li>
+      <li>
+        The algorithm returns the final value \(V(n-1, W)\), representing the maximum total value achievable.
+      </li>
+    </ul>
+
+    <p>
+      A few details are worth noting:
+    </p>
+
+    <ul>
+      <li>
+        The first row (item \(0\)) is initialized so that \(V(0, c) = v_0\) whenever \(w_0 \le c\), and \(0\) otherwise.
+        This matches the table initialization shown in the demo.
+      </li>
+      <li>
+        For each subsequent item \(i > 0\) and capacity \(c\), the recurrence
+        \[
+        V(i, c) = \max\big(V(i-1, c),\ v_i + V(i-1, c - w_i)\big)
+        \]
+        determines whether excluding or including item \(i\) gives a better total value.
+      </li>
+      <li>We omit code that checks things like existence/length of the arrays, etc. to focus on the
+        core concept of the algorithm itself.
+      </li>
+    </ul>
+    <div class="tab-group">
+      <div class="tabs" role="tablist">
+        <button id="tab-java" class="tablink active" data-lang="java" role="tab" aria-controls="java"
+          aria-selected="true">Java</button>
+        <button id="tab-cpp" class="tablink" data-lang="cpp" role="tab" aria-controls="cpp"
+          aria-selected="false">C++</button>
+        <button id="tab-python" class="tablink" data-lang="python" role="tab" aria-controls="python"
+          aria-selected="false">Python</button>
+      </div>
+
+      <div id="java" class="code-container active" role="tabpanel" aria-labelledby="tab-java">
+        <pre><code class="language-java">public static int knapsack(int[] values, int[] weights, int W) {
+    int n = values.length;
+    int[][] K = new int[n][W + 1];
+
+    // Row 0 initialization
+    for (int c = 0; c &lt;= W; c++) {
+        K[0][c] = (weights[0] &lt;= c) ? values[0] : 0;
+    }
+
+    // Fill remaining rows
+    for (int i = 1; i &lt; n; i++) {
+        for (int c = 0; c &lt;= W; c++) {
+            if (weights[i] &lt;= c) {
+                K[i][c] = Math.max(K[i - 1][c], values[i] + K[i - 1][c - weights[i]]);
+            } else {
+                K[i][c] = K[i - 1][c];
+            }
+        }
+    }
+    return K[n - 1][W];
+}</code></pre>
+      </div>
+
+      <div id="cpp" class="code-container" role="tabpanel" aria-labelledby="tab-cpp">
+        <pre><code class="language-cpp">#include &lt;algorithm&gt;
+
+int knapsack(int values[], int weights[], int n, int W) {
+    int K[n][W + 1];
+
+    // Row 0 initialization
+    for (int c = 0; c &lt;= W; c++) {
+        K[0][c] = (weights[0] &lt;= c) ? values[0] : 0;
+    }
+
+    // Fill remaining rows
+    for (int i = 1; i &lt; n; i++) {
+        for (int c = 0; c &lt;= W; c++) {
+            if (weights[i] &lt;= c) {
+                K[i][c] = max(K[i - 1][c], values[i] + K[i - 1][c - weights[i]]);
+            } else {
+                K[i][c] = K[i - 1][c];
+            }
+        }
+    }
+    return K[n - 1][W];
+}</code></pre>
+      </div>
+
+      <div id="python" class="code-container" role="tabpanel" aria-labelledby="tab-python">
+        <pre><code class="language-python">def knapsack(values, weights, W):
+    n = len(values)
+    if n == 0 or W &lt;= 0:
+        return 0
+
+    K = [[0] * (W + 1) for _ in range(n)]
+
+    # Row 0 initialization
+    for c in range(W + 1):
+        K[0][c] = values[0] if weights[0] &lt;= c else 0
+
+    # Fill remaining rows
+    for i in range(1, n):
+        for c in range(W + 1):
+            if weights[i] &lt;= c:
+                K[i][c] = max(K[i - 1][c], values[i] + K[i - 1][c - weights[i]])
+            else:
+                K[i][c] = K[i - 1][c]
+
+    return K[n - 1][W]</code></pre>
+      </div>
+    </div>
+  </section>
+  <section id="analysis" section-title="Time/Space Analysis">
+    <h2>Time/Space Analysis</h2>
+
+    <p><strong>Time Complexity.</strong>
+      The table has \(n\) rows (items \(0..n-1\)) and \(W+1\) columns (capacities \(0..W\)).
+      Each cell \(V(i, w)\) is computed in \(O(1)\) time from at most two earlier cells.
+      Therefore the total time is \(O(nW)\).
+    </p>
+    <p><strong>Pseudo-polynomial note.</strong>
+      The algorithm is considered pseudo-polynomial because its running time grows with the numeric value
+      of \(W\) rather than the size of its representation.
+      In practice, it runs efficiently when \(W\) is moderate but can become impractical when \(W\) is very large
+      (for example, \(W = 2^n).\)
+      The subtle point is that while the input size is proportional
+      to \(\log W\)&mdash;the number of bits needed to write down \(W\)&mdash;the
+      algorithm's time depends directly on \(W\) itself.
+      Thus, even though the algorithm is polynomial in \(n\) and \(W\),
+      it is not polynomial in the total input size.
+      Since 0-1 Knapsack is NP-hard, this limitation is expected:
+      a truly polynomial-time algorithm is unlikely to exist.
+    </p>
+
+
+    <p><strong>Pseudo-polynomial note.</strong>
+      The running time depends on the numeric capacity \(W\), not on the bit-length \(\log W\).
+      This algorithm is considered pseudo-polynomial time:
+      it is efficient when \(W\) is moderate, but can be large when \(W\) is large (e.g if \(W=2^n\)).
+      Since 0-1 Knapsack is NP-hard, it is not surprising that this algorithm is not polynomial time.
+    </p>
+
+    <p><strong>Space Complexity.</strong>
+      The 2D table stores \(n(W+1)\) integers, so space is \(O(nW)\) beyond the input arrays.
+      If we only need the optimal value (not reconstruction), we can compress to a 1D array of size \(W+1\),
+      updating capacities in descending order, for \(O(W)\) extra space.
+    </p>
+
+    <p><strong>Reconstruction cost.</strong>
+      If we keep the full table, recovering one optimal set of items by tracing back takes \(O(n)\) time
+      and no extra asymptotic space (just an output list).
+    </p>
+  </section>
+
+  <section id="variations" section-title="Variations/Improvements">
+    <h2>Variations/Improvements</h2>
+
+    <ul>
+      <li>
+        <strong>Space optimization:</strong> The 2D table can be reduced from \(O(nW)\) to \(O(W)\)
+        by keeping only one row (or two) at a time.
+        Because each entry \(V(i, w)\) depends only on values from the previous row,
+        a single 1D array can be updated in reverse order of \(w\) to avoid overwriting needed values.
+        This only works if only the final cost is needed. If the actual items in the solution are needed,
+        the whole table needs to be stored.
+      </li>
+
+      <li>
+        <strong>Fractional knapsack:</strong> When items can be divided, a greedy algorithm that sorts items
+        by value-to-weight ratio solves the problem optimally in \(O(n \log n)\) time.
+      </li>
+
+      <li>
+        <strong>Value-based formulation:</strong>
+        An alternative dynamic programming version uses total value
+        as the second dimension instead of capacity.
+        It computes the minimum weight needed to achieve each possible value.
+        This approach runs in \(O(nV_{\max})\), where \(V_{\max}\)
+        is the sum of all item values, and is useful when capacities are large
+        but values are relatively small.
+      </li>
+
+      <li>
+        <strong>Approximation schemes:</strong>
+        Because the problem is NP-hard, a <em>fully polynomial time approximation scheme</em> (FPTAS)
+        can be used when exact solutions are too expensive.
+        These algorithms scale the item values or weights by a chosen factor,
+        solving a smaller version of the problem to produce a solution
+        within \((1 - \varepsilon)\) of optimal in \(O(n^3 / \varepsilon)\) time.
+      </li>
+
+      <li>
+        <strong>Extended variants:</strong>
+        Multidimensional and bounded knapsack problems introduce additional limits,
+        such as multiple resource constraints or restricted item counts.
+        They rely on the same DP principle but require higher-dimensional tables
+        or more complex recurrences.
+      </li>
+    </ul>
+  </section>
+
+  <section id="links" section-title="Links to Resources">
+    <h2>Links to Resources</h2>
+    <ul>
+      <li><a href="https://en.wikipedia.org/wiki/Knapsack_problem" target="_blank">Knapsack problem (Wikipedia)</a> A
+        comprehensive overview of the 0-1 knapsack problem, its variants, complexity, and many references.</li>
+      <li><a href="https://www.geeksforgeeks.org/dsa/0-1-knapsack-problem-dp-10/" target="_blank">0-1 Knapsack Problem
+          (GeeksforGeeks)</a> A step-by-step explanation of the DP approach, including code examples and variations.</li>
+      <li><a href="https://algotree.org/algorithms/dynamic_programming/0_1_knapsack/" target="_blank">0-1 Knapsack
+          Problem (AlgoTree)</a> A clean presentation of the algorithm, visuals, and table-fill explanation.</li>
+    </ul>
+  </section>
+<section id="reading-questions" section-title="Reading Comprehension Questions">
+  <h2>Reading Comprehension Questions</h2>
+  <ol class="spaced">
+    <li><strong>Problem framing:</strong> In one sentence, what does the 0-1 Knapsack problem ask you to compute?</li>
+
+    <li><strong>Why DP here?</strong> What makes the problem suitable for dynamic programming rather than brute force?</li>
+
+    <li><strong>Subproblem meaning:</strong> Precisely define \(V(i, w)\) as used in this chapter.</li>
+
+    <li><strong>Base row (item 0):</strong> How is the first row of the table filled when we start indexing at item 0?</li>
+
+    <li><strong>Recurrence logic:</strong> State the recurrence for \(V(i, w)\), and briefly explain the roles of the
+      two terms compared in the max.</li>
+
+    <li><strong>Backtracking: larger vs equal:</strong> While reconstructing, what does each of the following comparisons
+      imply about item \(i\)?
+      <ol type="a">
+        <li>\(V(i, w) > V(i-1, w)\)</li>
+        <li>\(V(i, w) = V(i-1, w)\)</li>
+      </ol>
+    </li>
+
+    <li><strong>All optimal solutions:</strong> In the equal case above, how do you decide whether to explore both
+      branches or just one?</li>
+
+    <li><strong>Time complexity:</strong> What is the time complexity of the bottom-up algorithm and why?</li>
+
+    <li><strong>Pseudo-polynomial:</strong> Why is the algorithm called pseudo-polynomial, and how does \(\log W\)
+      factor into that description?</li>
+
+    <li><strong>Space tradeoffs:</strong> When is it valid to compress the table to \(O(W)\) space, and when must you keep
+      the full \(n \times (W+1)\) table?</li>
+  </ol>
+
+  <button id="toggleAnswers" class="show-answer" aria-expanded="false">Show Answers</button>
+  <div id="answers" class="answer" hidden>
+    <ol class="spaced">
+      <li><strong>Answer:</strong> A subset of items whose total weight is at most \(W\) and whose total value is
+        maximized (each item either taken once or not at all).</li>
+      <li><strong>Answer:</strong>
+        The 0-1 Knapsack problem suits dynamic programming because solving it recursively
+        for \(i\) items and capacity \(w\) leads to many repeated subproblems.
+        Different decision paths often revisit the same situation involving
+        some smaller set of earlier items and a particular remaining capacity.
+        Dynamic programming stores each of these subproblem results once and reuses them,
+        eliminating the exponential repetition found in the naive recursive approach.
+      </li>
+
+      <li><strong>Answer:</strong> \(V(i, w)\) is the maximum value achievable using items \(0\) through \(i\) with
+        capacity \(w\).</li>
+
+      <li><strong>Answer:</strong> For each capacity \(w\): if \(w_0 \le w\), set \(V(0, w) = v_0\); otherwise
+        \(V(0, w) = 0\).</li>
+
+      <li><strong>Answer:</strong>
+        \[
+          V(i, w) =
+          \begin{cases}
+            V(i-1, w), & \text{if } w_i > w,\\
+            \max\big(V(i-1, w),\ v_i + V(i-1, w - w_i)\big), & \text{otherwise.}
+          \end{cases}
+        \]
+        The first term is skipping item \(i\); the second is taking \(i\) and adding its value to the best we can do
+        with the reduced capacity.</li>
+
+      <li><strong>Answer:</strong>
+        (a) \(V(i, w) > V(i-1, w)\): item \(i\) was definitely taken; move to \((i-1, w - w_i)\).
+        (b) \(V(i, w) = V(i-1, w)\): there exists an optimal solution that skips \(i\); to know if taking \(i\) is also
+        optimal, compare \(v_i + V(i-1, w - w_i)\) with \(V(i, w)\).</li>
+
+        <li><strong>Answer:</strong>
+        When \(V(i, w) = V(i-1, w)\), we know there exists an optimal solution that skips item \(i\),
+        but we must decide whether taking it is also possible.
+        <ul>
+          <li>If \(w_i > w\), item \(i\) does not fit, so it cannot be part of any optimal solution.
+              Move to \((i-1, w)\).</li>
+          <li>If \(w_i \le w\) and \(v_i + V(i-1, w - w_i) &lt; V(i, w)\),
+              then taking \(i\) would lead to a smaller total value, so it was not taken.
+              Move to \((i-1, w)\).</li>
+          <li>If \(w_i \le w\) and \(v_i + V(i-1, w - w_i) = V(i, w)\),
+              then both taking and skipping \(i\) yield the same total value.
+              If you want only one optimal solution, you may skip it and move to \((i-1, w)\);
+              if you want all optimal solutions, explore both paths:
+              include \(i\) (go to \((i-1, w - w_i)\)) and exclude \(i\) (go to \((i-1, w)\)).</li>
+        </ul>
+      </li>
+
+      <li><strong>Answer:</strong> \(O(nW)\). There are \(n\) rows and \(W+1\) capacities, and each cell is computed in
+        \(O(1)\) time from previously computed cells.</li>
+
+      <li><strong>Answer:</strong> The runtime depends on the numeric value \(W\), not the number of bits to represent it.
+        Since the input length for \(W\) is \(\Theta(\log W)\), the algorithm is polynomial in \(n\) and \(W\) but not in
+        the total input size, hence pseudo-polynomial.</li>
+
+      <li><strong>Answer:</strong> Compressing to \(O(W)\) is fine if you only need the optimal value, since each row
+        depends only on the previous one and you can update capacities in descending order. If you need to reconstruct
+        items (or enumerate multiple optimal solutions), keep the full table.</li>
+    </ol>
+  </div>
+</section>
+
+<section id="activities" section-title="In-Class Activities">
+  <h2>In-Class Activities</h2>
+  <ol class="spaced">
+    <li><strong>Trace a small example:</strong>
+      Consider the instance of 0-1 knapsack with values \([7, 10, 2, 3, 2, 6]\),
+       weights \([3, 2, 6, 1, 7, 4]\), and \(W=10\).
+      Fill in the DP table by hand.
+      Highlight which cells are compared at each step and identify the final value.
+      Then work backward through the table to find the items in the optimal solution.
+      Verify that the sum of their weights is at most 10 and that their values add up 
+      to the expected value.
+      Time permitting, find all optimal solutions.
+    </li>
+
+    <li><strong>Top-down recursion walkthrough:</strong>
+      Write out the recursive definition of \(V(i, w)\) as a function that returns
+      the optimal value for items \(0..i\) and capacity \(w\).
+      Consider the instance of 0-1 knapsack with values \([7, 10, 2, 3]\),
+       weights \([2, 3, 1, 2]\), and \(W=5\).
+       Draw a recursion tree that shows the computation of \(V(3,5)\)
+       (The optimal value given item 0 through 3 and knapsack with \(W=5\)).
+       Highlight the values in the tree that are computed more than once.
+       Do you spot any concerns?
+    </li>
+
+    <li><strong>Adding memoization:</strong>
+      Modify the top-down recursion so that before solving \(V(i, w)\),
+      the function checks whether the value has already been computed.
+      What must the algorithm do before the first call that does not have
+      to be done with the bottom-up version (Hint: It has something to
+      do with the array)?
+      Write out the algorithm.
+      Run this and the top-down recursive algorithm on a smallish example
+      and compare the number of values that are computed. Which one
+      seems to be better?
+    </li>
+
+    <li><strong>Bottom-up vs. top-down comparison:</strong>
+      Discuss as a group how the order of computation differs between
+      top-down with memoization and bottom-up tabulation.
+      Why do both yield the same final value even though one fills a table iteratively
+      and the other computes values on demand? Is one of them clearly better than the 
+      other one? Justify your answer.
+    </li>
+
+    <li><strong>Space reduction experiment:</strong>
+      Take the bottom-up version and modify it to use only one array of length \(W+1\).
+      Verify that the results match the full 2D version for several test cases.
+    </li>
+
+    <li><strong>Algorithm intuition check:</strong>
+      Discuss why the greedy rule “take items in decreasing value-to-weight ratio”
+      works for the fractional version but not for the 0-1 case.
+      Construct a small counterexample to illustrate the failure.
+    </li>
+    <li><strong>Growth reflection:</strong>
+      Try doubling the capacity \(W\) while keeping the number of items fixed.
+      How does the number of subproblems change?
+      Explain how this behavior supports the claim that the algorithm’s running time
+      depends on the numeric value of \(W\), not its bit-length.
+    </li>
+
+  </ol>
+</section>
+
+<section id="problems" section-title="Homework Problems">
+  <h2>Homework Problems</h2>
+  <ol class="spaced">
+
+   <li><strong>Basic table trace:</strong>
+    For values \([9, 14, 6, 7, 12, 8, 5]\), weights \([4, 6, 2, 3, 7, 5, 2]\), and \(W=15\):
+    <ol type="a">
+      <li>Fill the DP table \(V(i,w)\) by hand (items \(i=0..6\), capacities \(w=0..15\)).</li>
+      <li>Report the final value \(V(6,15)\).</li>
+      <li>Backtrack to list one optimal subset of items and verify its total weight \(\le 15\) and total value equals \(V(6,15)\).</li>
+    </ol>
+  </li>
+
+   <li><strong>Trace and enumerate ties:</strong>
+  For values \([8, 7, 6, 5, 5]\), weights \([5, 4, 3, 2, 2]\), and \(W=9\):
+  <ol type="a">
+    <li>Compute the full DP table \(V(i,w)\) and report the final value \(V(4,9)\).</li>
+    <li>Backtrack to find all optimal solutions. Show each tie where \(V(i,w)=V(i-1,w)\) and check whether
+        \(v_i + V(i-1, w - w_i) = V(i,w)\) to justify exploring both branches.</li>
+    <li>List each distinct optimal subset and verify its total weight \(\le 9\) and total value equals \(V(4,9)\).
+    </li>
+  </ol>
+</li>
+
+
+    <li><strong>Top-down with memoization:</strong>
+      Write clear pseudocode for a top-down recursive algorithm with memoization for \(V(i,w)\).
+      Then for the values from Problem 1:
+      <ol type="a">
+        <li>Use the top-down algorithm to fill in the values of the table.
+        <ol type="i">
+          <li>Go backwards through the table marking the cells that the recursive calls need to compute.</li>
+          <li>Fill in the values of the table as the recursion is unwinding.</li>
+          <li>Clearly indicate which cells are not computed by leaving them blank.</li>
+          <li>Clearly mark all of the cells that are referred to multiple times
+            (This indicates that a lookup occured instead of a recomputation!).
+          </li>
+        </ol>
+      </li><li>Rank the algorithms by efficiency: bottom-up DP, top-down DP, or naive top-down. 
+        Justify/discuss the ranking.
+      </li>
+      </ol>
+    </li>
+
+    <li><strong>Space-optimized DP sanity check:</strong>
+      For values \([9, 4, 7, 3, 6, 9]\), weights \([6, 3, 4, 2, 4, 7]\), and \(W=12\):
+      <ol type="a">
+        <li>Compute the optimal value using a full \(n \times (W+1)\) table.</li>
+        <li>Now compute the optimal value using a 1D array of length \(W+1\), updating capacities in descending order.
+        </li>
+        <li>Verify the results match and briefly justify why descending order is required.</li>
+      </ol>
+    </li>
+
+    <li><strong>Greedy pitfall (0-1 vs fractional):</strong>
+      Consider values \([8, 6, 5]\), weights \([6, 4, 3]\), and \(W=7\).
+      <ol type="a">
+        <li>Apply the greedy rule that sorts by value-to-weight ratio and takes items while they fit. What set do you get?</li>
+        <li>Compute the true 0-1 optimal set and value via DP. Explain why greedy failed here.</li>
+        <li>What would the fractional knapsack solution achieve for the same data?</li>
+      </ol>
+    </li>
+
+    <li><strong>All optimal solutions count:</strong>
+      For values \([5, 5, 5, 5]\), weights \([2, 2, 2, 2]\), and \(W=4\):
+      <ol type="a">
+        <li>Compute the optimal value.</li>
+        <li>How many distinct optimal subsets exist? Justify your count using the table and the tie-handling logic.</li>
+      </ol>
+    </li>
+
+    <li><strong>Variation: exact-fill knapsack:</strong>
+      Modify the DP to return the maximum value achievable using items \(0..i\) with capacity exactly \(w\) (solutions that do not fill capacity exactly are disallowed).
+      <ol type="a">
+        <li>Give the new recurrence and base cases precisely.</li>
+        <li>Apply it to values \([9, 4, 8, 5, 6]\), weights \([4, 3, 5, 2, 6]\), with \(W=10\).
+        Report the exact-fill optimum or state that none exists.</li>
+      </ol>
+    </li>
+<li><strong>Variation: value-based DP:</strong>
+  When the knapsack capacity \(W\) is very large but the total of all item values is relatively small,
+  it can be more efficient to build a table based on total value rather than capacity.
+  <ul>
+    <li>
+      Define \(M(i, v)\) as the minimum total weight needed to achieve value \(v\)
+      using the first \(i\) items (items \(0..i-1\)).
+    </li>
+
+    <li>
+      To set up the table, first compute
+      \[
+        V_{\max} = \sum_{j=0}^{n-1} v_j,
+      \]
+      so the table will have columns for all possible total values \(v = 0..V_{\max}\).
+    </li>
+
+    <li>
+      <em>Base cases.</em>  
+      Use \(i = 0..n\) to mean "first \(i\) items." Set
+      \[
+        M(0,0) = 0, \quad M(0,v) = \infty \text{ for } v > 0.
+      \]
+    </li>
+
+    <li>
+      <em>Recurrence.</em>  
+      For \(i \ge 1\):
+      \[
+        M(i,v) =
+        \begin{cases}
+          M(i-1,v), & v < v_{i-1},\\[4pt]
+          \min\big(M(i-1,v),\, w_{i-1} + M(i-1,\, v - v_{i-1})\big), & v \ge v_{i-1}.
+        \end{cases}
+      \]
+    </li>
+
+    <li>
+      <em>Recovering the optimal value.</em>  
+      The optimal value for capacity \(W\) is
+      \[
+        \max\{\,v \mid 0 \le v \le V_{\max} \text{ and } M(n,v) \le W\,\}.
+      \]
+    </li>
+
+    <li>
+      <em>Recovering items.</em>  
+      Backtracking through \(M\) can be used to reconstruct one or more optimal sets of items.
+      Work out the details on your own.
+    </li>
+  </ul>
+  <br>
+  Use this technique to solve the instance of 0-1 knapsack with
+  values \([9, 14, 6, 7, 12, 8, 5]\), weights \([4, 6, 2, 3, 7, 5, 2]\), and \(W=15\).
+  Report the optimal value and one corresponding set of items.
+</li>
+
+    <li><strong>When does 1D space fail for reconstruction?</strong>
+      Briefly explain why the 1D space-optimized approach is fine for computing the value but insufficient for reconstructing items in general.
+      Propose one additional data structure or technique that enables reconstruction without storing the full \(n \times (W+1)\) table.
+    </li>
+
+    <li><strong>Pseudo-polynomial growth:</strong>
+  Give an example of a 0-1 knapsack instance with \(n\) items for which
+  the dynamic programming algorithm takes time exponential in the input size.
+  <br>
+  <em>Hint:</em> Think about how you could choose the item weights and the capacity \(W\)
+  so that the input can be written using only about \(n\) numbers or bits,
+  yet the algorithm would still have to fill an enormous \(n \times (W+1)\) table,
+  taking on the order of \(O(2^n)\) or \(O(n2^n)\) operations.
+  What is the role of \(W\) in making the algorithm slow?
+  Be as precise as possible in your reasoning.
+  (Reminder: we call an algorithm exponential if its running time is exponential
+  <em>in the size of the input</em>, not necessarily in \(n\) itself.)
+</li>
+  </ol>
+</section>
+
+</body>
+
+</html>

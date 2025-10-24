@@ -9,7 +9,19 @@
 <style>
 
   .array-container {
-    margin-bottom: 20px;
+    margin: 0; /* override external margins to tighten spacing */
+  }
+
+  /* label-on-left rows for arrays */
+  .array-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 4px 0 6px; /* bring values and weights closer vertically */
+  }
+  .array-label {
+    width: 80px; /* fixed width so Values/Weights align */
+    text-align: left;
   }
 
   .cell-wrapper {
@@ -142,6 +154,11 @@
   background-color: #bd2e2e;
 }
 
+ /* Thicker border for emphasized DP cells (e.g., backtracking compare) */
+ .dp-table .element.thick-border {
+   border-width: 3px;
+ }
+
 /* ── CLONE FOR DP-CELL SMASH ANIMATION ── */
  .cell-clone {
    position: absolute;
@@ -171,22 +188,21 @@
   <h2>0-1 Knapsack (Dynamic Programming) Demo</h2>
 
   <div id="arrayInputs" style="white-space: nowrap; margin-bottom:10px;">
-    <label>v (Values):</label>
-    <input id="vArrayInput" placeholder="e.g. 6,8,4,7,5" style="width:200px; margin: 0 8px;">
-    <label>w (Weights):</label>
-    <input id="wArrayInput" placeholder="e.g. 4,5,3,7,2" style="width:200px; margin: 0 8px;">
+    <label>Values:</label>
+    <input id="vArrayInput" placeholder="e.g. 6,8,4,7,5" style="width:150px; margin: 0 4px;">
+    <label> Weights:</label>
+    <input id="wArrayInput" placeholder="e.g. 4,5,3,7,2" style="width:150px; margin: 0 4px;">
     <button id="createItemsBtn">Create items</button>
   </div>
 
   <div id="buttons">
-    <label>Item size:</label>
-    <input type="number" id="itemSizeInput" min="1" max="20" placeholder="n" style="width:50px;">
+    <label>n=</label>
+    <input type="number" id="itemSizeInput" min="1" max="20" placeholder="n" style="width:50px; margin: 0 0 0 0;">
     <button id="randomItemBtn">Random items</button>
 
-    <label style="margin-left:16px;">W (Capacity):</label>
-    <input type="number" id="capacityInput" min="0" max="30" placeholder="W" style="width:50px;">
-    <button id="setWeightBtn">Set weight</button>
-	<br><br>
+    <label style="margin-left:16px;">W=</label>
+    <input type="number" id="capacityInput" min="0" max="30" placeholder="W" style="width:50px; margin: 0 0 0 0;">
+    <button id="setWeightBtn">Set weight</button> &nbsp; &nbsp; 
     <button id="prevBtn" disabled>Previous</button>
     <button id="nextBtn" disabled>Next</button>
     <button id="playBtn">Play</button>
@@ -202,38 +218,37 @@
     </select>
   </div>
 
+
+
+  <!-- Arrays -->
+  <div class="array-row">
+    <div class="array-label"><strong>Values:</strong></div>
+    <div id="v-array" class="array-container"></div>
+  </div>
+  <div class="array-row">
+    <div class="array-label"><strong>Weights:</strong></div>
+    <div id="w-array" class="array-container"></div>
+  </div>
+
+  <div id="commentary" style=" height: 50px; margin-top: 10px; margin-bottom: 20px; line-height: 1.5;"></div>
+  <!-- DP Table -->
+  <div><strong>K (DP table):</strong></div>
+  <table id="k-table" class="dp-table">
+  <thead id="k-head"></thead>
+  <tbody id="k-body"></tbody>
+</table>
+
+  <!-- Backtracking Results -->
+   <div id="selectedItemsContainer" style="display:none; margin-top:10px;">
+  </div>
+  <br>
   <div class="legend">
-    <!-- <span class="legend-box v-element"></span><span class="legend-label">v (Values)</span>
-    <span class="legend-box w-element"></span><span class="legend-label">w (Weights)</span>
-    <span class="legend-box k-element"></span><span class="legend-label">K (DP table)</span> -->
 	<strong>Legend:</strong>
     <span class="legend-box sel-element"></span><span class="legend-label">Current Cell</span>
     <span class="legend-box choice-element"></span><span class="legend-label">Include Item</span>
      <span class="legend-box skip-element"></span><span class="legend-label">Exclude Item</span>
     <span class="legend-box insideKnapsack-element"></span><span class="legend-label">Taken</span>
 <span class="legend-box outsideKnapsack-element"></span><span class="legend-label">Not Taken</span>
-
-     
-  </div>
-
-
-  <!-- Arrays -->
-  <div><strong>v (Values):</strong></div>
-  <div id="v-array" class="array-container"></div>
-
-  <div><strong>w (Weights):</strong></div>
-  <div id="w-array" class="array-container"></div>
-
-  <div id="commentary" style=" height: 90px; margin-top: 10px; margin-bottom: 20px; line-height: 1.5;"></div>
-  <!-- DP Table -->
-  <div><strong>K (DP table):</strong></div>
-  <table id="k-table" class="dp-table">
-  <thead id="k-head">…</thead>
-  <tbody id="k-body">…</tbody>
-</table>
-
-  <!-- Backtracking Results -->
-   <div id="selectedItemsContainer" style="display:none; margin-top:10px;">
   </div>
   <script>
     // ---- Global State ----
@@ -305,9 +320,8 @@
             // ─── Special‐case row 0 ─────────────────────────────────
       for (let j = 0; j <= W; j++) {
         const cmp0 = j < w[0]
-        ? `Compare w[0] and j: ${w[0]} > ${j} ( w[0] > j ) <br>Weight of first item is greater than current capacity&mdash;cannot include item`
-        : `Compare w[0] and j: ${w[0]} <= ${j} ( w[0] <= j ) <br>Weight of current item is less than current capacity&mdash;including item`;
-        //: `i < n: ${j} < ${W+1} (weight of current item is less than current capacity, populating first row with item value until row is full)`;
+        ? `Take item 0?<br> j < w[0] (${j} < ${w[0]}): Cannot include item`
+        : `Take item 0?<br> j >= w[0] (${j} >= ${w[0]}): Take item!`;
 
 
         if (j < w[0]) {
@@ -361,26 +375,16 @@
         : v[i] + K[i-1][j - w[i]];
      let cmp;
     if (j < w[i]) {
-      cmp = `Compare j and w[${i}]: ${j} < ${w[i]} ( j < w[${i}] )<br>`;
-	  cmp += `Weight of current item is greater than current capacity&mdash;cannot include item`;
+      // Compact: cannot include; carry over previous row value
+      cmp = `w[${i}] > j (${w[i]} > ${j}): Too heavy to take.`
     } else {
-      const vi = v[i];
-	  let intro=`Including item yields value K[${i-1}][${j - w[i]}] + v[${i}] = ${K[i-1][j - w[i]]} + ${v[i]} = ${withItem} <br>`;
-	  intro += `Excluding item yields value K[${i-1}][${j}] = ${K[i-1][j]}<br>`;
-      const lhs = `K[${i-1}][${j - w[i]}] + v[${i}]`;
-      const rhs = `K[${i-1}][${j}]`;
-      const cmpSymbol = withItem > without ? '>' : withItem < without ? '<' : '==';
-
-      cmp = intro+`${withItem} ${cmpSymbol} ${without} ( ${lhs} ${cmpSymbol} ${rhs} )<br>`;
-
-      if (withItem > without) {
-        cmp += `Including item ${i} is better`;
-      } else if (withItem < without) {
-        cmp += `Excluding item ${i} is better`;
-      } else {
-        cmp += `Including and excluding item ${i} give same value`;
-      }
-
+      // Compact: summarize include/exclude and mark the better one with an arrow
+      const betterTag = ' &nbsp; &nbsp; &lt;=== Better';
+      let inc = `include = K[${i-1}][${j - w[i]}] + v[${i}] = ${K[i-1][j - w[i]]} + ${v[i]} = ${withItem}`;
+      let exc = `exclude = K[${i-1}][${j}] = ${without}`;
+      if (withItem > without) inc += betterTag;
+      else if (withItem < without) exc += betterTag;
+      cmp = `${inc}<br>${exc}` + (withItem === without ? `<br>tie` : '');
     }
       // ── ADD both possible predecessors here ───────────────
       const prevTake = j < w[i] ? null : [i-1, j - w[i]];
@@ -423,10 +427,10 @@
        // 1) comparison step
        const prevVal = K[i-1][j];
        const currVal = K[i][j];
-       let cmpDesc = `Comparing K[${i}][${j}] and K[${i-1}][${j}]<br>`;
+       let cmpDesc = `Comparing K[${i}][${j}] and K[${i-1}][${j}]: `;
 	   cmpDesc += (currVal !== prevVal)
-         ? `${currVal} > ${prevVal} ( K[${i}][${j}] > K[${i-1}][${j}] )<br>Item ${i} is in solution`
-         : `${currVal} == ${prevVal} ( K[${i}][${j}] == K[${i-1}][${j}] )<br>Item ${i} is not in solution*<br>(*If we wanted to compute all solutions we would need to explore this case futher, but we will not.)`;
+         ? `${currVal} > ${prevVal} <br>Item ${i} is in solution`
+         : `${currVal} == ${prevVal} <br>Item ${i} is not in solution  (We will assume. See text for more on this case.)`;
        const prevSkip = [i-1, j];
        recordStep({
         v, w, K,
@@ -435,6 +439,7 @@
         skipCells: skipCells.slice(),  // ← ADD THIS
         i, j,
         skipPrev: prevSkip,
+        compareBacktrack: true,
         description: cmpDesc
       });
 
@@ -449,7 +454,7 @@
 
   const assignDesc =
     `Item ${i} included in final solution<br>` +
-    `j = ${oldJ} - ${w[i]} = ${newJ} (subtract weight of item ${i})<br>i-- (move to next item)`;
+    `j = ${oldJ} - ${w[i]} = ${newJ} (subtract weight of item ${i}) &nbsp; &nbsp; i-- (move to next item)`;
 
   // step showing the inclusion (preserve skipCells so far)
   recordStep({
@@ -484,7 +489,7 @@
 else {
       // 1) record that this cell was permanently skipped
       skipCells.push([i, j]);
-      const skipDesc = `Item ${i} excluded)`;
+      const skipDesc = `Item ${i} excluded`;
       recordStep({
           v, w, K,
           selected,
@@ -568,11 +573,15 @@ recordStep({
       if (containerId === 'v-array' && choiceIdx === idx) {
         elem.classList.add('choice-element');
       }
-        const idxLabel = document.createElement('div');
-        idxLabel.className = 'index-label';
-        idxLabel.textContent = idx;
-
-        wrapper.append(elem, idxLabel);
+        // Only show indices for the weights array to reduce clutter
+        if (containerId === 'w-array') {
+          const idxLabel = document.createElement('div');
+          idxLabel.className = 'index-label';
+          idxLabel.textContent = idx;
+          wrapper.append(elem, idxLabel);
+        } else {
+          wrapper.append(elem);
+        }
         container.append(wrapper);
       });
     }
@@ -654,6 +663,12 @@ recordStep({
       cell.textContent = cellVal;
       if (ptrI === rowIdx && ptrJ === colIdx) {
         cell.classList.add('sel-element');
+      }
+      // During backtracking compare step, thicken borders of K[i][j] and K[i-1][j]
+      if (step.compareBacktrack) {
+        if ((rowIdx === ptrI && colIdx === ptrJ) || (rowIdx === ptrI - 1 && colIdx === ptrJ)) {
+          cell.classList.add('thick-border');
+        }
       }
       wrapper.appendChild(cell);
 

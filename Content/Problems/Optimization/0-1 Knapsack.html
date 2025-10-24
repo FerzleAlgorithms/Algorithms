@@ -20,17 +20,19 @@
 
   <section>
     <h2>Problem Description</h2>
-      <p>
-    Given a set of \(n\) items, where each item \(i\) has weight \(w_i\) and value \(v_i\),
-    and a knapsack capacity \(W\), find a subset \(S \subseteq \{1,\dots,n\}\) that
-    maximizes 
-    \[
-      \sum_{i\in S} v_i
-      \quad\text{subject to}\quad
-      \sum_{i\in S} w_i \le W.
-    \]
-    In other words, select items whose total weight does not exceed \(W\) while maximizing their total value. Each item may be chosen at most once.
-  </p>
+    <p>
+  Given a set of \(n\) items, where each item \(i\) has weight \(w_i\) and value \(v_i\),
+  and a knapsack capacity \(W\), find a subset \(S \subseteq \{1,\dots,n\}\) that
+  maximizes 
+  \[
+    \sum_{i\in S} v_i
+    \quad\text{subject to}\quad
+    \sum_{i\in S} w_i \le W.
+  \]
+  In other words, select items whose total weight does not exceed \(W\) while maximizing their total value.
+  Each item may be taken (1) or not (0), which is where the name 0-1 knapsack comes from.
+  This contrasts with the fractional knapsack problem, where items can be divided and taken in parts.
+</p>
 
     <h3>Input</h3>
     <p>
