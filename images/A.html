@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<style>
+  :root {
+    --brand-blue: #4F7AA1;   /* header blue */
+    --brick-red: #8f4a3a;    /* muted red */
+    --olive:      #566e4e;   /* muted green */
+    --ochre:      #c5a24f;   /* muted yellow */
+  }
+
+  body { display:grid; place-items:center; height:100vh; margin:0; background:#f7f9fc; }
+
+  table {
+    border-collapse: collapse;
+    font-family: Arial, sans-serif;
+    font-size: 6rem;
+    text-align: center;
+  }
+  td {
+    width: 128px; height: 128px;
+    color: #fff;
+  }
+
+  .red    { background: var(--brick-red);  color:#222; }
+  .blue   { background: var(--brand-blue);  color:#222; }
+  .green  { background: var(--olive);  color:#222; }
+  .yellow { background: var(--ochre); color:#222; } /* darker text for contrast */
+</style>
+</head>
+<body>
+  <table>
+    <tr>
+      <td class="blue">D</td>
+      <td class="green">A</td>
+    </tr>
+    <tr>
+      <td class="red">I</td>
+      <td class="yellow">A</td>
+    </tr>
+  </table>
+</body>
+</html>
