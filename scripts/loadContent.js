@@ -121,10 +121,10 @@ const navigateTo = (rawPath) => {
 
   // 1) Save old scroll position
   const oldScrollY = window.pageYOffset;
+  // Save scroll state without altering the current entry's URL
   history.replaceState(
     { path: currentPath, scrollY: oldScrollY },
-    '',
-    `?path=${normalizePath(currentPath)}`
+    ''
   );
 
   // 2) Push new entry
@@ -752,8 +752,18 @@ async function loadContent(relativePath) {
     err.style.display = 'none';
     iframe.style.display = 'block';
 
-    // Use src assignment with cache-bust for stable navigation in iframe
-    iframe.src = `${url}?_=${Date.now()}`;
+    // Load into iframe without adding to its session history (use replace)
+    const target = `${url}?_=${Date.now()}`;
+    try {
+      // Prefer replacing the iframe's location to avoid stacking iframe history entries
+      if (iframe.contentWindow && iframe.contentWindow.location) {
+        iframe.contentWindow.location.replace(target);
+      } else {
+        iframe.src = target;
+      }
+    } catch {
+      iframe.src = target;
+    }
 
     iframe.onload = () => {
       hookIframeContent(iframe);
@@ -781,8 +791,16 @@ async function loadContent(relativePath) {
         const dtest = getIframeDocument(iframe);
         const isEmpty = !dtest || !dtest.body || dtest.body.childElementCount === 0;
         if (isEmpty) {
-          // reassign src once
-          iframe.src = `${url}?__retry__=${Date.now()}`;
+          const retry = `${url}?__retry__=${Date.now()}`;
+          try {
+            if (iframe.contentWindow && iframe.contentWindow.location) {
+              iframe.contentWindow.location.replace(retry);
+            } else {
+              iframe.src = retry;
+            }
+          } catch {
+            iframe.src = retry;
+          }
           return; // wait for next onload
         }
       } catch {}
@@ -848,14 +866,21 @@ document.addEventListener('DOMContentLoaded', () => {
         .querySelector('#collapseAll')
         .onclick = () => document.querySelectorAll('#menu li').forEach((li) => li.classList.remove('open'));
 
+      // Load initial content from URL and ensure the initial history state is set
       loadFromURLParams();
+      try {
+        const initialPath = new URLSearchParams(window.location.search).get('path') || 'Home/About';
+        const currentState = history.state || {};
+        if (currentState.path !== initialPath) {
+          // Preserve the current URL (including any hash) while setting state
+          history.replaceState({ path: initialPath, scrollY: window.pageYOffset || 0 }, '', window.location.href);
+        }
+      } catch {}
     })
     .catch(console.error);
 
 
   document.addEventListener('click', (event) => {
-	  
-	console.log("Click!");
     if (event.target.closest('iframe')) return;
     const anchor = event.target.closest('a[href^="?path="]');
     if (!anchor) return;
@@ -879,7 +904,8 @@ document.addEventListener('DOMContentLoaded', () => {
 window.addEventListener('message', (event) => {
   const msg = event.data;
   if (msg?.type === 'navigate' && msg.path) {
-    navigateTo(msg.path);
+    const currentPath = getCurrentPath();
+    if (msg.path !== currentPath) navigateTo(msg.path);
   }
 });
 
@@ -888,7 +914,9 @@ window.removeEventListener('popstate', loadFromURLParams);
 window.addEventListener('popstate', (event) => {
   const state = event.state || {};
   pendingScrollRestore = typeof state.scrollY === 'number' ? state.scrollY : 0;
-  const rawPath = state.path || 'Home/About';
+  // Prefer URL as source of truth for the popped entry; fallback to state
+  const urlPath = new URLSearchParams(window.location.search).get('path');
+  const rawPath = urlPath || state.path || 'Home/About';
   highlightActiveLink(rawPath);
   loadContent(`${normalizePath(rawPath)}.html`);
 });

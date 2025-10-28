@@ -97,6 +97,29 @@ body.mainSite header {
   background-color: #4F7AA1;
   color: #fff;
   text-align: center;
+  /* Reserve space for right-side logo; keep header tall enough for it */
+  padding-right: calc(var(--logo-size, 72px) + 16px);
+  min-height: calc(var(--logo-size, 72px) + 12px);
+}
+
+/* Header logo pinned to upper-right; responsive size */
+:root { --logo-size: 80px; }
+
+#siteLogo {
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  left: auto;
+  height: var(--logo-size);
+  width: auto;
+}
+
+/* Shrink logo on smaller screens to avoid overlap */
+@media (max-width: 800px) {
+  :root { --logo-size: 56px; }
+}
+@media (max-width: 500px) {
+  :root { --logo-size: 40px; }
 }
 
 /* 2) Container holds menu + content and is the *only* scrollable area */

@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Floyd's Algorithm</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js"></script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <script src="/Algorithms/scripts/chapterScripts.js"></script>
+  <link rel="stylesheet" href="/Algorithms/css/style.css">
+  <link rel="stylesheet" href="/Algorithms/css/chapter.css">
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DQ5LVZVFDC"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag() { dataLayer.push(arguments); }
+    gtag('js', new Date());
+    gtag('config', 'G-DQ5LVZVFDC');
+  </script>
+</head>
+
+<body>
+  <h1>Floyd's Algorithm (All-Pairs Shortest Paths)</h1>
+
+
+  <section id="problem-solved" section-title="Problem Solved">
+    <h2>Problem Solved</h2>
+    <p>
+      Floyd's Algorithm solves the
+      <a class="problem" href="?path=Problems/Graphs/All-Pairs%20Shortest%20Path">All-Pairs Shortest Path</a>
+      problem.
+    </p>
+  </section>
+
+
+  <section id="design" section-title="Design and Strategy">
+    <h2>Design and Strategy</h2>
+    <p>
+      The all-pairs shortest paths problem asks for the minimum distance between every pair of vertices in a weighted
+      graph.
+      Different algorithms approach this in different ways depending on graph size, density, and edge weights.
+      For instance, Dijkstra's algorithm efficiently finds shortest paths from a single source when all edges have
+      nonnegative weights,
+      while Bellman-Ford handles graphs with negative edges but must be run once per source to get all pairs.
+      Floyd's algorithm instead updates all pairs together in a single dynamic programming pass, making it conceptually
+      simple and well suited
+      for dense graphs or adjacency-matrix representations.
+      It works correctly even when some edges have negative weight, provided the graph contains no negative cycles.
+      If a negative cycle exists, distances involving that cycle can decrease without bound, and the notion of a finite
+      shortest path breaks down.
+    </p>
+
+    <p>
+      The algorithm begins with an adjacency matrix \(M\), where each entry \(M[i,j]\) gives the direct edge weight from
+      vertex \(i\) to vertex \(j\), or \(+\infty\) if no such edge exists. Diagonal entries are zero. The algorithm
+      proceeds by considering each vertex, one at a time, as a possible intermediate vertex along any path between two
+      others. After processing vertex \(k\), the matrix records the shortest path between every pair of vertices that
+      may include vertex \(k\) (and any lower-numbered vertices) as intermediates.
+      The initial matrix, \(D^{(0)}\), represents the shortest-path lengths when <em>no</em> intermediate vertices are
+      allowed. The next matrix, \(D^{(1)}\), incorporates paths that may go through vertex 1, \(D^{(2)}\) allows
+      vertices 1 and 2, and so on, until \(D^{(n)}\) allows all vertices.
+    </p>
+
+    <p>
+      Because \(D^{(0)}\) corresponds to zero allowed intermediates, it makes sense to number the vertices starting at
+      1. That way, when we define \(D^{(k)}[i,j]\), it naturally refers to paths whose internal vertices are drawn from
+      the set \(\{1,2,\dots,k\}\). The recursion then begins at \(k=1\) and proceeds through \(k=n\), ensuring that by
+      the end every vertex has been considered as a potential intermediate.
+    </p>
+
+    <p>
+      Each step of the algorithm computes the next matrix from the current one by expanding the set of allowed
+      intermediates from \(\{1,\dots,k-1\}\) to \(\{1,\dots,k\}\). It does so based on the simple observation that
+      any shortest path from \(i\) to \(j\) must fall into one of two cases: It either contains \(k\) or it doesn't.
+      The algorithm determines which is better:
+    </p>
+
+    <ul class="spaced">
+      <li><strong>Vertex \(k\) not used:</strong> The path does not include \(k\) as an intermediate vertex, so its best
+        length remains
+        \(D^{(k-1)}[i,j]\).</li>
+      <li><strong>Vertex \(k\) used:</strong> The path includes \(k\) as an intermediate vertex and can be decomposed
+        into two segments:
+        <ul>
+          <li>The segment from \(i\) to \(k\), whose internal vertices are drawn from \(\{1,\dots,k-1\}\), has shortest
+            length
+            \(D^{(k-1)}[i,k]\).</li>
+          <li>The segment from \(k\) to \(j\), also using only vertices in \(\{1,\dots,k-1\}\), has shortest length
+            \(D^{(k-1)}[k,j]\).</li>
+        </ul>
+        Combining these gives a candidate path of total length \(D^{(k-1)}[i,k] + D^{(k-1)}[k,j]\).
+      </li>
+    </ul>
+    <p>
+      The algorithm then chooses the shorter of these two possibilities to form the updated distance:
+      \[D^{(k)}[i,j] = \min\big(D^{(k-1)}[i,j],\; D^{(k-1)}[i,k] + D^{(k-1)}[k,j]\big).\]
+      This recurrence expresses the core dynamic programming idea: constructing larger solutions from smaller ones.
+    </p>
+
+   <h1>I AM HERE!</h1>
+   
+
+    <h3>High-level description</h3>
+    <ul class="spaced">
+      <li>Start with a distance matrix \(D\) equal to the adjacency matrix (with \(+\infty\) for missing edges, and
+        \(0\) on the diagonal).</li>
+      <li>For each vertex \(k\), try to improve every pair \((i,j)\) by allowing paths that go through \(k\).</li>
+      <li>If \(D[i,k] + D[k,j] &lt; D[i,j]\), update \(D[i,j]\).</li>
+      <li>Optionally maintain a <code>Next</code> (or <code>Pred</code>) matrix for path reconstruction.</li>
+    </ul>
+
+
+    <h3>Pseudocode</h3>
+    <ol class="spaced">
+      <li><strong>Input:</strong> \(n\) and an \(n\times n\) weight matrix \(W\) where
+        <ul>
+          <li>\(W[i,i]=0\) for all \(i\).</li>
+          <li>\(W[i,j]=w(i,j)\) if edge \((i,j)\in E\).</li>
+          <li>\(W[i,j]=+\infty\) otherwise.</li>
+        </ul>
+      </li>
+      <li><strong>Initialize:</strong>
+        <ol>
+          <li>Let \(D \gets W\).</li>
+          <li>(Optional) For path reconstruction, set
+            <code>Next[i][j] = j</code> if \(W[i][j] &lt; +\infty\) and \(i \ne j\); otherwise
+            <code>Next[i][j] = null</code>.
+          </li>
+        </ol>
+      </li>
+      <li><strong>Triple loop update:</strong>
+        <ol>
+          <li>For \(k = 1\) to \(n\):</li>
+  </section>
+
+  <section id="demo" section-title="Interactive Demo">
+    <div class="embeddedDemoContainer">
+      <iframe class="embeddedDemo" src="/Algorithms/Content/Demos/TECHNIQUE/ALGORITHM NAME Demo.html" allow="fullscreen"
+        name="ALGORITHM_NAME-demo">
+      </iframe>
+    </div>
+  </section>
+
+  <section id="code" section-title="Implementation in Java, C++, Python">
+    <h2>Implementation in Java, C++, Python</h2>
+    <p>Notes about the implementations, if any</p>
+    <div class="tab-group">
+      <div class="tabs" role="tablist">
+        <button id="tab-java" class="tablink active" data-lang="java" role="tab" aria-controls="java"
+          aria-selected="true">Java</button>
+        <button id="tab-cpp" class="tablink" data-lang="cpp" role="tab" aria-controls="cpp"
+          aria-selected="false">C++</button>
+        <button id="tab-python" class="tablink" data-lang="python" role="tab" aria-controls="python"
+          aria-selected="false">Python</button>
+      </div>
+      <div id="java" class="code-container active" role="tabpanel" aria-labelledby="tab-java">
+        <pre><code class="language-java">// Java code here</code></pre>
+      </div>
+      <div id="cpp" class="code-container" role="tabpanel" aria-labelledby="tab-cpp">
+        <pre><code class="language-cpp">// C++ code here</code></pre>
+      </div>
+      <div id="python" class="code-container" role="tabpanel" aria-labelledby="tab-python">
+        <pre><code class="language-python"># Python code here</code></pre>
+      </div>
+    </div>
+  </section>
+
+  <section id="analysis" section-title="Time/Space Analysis">
+    <h2>Time/Space Analysis</h2>
+    <p><strong>Time Complexity:</strong> Describe and justify.</p>
+    <p><strong>Space Complexity:</strong> Describe and justify.</p>
+  </section>
+
+
+  <section id="variations" section-title="Variations/Improvements">
+    <h2>Variations/Improvements</h2>
+    <p>
+      Describe known improvements or variants of the algorithm. Mention which situations they are better suited for.
+    </p>
+  </section>
+
+  <section id="links" section-title="Links to Resources">
+    <h2>Links to Resources</h2>
+    <ul>
+      <li><a href="URL1" target="_blank">title 1</a> Short description of website</li>
+      <li><a href="URL2" target="_blank">title 2</a> Short description of website</li>
+      <li><a href="URL3" target="_blank">title 3</a> Short description of website</li>
+    </ul>
+  </section>
+
+  <section id="reading-questions" section-title="Reading Comprehension Questions">
+    <h2>Reading Comprehension Questions</h2>
+    <ol>
+      <li><strong>Short Title:</strong> Question text here.</li>
+      <li><strong>Short Title:</strong> Another question text.</li>
+    </ol>
+    <button id="toggleAnswers" class="show-answer" aria-expanded="false">Show Answers</button>
+    <div id="answers" class="answer" hidden>
+      <ol>
+        <li><strong>Answer:</strong> Explanation here.</li>
+        <li><strong>Answer:</strong> Explanation here.</li>
+      </ol>
+    </div>
+  </section>
+
+  <section id="activities" section-title="In-Class Activities">
+    <h2>In-Class Activities</h2>
+    <ol>
+      <li><strong>Activity Title:</strong> Description of activity.</li>
+      <li><strong>Another Title:</strong> Another activity description.</li>
+    </ol>
+  </section>
+
+  <section id="problems" section-title="Homework Problems">
+    <h2>Homework Problems</h2>
+    <ol>
+      <li><strong>Short Description 1:</strong> Problem statement 1.</li>
+      <li><strong>Short Description 2:</strong> Problem statement 2.</li>
+    </ol>
+  </section>
+
+</body>
+
+</html>
