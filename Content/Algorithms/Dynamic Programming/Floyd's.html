@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Floyd's Algorithm</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js"></script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <script src="/Algorithms/scripts/chapterScripts.js"></script>
+  <link rel="stylesheet" href="/Algorithms/css/style.css">
+  <link rel="stylesheet" href="/Algorithms/css/chapter.css">
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DQ5LVZVFDC"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag() { dataLayer.push(arguments); }
+    gtag('js', new Date());
+    gtag('config', 'G-DQ5LVZVFDC');
+  </script>
+</head>
+
+<body>
+  <h1>Floyd's Algorithm (All-Pairs Shortest Paths)</h1>
+
+
+  <section id="problem-solved" section-title="Problem Solved">
+    <h2>Problem Solved</h2>
+    <p>
+      Floyd's Algorithm (sometimes referred to as Floyd-Warshall) solves the
+      <a class="problem" href="?path=Problems/Graphs/All-Pairs%20Shortest%20Path">All-Pairs Shortest Path</a>
+      problem.
+    </p>
+  </section>
+
+
+  <section id="design" section-title="Design and Strategy">
+    <h2>Design and Strategy</h2>
+    <p>
+      The all-pairs shortest paths problem asks for the minimum distance between every pair of vertices in a weighted
+      graph.
+      Different algorithms approach this in different ways depending on graph size, density, and edge weights.
+      One approach is to use a single-source shortest path algorithm, but run it from every vertex as the source.
+      The two most well-known single-source shortest path algorithms are Dijkstra's (requires nonnegative edge weights)
+      and Bellman-Ford
+      (allows negative weight edges, but is less efficient).
+      Floyd's algorithm instead updates all pairs together in a single dynamic programming pass, making it conceptually
+      simple and well suited
+      for dense graphs or adjacency-matrix representations.
+      It works correctly even when some edges have negative weight, provided the graph contains no negative cycles.
+      If a negative cycle exists, distances involving that cycle can decrease without bound, and in that case,
+      the concept of a finite shortest path no longer applies.
+    </p>
+
+    <p>
+      The algorithm begins with the adjacency matrix \(M\) of the given weighted graph, which can be either
+      directed or undirected. Each entry \(M[i,j]\) gives the direct edge weight from
+      vertex \(i\) to vertex \(j\), or \(+\infty\) if no such edge exists. Diagonal entries are zero. The algorithm
+      proceeds by considering each vertex, one at a time, as a possible intermediate vertex along any path between two
+      others. When it processes vertex \(k\) as an intermediate, it updates
+      the matrix so that it stores the shortest path length between every pair of vertices that
+      may include any of the vertices \(\{1, \ldots, k\}\) as intermediates.
+      The initial matrix, \(D^{(0)}\), represents the shortest-path lengths when <em>no</em> intermediate vertices are
+      allowed. The next matrix, \(D^{(1)}\), incorporates paths that may go through vertex 1, \(D^{(2)}\) allows
+      vertices 1 and 2, and so on, until \(D^{(n)}\) allows all vertices as intermediates.
+    </p>
+
+    <p>
+      Each step of the algorithm computes the next matrix from the current one by expanding the set of allowed
+      intermediates from \(\{1,\dots,k-1\}\) to \(\{1,\dots,k\}\). It does so based on the simple observation that
+      any shortest path from \(i\) to \(j\) must fall into one of two cases: It either contains \(k\) or it doesn't.
+      The algorithm determines which is better:
+    </p>
+
+    <ul class="spaced">
+      <li><strong>Vertex \(k\) not used:</strong> The path does not include \(k\) as an intermediate vertex, so its best
+        length remains
+        \(D^{(k-1)}[i,j]\).</li>
+      <li><strong>Vertex \(k\) used:</strong> The path includes \(k\) as an intermediate vertex and can be decomposed
+        into two segments:
+        <ul>
+          <li>The segment from \(i\) to \(k\), whose internal vertices are drawn from \(\{1,\dots,k-1\}\), has shortest
+            length
+            \(D^{(k-1)}[i,k]\).</li>
+          <li>The segment from \(k\) to \(j\), also using only vertices in \(\{1,\dots,k-1\}\), has shortest length
+            \(D^{(k-1)}[k,j]\).</li>
+        </ul>
+        Combining these gives a candidate path of total length \(D^{(k-1)}[i,k] + D^{(k-1)}[k,j]\).
+      </li>
+    </ul>
+    <p>
+      The algorithm then chooses the shorter of these two possibilities to form the updated distance:
+      \[D^{(k)}[i,j] = \min\big(D^{(k-1)}[i,j],\; D^{(k-1)}[i,k] + D^{(k-1)}[k,j]\big).\]
+      This recurrence expresses the core dynamic programming idea: constructing larger solutions from smaller ones.
+    </p>
+
+    <p>
+      Notice that in computing \(D^{(k)}\), the algorithm only ever refers to values from \(D^{(k-1)}\).
+      This means that once the \(k\)th iteration is complete, the previous matrix is no longer needed.
+      In practice, we can store all distances in a single matrix \(D\) and update it in place:
+      whenever a shorter path through vertex \(k\) is found, we overwrite \(D[i,j]\) with the new value.
+      This does not interfere with other updates
+      in the same iteration. The update for any given \(D[i,j]\) depends on the values \(D[i,k]\) and \(D[k,j]\).
+      Critically, the values \(D[i,k]\) and \(D[k,j]\) are not changed during the \(k\)th
+      iteration. Since the values being read are stable, any other \(D[i,j]\) can be safely overwritten in place
+      without corrupting the calculations for other pairs in the same loop. The following pseudocode illustrates
+      this process.
+    </p>
+
+    <h3>Pseudocode</h3>
+    <p>
+      The algorithm takes as input an \(n \times n\) weight matrix \(W\), where \(W[i,j]\) gives the edge weight from
+      vertex \(i\) to vertex \(j\) (or \(+\infty\) if no edge exists), and \(W[i,i] = 0\) for all \(i\).
+      We initialize the distance matrix \(D\) to \(W\). Then the algorithm is a simple triple-nested loop, where the
+      outer loop iterates over every possible intermediate vertex \(k\), and the inner two loops iterate over every pair
+      of vertices to see if a shorter path can be constructed by using vertex \(k\).
+    </p>
+    <ul>
+      <li>For \(k = 1\) to \(n\):</li>
+      <li style="list-style: none;">
+        <ul>
+          <li>For \(i = 1\) to \(n\):</li>
+          <li style="list-style: none;">
+            <ul>
+              <li>For \(j = 1\) to \(n\):</li>
+              <li style="list-style: none;">
+                <ul>
+                  <li>If \(D[i,k] + D[k,j] &lt; D[i,j]\) then:
+                    <ul>
+                      <li>\(D[i,j] \gets D[i,k] + D[k,j]\).</li>
+                    </ul>
+                  </li>
+                </ul>
+              </li>
+            </ul>
+          </li>
+        </ul>
+      </li>
+    </ul>
+
+    <p> The matrix \(D\) now contains all-pairs shortest-path distances.
+      Note that in the algorithm given here, we do not store any information that allows us to determine the
+      actual shortest paths. For some dynamic programming algorithms, the matrix used to compute the
+      optimal value contains enough information to reconstruct the solution that leads to that value.
+      Unfortunately, that is not the case here. If we wish to reconstruct the actual shortest paths, we
+      need to create and update a second matrix that keeps track of the intermediate vertices used for the paths.
+      The details of this are left to the reader.
+    </p>
+  </section>
+
+  <section id="demo" section-title="Interactive Demo">
+    <p>This demo illustrates the algorithm on a <em>directed</em> weighted graph. </p>
+    <div class="embeddedDemoContainer">
+      <iframe class="embeddedDemo" src="/Algorithms/Content/Demos/Dynamic%20Programming/Floyd%27s%20Demo.html"
+        allow="fullscreen" name="Floyd's-demo">
+      </iframe>
+    </div>
+  </section>
+
+  <section id="code" section-title="Implementation in Java, C++, Python">
+    <h2>Implementation in Java, C++, Python</h2>
+    <p>
+      The implementations below follow the same structure as the pseudocode.
+      Each uses a simple two-dimensional array to represent the distance matrix \(D\),
+      updating it in place with three nested loops.
+      The code assumes that missing edges are represented by a large number to represent infinity in the input matrix.
+    </p>
+
+    <div class="tab-group">
+      <div class="tabs" role="tablist">
+        <button id="tab-java" class="tablink active" data-lang="java" role="tab" aria-controls="java"
+          aria-selected="true">Java</button>
+        <button id="tab-cpp" class="tablink" data-lang="cpp" role="tab" aria-controls="cpp"
+          aria-selected="false">C++</button>
+        <button id="tab-python" class="tablink" data-lang="python" role="tab" aria-controls="python"
+          aria-selected="false">Python</button>
+      </div>
+
+      <div id="java" class="code-container active" role="tabpanel" aria-labelledby="tab-java">
+        <pre><code class="language-java">void floyd(int[][] D, int n) {
+  for (int k = 0; k &lt; n; k++) {
+    for (int i = 0; i &lt; n; i++) {
+      for (int j = 0; j &lt; n; j++) {
+        if (D[i][k] + D[k][j] &lt; D[i][j]) {
+          D[i][j] = D[i][k] + D[k][j];
+        }
+      }
+    }
+  }
+}
+</code></pre>
+      </div>
+
+      <div id="cpp" class="code-container" role="tabpanel" aria-labelledby="tab-cpp">
+        <pre><code class="language-cpp">void floyd(int **D, int n) {
+  for (int k = 0; k &lt; n; k++) { 
+    for (int i = 0; i &lt; n; i++) {
+      for (int j = 0; j &lt; n; j++) {
+        if (D[i][k] + D[k][j] &lt; D[i][j]) {
+          D[i][j] = D[i][k] + D[k][j];
+        }
+      }
+    }
+  }
+}
+</code></pre>
+      </div>
+
+      <div id="python" class="code-container" role="tabpanel" aria-labelledby="tab-python">
+        <pre><code class="language-python">def floyd(D):
+    n = len(D)
+    for k in range(n):
+        for i in range(n):
+            for j in range(n):
+                if D[i][k] + D[k][j] &lt; D[i][j]:
+                    D[i][j] = D[i][k] + D[k][j]
+</code></pre>
+      </div>
+    </div>
+  </section>
+  <section id="analysis" section-title="Time/Space Analysis">
+    <h2>Time/Space Analysis</h2>
+
+    <p><strong>Time Complexity.</strong> For each ordered triple \((i,j,k)\), the algorithm does one comparison, a few
+      simple
+      calculations, and possibly an assignment, taking a constant amount of time.
+      There are \(n\) choices for each index, so the total number of inner-loop checks is \(n^3\). Thus the running time
+      is
+      \(\Theta(n^3)\) in the best, average, and worst cases.</p>
+
+    <p><strong>Space Complexity.</strong> Using in-place updates, only the distance matrix \(D\) is required
+      (or a single copy of it if the original distance matrix is still needed), which uses
+      \(\Theta(n^2)\) space. If path reconstruction is desired, maintain a second \(n \times n\) matrix (e.g.,
+      <code>Next</code> or
+      <code>Pred</code>), keeping the total auxiliary space at \(\Theta(n^2)\) as well.
+    </p>
+
+    <p>
+      Compared to running single-source shortest path algorithms \(n\) times, Floyd's algorithm offers a uniform and
+      straightforward approach. Dijkstra's algorithm, repeated once per vertex, runs in \(O(n\cdot m \log n)\),
+      making it potentially faster when the number of edges \(m\) is much smaller than \(n^2\).
+      Bellman-Ford, also repeated \(n\) times, would take \(O(n^2 m)\), typically much slower. Floyd's \(O(n^3)\) time
+      is
+      independent of edge density and easy to implement in a compact matrix-based form, which makes it the preferred
+      choice
+      for dense graphs or when all-pairs distances are needed.
+    </p>
+  </section>
+
+  <section id="variations" section-title="Variations/Improvements">
+    <h2>Variations and Improvements</h2>
+
+    <p>
+      The basic Floyd algorithm can be extended or modified in several useful ways.
+    </p>
+
+    <ul class="spaced">
+      <li><strong>Path reconstruction.</strong>
+        By maintaining an additional matrix (often called <code>Next</code> or <code>Pred</code>), the algorithm can
+        record
+        the first intermediate vertex on each shortest path. After the main loop completes, the actual sequence of
+        vertices
+        in a shortest path from \(i\) to \(j\) can be recovered by repeatedly following these entries.</li>
+
+      <li><strong>Detecting negative cycles.</strong>
+        After all iterations, if any diagonal entry \(D[i,i] &lt; 0\), then vertex \(i\) lies on or is reachable from a
+        negative cycle.
+        This observation is sometimes used to flag invalid results or mark affected vertices.</li>
+
+      <li><strong>Space reduction.</strong>
+        Since the algorithm updates \(D\) in place, the space requirement is already minimal (\(\Theta(n^2)\)).
+        However, when only distances from a single source are required, it is more efficient to use Dijkstra's or
+        Bellman-Ford
+        instead of storing the full \(n\times n\) matrix.</li>
+
+      <li><strong>Parallel and GPU implementations.</strong>
+        The triple loop structure is highly regular, making Floyd's algorithm well suited for vectorized, multi-core, or
+        GPU execution.
+        Each iteration over \(k\) can be parallelized by distributing updates for all pairs \((i,j)\).</li>
+
+      <li><strong>Floyd-Warshall formulation.</strong>
+        A Boolean variant of the algorithm, known as Warshall's algorithm, replaces arithmetic with logical operations
+        to compute transitive closure: \(R[i,j]\) is set to true if there exists a path from \(i\) to \(j\).
+        This version operates on adjacency matrices and runs in the same \(O(n^3)\) time.</li>
+    </ul>
+  </section>
+
+  <section id="links" section-title="Links to Resources">
+    <h2>Links to Resources</h2>
+    <p>Other takes on Floyd's Algorithm</p>
+    <ul class="resource-list">
+      <li>
+        <a href="https://en.wikipedia.org/wiki/Floyd%E2%80%93Warshall_algorithm" target="_blank">
+          Wikipedia: Floyd-Warshall Algorithm
+        </a> Overview of the algorithm's history, recurrence relation, and proofs of correctness.
+      </li>
+      <li>
+        <a href="https://www.geeksforgeeks.org/floyd-warshall-algorithm-dp-16/" target="_blank">
+          GeeksforGeeks: Floyd-Warshall Algorithm
+        </a> Step-by-step explanation with examples, code in multiple languages, and discussion of negative cycles.
+      </li>
+      <li>
+        <a href="https://cp-algorithms.com/graph/all-pair-shortest-path-floyd-warshall.html" target="_blank">
+          CP-Algorithms: Floyd-Warshall
+        </a> Concise technical explanation focused on competitive programming and implementation details.
+      </li>
+    </ul>
+
+    <p>Graph-related demos (Each includes Floyd's, some include others).</p>
+    <ul>
+      <li>
+        <a href="https://www.cs.usfca.edu/~galles/visualization/Floyd.html" target="_blank">
+          USFCA Algorithm Visualizations: Floyd-Warshall All-Pairs Shortest Path
+        </a> Interactive matrix and graph visualization showing each update step.
+      </li>
+      <li>
+        <a href="https://keshav.codes/floyd-visualizer/" target="_blank">
+          Interactive Graph Algorithm Learning Platform: Floyd-Warshall Visualizer
+        </a> Real-time graph editing and visualization of path updates.
+      </li>
+      <li>
+        <a href="https://algorithmvisualizer-pied.vercel.app/" target="_blank">
+          Algorithm Visualizer: Run Floyd-Warshall Algorithm
+        </a> Online visualizer allowing custom graph creation and step execution.
+      </li>
+      <li>
+        <a href="https://algorithms.discrete.ma.tum.de/graph-algorithms/spp-floyd-warshall/index_en.html"
+          target="_blank">
+          TUM Applet: The Floyd-Warshall Algorithm
+        </a> Educational applet from Technical University of Munich showing matrix transitions.
+      </li>
+      <li>
+        <a href="https://graphonline.top/en/" target="_blank">
+          GraphOnline: Create Graph / Find Shortest Path - supports Floyd-Warshall
+        </a> General graph manipulation and shortest-path visualization site.
+      </li>
+    </ul>
+  </section>
+
+
+  <section id="reading-questions" section-title="Reading Comprehension Questions">
+    <h2>Reading Comprehension Questions</h2>
+    <ol>
+      <li><strong>Problem scope:</strong> What problem does Floyd's algorithm solve, and under what edge-weight
+        conditions does it work or fail?</li>
+      <li><strong>Matrix meanings:</strong> What do the matrices \(D^{(0)}\), \(D^{(1)}\), and \(D^{(k)}\) represent?
+        In particular, what exactly does \(D^{(k)}[i,j]\) represent? </li>
+      <li><strong>Indexing choice:</strong> Why are vertices indexed starting at 1 in the description, and how does that
+        relate to \(D^{(k)}[i,j]\)?</li>
+      <li><strong>Two-case update:</strong> State the two cases considered when updating \(D^{(k)}[i,j]\) and write the
+        resulting recurrence.</li>
+      <li><strong>Why it's correct (intuition):</strong> Explain how introducing vertex \(k\) as an allowed intermediate
+        ensures that multi-intermediate shortest paths are eventually captured.</li>
+      <li><strong>In-place safety:</strong> Why is it safe to overwrite entries of \(D\) during the \(k\)th iteration?
+      </li>
+      <li><strong>Complexity:</strong> What are the time and space complexities of Floyd's algorithm (with and without
+        path reconstruction)?</li>
+      <li><strong>Algorithm choice:</strong> When can running Dijkstra's from every source be asymptotically faster than
+        Floyd's? When is Floyd's preferable?</li>
+      <li><strong>Negative cycles:</strong> How can you detect a negative cycle after the algorithm finishes?</li>
+    </ol>
+
+    <button id="toggleAnswers" class="show-answer" aria-expanded="false">Show Answers</button>
+    <div id="answers" class="answer" hidden>
+      <ol>
+        <li><strong>Answer:</strong> All-pairs shortest-path distances in a weighted directed graph. It allows negative
+          edge weights but assumes no negative cycles; with a negative cycle, some distances are unbounded below so
+          finite shortest paths don't exist.</li>
+        <li><strong>Answer:</strong> \(D^{(0)}\) is the adjacency/weight matrix (no intermediates). \(D^{(1)}\) allows
+          vertex 1 as an intermediate. In general, \(D^{(k)}[i,j]\) is the shortest distance from \(i\) to \(j\) using
+          only intermediates in \(\{1,\dots,k\}\).</li>
+        <li><strong>Answer:</strong> Indexing from 1 makes the definition "intermediates among \(\{1..k\}\)" align with
+          iteration \(k=1\) to \(n\); by \(k=n\) all vertices have been allowed.</li>
+        <li><strong>Answer:</strong> Either (1) do not use \(k\): keep \(D^{(k-1)}[i,j]\); or (2) use \(k\): take
+          \(i\!\to\!k\) then \(k\!\to\!j\), giving \(D^{(k-1)}[i,k]+D^{(k-1)}[k,j]\). So
+          \[
+          D^{(k)}[i,j]=\min\big(D^{(k-1)}[i,j],\, D^{(k-1)}[i,k]+D^{(k-1)}[k,j]\big).
+          \]
+        </li>
+        <li><strong>Answer:</strong> Any shortest path has a highest-numbered intermediate. When that vertex \(k\) is
+          introduced, the best subpaths to and from \(k\) (using only smaller indices) already exist in \(D^{(k-1)}\),
+          so the full path is found then.</li>
+        <li><strong>Answer:</strong> During iteration \(k\), each update of \(D[i,j]\) reads only \(D[i,k]\) and
+          \(D[k,j]\); the \(k\)th row/column are not changed while processing \(k\), so overwriting \(D[i,j]\) can't
+          corrupt other updates.</li>
+        <li><strong>Answer:</strong> Time \(\Theta(n^3)\). Space \(\Theta(n^2)\) for \(D\); with a
+          <code>Next</code>/<code>Pred</code> matrix for reconstruction, it's still \(\Theta(n^2)\) additional space.
+        </li>
+        <li><strong>Answer:</strong> \(n\) runs of Dijkstra with heaps take \(O(n\,m\log n)\), better on sparse graphs
+          (\(m\ll n^2\)). Floyd's \(O(n^3)\) is often preferable on dense graphs or when a simple matrix-based
+          implementation is desired.</li>
+        <li><strong>Answer:</strong> Check the diagonal: if any \(D[v,v] &lt; 0\) after completion, a negative cycle is
+          reachable (or present) involving \(v\).</li>
+      </ol>
+    </div>
+  </section>
+
+  <section id="activities" section-title="In-Class Activities">
+    <h2>In-Class Activities</h2>
+
+    <ol>
+      <li><strong>Comparing Algorithms</strong>Consider the following graph:<br>
+        <figure class="inline-figure">
+          <svg width="560" height="340" viewBox="0 0 560 340" xmlns="http://www.w3.org/2000/svg"
+            aria-labelledby="fig-floyd-sample-graph-title">
+            <title id="fig-floyd-sample-graph-title">Sample directed weighted graph with 5 vertices</title>
+            <style>
+              .node {
+                fill: #fff;
+                stroke: #2f2f2f;
+                stroke-width: 2;
+              }
+
+              .nlabel {
+                font: 14px monospace;
+                fill: #222;
+                text-anchor: middle;
+                dominant-baseline: middle;
+              }
+
+              .edge {
+                stroke: #505050;
+                stroke-width: 1.4;
+                fill: none;
+                stroke-linecap: round;
+                stroke-linejoin: round;
+              }
+
+              .elabel {
+                font: 12px monospace;
+                fill: #111;
+                text-anchor: middle;
+                dominant-baseline: middle;
+                paint-order: stroke;
+                stroke: #fff;
+                stroke-width: 4px;
+              }
+            </style>
+            <defs>
+              <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6"
+                orient="auto-start-reverse">
+                <path d="M 0 0 L 10 5 L 0 10 z" fill="#505050" />
+              </marker>
+            </defs>
+
+            <!-- Node coordinates on a pleasant pentagon -->
+            <g id="nodes">
+              <circle class="node" cx="280" cy="50" r="22" /> <!-- 1: top -->
+              <circle class="node" cx="480" cy="170" r="22" /> <!-- 2: right -->
+              <circle class="node" cx="360" cy="300" r="22" /> <!-- 3: bottom-right -->
+              <circle class="node" cx="200" cy="300" r="22" /> <!-- 4: bottom-left -->
+              <circle class="node" cx="80" cy="170" r="22" /> <!-- 5: left -->
+            </g>
+            <g id="nlabels">
+              <text class="nlabel" x="280" y="50">1</text>
+              <text class="nlabel" x="480" y="170">2</text>
+              <text class="nlabel" x="360" y="300">3</text>
+              <text class="nlabel" x="200" y="300">4</text>
+              <text class="nlabel" x="80" y="170">5</text>
+            </g>
+
+            <!-- Edges: gentle curves, rounded caps, labels with white halos for readability -->
+            <g id="edges" marker-end="url(#arrow)">
+              <!-- 5 -> 1 (10) -->
+              <path class="edge" d="M 100 160 C 160 115, 220 80, 260 62" />
+              <text class="elabel" x="200" y="95">10</text>
+
+              <!-- 1 -> 2 (3) -->
+              <path class="edge" d="M 300 60 C 360 88, 420 130, 462 155" />
+              <text class="elabel" x="402" y="120">3</text>
+
+              <!-- 1 -> 3 (8) -->
+              <path class="edge" d="M 292 68 C 320 120, 340 200, 352 278" />
+              <text class="elabel" x="330" y="195">8</text>
+
+              <!-- 2 -> 3 (2) -->
+              <path class="edge" d="M 470 190 C 440 230, 400 265, 375 285" />
+              <text class="elabel" x="420" y="245">2</text>
+
+              <!-- 2 -> 5 (6) -->
+              <path class="edge" d="M 458 170 C 380 170, 200 170, 102 170" />
+              <text class="elabel" x="280" y="158">6</text>
+
+              <!-- 3 -> 4 (1) -->
+              <path class="edge" d="M 338 300 C 310 300, 250 300, 222 300" />
+              <text class="elabel" x="280" y="288">1</text>
+
+              <!-- 4 -> 5 (4) -->
+              <path class="edge" d="M 178 300 C 140 270, 110 215, 92 187" />
+              <text class="elabel" x="128" y="245">4</text>
+
+              <!-- 5 -> 3 (7) -->
+              <path class="edge" d="M 98 182 C 180 235, 270 270, 340 290" />
+              <text class="elabel" x="235" y="260">7</text>
+            </g>
+          </svg>
+        </figure>
+
+
+        <ol type='a'>
+          <li><strong>All-pairs by Floyd's algorithm:</strong> Using the 5-vertex graph shown above, compute all-pairs
+            shortest paths by hand with Floyd's algorithm. Record the distance matrix \(D\) after each iteration
+            \(k=1,2,3,4,5\) and note which entries improve at each step.</li>
+          <li><strong>Single-source by Dijkstra's algorithm:</strong> On the same graph, run Dijkstra's algorithm from
+            each vertex to compute all-pairs shortest paths. Track the sequence of relaxations or tentative distances
+            for each source. Compare the total number of edge relaxations to those in Floyd's algorithm.</li>
+          <li><strong>Single-source by Bellman-Ford:</strong> Repeat for Bellman-Ford from each vertex. Record the
+            updates in each pass. Confirm that the final distances
+            match the results from Floyd's and Dijkstra's algorithms.</li>
+          <li><strong>Method comparison and reflection:</strong> Compare the three approaches (Floyd, Dijkstra's,
+            Bellman-Ford) in terms of conceptual design, efficiency, and ease of implementation. Which algorithm is best
+            suited for sparse vs. dense graphs? Which one would you choose for graphs with negative edges or cycles?
+          </li>
+        </ol>
+      </li>
+      <li><strong>Negative edge exploration:</strong>
+        Repeat problem 1, but replace the edges with weights 1 and 6 with -1 and -6.
+        Does this cause any problems for any of the algorithms?
+      </li>
+      <li><strong>Negative cycle detection:</strong> Take the graph from problem 1 and replace the edge with
+        weight 7 with -7. Run or simulate Floyd's
+        algorithm and identify which diagonal entries become negative. Discuss what those entries mean.
+        Does the same/similar thing happen if you replace the edge of weight 10 with weight -12?</li>
+      <li><strong>Intermediate vertex focus:</strong> Choose a fixed \(k\) and explore how allowing vertex \(k\) as an
+        intermediate affects only certain pairs \((i,j)\). Identify which matrix entries change and why.</li>
+      <li><strong>Parallel possibilities:</strong> Brainstorm how you could parallelize Floyd's algorithm.</li>
+    </ol>
+  </section>
+
+
+  <section id="problems" section-title="Homework Problems">
+    <h2>Homework Problems</h2> 
+    <ol>
+      <li><strong>Trace on small graph:</strong> Apply Floyd's algorithm to the following graph.
+        Show the distance matrix \(D\) after each iteration \(k = 0, 1, 2, 3, 4, 5, 6\).
+        Highlight all entries that change at each step and briefly explain why they changed.
+      <svg width="620" height="390" viewBox="0 0 620 390" xmlns="http://www.w3.org/2000/svg" 
+      aria-labelledby="fig-floyd-hex-graph-title">
+  <style>
+    .node   { fill: #fff; stroke: #2f2f2f; stroke-width: 2; }
+    .nlabel { font: 14px monospace; fill: #222; text-anchor: middle; dominant-baseline: middle; }
+    .edge   { stroke: #505050; stroke-width: 1.25; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+    .elabel { font: 12px monospace; fill: #111; text-anchor: middle; dominant-baseline: middle;
+              paint-order: stroke; stroke: #fff; stroke-width: 3px; }
+  </style>
+  <defs>
+    <!-- Arrowheads that stop at node rim -->
+    <marker id="arrow" viewBox="0 0 10 10" refX="7.5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#505050" />
+    </marker>
+  </defs>
+
+  <!-- Nodes on a hexagon -->
+  <!-- 1: top, then clockwise 2..6 -->
+ 
+
+  <!-- Edges: gentle, separated curves; labels have white halos for readability -->
+  <g id="edges" marker-end="url(#arrow)">
+    <!-- 1 -> 2 (3) -->
+    <path class="edge" d="M 330 50 C 395 78, 460 108, 500 122" />
+    <text class="elabel" x="430" y="80">3</text>
+
+    <!-- 1 -> 3 (9) -->
+    <path class="edge" d="M 322 58 C 380 130, 445 210, 508 272" />
+    <text class="elabel" x="430" y="210">9</text>
+
+    <!-- 2 -> 3 (2) -->
+    <path class="edge" d="M 512 150 C 510 190, 514 240, 518 270" />
+    <text class="elabel" x="520" y="210">2</text>
+
+    <!-- 3 -> 4 (1) -->
+    <path class="edge" d="M 498 298 C 438 320, 368 340, 332 352" />
+    <text class="elabel" x="410" y="330">1</text>
+
+    <!-- 4 -> 5 (4) -->
+    <path class="edge" d="M 288 360 C 240 345, 170 320, 122 298" />
+    <text class="elabel" x="200" y="332">4</text>
+
+    <!-- 5 -> 1 (10) -->
+    <path class="edge" d="M 118 276 C 180 220, 250 150, 298 62" />
+    <text class="elabel" x="210" y="180">10</text>
+
+    <!-- 5 -> 3 (7) (low arc to stay clear of 2->5) -->
+    <path class="edge" d="M 120 300 C 210 330, 410 330, 508 298" />
+    <text class="elabel" x="315" y="310">7</text>
+
+    <!-- 6 -> 2 (5) -->
+    <path class="edge" d="M 122 138 C 220 120, 420 120, 498 130" />
+    <text class="elabel" x="310" y="118">5</text>
+
+    <!-- 6 -> 4 (8) -->
+    <path class="edge" d="M 110 148 C 180 210, 240 280, 298 342" />
+    <text class="elabel" x="210" y="260">8</text>
+  </g>
+
+   <g id="nodes">
+    <circle class="node" cx="310" cy="40"  r="22" />  <!-- 1 -->
+    <circle class="node" cx="520" cy="130" r="22" />  <!-- 2 -->
+    <circle class="node" cx="520" cy="290" r="22" />  <!-- 3 -->
+    <circle class="node" cx="310" cy="360" r="22" />  <!-- 4 -->
+    <circle class="node" cx="100" cy="290" r="22" />  <!-- 5 -->
+    <circle class="node" cx="100" cy="130" r="22" />  <!-- 6 -->
+  </g>
+  <g id="nlabels">
+    <text class="nlabel" x="310" y="40">1</text>
+    <text class="nlabel" x="520" y="130">2</text>
+    <text class="nlabel" x="520" y="290">3</text>
+    <text class="nlabel" x="310" y="360">4</text>
+    <text class="nlabel" x="100" y="290">5</text>
+    <text class="nlabel" x="100" y="130">6</text>
+  </g>
+</svg>
+
+      </li>
+
+      <li><strong>Negative edge variation:</strong> Repeat Problem 1 but replace the edges of weights 1 and 3 with -1 and -3.
+      </li>
+
+      <li><strong>Path reconstruction:</strong> Extend Floyd's algorithm so it can reconstruct the shorest paths.
+        You will need to maintain and update a second matrix. Make clear how that matrix needs to be initialized
+        and how/where it is updated in the original pseudocode.
+        Then give another algorithm that will determine the shortest path from \(i\) to \(j\) using the new matrix
+        (and the original one or not?).</li>
+
+      <li><strong>Negative cycle detection:</strong> Modify your code to report any vertex \(v\) for which \(D[v,v] <
+          0\) after the algorithm finishes. Test this on a version of the graph that includes a small negative cycle.</li>
+
+      <li><strong>Algorithm comparison:</strong> Implement Floyd's, Dijkstra's, and Bellman-Ford algorithms 
+        and run them on the same graph.
+        For each, record the total number of edge relaxations/updates needed to compute all-pairs distances.
+        Discuss the results.</li>
+
+      <li><strong>Asymptotic reasoning:</strong> Suppose a graph has \(n=1000\) vertices and \(m=3000\) edges.
+        Estimate the number of basic operations required by Floyd's, Dijkstra's (run from every source), 
+        and Bellman-Ford (run from every source).
+        Which approach is most efficient for this case and why?</li>
+
+      <li><strong>Transitive closure variant:</strong> Adapt Floyd's algorithm to operate on a Boolean adjacency matrix,
+        where
+        \(R[i,j] = 1\) if there exists a path from \(i\) to \(j\), and \(0\) otherwise.
+        Show the final matrix for a small directed graph of your choice.</li>
+
+      <li><strong>Proof of correctness (conceptual):</strong>
+        Prove that after iteration \(k\), the entries of \(D^{(k)}\) correctly represent the shortest paths whose
+        internal vertices belong to \(\{1, \dots, k\}\).
+        Hint: use induction on \(k\).</li>
+    </ol>
+  </section>
+</body>
+
+</html>

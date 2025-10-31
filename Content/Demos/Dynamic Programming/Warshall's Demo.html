@@ -2,84 +2,15 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Warshall’s Algorithm Demo</title>
- <script src="../../../scripts/demoScripts.js"></script>
+  <script src="../../../scripts/demoScripts.js"></script>
   <link rel="stylesheet" href="../../../css/style.css">
   <link rel="stylesheet" href="../../../css/demo.css">
   <style>
-    /* Container wrapper (from Matrix Multiplication demo) */
-    .demo-container {
-      width: auto;
-      max-width: none;
-      margin: 2em 0 2em 2em;
-      background: transparent;
-      padding: 0;
-      border-radius: 0;
-      box-shadow: none;
-    }
-
-    /* Heading alignment */
-    h2 {
-      text-align: left;
-      margin-top: 0;
-      margin-bottom: 1em;
-    }
-
-    /* Controls styling (placed at top left) */
-    .controls {
-      display: flex;
-      flex-direction: row;
-      align-items: center;
-      gap: 1.5em;
-      justify-content: flex-start;
-      margin-bottom: 1.25em;
-    }
-    .input-row, .step-controls {
-      display: flex;
-      align-items: center;
-      gap: 0.75em;
-      justify-content: flex-start;
-    }
-    /* Button/input defaults from demo.css */
-    button, input {
-      margin: 5px;
-      padding: 5px;
-    }
-
-    /* Demo panels layout */
-    .demo-content {
-      display: flex;
-      gap: 2em;
-      flex-wrap: nowrap;
-      align-items: flex-start;
-    }
-    .graph-panel, .matrix-panel {
-      flex-shrink: 0;
-    }
-
-    /* Graph styling (imported from demo.css where not overridden) */
-    .graph-panel svg {
-    background: #fff;
-    border: 1px solid #ccc;
-    margin-top: 3em;
-  }
-
-   .graph-panel svg marker#arrow path {
-      fill: #333;
-    }
-    .graph-panel svg marker#arrow-highlight path {
-      fill: #e74c3c;
-    }
-     .graphNode circle {
-    fill: var(--graph-fill);
-    stroke: black;
-  }
-    .graphNode text {
-      font-family: 'Segoe UI', sans-serif;
-      font-size: 0.75em;
-      text-anchor: middle;
-      dominant-baseline: central;
-    }
+    /* Keep demo-specific, avoid overriding shared demo.css/style.css */
+    .demo-content { display: flex; gap: 2em; align-items: flex-start; }
+    .graph-panel svg { background: #fff; border: 1px solid #ccc; }
 
     /* Matrix styling (match Matrix Multiplication & 0-1 Knapsack demos) */
     .matrix-panel {
@@ -149,16 +80,8 @@
       text-align: left;
     }
 
-    :root {
-  --graph-fill: #d0e7ff;      /* default node fill */
-  --graph-stroke: #1875e6;    /* default edge/node stroke */
-  --matrix-bg: rgba(79,172,248,0.42); /* default cell bg */
-}
-
-.matrix-element {
-  position: relative;
-  z-index: 0;
-}
+/* keep matrix elements layering for highlights */
+.matrix-element { position: relative; z-index: 0; }
 
 /* translucent yellow for the k-th column */
 .matrix-element.col-highlight,
@@ -175,66 +98,7 @@
   font-weight: bold;
 }
 
-/* New — add these blocks instead */
-.legend {
-  clear: both;
-  display: inline-block;
-  padding: 0.25em 1em;
-  font-family: sans-serif;
-  border: 1px solid #333;
-  border-radius: 6px;
-}
-
-.legend-box {
-  display: inline-block;
-  width: 1.2em;
-  height: 1.2em;
-  vertical-align: middle;
-  margin-right: 0.25em;
-  border: 1px solid #333;
-  border-radius: 3px;
-}
-
-.legend-label {
-  margin-right: 1em;
-}
-/* your color overrides stay the same */
-.legend-box.current-cell   { background: rgba(255,215,0,0.6); }
-.legend-box.col-highlight,
-.legend-box.row-highlight  { background: rgba(249,163,3,0.489); }
-
-  /* Base box shape */
-  .legend-box {
-    display: inline-block;
-    width: 1.2em;
-    height: 1.2em;
-    border: 1px solid #333;
-    vertical-align: middle;
-  }
-
-  /* Your color-coding overrides */
-  .legend-box.current-cell {
-    background: rgba(255, 215, 0, 0.6);
-  }
-  .legend-box.col-highlight,
-  .legend-box.row-highlight {
-    background: rgba(249, 163, 3, 0.489);
-  }
-  .legend-box.trans-edge {
-    background: #e74c3c;
-  }
-
-    .legend-arrow {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1em;          /* matches your legend‐box size */
-    font-weight: bold;
-    color: #e74c3c;          /* same red as your arrow‐highlight */
-    margin-right: 0.25em;
-    width: 1.2em;
-    height: 1.2em;
-  }
+/* Legend uses shared styles in demo.css; no overrides here */
 
   /* New: index labels around the matrix */
 .matrix-index {
@@ -288,42 +152,21 @@
       </div>
     </div>
 
-<!-- New legend markup (horizontal, inline like Fractional-Knapsack) -->
-<!-- force it below any floats -->
+<!-- Legend (use shared demo.css classes) -->
 <div class="legend">
-  <strong>Legend:</strong>
-  <span class="legend-box current-cell"></span><span class="legend-label">Current cell </span>
-  <span class="legend-box col-highlight"></span><span class="legend-label">Intermediate row and column</span>
-<!-- Legend entry for “Transitive edges”: -->
-<svg class="legend-arrow"
-     viewBox="0 -1 10 10"
-     width="1.2em"
-     height="1.2em"
-     aria-hidden="true">
-  <defs>
-    <marker id="legend-arrowhead"
-            markerUnits="strokeWidth"
-            markerWidth="4"
-            markerHeight="3"
-            refX="3"
-            refY="1.5"
-            orient="auto">
-      <path d="M0,0 L0,3 L4,1.5 Z" fill="#e74c3c"/>
-    </marker>
-  </defs>
-  <line
-  x1="5" y1="9"
-  x2="5" y2="0"
-  stroke="#e74c3c"
-  stroke-width="1.5"
-  marker-end="url(#legend-arrowhead)"
-/>
-
-
-
-</svg>
-<span class="legend-label">Transitive edges</span>
-
+  <strong class="legend-label">Legend:</strong>
+  <div class="legend-items">
+    <span class="legend-box" style="background-color: rgba(255,215,0,0.6)"></span> Current cell
+    <span class="legend-box" style="background-color: rgba(249,163,3,0.489)"></span> Intermediate row & column
+    <svg viewBox="0 0 12 10" width="15" height="15" aria-hidden="true" style="vertical-align: middle; margin-left: 6px;">
+      <defs>
+        <marker id="legend-arrowhead" markerUnits="strokeWidth" markerWidth="4" markerHeight="3" refX="3.25" refY="1.5" orient="auto">
+          <path d="M0,0 L0,3 L4,1.5 Z" fill="#e74c3c"/>
+        </marker>
+      </defs>
+      <line x1="1" y1="5" x2="11" y2="5" stroke="#e74c3c" stroke-width="2" marker-end="url(#legend-arrowhead)"/>
+    </svg> Transitive edges
+  </div>
 </div>
 
     <!-- Demo Panels -->

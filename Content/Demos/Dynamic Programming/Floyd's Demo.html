@@ -1,0 +1,1223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Floyd's Algorithm Demo</title>
+  <script src="../../../scripts/demoScripts.js"></script>
+  <link rel="stylesheet" href="../../../css/style.css">
+  <link rel="stylesheet" href="../../../css/demo.css">
+
+  <style>
+    /* Minimal demo-specific styles; avoid overriding shared css */
+    .demo-content { display: flex; gap: 1em; align-items: flex-start; }
+    .graph-panel { flex: 1 1 auto; min-width: 220px; }
+    .matrix-panel { flex: 0 0 auto; min-width: 220px; }
+    .graph-panel svg {
+      background: #fff;
+      border: 1px solid #ccc;
+      width: 100%;              /* fill available width */
+      aspect-ratio: 1 / 1;      /* keep square */
+      height: auto;             /* derive from aspect ratio */
+      display: block;
+    }
+
+    /* Matrix layout and highlighting */
+    .matrix-panel { display: flex; flex-direction: column; align-items: center; }
+    .matrix-panel .matrix-container { display: grid; gap: 4px; padding: 6px; border-radius: 6px; background: transparent; }
+    #matrix-r.matrix-container { position: relative; background: transparent; margin-top: 0.5em; }
+    #matrix-r.matrix-container::before {
+      content: '';
+      position: absolute;
+      top:    calc(6px + 36px);
+      left:   calc(6px + 36px);
+      right:  6px;
+      bottom: 6px;
+      background: rgba(79, 172, 248, 0.423);
+      border-radius: 6px;
+      pointer-events: none;
+      z-index: 0;
+    }
+    .matrix-element, .matrix-index { position: relative; z-index: 1; }
+    .matrix-element { width: 36px; height: 36px; border: 1px solid #333; display: flex; justify-content: center; align-items: center; font-family: monospace; background: rgba(79, 172, 248, 0.423); transition: transform 0.3s, box-shadow 0.3s; font-size: 1.05em; }
+    .matrix-element.highlight { box-shadow: 0 0 8px 2px rgba(255,215,0,0.8); }
+    .matrix-element { position: relative; z-index: 0; }
+    .matrix-element.col-highlight, .matrix-element.row-highlight { background: rgba(249, 163, 3, 0.489); }
+    .matrix-element.highlight { z-index: 2; transform: scale(1.1); box-shadow: 0 0 8px 2px rgba(255, 215, 0, 0.8); background: rgba(255, 215, 0, 0.6); font-weight: bold; }
+    .matrix-index { width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; font-family: monospace; background: transparent; border: none; pointer-events: none; font-size: 1.0em; }
+
+    /* Comment formatting tokens */
+    .comment { margin-top: 0.25em; min-height: 5em; text-align: left; }
+    /* layout slider removed */
+    .t-old { font-weight: 600; }
+    .t-new { font-weight: 700; color: #333; }
+    .t-result.update { color: #2ecc71; font-weight: 700; }
+    .t-result.nochange { color: #ff7f0e; font-weight: 700; }
+    .t-left, .t-right { background: rgba(249, 163, 3, 0.18); padding: 0 2px; border-radius: 3px; }
+    .t-via { font-style: italic; }
+
+    /* Node role coloring for clarity per step */
+    .graphNode.source circle { fill: #2ecc71; }
+    .graphNode.target circle { fill: #ff6b6b; }
+  </style>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-DQ5LVZVFDC"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-DQ5LVZVFDC');
+</script>
+</head>
+<body>
+  <div class="demo-container">
+    <h2>Floyd's Algorithm Demo</h2>
+
+    <!-- Controls -->
+    <div class="controls">
+        <label>n:
+          <input id="dim-input" type="number" min="1" max="10" value="5">
+        </label>
+        <button id="gen-btn">Generate</button>
+        <button id="prev-btn" disabled>Previous</button>
+        <button id="next-btn" disabled>Next</button>
+        <button id="play-btn" disabled>Play</button>
+        <label for="speed-select">Speed:
+          <select id="speed-select">
+            <option value="1">1×</option>
+            <option value="2">2×</option>
+            <option value="4">4×</option>
+            <option value="8">8×</option>
+            <option value="16">16×</option>
+            <option value="32">32×</option>
+          </select>
+        </label>
+    </div>
+
+<!-- Legend (use shared demo.css classes) -->
+<div class="legend">
+  <strong class="legend-label">Legend:</strong>
+  <div class="legend-items">
+    <span class="legend-box" style="background-color: rgba(255,215,0,0.6)"></span> Current cell
+    <span class="legend-box" style="background-color: rgba(249,163,3,0.489)"></span> Intermediate row & column (k)
+    <svg viewBox="0 0 12 10" width="15" height="15" aria-hidden="true" style="vertical-align: middle; margin-left: 6px;">
+      <defs>
+        <marker id="legend-arrowhead-blue" markerUnits="strokeWidth" markerWidth="4" markerHeight="3" refX="3.25" refY="1.5" orient="auto">
+          <path d="M0,0 L0,3 L4,1.5 Z" fill="#1f77b4"/>
+        </marker>
+      </defs>
+      <line x1="1" y1="5" x2="11" y2="5" stroke="#1f77b4" stroke-width="2" marker-end="url(#legend-arrowhead-blue)"/>
+    </svg> Considered edges via k
+    <svg viewBox="0 0 12 10" width="15" height="15" aria-hidden="true" style="vertical-align: middle; margin-left: 12px;">
+      <defs>
+        <marker id="legend-arrowhead-yellow" markerUnits="strokeWidth" markerWidth="4" markerHeight="3" refX="3" refY="1.5" orient="auto">
+          <path d="M0,0 L0,3 L4,1.5 Z" fill="rgba(255,215,0,0.8)"/>
+        </marker>
+      </defs>
+      <line x1="1" y1="5" x2="11" y2="5" stroke="rgba(255,215,0,0.8)" stroke-width="2" marker-end="url(#legend-arrowhead-yellow)"/>
+    </svg> Missing edge (∞)
+    <svg viewBox="0 0 12 10" width="15" height="15" aria-hidden="true" style="vertical-align: middle; margin-left: 12px;">
+      <defs>
+        <marker id="legend-arrowhead-purple" markerUnits="strokeWidth" markerWidth="4" markerHeight="3" refX="3.25" refY="1.5" orient="auto">
+          <path d="M0,0 L0,3 L4,1.5 Z" fill="#8e44ad"/>
+        </marker>
+      </defs>
+      <line x1="1" y1="5" x2="11" y2="5" stroke="#8e44ad" stroke-width="2" marker-end="url(#legend-arrowhead-purple)"/>
+    </svg> Direct edge D[i][j]
+    <svg viewBox="0 0 12 10" width="15" height="15" aria-hidden="true" style="vertical-align: middle; margin-left: 12px;">
+      <defs>
+        <marker id="legend-arrowhead-red" markerUnits="strokeWidth" markerWidth="4" markerHeight="3" refX="3.25" refY="1.5" orient="auto">
+          <path d="M0,0 L0,3 L4,1.5 Z" fill="#e74c3c"/>
+        </marker>
+      </defs>
+      <line x1="1" y1="5" x2="11" y2="5" stroke="#e74c3c" stroke-width="2" marker-end="url(#legend-arrowhead-red)"/>
+    </svg> Shortest path
+    <svg viewBox="0 0 24 10" width="28" height="15" aria-hidden="true" style="vertical-align: middle; margin-left: 12px;">
+      <defs>
+        <marker id="legend-arrowhead-purple-dash" markerUnits="strokeWidth" markerWidth="4" markerHeight="3" refX="3.25" refY="1.5" orient="auto">
+          <path d="M0,0 L0,3 L4,1.5 Z" fill="#8e44ad"/>
+        </marker>
+      </defs>
+      <line x1="1" y1="5" x2="23" y2="5" stroke="#8e44ad" stroke-width="3" stroke-dasharray="6 3" marker-end="url(#legend-arrowhead-purple-dash)"/>
+    </svg> Direct + Considered (striped purple/blue)
+  </div>
+</div>
+
+    <!-- Comment Box -->
+    <div id="comment" class="comment">Initialize to begin...</div>
+  </div>
+
+    <!-- Demo Panels -->
+    <div class="demo-content">
+      <!-- Graph View -->
+      <div class="graph-panel">
+      <h3>Graph</h3>
+      <svg id="graph-svg" width="560">
+       <defs>
+  <marker id="arrow" 
+          markerWidth="10" 
+          markerHeight="10" 
+          refX="8" 
+          refY="3" 
+          orient="auto">
+    <path d="M0,0 L0,6 L9,3 z" fill="#888"/>
+  </marker>
+
+  <marker id="arrow-highlight"
+          markerUnits="strokeWidth"
+          markerWidth="4"
+          markerHeight="3"
+          refX="3.25"
+          refY="1.5"
+          orient="auto">
+    <path d="M0,0 L0,3 L4,1.5 Z" fill="#e74c3c"/>
+  </marker>
+
+  <!-- add this: pure‐yellow arrow head for “considered” edges -->
+  <marker id="arrow-yellow"
+          markerUnits="strokeWidth"
+          markerWidth="4"
+          markerHeight="3"
+          refX="3"
+          refY="1.5"
+          orient="auto">
+    <path d="M0,0 L0,3 L4,1.5 Z" fill="rgba(255,215,0,0.8)"/>
+  </marker>
+  <marker id="arrow-purple"
+          markerUnits="strokeWidth"
+          markerWidth="4"
+          markerHeight="3"
+          refX="3.25"
+          refY="1.5"
+          orient="auto">
+    <path d="M0,0 L0,3 L4,1.5 Z" fill="#8e44ad"/>
+  </marker>
+  <!-- distinct markers for the two considered legs -->
+  <marker id="arrow-blue"
+          markerUnits="strokeWidth"
+          markerWidth="4"
+          markerHeight="3"
+          refX="3.25"
+          refY="1.5"
+          orient="auto">
+    <path d="M0,0 L0,3 L4,1.5 Z" fill="#1f77b4"/>
+  </marker>
+  <marker id="arrow-orange"
+          markerUnits="strokeWidth"
+          markerWidth="4"
+          markerHeight="3"
+          refX="3.25"
+          refY="1.5"
+          orient="auto">
+    <path d="M0,0 L0,3 L4,1.5 Z" fill="#ff7f0e"/>
+  </marker>
+</defs>
+
+        <!-- everything else will be drawn by JS -->
+      </svg>
+    </div>
+
+
+      <!-- DP Matrix View -->
+      <div class="matrix-panel">
+        <h3>Computing D<sup id="current-k">0</sup></h3>
+        <div id="matrix-r" class="matrix-container"></div>
+      </div>
+    </div>
+
+
+  <script>
+  (function() {
+    const NS = 'http://www.w3.org/2000/svg';
+    const dimInput   = document.getElementById('dim-input');
+    const genBtn     = document.getElementById('gen-btn');
+    const prevBtn    = document.getElementById('prev-btn');
+    const nextBtn    = document.getElementById('next-btn');
+    const playBtn    = document.getElementById('play-btn');
+    const speedSelect= document.getElementById('speed-select');
+    const graphSvg   = document.getElementById('graph-svg');
+    const graphPanel = document.querySelector('.graph-panel');
+    const matrixPanel= document.querySelector('.matrix-panel');
+    const matR       = document.getElementById('matrix-r');
+    let lastGraphSize = { w: 0, h: 0 };
+    const commentBox = document.getElementById('comment');
+    
+    let A = [], edges = [], events = [], ptr = 0, timer = null;
+    let playing = false, speed = 1;
+    let direction = 'forward';
+    let nodePos = []; // draggable node positions
+    let dragging = null; // { idx }
+
+    // Utilities
+    const rand = () => Math.random();
+
+    // Generate random directed graph adjacency matrix + edges
+    function genRandomGraph(n) {
+  const M = Array.from({ length: n }, () => Array(n).fill(Infinity));
+  const ed = [];
+  for (let i = 0; i < n; i++) {
+    for (let j = 0; j < n; j++) {
+      if (i === j) {
+        M[i][j] = 0;
+      } else if (Math.random() < 0.3) {
+        const w = Math.floor(Math.random() * 9) + 1; // weight 1–9
+        M[i][j] = w;
+        ed.push({ from: i, to: j, weight: w });
+      }
+    }
+  }
+  return { M, ed };
+}
+
+
+    function updateTheme(graphFill, graphStroke, matrixBg, k) {
+    document.documentElement.style.setProperty('--graph-fill',    graphFill);
+    document.documentElement.style.setProperty('--graph-stroke',  graphStroke);
+    document.documentElement.style.setProperty('--matrix-bg',     matrixBg);
+    document.getElementById('current-k').textContent = k+1;
+  }
+
+
+  // add this just inside your (function() { … }) wrapper, before rebuild()
+  function fmt(v) {
+    return v === Infinity ? '\u221E' : v;
+  }
+
+
+    // Render graph nodes + edges
+function renderGraph(adj, edges, highlight = {}) {
+  const placedLabels = [];
+  // (deprecated arrays retained in earlier versions)
+  const labelItems = [];
+
+  const w = graphSvg.clientWidth;
+  const h = graphSvg.clientHeight;
+  const n = adj.length;
+
+  // 1) clear old elements (keep your <defs> in place)
+  graphSvg
+    .querySelectorAll(':scope > g, :scope > line, :scope > path, :scope > text')
+    .forEach(el => el.remove());
+
+  // Use persistent node positions (draggable); initialize if empty
+  if (!nodePos || nodePos.length !== n) nodePos = getNodePositions(n);
+  const pos = nodePos;
+
+  // 1) draw phantom ∞-edges in yellow for any missing candidate link
+  // ── draw phantom ∞-edges ─────────────────────────────────────────────
+if (Array.isArray(highlight.phantomEdges)) {
+  highlight.phantomEdges.forEach(({ from, to }) => {
+    const p1 = pos[from], p2 = pos[to];
+    const dx = p2.x - p1.x, dy = p2.y - p1.y;
+    const L  = Math.hypot(dx, dy);
+    const ux = L > 0 ? dx/L : 1;
+    const uy = L > 0 ? dy/L : 0;
+    const perpX = -uy, perpY = ux;
+    const OFFSET   = (9 + 8)/2 + 2;
+    const curvature = 30;
+    const sx = p1.x + ux*17 + perpX*OFFSET;
+    const sy = p1.y + uy*17 + perpY*OFFSET;
+    const ex = p2.x - ux*17 + perpX*OFFSET;
+    const ey = p2.y - uy*17 + perpY*OFFSET;
+    const mx = (p1.x + p2.x)/2 + perpX*curvature;
+    const my = (p1.y + p2.y)/2 + perpY*curvature;
+    const d  = `M${sx},${sy} Q${mx},${my} ${ex},${ey}`;
+
+    const ph = document.createElementNS(NS,'path');
+    ph.setAttribute('d', d);
+    ph.setAttribute('fill','none');
+    ph.setAttribute('stroke','rgba(255,215,0,0.8)');
+    ph.setAttribute('stroke-width','3');
+    ph.setAttribute('marker-end','url(#arrow-yellow)');
+    graphSvg.appendChild(ph);
+
+    try {
+      const mid = ph.getPointAtLength(ph.getTotalLength()/2 || 0);
+      labelItems.push({ x: mid.x, y: mid.y, text: '\u221E', color: '#000' });
+    } catch {}
+  });
+}
+
+
+ // ───── Real edges ─────────────────────────────────────
+   edges.forEach((e, idx) => {
+    // any leg we’re “considering” goes yellow
+    const isConsider = Array.isArray(highlight.considerEdges)
+                     && highlight.considerEdges.some(pe =>
+                          pe.from === e.from && pe.to === e.to
+                        );
+    const isPath     = Array.isArray(highlight.pathEdges)
+                     && highlight.pathEdges.some(pe =>
+                          pe.from === e.from && pe.to === e.to
+                        );
+
+												  
+    const { x: x1, y: y1 } = pos[e.from];
+    const { x: x2, y: y2 } = pos[e.to];
+    const dx = x2 - x1, dy = y2 - y1;
+    const L  = Math.hypot(dx, dy);
+    const ux = L > 0 ? dx / L : 1;
+    const uy = L > 0 ? dy / L : 0;
+    const perpX = -uy, perpY = ux;
+
+    // compute curve same as in preprocess…
+    const DEFAULT_MARKER_W   = 9;
+    const HIGHLIGHT_MARKER_W = 4 * 2;
+    const OFFSET             = (DEFAULT_MARKER_W + HIGHLIGHT_MARKER_W)/2 + 2;
+    const sx = x1 + ux*17 + perpX*OFFSET;
+    const sy = y1 + uy*17 + perpY*OFFSET;
+    const ex = x2 - ux*17 + perpX*OFFSET;
+    const ey = y2 - uy*17 + perpY*OFFSET;
+    const curvature = 30;
+    const mx = (x1 + x2)/2 + perpX*curvature;
+    const my = (y1 + y2)/2 + perpY*curvature;
+    const d = `M${sx},${sy} Q${mx},${my} ${ex},${ey}`;
+
+					 
+    const path = document.createElementNS(NS,'path');
+    path.setAttribute('d', d);
+    path.setAttribute('fill', 'none');
+
+    // pick color & marker
+    let strokeColor, strokeW, markerId;
+    // NEW (give red “path” top priority)
+    if (isPath) {
+      strokeColor = '#e74c3c';
+      strokeW     = 2;
+      markerId    = 'arrow-highlight';
+    } else {
+      strokeColor = '#333';
+      strokeW     = 1;
+      markerId    = 'arrow';
+    }
+
+
+    path.setAttribute('stroke', strokeColor);
+    path.setAttribute('stroke-width', strokeW);
+    path.setAttribute('marker-end', `url(#${markerId})`);
+
+    graphSvg.appendChild(path);
+
+										 
+
+    // draw the weight label using precomputed anchors when available
+    if (e.weight != null) {
+      if (typeof e.lx === 'number' && typeof e.ly === 'number') {
+        labelItems.push({ x: e.lx, y: e.ly, text: String(e.weight), color: '#000' });
+      } else {
+        try {
+          const totalLen = path.getTotalLength();
+          const arrowMargin = 12, labelRadius = 8;
+          const frac = 0.6;
+          const len  = arrowMargin + (totalLen - arrowMargin - labelRadius) * frac;
+          const pt   = path.getPointAtLength(Math.max(arrowMargin, Math.min(totalLen - labelRadius, len)));
+          labelItems.push({ x: pt.x, y: pt.y, text: String(e.weight), color: '#000' });
+        } catch {}
+      }
+    }
+
+
+  });
+
+
+  // 4) draw considered edges (same color) including loops
+  if (Array.isArray(highlight.considerEdges)) {
+    highlight.considerEdges.forEach((ce) => {
+      const { from, to } = ce;
+      const color = '#1f77b4';
+      const markerId = 'arrow-blue';
+      const isDirect = !!(highlight.direct && highlight.direct.from === from && highlight.direct.to === to);
+      const overlapsPath = Array.isArray(highlight.pathEdges) && highlight.pathEdges.some(pe => pe.from === from && pe.to === to);
+
+      // If this considered leg is also the direct D[i][j], skip here;
+      // the direct renderer will draw a purple/blue striped composite.
+      if (isDirect) return;
+      let d;
+      if (from === to) {
+        // self-loop tangent to the node: center along inward normal so it stays inside the graph
+        const p = pos[from];
+        const w = graphSvg.clientWidth;
+        const h = graphSvg.clientHeight;
+        const cx = w / 2, cy = h / 2;
+        const vx = cx - p.x, vy = cy - p.y; // inward toward center
+        const vlen = Math.hypot(vx, vy) || 1;
+        const ux = vx / vlen, uy = vy / vlen; // inward unit vector
+        const nodeR = 20, loopR = 22;         // larger loop, tangent to node (no gap)
+        let lx = p.x + ux * (nodeR + loopR);
+        let ly = p.y + uy * (nodeR + loopR);
+        // Clamp center to keep loop fully inside the SVG
+        lx = Math.max(loopR + 2, Math.min(w - loopR - 2, lx));
+        ly = Math.max(loopR + 2, Math.min(h - loopR - 2, ly));
+        const startX = lx + loopR, startY = ly;
+        const midX   = lx - loopR, midY   = ly;
+        d = `M ${startX} ${startY} A ${loopR} ${loopR} 0 1 1 ${midX} ${midY} A ${loopR} ${loopR} 0 1 1 ${startX} ${startY}`;
+      } else {
+        const { x: x1, y: y1 } = pos[from];
+        const { x: x2, y: y2 } = pos[to];
+        const dx = x2 - x1, dy = y2 - y1;
+        const L  = Math.hypot(dx, dy);
+        const ux = L > 0 ? dx / L : 1;
+        const uy = L > 0 ? dy / L : 0;
+        const perpX = -uy, perpY = ux;
+        const DEFAULT_MARKER_W   = 9;
+        const HIGHLIGHT_MARKER_W = 8;
+        const OFFSET             = (DEFAULT_MARKER_W + HIGHLIGHT_MARKER_W)/2 + 2;
+        const sx = x1 + ux*17 + perpX*OFFSET;
+        const sy = y1 + uy*17 + perpY*OFFSET;
+        const ex = x2 - ux*17 + perpX*OFFSET;
+        const ey = y2 - uy*17 + perpY*OFFSET;
+        const curvature = 30;
+        const mx = (x1 + x2)/2 + perpX*curvature;
+        const my = (y1 + y2)/2 + perpY*curvature;
+        d = `M${sx},${sy} Q${mx},${my} ${ex},${ey}`;
+      }
+      const pth = document.createElementNS(NS,'path');
+      pth.setAttribute('d', d);
+      pth.setAttribute('fill', 'none');
+      pth.setAttribute('stroke', color);
+      pth.setAttribute('stroke-width', '3');
+      pth.setAttribute('marker-end', `url(#${markerId})`);
+      if (overlapsPath) {
+        pth.setAttribute('stroke-dasharray', '6 3');
+        pth.setAttribute('stroke-opacity', '0.95');
+      }
+      graphSvg.appendChild(pth);
+  });
+  }
+
+  // 4.5) highlight the direct existing edge i→j in purple (if present)
+  if (highlight.direct && adj[highlight.direct.from][highlight.direct.to] < Infinity) {
+    const from = highlight.direct.from;
+    const to   = highlight.direct.to;
+    if (from !== to) {
+      const alsoConsider = Array.isArray(highlight.considerEdges) && highlight.considerEdges.some(pe => pe.from === from && pe.to === to);
+      const { x: x1, y: y1 } = pos[from];
+      const { x: x2, y: y2 } = pos[to];
+      const dx = x2 - x1, dy = y2 - y1;
+      const L  = Math.hypot(dx, dy), ux = dx / L, uy = dy / L;
+      const perpX = -uy, perpY = ux;
+      const DEFAULT_MARKER_W   = 9;
+      const HIGHLIGHT_MARKER_W = 8;
+      const OFFSET             = (DEFAULT_MARKER_W + HIGHLIGHT_MARKER_W)/2 + 2;
+      const sx = x1 + ux*17 + perpX*OFFSET;
+      const sy = y1 + uy*17 + perpY*OFFSET;
+      const ex = x2 - ux*17 + perpX*OFFSET;
+      const ey = y2 - uy*17 + perpY*OFFSET;
+      const curvature = 30;
+      const mx = (x1 + x2)/2 + perpX*curvature;
+      const my = (y1 + y2)/2 + perpY*curvature;
+      const d = `M${sx},${sy} Q${mx},${my} ${ex},${ey}`;
+      let labelPath = null;
+      if (alsoConsider) {
+        // Draw interleaved purple/blue dashes to indicate dual role
+        const pPurple = document.createElementNS(NS,'path');
+        pPurple.setAttribute('d', d);
+        pPurple.setAttribute('fill', 'none');
+        pPurple.setAttribute('stroke', '#8e44ad');
+        pPurple.setAttribute('stroke-width', '3');
+        pPurple.setAttribute('stroke-dasharray', '6 6');
+        pPurple.setAttribute('stroke-dashoffset', '0');
+        pPurple.setAttribute('marker-end', 'url(#arrow-purple)');
+        graphSvg.appendChild(pPurple);
+        labelPath = pPurple;
+
+        const pBlue = document.createElementNS(NS,'path');
+        pBlue.setAttribute('d', d);
+        pBlue.setAttribute('fill', 'none');
+        pBlue.setAttribute('stroke', '#1f77b4');
+        pBlue.setAttribute('stroke-width', '3');
+        pBlue.setAttribute('stroke-dasharray', '6 6');
+        pBlue.setAttribute('stroke-dashoffset', '6');
+        // keep arrowhead purple for the direct edge semantics
+        graphSvg.appendChild(pBlue);
+      } else {
+        const pth = document.createElementNS(NS,'path');
+        pth.setAttribute('d', d);
+        pth.setAttribute('fill', 'none');
+        pth.setAttribute('stroke', '#8e44ad');
+        pth.setAttribute('stroke-width', '3');
+        pth.setAttribute('marker-end', 'url(#arrow-purple)');
+        graphSvg.appendChild(pth);
+        labelPath = pth;
+      }
+
+      // add colored label for this direct edge reflecting update/nochange
+      try {
+        const totalLen = labelPath.getTotalLength();
+        const arrowMargin = 12, labelRadius = 8;
+        const frac = 0.6;
+        const len  = arrowMargin + (totalLen - arrowMargin - labelRadius) * frac;
+        const pt   = labelPath.getPointAtLength(Math.max(arrowMargin, Math.min(totalLen - labelRadius, len)));
+        const color = (highlight.updateState === 'update') ? '#2ecc71' : '#ff7f0e';
+        labelItems.push({ x: pt.x, y: pt.y, text: String(adj[from][to]), color });
+      } catch {}
+    }
+  }
+
+  // 4.8) draw labels last so they sit above edges
+  labelItems.forEach(({x,y,text,color}) => {
+    const lbl = document.createElementNS(NS, 'text');
+    lbl.setAttribute('x', x);
+    lbl.setAttribute('y', y);
+    lbl.setAttribute('text-anchor', 'middle');
+    lbl.setAttribute('dominant-baseline', 'central');
+    lbl.setAttribute('font-weight', 'bold');
+    lbl.setAttribute('fill', color || '#000');
+    lbl.setAttribute('pointer-events','none');
+    lbl.style.userSelect = 'none';
+    lbl.textContent = text;
+    graphSvg.appendChild(lbl);
+  });
+
+  // 5) draw nodes on top
+  adj.forEach((_, i) => {
+    const { x, y } = pos[i];
+    const g = document.createElementNS('http://www.w3.org/2000/svg','g');
+    const cls = ['graphNode'];
+    if (highlight.node === i) cls.push('current');
+    if (highlight.source === i) cls.push('source');
+    if (highlight.target === i) cls.push('target');
+    g.setAttribute('class', cls.join(' '));
+    g.dataset.idx = String(i);
+
+    const c = document.createElementNS('http://www.w3.org/2000/svg','circle');
+    c.setAttribute('cx', x); c.setAttribute('cy', y); c.setAttribute('r', 20);
+    g.appendChild(c);
+
+    const t = document.createElementNS('http://www.w3.org/2000/svg','text');
+    t.setAttribute('x', x); t.setAttribute('y', y); t.textContent = i;
+    g.appendChild(t);
+
+    graphSvg.appendChild(g);
+
+    // Drag handlers
+    g.addEventListener('mousedown', (ev) => {
+      const idx = parseInt(g.dataset.idx, 10);
+      dragging = { idx };
+      ev.preventDefault();
+    });
+  });
+}
+
+    function renderMatrix(container, M, highlight = {}) {
+  container.innerHTML = '';
+  const n = M.length;
+
+  // make room for the extra index row/column
+  container.style.gridTemplateColumns = `36px repeat(${n},1fr)`;
+  container.style.gridTemplateRows    = `36px repeat(${n},1fr)`;
+
+  // (0,0) corner empty
+  const corner = document.createElement('div');
+  corner.className = 'matrix-index';
+  container.appendChild(corner);
+
+  // column headers
+  for (let j = 0; j < n; j++) {
+    const colLabel = document.createElement('div');
+    colLabel.className = 'matrix-index';
+    colLabel.textContent = j;
+    container.appendChild(colLabel);
+  }
+
+  // each row: first a row‐index cell, then the row’s data
+  for (let i = 0; i < n; i++) {
+    // row header
+    const rowLabel = document.createElement('div');
+    rowLabel.className = 'matrix-index';
+    rowLabel.textContent = i;
+    container.appendChild(rowLabel);
+
+    // the actual matrix cells
+    for (let j = 0; j < n; j++) {
+      const div = document.createElement('div');
+      div.className = 'matrix-element';
+
+      // highlight the k-th row/col or cell
+      if (highlight.k !== undefined && j === highlight.k) {
+        div.classList.add('col-highlight');
+      }
+      if (highlight.k !== undefined && i === highlight.k) {
+        div.classList.add('row-highlight');
+      }
+      if (highlight.i === i && highlight.j === j) {
+        div.classList.add('highlight');
+      }
+
+      div.textContent = (M[i][j] === Infinity
+      ? '\u221E'       // Unicode for ∞
+      : M[i][j]);
+      container.appendChild(div);
+    }
+  }
+    }
+
+
+    function cloneMatrix(M) { return M.map(row => row.slice()); }
+
+  // New (Floyd–Warshall)
+// ─── New buildEvents ─────────────────────────────────────────────────────
+function buildEvents(D) {
+  const ev = [];
+  const n = D.length;
+  let Rprev = cloneMatrix(D);
+
+  // initialize nextHop table
+  let nextHop = Array.from({ length: n }, (_, i) =>
+    Array.from({ length: n }, (_, j) =>
+      i === j
+        ? j
+        : (Rprev[i][j] < Infinity ? j : null)
+    )
+  );
+
+  // emit a single init event (with both R and nextHop)
+  ev.push({
+    type:    'init',
+    R:       cloneMatrix(Rprev),
+    nextHop: cloneMatrix(nextHop)
+  });
+												   
+
+  // for each intermediate vertex k
+  for (let k = 0; k < n; k++) {
+					   
+    for (let i = 0; i < n; i++) {
+      for (let j = 0; j < n; j++) {
+        const oldVal = Rprev[i][j];
+        const left   = Rprev[i][k];
+        const right  = Rprev[k][j];
+        const via    = left + right;
+        const newVal = Math.min(oldVal, via);
+
+								
+        // snapshot the matrix before any update
+        const oldR = cloneMatrix(Rprev);
+
+        // if we found a shorter path, update Rprev & nextHop
+        if (newVal < oldVal) {
+          nextHop[i][j] = nextHop[i][k];
+          Rprev[i][j]   = newVal;
+        }
+
+        // emit exactly one 'cell' event per (i,j,k)
+        ev.push({
+          type:    'cell',
+          k, i, j,
+          oldVal, left, right, via, newVal,
+          Rprev:   oldR,
+          nextHop: cloneMatrix(nextHop)
+        });
+      }
+    }
+  }
+
+  return ev;
+}
+    // Rebuild UI per event
+    function rebuild() {
+  const e = events[ptr];
+  if (!e) return;
+
+  if (e.type === 'init') {
+    renderGraph(A, edges);
+    renderMatrix(matR, e.R);
+    commentBox.innerHTML = 
+    ``;
+    prevBtn.disabled = true;
+    nextBtn.disabled = false;
+    playBtn.disabled = false;
+  }
+  // rebuild()’s cell step:
+else if (e.type === 'cell') {
+  // 1) the two legs we’re “considering” this step (omit self-edges for clarity)
+  const candidateEdges = [
+    { from: e.i, to: e.k },
+    { from: e.k, to: e.j }
+  ];
+
+  // 2) phantom ∞-edges: the direct link i→j plus any missing legs
+  const phantomEdges = [
+    { from: e.i, to: e.j },
+    ...candidateEdges
+  ].filter(ep => A[ep.from][ep.to] === Infinity);
+
+  // 3) highlight exactly those applicable legs in yellow
+  const considerEdges = candidateEdges.map((ed, idx) => ({ ...ed, roleIndex: idx }));
+
+  // 4) compute the usual via‐k path (if any)
+  const pathEdges = pathToEdges(reconstructPath(e.i, e.j, e.nextHop));
+
+  // 5) one draw call with all three arrays
+  const opts = {
+    node:           e.k,
+    source:         e.i,
+    target:         e.j,
+    direct:         { from: e.i, to: e.j },
+    updateState:    (e.newVal < e.oldVal) ? 'update' : 'nochange',
+    phantomEdges,
+    considerEdges,
+    pathEdges
+  };
+  renderGraph(A, edges, opts);
+
+  // 4) update the D-matrix and comment as before
+															   
+  const updatedR = e.Rprev.map(r => r.slice());
+  updatedR[e.i][e.j] = e.newVal;
+  renderMatrix(matR, updatedR, { i: e.i, j: e.j, k: e.k });
+  // build a display‐matrix that already has the updated cell
+
+   // right after you set opts.pathEdges…
+  const usedEdges = opts.pathEdges
+    .map(pe => `${pe.from}→${pe.to}`)
+    .join('+');
+
+// Clear explanation without heavy highlighting
+//const special = [];
+//if (e.i === e.k) special.push(`i = k so D[${e.i}][${e.k}] = 0`);
+//if (e.k === e.j) special.push(`k = j so D[${e.k}][${e.j}] = 0`);
+//if (e.i === e.j) special.push(`i = j (diagonal), stays 0`);
+const a = fmt(e.oldVal);
+const b = fmt(e.left);
+const c = fmt(e.right);
+const d = fmt(e.via);
+const minVal = Math.min(e.oldVal, e.via);
+const viaIsSmaller = e.via < e.oldVal;
+
+const boldSymDirect = viaIsSmaller ? `D[${e.i}][${e.j}]` : `<b>D[${e.i}][${e.j}]</b>`;
+const boldSymVia = viaIsSmaller
+  ? `<b>D[${e.i}][${e.k}] + D[${e.k}][${e.j}]</b>`
+  : `D[${e.i}][${e.k}] + D[${e.k}][${e.j}]`;
+
+const boldA = viaIsSmaller ? a : `<b>${a}</b>`;
+const boldB = viaIsSmaller ? `<b>${b}</b>` : b;
+const boldC = viaIsSmaller ? `<b>${c}</b>` : c;
+const boldD = viaIsSmaller ? `<b>${d}</b>` : d;
+
+const arrowMsg = viaIsSmaller
+  //? ` &nbsp; &nbsp; <b>Better path</b>: ${usedEdges}`
+  ? ` &nbsp; &nbsp; <b>Better path</b>: ${e.i}&#x279E;${e.k}&#x279E;${e.j}`
+  : ` &nbsp; &nbsp; No change`;
+
+commentBox.innerHTML = `
+(k,i,j) = (${e.k}, ${e.i}, ${e.j}): Is path ${e.i}&#x279E;${e.k}&#x279E;${e.j} better than ${e.i}&#x279E;${e.j}?<br>
+<table border=0>
+<tr>
+  <td>D[${e.i}][${e.j}]</td>
+  <td>= min(${boldSymDirect}, ${boldSymVia})</td>
+</tr>
+<tr>
+  <td></td>
+  <td>= min(${boldA}, ${boldB}+${boldC}) = min(${boldA}, ${boldD}) = <b>${fmt(minVal)}</b> ${arrowMsg}</td>
+</tr>
+</table>
+`;
+
+// const a = fmt(e.oldVal);
+// const b = fmt(e.left);
+// const c = fmt(e.right);
+// const d = fmt(e.via);
+// const min = Math.min(e.oldVal, e.via);
+// const winner = (min === e.oldVal) ? e.oldVal : e.via;
+
+
+// commentBox.innerHTML = `
+// (k,i,j) = (${e.k}, ${e.i}, ${e.j})<br>
+// <table border=0>
+// <tr><td>D[${e.i}][${e.j}] </td>
+// <td>= min(D[${e.i}][${e.j}], D[${e.i}][${e.k}] + D[${e.k}][${e.j}])</td></tr>
+// <tr><td></td><td>= min(${a}, ${b}+${c}) = min(${a}, ${d}) = <b>${winner}</b></td></tr>
+// </table>
+// ${winner === e.oldVal
+  // ? `No improvement.`
+  // : `<b>Updated</b> — path uses edge${opts.pathEdges.length>1?'s':''} ${usedEdges}.`}
+// `;
+
+
+//commentBox.innerHTML =
+//  `(k,i,j) = (${e.k}, ${e.i}, ${e.j})<br>` +
+//  //(special.length ? ` — ${special.join('; ')}` : '') +
+//  `D[${e.i}][${e.j}]=${fmt(e.oldVal)}<br> D[${e.i}][${e.k}]+D[${e.k}][${e.j}]=${fmt(e.left)}+${fmt(e.right)}=${fmt(e.via)} → ${fmt(e.newVal)}<br>` +
+//  (e.newVal < e.oldVal
+//    ? ` Updated — path uses edge${opts.pathEdges.length>1?'s':''} ${usedEdges}.`
+//    : ` No improvement.`);
+
+  prevBtn.disabled = nextBtn.disabled = false;
+}
+ else if (e.type === 'afterK') {
+  renderGraph(A, edges, { node: e.k });
+  renderMatrix(matR, e.R, { changed: e.changed });
+  const n = A.length;
+   if (e.k < n - 1) {
+  commentBox.innerHTML = 
+      `Computing D<sup>${e.k+2}</sup> from D<sup>${e.k+1}</sup> (allowing vertex ${e.k+1} as an intermediate).`;
+   }
+  // ← make sure you can always step forward again
+  prevBtn.disabled = false;
+  nextBtn.disabled = false;
+  playBtn.disabled = false;
+}
+// New
+else if (e.type === 'done') {
+  renderGraph(A, edges);
+  renderMatrix(matR, e.R);
+
+  // explicitly show R^n
+  updateTheme(
+    '#fde2e2',            // keep your pink fill
+    '#e63946',            // keep your red stroke
+    'rgba(198,219,239,0.7)', // keep your matrix bg
+    A.length              // ← n, not n-1
+  );
+
+  commentBox.textContent = 'Done! All-pairs shortest paths computed.';
+  prevBtn.disabled = false;
+  nextBtn.disabled = true;
+  playBtn.disabled = true;
+}
+
+}
+
+function getNodePositions(n) {
+  // Use safe fallbacks if graph is currently collapsed (0×0)
+  const cw = graphSvg.clientWidth  || 300;
+  const ch = graphSvg.clientHeight || 300;
+  const w = Math.max(120, cw);
+  const h = Math.max(120, ch);
+  const pad = 40;  // how far from the border you want your nodes
+
+  const availW = Math.max(40, w - 2*pad);
+  const availH = Math.max(40, h - 2*pad);
+  const perim  = 2*(availW + availH);
+
+  return Array.from({ length: n }, (_, i) => {
+    const d = (i * perim) / n;
+    if (d < availW) {
+      return { x: pad + d, y: pad };
+    } else if (d < availW + availH) {
+      return { x: w - pad, y: pad + (d - availW) };
+    } else if (d < 2*availW + availH) {
+      return { x: w - pad - (d - (availW + availH)), y: h - pad };
+    } else {
+      return { x: pad, y: h - pad - (d - (2*availW + availH)) };
+    }
+  });
+}
+
+
+// ─────────── NEW ───────────
+function preprocessEdgeWeights(edges, pos) {
+																					
+  const arrowMargin      = 12;                       // px back from arrowhead
+														  
+															 
+  const labelRadius      = 8;                        // half-text width
+																				
+																			   
+  const DEFAULT_MARKER_W = 9;
+  const HIGHLIGHT_MARKER_W = 8;                      // 4*2 
+  const OFFSET           = (DEFAULT_MARKER_W + HIGHLIGHT_MARKER_W)/2 + 2;
+  const curvature        = 30;
+
+  edges.forEach(e => {
+    if (e.weight == null) return;
+
+    // compute the same bezier‐curve you draw in renderGraph:
+    const p1 = pos[e.from], p2 = pos[e.to];
+						 
+    const dx = p2.x - p1.x, dy = p2.y - p1.y;
+    const L  = Math.hypot(dx, dy), ux = dx/L, uy = dy/L;
+								   
+    const perpX = -uy, perpY = ux;
+
+    const sx = p1.x + ux*17 + perpX*OFFSET;
+    const sy = p1.y + uy*17 + perpY*OFFSET;
+    const ex = p2.x - ux*17 + perpX*OFFSET;
+    const ey = p2.y - uy*17 + perpY*OFFSET;
+    const mx = (p1.x + p2.x)/2 + perpX*curvature;
+    const my = (p1.y + p2.y)/2 + perpY*curvature;
+
+    const d  = `M${sx},${sy} Q${mx},${my} ${ex},${ey}`;
+
+    // temporarily append, sample a point, then remove it:
+    const tempPath = document.createElementNS(NS, 'path');
+    tempPath.setAttribute('d', d);
+    graphSvg.appendChild(tempPath);
+
+    let pt = null;
+    try {
+      const totalLen = tempPath.getTotalLength();
+      // Place label at a stable fraction along the curve to avoid jumping.
+      const frac = 0.6; // 60% along the path, keeps clear of arrowhead
+      const len  = arrowMargin + (totalLen - arrowMargin - labelRadius) * frac;
+      pt   = tempPath.getPointAtLength(Math.max(arrowMargin, Math.min(totalLen - labelRadius, len)));
+    } catch {}
+			  
+			 
+						 
+	   
+									
+									   
+										  
+																												  
+														  
+						   
+							 
+																	  
+		 
+	   
+	  
+
+												  
+    if (pt) {
+      e.lx = pt.x;
+      e.ly = pt.y;
+    } else {
+      e.lx = (p1.x + p2.x) / 2;
+      e.ly = (p1.y + p2.y) / 2;
+    }
+
+								
+    graphSvg.removeChild(tempPath);
+  });
+}
+
+
+// walk i→j by following nextHop[i][j], building node‐list
+function reconstructPath(i, j, nextHop) {
+  const path = [];
+  if (nextHop[i][j] == null) return path;
+  let u = i;
+  while (u != null && u !== j) {
+    path.push(u);
+    u = nextHop[u][j];
+  }
+  if (u === j) path.push(j);
+  return path;
+}
+
+// convert [u0,u1,u2…] into [{from:u0,to:u1},{from:u1,to:u2},…]
+function pathToEdges(nodes) {
+  return nodes.slice(0, -1).map((u, idx) => ({
+    from: u,
+    to:   nodes[idx + 1]
+  }));
+}
+
+
+
+    // Generate Button Handler
+genBtn.addEventListener('click', () => {
+  // 1) read & clamp n
+  let n = parseInt(dimInput.value, 10) || 0;
+  if (n < 1) n = 1;
+  if (n > 10) n = 10;
+  dimInput.value = n;
+
+  // 2) generate a fresh random graph
+  const g = genRandomGraph(n);
+  A     = g.M;
+  edges = g.ed;
+
+  // 3) PREPROCESS: compute node coords & weight‐label positions
+  nodePos = getNodePositions(A.length);
+  preprocessEdgeWeights(edges, nodePos);
+
+  // 4) rebuild the event sequence & reset
+  events  = buildEvents(A);
+  ptr     = 0;
+  clearInterval(timer);
+  playing = false;
+  playBtn.textContent = 'Play';
+
+  // 5) style & render the very first frame
+  updateTheme(
+    '#fde2e2',              // graph fill
+    '#e63946',              // graph stroke
+    'rgba(198,219,239,0.7)',// matrix bg
+    0                       // initial k
+  );
+  rebuild();
+});
+
+
+
+  // ─── New nextBtn handler ─────────────────────────────────────────────────────
+nextBtn.addEventListener('click', () => {
+  direction = 'forward';
+    if (ptr < events.length - 1) {
+    // move forward one event...
+    ptr++;
+    // …but if that event is the final afterK (k === n-1) with no comment, skip it straight to done
+    const peek = events[ptr];
+    if (peek.type === 'afterK' && peek.k === A.length - 1) {
+      ptr++;
+    }
+  } else {
+    ptr = 0;
+  }
+  const e = events[ptr];
+  if (e.type !== 'done') {
+    const kVal = (e.k !== undefined)
+      ? (e.type === 'afterK' ? e.k + 1 : e.k)
+      : 0;
+    updateTheme('#fde2e2','#e63946','rgba(198,219,239,0.7)', kVal);
+  }
+  rebuild();
+});
+
+ // Prev button (skip the final “done” event)
+ prevBtn.addEventListener('click', () => {
+   direction = 'backward';
+
+   // if we're currently on the 'done' event, drop back one more immediately
+   if (events[ptr]?.type === 'done') {
+     ptr--;
+   }
+
+   if (ptr > 0) {
+     // undo exactly one real step
+     const evUndo = events[ptr];
+     ptr--;
+   } else {
+     return; // at the very start
+   }
+
+   // now update your theme and UI based on the new ptr
+   const e = events[ptr];
+   const kVal = (e.k !== undefined)
+     ? (e.type === 'afterK' ? e.k + 1 : e.k)
+     : 0;
+   updateTheme('#fde2e2', '#e63946', 'rgba(198,219,239,0.7)', kVal);
+   rebuild();
+ });
+
+    playBtn.addEventListener('click', () => {
+      if (!playing) {
+        playing = true;
+        playBtn.textContent = 'Pause';
+        const baseDelay = 700 / speed;
+        const interval = Math.max(33, Math.floor(baseDelay)); // cap at ~30fps
+        timer = setInterval(() => {
+          if (ptr >= events.length - 1) {
+            clearInterval(timer);
+            playing = false;
+            playBtn.textContent = 'Play';
+            return;
+          }
+          // advance multiple steps if baseDelay is faster than interval
+          const stepAdvance = Math.max(1, Math.round(interval / baseDelay));
+          for (let s = 0; s < stepAdvance && ptr < events.length - 1; s++) {
+            ptr++;
+          }
+          const e = events[ptr];
+          if (e && e.type !== 'done') {
+            const kVal = (e.k !== undefined)
+              ? (e.type === 'afterK' ? e.k + 1 : e.k)
+              : 0;
+            updateTheme('#fde2e2', '#e63946', 'rgba(198,219,239,0.7)', kVal);
+          }
+          rebuild();
+        }, interval);
+      } else {
+        clearInterval(timer);
+        playing = false;
+        playBtn.textContent = 'Play';
+      }
+    });
+    speedSelect.addEventListener('change', () => { speed = parseInt(speedSelect.value,10)||1; });
+
+    // Build current highlight payload for redraws during drag
+    function currentGraphHighlight() {
+      const e = events[ptr];
+      if (!e) return {};
+      if (e.type === 'cell') {
+        const candidateEdges = [
+          { from: e.i, to: e.k, roleIndex: 0 },
+          { from: e.k, to: e.j, roleIndex: 1 }
+        ];
+        const phantomEdges = [ { from: e.i, to: e.j }, ...candidateEdges ].filter(ep => A[ep.from][ep.to] === Infinity);
+        const pathEdges = pathToEdges(reconstructPath(e.i, e.j, e.nextHop));
+        return { node: e.k, source: e.i, target: e.j, direct: { from: e.i, to: e.j }, updateState: (e.newVal < e.oldVal) ? 'update' : 'nochange', phantomEdges, considerEdges: candidateEdges, pathEdges };
+      } else if (e.type === 'afterK') {
+        return { node: e.k };
+      }
+      return {};
+    }
+
+    // Drag loop listeners
+    function svgPointFromEvent(ev) {
+      const rect = graphSvg.getBoundingClientRect();
+      const x = ev.clientX - rect.left;
+      const y = ev.clientY - rect.top;
+      return { x: Math.max(20, Math.min(rect.width - 20, x)), y: Math.max(20, Math.min(rect.height - 20, y)) };
+    }
+    window.addEventListener('mousemove', (ev) => {
+      if (!dragging) return;
+      const { x, y } = svgPointFromEvent(ev);
+      const idx = dragging.idx;
+      // update in the same coordinate space used by renderGraph
+      nodePos[idx] = { x, y };
+      renderGraph(A, edges, currentGraphHighlight());
+    });
+    window.addEventListener('mouseup', () => {
+      if (!dragging) return;
+      dragging = null;
+      // recompute weight label anchors for new geometry
+      preprocessEdgeWeights(edges, nodePos);
+      renderGraph(A, edges, currentGraphHighlight());
+    });
+
+    // Keep nodes in-bounds on resize/fullscreen changes
+    function clampAllNodePos() {
+      const w = graphSvg.clientWidth;
+      const h = graphSvg.clientHeight;
+      const margin = 20; // node radius
+      if (!nodePos || !nodePos.length) return;
+      for (let i = 0; i < nodePos.length; i++) {
+        const p = nodePos[i];
+        if (!p) continue;
+        p.x = Math.max(margin, Math.min(w - margin, p.x));
+        p.y = Math.max(margin, Math.min(h - margin, p.y));
+      }
+    }
+    let resizeScheduled = false;
+    function onResize() {
+      if (resizeScheduled) return;
+      resizeScheduled = true;
+      requestAnimationFrame(() => {
+        resizeScheduled = false;
+        const w = graphSvg.clientWidth;
+        const h = graphSvg.clientHeight;
+        // Skip if size effectively unchanged
+        if (Math.abs(w - lastGraphSize.w) < 1 && Math.abs(h - lastGraphSize.h) < 1) return;
+
+        const wasTiny = (lastGraphSize.w < 60 || lastGraphSize.h < 60);
+        const isGood  = (w >= 120 && h >= 120);
+        if (isGood && wasTiny) {
+          nodePos = getNodePositions(A.length);
+        }
+        lastGraphSize = { w, h };
+
+        clampAllNodePos();
+        preprocessEdgeWeights(edges, nodePos);
+        renderGraph(A, edges, currentGraphHighlight());
+      });
+    }
+    // Observe actual element size changes (covers accordion/minimized cases).
+    if ('ResizeObserver' in window) {
+      const ro = new ResizeObserver(() => onResize());
+      ro.observe(graphSvg);
+    }
+    window.addEventListener('resize', onResize);
+    document.addEventListener('fullscreenchange', onResize);
+
+    // Init
+    genBtn.click();
+    // If first render happens while collapsed, try a follow-up pass soon after.
+    setTimeout(() => onResize(), 0);
+  })();
+  </script>
+</body>
+</html>
