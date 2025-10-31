@@ -39,15 +39,18 @@
       z-index: 0;
     }
     .matrix-element, .matrix-index { position: relative; z-index: 1; }
-    .matrix-element { width: 36px; height: 36px; border: 1px solid #333; display: flex; justify-content: center; align-items: center; font-family: monospace; background: rgba(79, 172, 248, 0.423); transition: transform 0.3s, box-shadow 0.3s; font-size: 1.05em; }
-    .matrix-element.highlight { box-shadow: 0 0 8px 2px rgba(255,215,0,0.8); }
+    .matrix-element { width: 36px; height: 36px; border: 1px solid #333; display: flex; justify-content: center; align-items: center; font-family: monospace; background: transparent; transition: transform 0.3s, box-shadow 0.3s; font-size: 1.05em; }
+    .matrix-element.highlight { box-shadow: 0 0 8px 2px rgba(126,87,194,0.8); }
     .matrix-element { position: relative; z-index: 0; }
-    .matrix-element.col-highlight, .matrix-element.row-highlight { background: rgba(249, 163, 3, 0.489); }
-    .matrix-element.highlight { z-index: 2; transform: scale(1.1); box-shadow: 0 0 8px 2px rgba(255, 215, 0, 0.8); background: rgba(255, 215, 0, 0.6); font-weight: bold; }
+    .matrix-element.col-highlight, .matrix-element.row-highlight { background: rgba(251, 242, 208, 0.45); }
+    .matrix-element.via-highlight { box-shadow: inset 0 0 0 2px #1f77b4; }
+    .matrix-element.highlight { z-index: 2; transform: scale(1.1); box-shadow: 0 0 8px 2px rgba(126, 87, 194, 0.8); background: rgba(126, 87, 194, 0.6); font-weight: bold; }
     .matrix-index { width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; font-family: monospace; background: transparent; border: none; pointer-events: none; font-size: 1.0em; }
 
     /* Comment formatting tokens */
-    .comment { margin-top: 0.25em; min-height: 5em; text-align: left; }
+    .comment-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .comment { margin-top: 0.25em; min-height: 5em; text-align: left; flex: 1; }
+    .comment-opt { white-space: nowrap; font-size: 0.95em; }
     /* layout slider removed */
     .t-old { font-weight: 600; }
     .t-new { font-weight: 700; color: #333; }
@@ -76,7 +79,13 @@
     <!-- Controls -->
     <div class="controls">
         <label>n:
-          <input id="dim-input" type="number" min="1" max="10" value="5">
+          <input id="dim-input" type="number" min="1" max="10" value="5" style="width:4em;">
+        </label>
+        <label style="margin-left: 8px;">
+          <input id="neg-edges" type="checkbox"> Negative edges
+        </label>
+        <label style="margin-left: 8px;">
+          <input id="neg-cycle" type="checkbox"> Negative cycle
         </label>
         <button id="gen-btn">Generate</button>
         <button id="prev-btn" disabled>Previous</button>
@@ -98,8 +107,9 @@
 <div class="legend">
   <strong class="legend-label">Legend:</strong>
   <div class="legend-items">
-    <span class="legend-box" style="background-color: rgba(255,215,0,0.6)"></span> Current cell
-    <span class="legend-box" style="background-color: rgba(249,163,3,0.489)"></span> Intermediate row & column (k)
+    <span class="legend-box" style="background-color: rgba(126,87,194,0.6)"></span> Current Cell
+    <span class="legend-box" style="background-color: rgba(251,242,208,0.45)"></span> Row/Column k
+    <span class="legend-box" style="background: transparent; border: 2px solid #1f77b4;"></span> New Edge Weights<br>
     <svg viewBox="0 0 12 10" width="15" height="15" aria-hidden="true" style="vertical-align: middle; margin-left: 6px;">
       <defs>
         <marker id="legend-arrowhead-blue" markerUnits="strokeWidth" markerWidth="4" markerHeight="3" refX="3.25" refY="1.5" orient="auto">
@@ -107,44 +117,42 @@
         </marker>
       </defs>
       <line x1="1" y1="5" x2="11" y2="5" stroke="#1f77b4" stroke-width="2" marker-end="url(#legend-arrowhead-blue)"/>
-    </svg> Considered edges via k
-    <svg viewBox="0 0 12 10" width="15" height="15" aria-hidden="true" style="vertical-align: middle; margin-left: 12px;">
+    </svg> New Path
+    <svg viewBox="0 0 12 10" width="15" height="15" aria-hidden="true" style="vertical-align: middle; margin-left: 8px;">
       <defs>
-        <marker id="legend-arrowhead-yellow" markerUnits="strokeWidth" markerWidth="4" markerHeight="3" refX="3" refY="1.5" orient="auto">
-          <path d="M0,0 L0,3 L4,1.5 Z" fill="rgba(255,215,0,0.8)"/>
+        <marker id="legend-arrowhead-gray" markerUnits="strokeWidth" markerWidth="4" markerHeight="3" refX="3" refY="1.5" orient="auto">
+          <path d="M0,0 L0,3 L4,1.5 Z" fill="#9e9e9e"/>
         </marker>
       </defs>
-      <line x1="1" y1="5" x2="11" y2="5" stroke="rgba(255,215,0,0.8)" stroke-width="2" marker-end="url(#legend-arrowhead-yellow)"/>
-    </svg> Missing edge (∞)
-    <svg viewBox="0 0 12 10" width="15" height="15" aria-hidden="true" style="vertical-align: middle; margin-left: 12px;">
+      <line x1="1" y1="5" x2="11" y2="5" stroke="#b0b0b0" stroke-width="2" stroke-dasharray="6 3" marker-end="url(#legend-arrowhead-gray)"/>
+    </svg> Missing
+    <svg viewBox="0 0 12 10" width="15" height="15" aria-hidden="true" style="vertical-align: middle; margin-left: 8px;">
       <defs>
-        <marker id="legend-arrowhead-purple" markerUnits="strokeWidth" markerWidth="4" markerHeight="3" refX="3.25" refY="1.5" orient="auto">
-          <path d="M0,0 L0,3 L4,1.5 Z" fill="#8e44ad"/>
+        <marker id="legend-arrowhead-orange" markerUnits="strokeWidth" markerWidth="4" markerHeight="3" refX="3.25" refY="1.5" orient="auto">
+          <path d="M0,0 L0,3 L4,1.5 Z" fill="#f28e2b"/>
         </marker>
       </defs>
-      <line x1="1" y1="5" x2="11" y2="5" stroke="#8e44ad" stroke-width="2" marker-end="url(#legend-arrowhead-purple)"/>
-    </svg> Direct edge D[i][j]
-    <svg viewBox="0 0 12 10" width="15" height="15" aria-hidden="true" style="vertical-align: middle; margin-left: 12px;">
-      <defs>
-        <marker id="legend-arrowhead-red" markerUnits="strokeWidth" markerWidth="4" markerHeight="3" refX="3.25" refY="1.5" orient="auto">
-          <path d="M0,0 L0,3 L4,1.5 Z" fill="#e74c3c"/>
-        </marker>
-      </defs>
-      <line x1="1" y1="5" x2="11" y2="5" stroke="#e74c3c" stroke-width="2" marker-end="url(#legend-arrowhead-red)"/>
-    </svg> Shortest path
-    <svg viewBox="0 0 24 10" width="28" height="15" aria-hidden="true" style="vertical-align: middle; margin-left: 12px;">
-      <defs>
-        <marker id="legend-arrowhead-purple-dash" markerUnits="strokeWidth" markerWidth="4" markerHeight="3" refX="3.25" refY="1.5" orient="auto">
-          <path d="M0,0 L0,3 L4,1.5 Z" fill="#8e44ad"/>
-        </marker>
-      </defs>
-      <line x1="1" y1="5" x2="23" y2="5" stroke="#8e44ad" stroke-width="3" stroke-dasharray="6 3" marker-end="url(#legend-arrowhead-purple-dash)"/>
-    </svg> Direct + Considered (striped purple/blue)
+      <line x1="1" y1="5" x2="11" y2="5" stroke="#f28e2b" stroke-width="2" marker-end="url(#legend-arrowhead-orange)"/>
+    </svg> Current
+	<svg viewBox="0 0 12 4" width="24" height="4"
+     aria-hidden="true" style="vertical-align:middle; margin-left:8px;">
+  <line x1="0" y1="1" x2="12" y2="1" stroke="#333" stroke-width="2"/>
+</svg>
+    </svg> original edge
+   <svg viewBox="0 0 12 4" width="24" height="4"
+     aria-hidden="true" style="vertical-align:middle; margin-left:8px;">
+      <line x1="0" y1="1" x2="12" y2="1" stroke="#999" stroke-width="1"/>
+    </svg>  derived edge
   </div>
 </div>
 
-    <!-- Comment Box -->
-    <div id="comment" class="comment">Initialize to begin...</div>
+    <!-- Comment Row with option on the right -->
+    <div class="comment-row">
+      <div id="comment" class="comment">Initialize to begin...</div>
+      <label class="comment-opt">
+        <input id="only-original" type="checkbox"> Show only original edges
+      </label>
+    </div>
   </div>
 
     <!-- Demo Panels -->
@@ -173,25 +181,17 @@
     <path d="M0,0 L0,3 L4,1.5 Z" fill="#e74c3c"/>
   </marker>
 
-  <!-- add this: pure‐yellow arrow head for “considered” edges -->
-  <marker id="arrow-yellow"
+  <!-- gray arrow head for missing (∞) edges -->
+  <marker id="arrow-gray"
           markerUnits="strokeWidth"
           markerWidth="4"
           markerHeight="3"
           refX="3"
           refY="1.5"
           orient="auto">
-    <path d="M0,0 L0,3 L4,1.5 Z" fill="rgba(255,215,0,0.8)"/>
+    <path d="M0,0 L0,3 L4,1.5 Z" fill="#9e9e9e"/>
   </marker>
-  <marker id="arrow-purple"
-          markerUnits="strokeWidth"
-          markerWidth="4"
-          markerHeight="3"
-          refX="3.25"
-          refY="1.5"
-          orient="auto">
-    <path d="M0,0 L0,3 L4,1.5 Z" fill="#8e44ad"/>
-  </marker>
+  <!-- direct edge marker (orange) -->
   <!-- distinct markers for the two considered legs -->
   <marker id="arrow-blue"
           markerUnits="strokeWidth"
@@ -209,7 +209,7 @@
           refX="3.25"
           refY="1.5"
           orient="auto">
-    <path d="M0,0 L0,3 L4,1.5 Z" fill="#ff7f0e"/>
+    <path d="M0,0 L0,3 L4,1.5 Z" fill="#f28e2b"/>
   </marker>
 </defs>
 
@@ -239,6 +239,7 @@
     const graphPanel = document.querySelector('.graph-panel');
     const matrixPanel= document.querySelector('.matrix-panel');
     const matR       = document.getElementById('matrix-r');
+    const onlyOriginalChk = document.getElementById('only-original');
     let lastGraphSize = { w: 0, h: 0 };
     const commentBox = document.getElementById('comment');
     
@@ -247,27 +248,154 @@
     let direction = 'forward';
     let nodePos = []; // draggable node positions
     let dragging = null; // { idx }
+    let hasNegCycle = false; // notice flag
+    let originalEdgeSet = new Set(); // original adjacency edges for styling/filtering
 
     // Utilities
     const rand = () => Math.random();
 
-    // Generate random directed graph adjacency matrix + edges
-    function genRandomGraph(n) {
-  const M = Array.from({ length: n }, () => Array(n).fill(Infinity));
-  const ed = [];
-  for (let i = 0; i < n; i++) {
-    for (let j = 0; j < n; j++) {
-      if (i === j) {
-        M[i][j] = 0;
-      } else if (Math.random() < 0.3) {
-        const w = Math.floor(Math.random() * 9) + 1; // weight 1–9
-        M[i][j] = w;
-        ed.push({ from: i, to: j, weight: w });
+    // Graph helpers for negative edges/cycles
+    // clone utility (already defined earlier in helpers)
+    function hasNegativeCycleFW(M) {
+      const n = M.length;
+      const D = cloneMatrix(M);
+      for (let k = 0; k < n; k++) {
+        for (let i = 0; i < n; i++) {
+          if (D[i][k] === Infinity) continue;
+          for (let j = 0; j < n; j++) {
+            if (D[k][j] === Infinity) continue;
+            const via = D[i][k] + D[k][j];
+            if (via < D[i][j]) D[i][j] = via;
+          }
+        }
       }
+      for (let v = 0; v < n; v++) if (D[v][v] < 0) return true;
+      return false;
     }
-  }
-  return { M, ed };
-}
+
+    function matrixToEdges(M) {
+      const ed = [];
+      const n = M.length;
+      for (let i = 0; i < n; i++) {
+        for (let j = 0; j < n; j++) {
+          if (i !== j && M[i][j] !== Infinity) {
+            ed.push({ from: i, to: j, weight: M[i][j] });
+          }
+        }
+      }
+      return ed;
+    }
+
+    function baseEdgesFor(adj) {
+      let ed = matrixToEdges(adj);
+      if (onlyOriginalChk?.checked && originalEdgeSet) {
+        ed = ed.filter(e => originalEdgeSet.has(`${e.from}-${e.to}`));
+      }
+      return ed;
+    }
+
+    // Generate random directed graph adjacency matrix + edges with options
+    function genRandomGraph(n, opts = {}) {
+      const { negativeEdges = false, negativeCycle = false } = opts;
+
+      // base random generator
+      function baseRandomMatrix() {
+        const M = Array.from({ length: n }, () => Array(n).fill(Infinity));
+        for (let i = 0; i < n; i++) {
+          M[i][i] = 0;
+          for (let j = 0; j < n; j++) {
+            if (i === j) continue;
+            if (Math.random() < 0.3) {
+              let w = Math.floor(Math.random() * 9) + 1; // 1..9
+              M[i][j] = w;
+            }
+          }
+        }
+        return M;
+      }
+
+      // Ensure at least one negative cycle by planting one
+      function withPlantedNegativeCycle(M) {
+        if (n === 1) return M; // cannot form a cycle
+        const a = Math.floor(Math.random() * n);
+        let b = Math.floor(Math.random() * n);
+        while (b === a && n > 1) b = Math.floor(Math.random() * n);
+        let c = Math.floor(Math.random() * n);
+        while ((c === a || c === b) && n > 2) c = Math.floor(Math.random() * n);
+        // If n=2, fall back to 2-cycle; otherwise, use 3-cycle
+        if (n >= 3) {
+          M[a][b] = -2;
+          M[b][c] = -2;
+          M[c][a] = 1; // sum = -3
+        } else {
+          M[a][b] = -2;
+          M[b][a] = -2; // 2-cycle sum -4
+        }
+        return M;
+      }
+
+      // Try to generate with negative edges but no negative cycles
+      function genWithNegNoCycle() {
+        // attempt a few random graphs; if fail, fallback to DAG
+        for (let attempt = 0; attempt < 30; attempt++) {
+          const M = baseRandomMatrix();
+          // sprinkle some negative edges
+          let negCount = 0;
+          for (let i = 0; i < n; i++) {
+            for (let j = 0; j < n; j++) {
+              if (i === j || M[i][j] === Infinity) continue;
+              if (Math.random() < 0.2) {
+                const abs = Math.floor(Math.random() * 9) + 1; // 1..9
+                M[i][j] = -abs;
+                negCount++;
+              }
+            }
+          }
+          // Ensure at least one negative edge
+          if (negCount === 0) {
+            outer: for (let i = 0; i < n; i++) {
+              for (let j = 0; j < n; j++) {
+                if (i !== j && M[i][j] !== Infinity) { M[i][j] = -Math.max(1, Math.floor(Math.random()*5)+1); negCount++; break outer; }
+              }
+            }
+          }
+          if (!hasNegativeCycleFW(M)) return M;
+        }
+        // Fallback: DAG (no cycles by construction)
+        const Mdag = Array.from({ length: n }, () => Array(n).fill(Infinity));
+        for (let i = 0; i < n; i++) Mdag[i][i] = 0;
+        for (let i = 0; i < n; i++) {
+          for (let j = i+1; j < n; j++) {
+            if (Math.random() < 0.35) {
+              const abs = Math.floor(Math.random() * 9) + 1;
+              const neg = Math.random() < 0.35; // some negatives
+              Mdag[i][j] = neg ? -abs : abs;
+            }
+          }
+        }
+        // make sure at least one negative edge exists
+        let ensured = false;
+        for (let i = 0; i < n && !ensured; i++) {
+          for (let j = i+1; j < n && !ensured; j++) {
+            if (Mdag[i][j] !== Infinity && Mdag[i][j] > 0) { Mdag[i][j] = -Mdag[i][j]; ensured = true; }
+          }
+        }
+        return Mdag;
+      }
+
+      // Main branching
+      let M;
+      if (negativeCycle) {
+        M = baseRandomMatrix();
+        M = withPlantedNegativeCycle(M);
+      } else if (negativeEdges) {
+        M = genWithNegNoCycle();
+      } else {
+        M = baseRandomMatrix();
+      }
+
+      return { M, ed: matrixToEdges(M) };
+    }
 
 
     function updateTheme(graphFill, graphStroke, matrixBg, k) {
@@ -280,7 +408,7 @@
 
   // add this just inside your (function() { … }) wrapper, before rebuild()
   function fmt(v) {
-    return v === Infinity ? '\u221E' : v;
+    return v === Infinity ? '∞' : v;
   }
 
 
@@ -303,10 +431,15 @@ function renderGraph(adj, edges, highlight = {}) {
   if (!nodePos || nodePos.length !== n) nodePos = getNodePositions(n);
   const pos = nodePos;
 
-  // 1) draw phantom ∞-edges in yellow for any missing candidate link
+  // 1) draw phantom ∞-edges (gray dashed) for any missing candidate link
   // ── draw phantom ∞-edges ─────────────────────────────────────────────
 if (Array.isArray(highlight.phantomEdges)) {
+  const considerSet = new Set(
+    (Array.isArray(highlight.considerEdges) ? highlight.considerEdges : [])
+      .map(e => `${e.from}-${e.to}`)
+  );
   highlight.phantomEdges.forEach(({ from, to }) => {
+    if (considerSet.has(`${from}-${to}`)) return;
     const p1 = pos[from], p2 = pos[to];
     const dx = p2.x - p1.x, dy = p2.y - p1.y;
     const L  = Math.hypot(dx, dy);
@@ -326,21 +459,25 @@ if (Array.isArray(highlight.phantomEdges)) {
     const ph = document.createElementNS(NS,'path');
     ph.setAttribute('d', d);
     ph.setAttribute('fill','none');
-    ph.setAttribute('stroke','rgba(255,215,0,0.8)');
+    ph.setAttribute('stroke','#b0b0b0');
     ph.setAttribute('stroke-width','3');
-    ph.setAttribute('marker-end','url(#arrow-yellow)');
+    ph.setAttribute('stroke-dasharray','6 3');
+    ph.setAttribute('marker-end','url(#arrow-gray)');
     graphSvg.appendChild(ph);
 
     try {
       const mid = ph.getPointAtLength(ph.getTotalLength()/2 || 0);
-      labelItems.push({ x: mid.x, y: mid.y, text: '\u221E', color: '#000' });
+      labelItems.push({ x: mid.x, y: mid.y, text: '∞', color: '#000' });
     } catch {}
   });
 }
 
 
- // ───── Real edges ─────────────────────────────────────
+ // ───── Real edges (from current adj) ─────────────────────────────────────
    edges.forEach((e, idx) => {
+    // skip drawing the base edge if it's one of the considered legs to avoid dual-color overlays
+    const isConsideredNow = Array.isArray(highlight.considerEdges) && highlight.considerEdges.some(pe => pe.from === e.from && pe.to === e.to);
+    if (isConsideredNow) return;
     // any leg we’re “considering” goes yellow
     const isConsider = Array.isArray(highlight.considerEdges)
                      && highlight.considerEdges.some(pe =>
@@ -378,18 +515,11 @@ if (Array.isArray(highlight.phantomEdges)) {
     path.setAttribute('d', d);
     path.setAttribute('fill', 'none');
 
-    // pick color & marker
-    let strokeColor, strokeW, markerId;
-    // NEW (give red “path” top priority)
-    if (isPath) {
-      strokeColor = '#e74c3c';
-      strokeW     = 2;
-      markerId    = 'arrow-highlight';
-    } else {
-      strokeColor = '#333';
-      strokeW     = 1;
-      markerId    = 'arrow';
-    }
+    // pick color & marker (original edges darker and 1px wider; derived lighter)
+    const isOriginal = (typeof originalEdgeSet !== 'undefined') && originalEdgeSet.has(`${e.from}-${e.to}`);
+    let strokeColor = isOriginal ? '#333' : '#999';
+    let strokeW = isOriginal ? 2 : 1;
+    let markerId = 'arrow';
 
 
     path.setAttribute('stroke', strokeColor);
@@ -402,6 +532,10 @@ if (Array.isArray(highlight.phantomEdges)) {
 
     // draw the weight label using precomputed anchors when available
     if (e.weight != null) {
+      // avoid duplicating the direct edge label when an overlay is present
+      if (highlight.direct && highlight.direct.from === e.from && highlight.direct.to === e.to) {
+        // skip base label; the overlay will provide it (and old→new when applicable)
+      } else
       if (typeof e.lx === 'number' && typeof e.ly === 'number') {
         labelItems.push({ x: e.lx, y: e.ly, text: String(e.weight), color: '#000' });
       } else {
@@ -427,11 +561,8 @@ if (Array.isArray(highlight.phantomEdges)) {
       const color = '#1f77b4';
       const markerId = 'arrow-blue';
       const isDirect = !!(highlight.direct && highlight.direct.from === from && highlight.direct.to === to);
-      const overlapsPath = Array.isArray(highlight.pathEdges) && highlight.pathEdges.some(pe => pe.from === from && pe.to === to);
-
-      // If this considered leg is also the direct D[i][j], skip here;
-      // the direct renderer will draw a purple/blue striped composite.
-      if (isDirect) return;
+      // If this considered leg is also the direct D[i][j] and that direct edge exists, skip (direct renderer draws it).
+      if (isDirect && adj[from][to] < Infinity) return;
       let d;
       if (from === to) {
         // self-loop tangent to the node: center along inward normal so it stays inside the graph
@@ -477,15 +608,33 @@ if (Array.isArray(highlight.phantomEdges)) {
       pth.setAttribute('stroke', color);
       pth.setAttribute('stroke-width', '3');
       pth.setAttribute('marker-end', `url(#${markerId})`);
-      if (overlapsPath) {
+      if (adj[from][to] === Infinity) {
         pth.setAttribute('stroke-dasharray', '6 3');
         pth.setAttribute('stroke-opacity', '0.95');
+        try {
+          const totalLen = pth.getTotalLength();
+          const arrowMargin = 12, labelRadius = 8;
+          const frac = 0.6;
+          const len  = arrowMargin + (totalLen - arrowMargin - labelRadius) * frac;
+          const pt   = pth.getPointAtLength(Math.max(arrowMargin, Math.min(totalLen - labelRadius, len)));
+          labelItems.push({ x: pt.x, y: pt.y, text: '∞', color: '#000' });
+        } catch {}
+      } else {
+        // finite considered edge: add its weight label
+        try {
+          const totalLen = pth.getTotalLength();
+          const arrowMargin = 12, labelRadius = 8;
+          const frac = 0.6;
+          const len  = arrowMargin + (totalLen - arrowMargin - labelRadius) * frac;
+          const pt   = pth.getPointAtLength(Math.max(arrowMargin, Math.min(totalLen - labelRadius, len)));
+          labelItems.push({ x: pt.x, y: pt.y, text: String(adj[from][to]), color: '#000' });
+        } catch {}
       }
       graphSvg.appendChild(pth);
   });
   }
 
-  // 4.5) highlight the direct existing edge i→j in purple (if present)
+  // 4.5) highlight the direct existing edge i→j in orange (if present)
   if (highlight.direct && adj[highlight.direct.from][highlight.direct.to] < Infinity) {
     const from = highlight.direct.from;
     const to   = highlight.direct.to;
@@ -507,54 +656,36 @@ if (Array.isArray(highlight.phantomEdges)) {
       const mx = (x1 + x2)/2 + perpX*curvature;
       const my = (y1 + y2)/2 + perpY*curvature;
       const d = `M${sx},${sy} Q${mx},${my} ${ex},${ey}`;
-      let labelPath = null;
-      if (alsoConsider) {
-        // Draw interleaved purple/blue dashes to indicate dual role
-        const pPurple = document.createElementNS(NS,'path');
-        pPurple.setAttribute('d', d);
-        pPurple.setAttribute('fill', 'none');
-        pPurple.setAttribute('stroke', '#8e44ad');
-        pPurple.setAttribute('stroke-width', '3');
-        pPurple.setAttribute('stroke-dasharray', '6 6');
-        pPurple.setAttribute('stroke-dashoffset', '0');
-        pPurple.setAttribute('marker-end', 'url(#arrow-purple)');
-        graphSvg.appendChild(pPurple);
-        labelPath = pPurple;
+      const pth = document.createElementNS(NS,'path');
+      pth.setAttribute('d', d);
+      pth.setAttribute('fill', 'none');
+      pth.setAttribute('stroke', '#f28e2b');
+      pth.setAttribute('stroke-width', '3');
+      pth.setAttribute('marker-end', 'url(#arrow-orange)');
+      graphSvg.appendChild(pth);
+      let labelPath = pth;
 
-        const pBlue = document.createElementNS(NS,'path');
-        pBlue.setAttribute('d', d);
-        pBlue.setAttribute('fill', 'none');
-        pBlue.setAttribute('stroke', '#1f77b4');
-        pBlue.setAttribute('stroke-width', '3');
-        pBlue.setAttribute('stroke-dasharray', '6 6');
-        pBlue.setAttribute('stroke-dashoffset', '6');
-        // keep arrowhead purple for the direct edge semantics
-        graphSvg.appendChild(pBlue);
-      } else {
-        const pth = document.createElementNS(NS,'path');
-        pth.setAttribute('d', d);
-        pth.setAttribute('fill', 'none');
-        pth.setAttribute('stroke', '#8e44ad');
-        pth.setAttribute('stroke-width', '3');
-        pth.setAttribute('marker-end', 'url(#arrow-purple)');
-        graphSvg.appendChild(pth);
-        labelPath = pth;
-      }
-
-      // add colored label for this direct edge reflecting update/nochange
+      // add colored label(s) for this direct edge reflecting update/nochange
       try {
         const totalLen = labelPath.getTotalLength();
         const arrowMargin = 12, labelRadius = 8;
         const frac = 0.6;
         const len  = arrowMargin + (totalLen - arrowMargin - labelRadius) * frac;
         const pt   = labelPath.getPointAtLength(Math.max(arrowMargin, Math.min(totalLen - labelRadius, len)));
-        const color = (highlight.updateState === 'update') ? '#2ecc71' : '#ff7f0e';
-        labelItems.push({ x: pt.x, y: pt.y, text: String(adj[from][to]), color });
+        const newColor = (highlight.updateState === 'update') ? '#2ecc71' : '#f28e2b';
+        // If updated from a previous finite value, show `old → new` as a single label for readability
+        if (highlight.updateState === 'update' && typeof highlight.directOld !== 'undefined' && highlight.directOld < Infinity && highlight.directOld !== adj[from][to]) {
+          const label = `${highlight.directOld}→${adj[from][to]}`;
+          labelItems.push({ x: pt.x, y: pt.y, text: label, color: newColor });
+        } else {
+          // otherwise, show the single current value
+          labelItems.push({ x: pt.x, y: pt.y, text: String(adj[from][to]), color: newColor });
+        }
       } catch {}
     }
   }
 
-  // 4.8) draw labels last so they sit above edges
+  // 4.8) draw labels last so they sit above edges, with a white halo for readability
   labelItems.forEach(({x,y,text,color}) => {
     const lbl = document.createElementNS(NS, 'text');
     lbl.setAttribute('x', x);
@@ -565,6 +696,11 @@ if (Array.isArray(highlight.phantomEdges)) {
     lbl.setAttribute('fill', color || '#000');
     lbl.setAttribute('pointer-events','none');
     lbl.style.userSelect = 'none';
+    // halo
+    lbl.setAttribute('stroke', '#fff');
+    lbl.setAttribute('stroke-width', '3');
+    lbl.setAttribute('stroke-linejoin', 'round');
+    lbl.style.paintOrder = 'stroke fill';
     lbl.textContent = text;
     graphSvg.appendChild(lbl);
   });
@@ -602,6 +738,7 @@ if (Array.isArray(highlight.phantomEdges)) {
     function renderMatrix(container, M, highlight = {}) {
   container.innerHTML = '';
   const n = M.length;
+  const viaCells = Array.isArray(highlight.viaCells) ? highlight.viaCells : [];
 
   // make room for the extra index row/column
   container.style.gridTemplateColumns = `36px repeat(${n},1fr)`;
@@ -643,9 +780,13 @@ if (Array.isArray(highlight.phantomEdges)) {
       if (highlight.i === i && highlight.j === j) {
         div.classList.add('highlight');
       }
+      // mark via cells (i,k) and (k,j)
+      if (viaCells.some(vc => vc.i === i && vc.j === j)) {
+        div.classList.add('via-highlight');
+      }
 
       div.textContent = (M[i][j] === Infinity
-      ? '\u221E'       // Unicode for ∞
+      ? '∞'       // Unicode for ∞
       : M[i][j]);
       container.appendChild(div);
     }
@@ -720,10 +861,14 @@ function buildEvents(D) {
   if (!e) return;
 
   if (e.type === 'init') {
-    renderGraph(A, edges);
+    const baseEdges = baseEdgesFor(e.R);
+    renderGraph(e.R, baseEdges);
     renderMatrix(matR, e.R);
-    commentBox.innerHTML = 
-    ``;
+    if (hasNegCycle) {
+      commentBox.innerHTML = '<b>Notice:</b> Negative cycle detected. Some shortest paths are undefined; values may continue to improve as k increases.';
+    } else {
+      commentBox.innerHTML = '';
+    }
     prevBtn.disabled = true;
     nextBtn.disabled = false;
     playBtn.disabled = false;
@@ -736,48 +881,39 @@ else if (e.type === 'cell') {
     { from: e.k, to: e.j }
   ];
 
-  // 2) phantom ∞-edges: the direct link i→j plus any missing legs
+  // 2) phantom ∞-edges relative to current D (before updating this cell)
   const phantomEdges = [
     { from: e.i, to: e.j },
     ...candidateEdges
-  ].filter(ep => A[ep.from][ep.to] === Infinity);
+  ].filter(ep => e.Rprev[ep.from][ep.to] === Infinity);
 
   // 3) highlight exactly those applicable legs in yellow
   const considerEdges = candidateEdges.map((ed, idx) => ({ ...ed, roleIndex: idx }));
 
-  // 4) compute the usual via‐k path (if any)
-  const pathEdges = pathToEdges(reconstructPath(e.i, e.j, e.nextHop));
+  // Build the updated matrix state for this step (after applying update)
+  const updatedR = e.Rprev.map(r => r.slice());
+  updatedR[e.i][e.j] = e.newVal;
 
-  // 5) one draw call with all three arrays
+  // 4) one draw call with considered edges only (suppress shortest-path overlay for clarity)
   const opts = {
     node:           e.k,
     source:         e.i,
     target:         e.j,
     direct:         { from: e.i, to: e.j },
     updateState:    (e.newVal < e.oldVal) ? 'update' : 'nochange',
+    directOld:      e.oldVal,
+    directNew:      e.newVal,
     phantomEdges,
-    considerEdges,
-    pathEdges
+    considerEdges
   };
-  renderGraph(A, edges, opts);
+  const baseEdges = baseEdgesFor(updatedR);
+  renderGraph(updatedR, baseEdges, opts);
 
   // 4) update the D-matrix and comment as before
-															   
-  const updatedR = e.Rprev.map(r => r.slice());
-  updatedR[e.i][e.j] = e.newVal;
-  renderMatrix(matR, updatedR, { i: e.i, j: e.j, k: e.k });
+                                   
+  renderMatrix(matR, updatedR, { i: e.i, j: e.j, k: e.k, viaCells: [ { i: e.i, j: e.k }, { i: e.k, j: e.j } ] });
   // build a display‐matrix that already has the updated cell
 
-   // right after you set opts.pathEdges…
-  const usedEdges = opts.pathEdges
-    .map(pe => `${pe.from}→${pe.to}`)
-    .join('+');
-
-// Clear explanation without heavy highlighting
-//const special = [];
-//if (e.i === e.k) special.push(`i = k so D[${e.i}][${e.k}] = 0`);
-//if (e.k === e.j) special.push(`k = j so D[${e.k}][${e.j}] = 0`);
-//if (e.i === e.j) special.push(`i = j (diagonal), stays 0`);
 const a = fmt(e.oldVal);
 const b = fmt(e.left);
 const c = fmt(e.right);
@@ -796,7 +932,6 @@ const boldC = viaIsSmaller ? `<b>${c}</b>` : c;
 const boldD = viaIsSmaller ? `<b>${d}</b>` : d;
 
 const arrowMsg = viaIsSmaller
-  //? ` &nbsp; &nbsp; <b>Better path</b>: ${usedEdges}`
   ? ` &nbsp; &nbsp; <b>Better path</b>: ${e.i}&#x279E;${e.k}&#x279E;${e.j}`
   : ` &nbsp; &nbsp; No change`;
 
@@ -814,39 +949,11 @@ commentBox.innerHTML = `
 </table>
 `;
 
-// const a = fmt(e.oldVal);
-// const b = fmt(e.left);
-// const c = fmt(e.right);
-// const d = fmt(e.via);
-// const min = Math.min(e.oldVal, e.via);
-// const winner = (min === e.oldVal) ? e.oldVal : e.via;
-
-
-// commentBox.innerHTML = `
-// (k,i,j) = (${e.k}, ${e.i}, ${e.j})<br>
-// <table border=0>
-// <tr><td>D[${e.i}][${e.j}] </td>
-// <td>= min(D[${e.i}][${e.j}], D[${e.i}][${e.k}] + D[${e.k}][${e.j}])</td></tr>
-// <tr><td></td><td>= min(${a}, ${b}+${c}) = min(${a}, ${d}) = <b>${winner}</b></td></tr>
-// </table>
-// ${winner === e.oldVal
-  // ? `No improvement.`
-  // : `<b>Updated</b> — path uses edge${opts.pathEdges.length>1?'s':''} ${usedEdges}.`}
-// `;
-
-
-//commentBox.innerHTML =
-//  `(k,i,j) = (${e.k}, ${e.i}, ${e.j})<br>` +
-//  //(special.length ? ` — ${special.join('; ')}` : '') +
-//  `D[${e.i}][${e.j}]=${fmt(e.oldVal)}<br> D[${e.i}][${e.k}]+D[${e.k}][${e.j}]=${fmt(e.left)}+${fmt(e.right)}=${fmt(e.via)} → ${fmt(e.newVal)}<br>` +
-//  (e.newVal < e.oldVal
-//    ? ` Updated — path uses edge${opts.pathEdges.length>1?'s':''} ${usedEdges}.`
-//    : ` No improvement.`);
-
   prevBtn.disabled = nextBtn.disabled = false;
 }
  else if (e.type === 'afterK') {
-  renderGraph(A, edges, { node: e.k });
+  const baseEdges = baseEdgesFor(e.R);
+  renderGraph(e.R, baseEdges, { node: e.k });
   renderMatrix(matR, e.R, { changed: e.changed });
   const n = A.length;
    if (e.k < n - 1) {
@@ -860,7 +967,8 @@ commentBox.innerHTML = `
 }
 // New
 else if (e.type === 'done') {
-  renderGraph(A, edges);
+  const baseEdges = baseEdgesFor(e.R);
+  renderGraph(e.R, baseEdges);
   renderMatrix(matR, e.R);
 
   // explicitly show R^n
@@ -905,16 +1013,10 @@ function getNodePositions(n) {
   });
 }
 
-
 // ─────────── NEW ───────────
 function preprocessEdgeWeights(edges, pos) {
-																					
   const arrowMargin      = 12;                       // px back from arrowhead
-														  
-															 
   const labelRadius      = 8;                        // half-text width
-																				
-																			   
   const DEFAULT_MARKER_W = 9;
   const HIGHLIGHT_MARKER_W = 8;                      // 4*2 
   const OFFSET           = (DEFAULT_MARKER_W + HIGHLIGHT_MARKER_W)/2 + 2;
@@ -953,23 +1055,7 @@ function preprocessEdgeWeights(edges, pos) {
       const len  = arrowMargin + (totalLen - arrowMargin - labelRadius) * frac;
       pt   = tempPath.getPointAtLength(Math.max(arrowMargin, Math.min(totalLen - labelRadius, len)));
     } catch {}
-			  
-			 
-						 
-	   
-									
-									   
-										  
-																												  
-														  
-						   
-							 
-																	  
-		 
-	   
-	  
-
-												  
+				  
     if (pt) {
       e.lx = pt.x;
       e.ly = pt.y;
@@ -977,23 +1063,31 @@ function preprocessEdgeWeights(edges, pos) {
       e.lx = (p1.x + p2.x) / 2;
       e.ly = (p1.y + p2.y) / 2;
     }
-
-								
     graphSvg.removeChild(tempPath);
   });
 }
 
-
 // walk i→j by following nextHop[i][j], building node‐list
-function reconstructPath(i, j, nextHop) {
-  const path = [];
-  if (nextHop[i][j] == null) return path;
+// Guard against cycles (especially with negative cycles) to avoid infinite loops
+function reconstructPath(i, j, nextHop, limit = 200) {
+  if (nextHop[i][j] == null) return [];
+  const path = [i];
   let u = i;
-  while (u != null && u !== j) {
-    path.push(u);
-    u = nextHop[u][j];
+  const visited = new Set([i]);
+  let steps = 0;
+  while (u !== j && steps < limit) {
+    const v = nextHop[u][j];
+    if (v == null) return [];
+    if (visited.has(v)) {
+      // cycle encountered; path is not simple — return empty to avoid lockup
+      return [];
+    }
+    path.push(v);
+    visited.add(v);
+    u = v;
+    steps++;
   }
-  if (u === j) path.push(j);
+  if (u !== j) return [];
   return path;
 }
 
@@ -1005,9 +1099,21 @@ function pathToEdges(nodes) {
   }));
 }
 
-
-
     // Generate Button Handler
+// Mutually exclusive toggles: if negative cycle checked, ignore negative edges
+const negEdgesChk = document.getElementById('neg-edges');
+const negCycleChk = document.getElementById('neg-cycle');
+negCycleChk.addEventListener('change', () => {
+  if (negCycleChk.checked) {
+    // visually indicate mutual exclusivity by unchecking the other
+    negEdgesChk.checked = false;
+  }
+});
+negEdgesChk.addEventListener('change', () => {
+  if (negEdgesChk.checked) {
+    negCycleChk.checked = false;
+  }
+});
 genBtn.addEventListener('click', () => {
   // 1) read & clamp n
   let n = parseInt(dimInput.value, 10) || 0;
@@ -1016,9 +1122,15 @@ genBtn.addEventListener('click', () => {
   dimInput.value = n;
 
   // 2) generate a fresh random graph
-  const g = genRandomGraph(n);
+  const g = genRandomGraph(n, {
+    negativeEdges: negEdgesChk.checked && !negCycleChk.checked,
+    negativeCycle: negCycleChk.checked
+  });
+  hasNegCycle = hasNegativeCycleFW(g.M);
   A     = g.M;
   edges = g.ed;
+  // record original adjacency edge set for styling later
+  originalEdgeSet = new Set(edges.map(e => `${e.from}-${e.to}`));
 
   // 3) PREPROCESS: compute node coords & weight‐label positions
   nodePos = getNodePositions(A.length);
@@ -1040,8 +1152,6 @@ genBtn.addEventListener('click', () => {
   );
   rebuild();
 });
-
-
 
   // ─── New nextBtn handler ─────────────────────────────────────────────────────
 nextBtn.addEventListener('click', () => {
@@ -1127,6 +1237,10 @@ nextBtn.addEventListener('click', () => {
       }
     });
     speedSelect.addEventListener('change', () => { speed = parseInt(speedSelect.value,10)||1; });
+    // toggle for showing only original edges
+    onlyOriginalChk.addEventListener('change', () => {
+      rebuild();
+    });
 
     // Build current highlight payload for redraws during drag
     function currentGraphHighlight() {
@@ -1137,13 +1251,35 @@ nextBtn.addEventListener('click', () => {
           { from: e.i, to: e.k, roleIndex: 0 },
           { from: e.k, to: e.j, roleIndex: 1 }
         ];
-        const phantomEdges = [ { from: e.i, to: e.j }, ...candidateEdges ].filter(ep => A[ep.from][ep.to] === Infinity);
-        const pathEdges = pathToEdges(reconstructPath(e.i, e.j, e.nextHop));
-        return { node: e.k, source: e.i, target: e.j, direct: { from: e.i, to: e.j }, updateState: (e.newVal < e.oldVal) ? 'update' : 'nochange', phantomEdges, considerEdges: candidateEdges, pathEdges };
+        const phantomEdges = [ { from: e.i, to: e.j }, ...candidateEdges ].filter(ep => e.Rprev[ep.from][ep.to] === Infinity);
+        return {
+          node: e.k,
+          source: e.i,
+          target: e.j,
+          direct: { from: e.i, to: e.j },
+          updateState: (e.newVal < e.oldVal) ? 'update' : 'nochange',
+          directOld: e.oldVal,
+          directNew: e.newVal,
+          phantomEdges,
+          considerEdges: candidateEdges
+        };
       } else if (e.type === 'afterK') {
         return { node: e.k };
       }
       return {};
+    }
+
+    // Adjacency and edges corresponding to current event view
+    function currentAdjEdges() {
+      const e = events[ptr];
+      if (!e) return { adj: A, ed: edges };
+      if (e.type === 'cell') {
+        const updatedR = e.Rprev.map(r => r.slice());
+        updatedR[e.i][e.j] = e.newVal;
+        return { adj: updatedR, ed: baseEdgesFor(updatedR) };
+      }
+      if (e.R) return { adj: e.R, ed: baseEdgesFor(e.R) };
+      return { adj: A, ed: edges };
     }
 
     // Drag loop listeners
@@ -1159,14 +1295,16 @@ nextBtn.addEventListener('click', () => {
       const idx = dragging.idx;
       // update in the same coordinate space used by renderGraph
       nodePos[idx] = { x, y };
-      renderGraph(A, edges, currentGraphHighlight());
+      const { adj, ed } = currentAdjEdges();
+      renderGraph(adj, ed, currentGraphHighlight());
     });
     window.addEventListener('mouseup', () => {
       if (!dragging) return;
       dragging = null;
       // recompute weight label anchors for new geometry
       preprocessEdgeWeights(edges, nodePos);
-      renderGraph(A, edges, currentGraphHighlight());
+      const { adj, ed } = currentAdjEdges();
+      renderGraph(adj, ed, currentGraphHighlight());
     });
 
     // Keep nodes in-bounds on resize/fullscreen changes
@@ -1202,7 +1340,8 @@ nextBtn.addEventListener('click', () => {
 
         clampAllNodePos();
         preprocessEdgeWeights(edges, nodePos);
-        renderGraph(A, edges, currentGraphHighlight());
+        const { adj, ed } = currentAdjEdges();
+        renderGraph(adj, ed, currentGraphHighlight());
       });
     }
     // Observe actual element size changes (covers accordion/minimized cases).

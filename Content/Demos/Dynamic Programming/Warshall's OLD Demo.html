@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Warshall’s Algorithm Demo</title>
+  <script src="../../../scripts/demoScripts.js"></script>
+  <link rel="stylesheet" href="../../../css/style.css">
+  <link rel="stylesheet" href="../../../css/demo.css">
+  <style>
+    /* Keep demo-specific, avoid overriding shared demo.css/style.css */
+    .demo-content { display: flex; gap: 2em; align-items: flex-start; }
+    .graph-panel svg { background: #fff; border: 1px solid #ccc; }
+
+    /* Matrix styling (match Matrix Multiplication & 0-1 Knapsack demos) */
+    .matrix-panel {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .matrix-panel .matrix-container {
+      display: grid;
+      gap: 4px;
+      padding: 6px;
+      border-radius: 6px;
+      background: transparent;
+    }
+    /* tint the whole DP matrix container light‐blue */
+   /* New */
+  #matrix-r.matrix-container {
+    position: relative;          /* establish stacking context */
+    background: transparent;     /* container itself is now clear */
+    margin-top: 0.5em;           /* keep your existing spacing */
+  }
+
+  /* draw the blue “sheet” only over the interior cell area */
+  #matrix-r.matrix-container::before {
+    content: '';
+    position: absolute;
+    /* offset by your original padding (6px) + index size (50px) */
+    top:    calc(6px + 50px);
+    left:   calc(6px + 50px);
+    /* preserve your original padding on the other edges */
+    right:  6px;
+    bottom: 6px;
+
+    background: rgba(79, 172, 248, 0.423);
+    border-radius: 6px;         /* match your container’s rounding */
+    pointer-events: none;       /* so it never blocks clicks */
+    z-index: 0;                 /* behind everything else */
+  }
+
+  /* make sure both data‐cells and index labels sit on top of that sheet */
+  .matrix-element,
+  .matrix-index {
+    position: relative;
+    z-index: 1;
+  }
+
+    .matrix-element {
+      width: 50px;
+      height: 50px;
+      border: 1px solid #333;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-family: monospace;
+      background: rgba(79, 172, 248, 0.423);
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+    .matrix-element.highlight {
+      box-shadow: 0 0 8px 2px rgba(255,215,0,0.8);
+    }
+
+    /* Comment box */
+    .comment {
+      margin-top: 1em;
+      font-style: italic;
+      min-height: 1.5em;
+      text-align: left;
+    }
+
+/* keep matrix elements layering for highlights */
+.matrix-element { position: relative; z-index: 0; }
+
+/* translucent yellow for the k-th column */
+.matrix-element.col-highlight,
+.matrix-element.row-highlight {
+  background: rgba(249, 163, 3, 0.489);
+}
+
+/* the single cell being updated sits on top */
+.matrix-element.highlight {
+  z-index: 2;
+  transform: scale(1.1);
+  box-shadow: 0 0 8px 2px rgba(255, 215, 0, 0.8);
+  background: rgba(255, 215, 0, 0.6);
+  font-weight: bold;
+}
+
+/* Legend uses shared styles in demo.css; no overrides here */
+
+  /* New: index labels around the matrix */
+.matrix-index {
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: monospace;
+  background: transparent; /* no border, no block */
+  border: none;
+  pointer-events: none;
+}
+
+  </style>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-DQ5LVZVFDC"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-DQ5LVZVFDC');
+</script>
+</head>
+<body>
+  <div class="demo-container">
+    <h2>Warshall’s Algorithm Demo</h2>
+
+    <!-- Controls -->
+    <div class="controls">
+      <div class="input-row">
+        <label>n:
+          <input id="dim-input" type="number" min="1" max="10" value="5">
+        </label>
+        <button id="gen-btn">Generate</button>
+      </div>
+      <div class="step-controls">
+        <button id="prev-btn" disabled>Previous</button>
+        <button id="next-btn" disabled>Next</button>
+        <label for="speed-select">Speed:
+          <select id="speed-select">
+            <option value="1">1×</option>
+            <option value="2">2×</option>
+            <option value="4">4×</option>
+            <option value="8">8×</option>
+            <option value="16">16×</option>
+            <option value="32">32×</option>
+          </select>
+        </label>
+        <button id="play-btn" disabled>Play</button>
+      </div>
+    </div>
+
+<!-- Legend (use shared demo.css classes) -->
+<div class="legend">
+  <strong class="legend-label">Legend:</strong>
+  <div class="legend-items">
+    <span class="legend-box" style="background-color: rgba(255,215,0,0.6)"></span> Current cell
+    <span class="legend-box" style="background-color: rgba(249,163,3,0.489)"></span> Intermediate row & column
+    <svg viewBox="0 0 12 10" width="15" height="15" aria-hidden="true" style="vertical-align: middle; margin-left: 6px;">
+      <defs>
+        <marker id="legend-arrowhead" markerUnits="strokeWidth" markerWidth="4" markerHeight="3" refX="3.25" refY="1.5" orient="auto">
+          <path d="M0,0 L0,3 L4,1.5 Z" fill="#e74c3c"/>
+        </marker>
+      </defs>
+      <line x1="1" y1="5" x2="11" y2="5" stroke="#e74c3c" stroke-width="2" marker-end="url(#legend-arrowhead)"/>
+    </svg> Transitive edges
+  </div>
+</div>
+
+    <!-- Demo Panels -->
+    <div class="demo-content">
+      <!-- Graph View -->
+      <div class="graph-panel">
+      <h3>Graph</h3>
+      <svg id="graph-svg" width="400" height="400">
+  <defs>
+    <!-- base arrow marker -->
+    <marker id="arrow"
+            markerWidth="10"
+            markerHeight="10"
+            refX="8"
+            refY="3"
+            orient="auto">
+      <path d="M0,0 L0,6 L9,3 Z" fill="#888"/>
+    </marker>
+
+    <!-- highlight arrow for transitive edges -->
+    <marker id="arrow-highlight"
+            markerUnits="strokeWidth"
+            markerWidth="4"
+            markerHeight="3"
+            refX="3.25"
+            refY="1.5"
+            orient="auto">
+      <path d="M0,0 L0,3 L4,1.5 Z" fill="#e74c3c"/>
+    </marker>
+
+    <!-- yellow arrow marker for “considered” edges -->
+    <marker id="arrow-yellow"
+            markerUnits="strokeWidth"
+            markerWidth="4"
+            markerHeight="3"
+            refX="3"
+            refY="1.5"
+            orient="auto">
+      <path d="M0,0 L0,3 L4,1.5 Z" fill="rgba(255,215,0,0.8)"/>
+    </marker>
+  </defs>
+
+  <!-- static layer: draw your nodes & base edges here once -->
+  <g id="static-graph"></g>
+
+  <!-- dynamic layer: only this gets cleared/redrawn each step -->
+  <g id="highlight-graph"></g>
+</svg>
+    </div>
+
+
+      <!-- DP Matrix View -->
+      <div class="matrix-panel">
+        <h3> R<sup id="current-k">0</sup></h3>
+        <div id="matrix-r" class="matrix-container"></div>
+      </div>
+    </div>
+
+    <!-- Comment Box -->
+    <div id="comment" class="comment">Initialize to begin...</div>
+  </div>
+
+  <script>
+  (function() {
+    const dimInput   = document.getElementById('dim-input');
+    const genBtn     = document.getElementById('gen-btn');
+    const prevBtn    = document.getElementById('prev-btn');
+    const nextBtn    = document.getElementById('next-btn');
+    const playBtn    = document.getElementById('play-btn');
+    const speedSelect= document.getElementById('speed-select');
+    const graphSvg   = document.getElementById('graph-svg');
+    const NS       = 'http://www.w3.org/2000/svg';
+    const matR       = document.getElementById('matrix-r');
+    const commentBox = document.getElementById('comment');
+    
+    let A = [], edges = [], events = [], ptr = 0, timer = null;
+    let playing = false, speed = 1;
+    let direction = 'forward';
+
+    // Utilities
+    const rand = () => Math.random();
+
+    // Generate random directed graph adjacency matrix + edges
+    function genRandomGraph(n) {
+      const M = Array.from({ length: n }, () => Array(n).fill(0));
+      const ed = [];
+      for (let i = 0; i < n; i++) {
+        for (let j = 0; j < n; j++) {
+          if (i !== j && rand() < 0.3) {
+            M[i][j] = 1;
+            ed.push({ from: i, to: j });
+          }
+        }
+      }
+      return { M, ed };
+    }
+
+
+    function updateTheme(graphFill, graphStroke, matrixBg, k) {
+    document.documentElement.style.setProperty('--graph-fill',    graphFill);
+    document.documentElement.style.setProperty('--graph-stroke',  graphStroke);
+    document.documentElement.style.setProperty('--matrix-bg',     matrixBg);
+    document.getElementById('current-k').textContent = k;
+  }
+
+    // Render graph nodes + edges
+  
+function renderGraph(adj, edges, highlight = {}) {
+  const staticG    = graphSvg.querySelector('#static-graph');
+  const highlightG = graphSvg.querySelector('#highlight-graph');
+
+  // ─── 1) Compute node positions (circle layout) ────────────────
+  const w  = graphSvg.clientWidth;
+  const h  = graphSvg.clientHeight;
+  const cx =  w/2, cy =  h/2;
+  const r  = Math.min(w, h)/2 - 50;
+  const pos = adj.map((_, i) => {
+    const θ = 2 * Math.PI * i / adj.length;
+    return { x: cx + r * Math.cos(θ), y: cy + r * Math.sin(θ) };
+  });
+
+  // ─── 2) Static layer: nodes + all permanent edges ──────────────
+  if (highlight.buildStatic) {
+    staticG.innerHTML = '';
+
+    // 2a) Draw every base or transitive edge once
+    edges.forEach(e => {
+      const { x: x1, y: y1 } = pos[e.from];
+      const { x: x2, y: y2 } = pos[e.to];
+
+      // quad‐curve control math
+      const dx = x2 - x1, dy = y2 - y1;
+      const L  = Math.hypot(dx, dy), ux = dx / L, uy = dy / L;
+      const perpX = -uy, perpY = ux;
+      // adjust offsets so arrowheads don’t collide with circles
+      // match the Warshall demo’s marker offset for **all** edges
+      const headOffset         = 17;               // radius + stroke
+      const DEFAULT_MARKER_W   = 9;                // base arrow’s markerWidth
+      const HIGHLIGHT_MARKER_W = 4 * 2;            // highlight arrow’s markerUnits×strokeWidth
+      const MARKER_OFFSET      = (DEFAULT_MARKER_W + HIGHLIGHT_MARKER_W) / 2 + 2;
+      const markerOffset       = MARKER_OFFSET;    // uniform perp-offset for black & red arrows
+
+      const sx = x1 + ux * headOffset + perpX * markerOffset;
+      const sy = y1 + uy * headOffset + perpY * markerOffset;
+      const ex = x2 - ux * headOffset + perpX * markerOffset;
+      const ey = y2 - uy * headOffset + perpY * markerOffset;
+      // bend the curve outwards
+      const mx = (x1 + x2) / 2 + perpX * 30;
+      const my = (y1 + y2) / 2 + perpY * 30;
+      const d  = `M${sx},${sy} Q${mx},${my} ${ex},${ey}`;
+
+      // create path
+      const path = document.createElementNS(NS,'path');
+      path.setAttribute('d',          d);
+      path.setAttribute('fill',       'none');
+      if (e.transitive) {
+        // permanent transitive edge
+        path.setAttribute('stroke',    '#e74c3c');
+        path.setAttribute('stroke-width','2');
+        path.setAttribute('marker-end','url(#arrow-highlight)');
+      } else {
+        // normal base edge
+        path.setAttribute('stroke','var(--graph-stroke)');
+        path.setAttribute('stroke-width','1');
+        path.setAttribute('marker-end','url(#arrow)');
+      }
+      staticG.appendChild(path);
+    });
+
+    // 2b) Draw every node once
+    adj.forEach((_, i) => {
+      const { x, y } = pos[i];
+      const g = document.createElementNS(NS,'g');
+      g.setAttribute('class','graphNode');
+
+      const c = document.createElementNS(NS,'circle');
+      c.setAttribute('cx', x);
+      c.setAttribute('cy', y);
+      c.setAttribute('r',  20);
+      g.appendChild(c);
+
+      const t = document.createElementNS(NS,'text');
+      t.setAttribute('x', x);
+      t.setAttribute('y', y);
+      t.textContent = i;
+      g.appendChild(t);
+
+      staticG.appendChild(g);
+    });
+  }
+
+  // ─── 3) Dynamic layer: clear & redraw only the highlights ───────
+  highlightG.innerHTML = '';
+
+  // 3a) Phantom ∞-edges (unreachable candidates)
+  if (Array.isArray(highlight.phantomEdges)) {
+    highlight.phantomEdges.forEach(({ from, to }) => {
+      const { x: x1, y: y1 } = pos[from];
+      const { x: x2, y: y2 } = pos[to];
+      const dx  = x2 - x1, dy = y2 - y1;
+      const L   = Math.hypot(dx, dy), ux = dx / L, uy = dy / L;
+      const perpX = -uy, perpY = ux;
+      const headOffset   = 17;
+      const markerOffset = (9 + 8) / 2 + 2; // base arrow + highlight marker
+      const sx = x1 + ux * headOffset + perpX * markerOffset;
+      const sy = y1 + uy * headOffset + perpY * markerOffset;
+      const ex = x2 - ux * headOffset + perpX * markerOffset;
+      const ey = y2 - uy * headOffset + perpY * markerOffset;
+      const mx = (x1 + x2) / 2 + perpX * 30;
+      const my = (y1 + y2) / 2 + perpY * 30;
+      const d  = `M${sx},${sy} Q${mx},${my} ${ex},${ey}`;
+
+      // ∞ path
+      const ph = document.createElementNS(NS,'path');
+      ph.setAttribute('d',          d);
+      ph.setAttribute('fill',       'none');
+      ph.setAttribute('stroke',     'rgba(255,215,0,0.8)');
+      ph.setAttribute('stroke-width','3');
+      ph.setAttribute('marker-end','url(#arrow-yellow)');
+      highlightG.appendChild(ph);
+
+      // ∞ label at midpoint
+      const mid = ph.getPointAtLength(ph.getTotalLength() / 2);
+      const lbl = document.createElementNS(NS,'text');
+      lbl.setAttribute('x', mid.x);
+      lbl.setAttribute('y', mid.y);
+      lbl.setAttribute('text-anchor','middle');
+      lbl.setAttribute('dominant-baseline','central');
+      lbl.textContent = '\u221E';
+      highlightG.appendChild(lbl);
+    });
+  }
+
+  // 3b) Considered edges (yellow)
+  if (Array.isArray(highlight.considerEdges)) {
+    highlight.considerEdges.forEach(({ from, to }) => {
+      const { x: x1, y: y1 } = pos[from];
+      const { x: x2, y: y2 } = pos[to];
+      const dx  = x2 - x1, dy = y2 - y1;
+      const L   = Math.hypot(dx, dy), ux = dx / L, uy = dy / L;
+      const perpX = -uy, perpY = ux;
+      const headOffset   = 17;
+      const markerOffset = (9 + 8) / 2 + 2;
+      const sx = x1 + ux * headOffset + perpX * markerOffset;
+      const sy = y1 + uy * headOffset + perpY * markerOffset;
+      const ex = x2 - ux * headOffset + perpX * markerOffset;
+      const ey = y2 - uy * headOffset + perpY * markerOffset;
+      const mx = (x1 + x2) / 2 + perpX * 30;
+      const my = (y1 + y2) / 2 + perpY * 30;
+      const d  = `M${sx},${sy} Q${mx},${my} ${ex},${ey}`;
+
+      const path = document.createElementNS(NS,'path');
+      path.setAttribute('d',          d);
+      path.setAttribute('fill',       'none');
+      path.setAttribute('stroke',     'rgba(255,215,0,0.8)');
+      path.setAttribute('stroke-width','3');
+      path.setAttribute('marker-end','url(#arrow-yellow)');
+      highlightG.appendChild(path);
+    });
+  }
+
+    // 3c) Highlight the k-th node exactly like Demo 47
+  staticG
+    .querySelectorAll('g.graphNode')
+    .forEach((nodeG, i) => {
+      nodeG.classList.toggle('current', highlight.node === i);
+    });
+
+}
+
+
+
+    function renderMatrix(container, M, highlight = {}) {
+  container.innerHTML = '';
+  const n = M.length;
+
+  // make room for the extra index row/column
+  container.style.gridTemplateColumns = `50px repeat(${n},1fr)`;
+  container.style.gridTemplateRows    = `50px repeat(${n},1fr)`;
+
+  // (0,0) corner empty
+  const corner = document.createElement('div');
+  corner.className = 'matrix-index';
+  container.appendChild(corner);
+
+  // column headers
+  for (let j = 0; j < n; j++) {
+    const colLabel = document.createElement('div');
+    colLabel.className = 'matrix-index';
+    colLabel.textContent = j;
+    container.appendChild(colLabel);
+  }
+
+  // each row: first a row‐index cell, then the row’s data
+  for (let i = 0; i < n; i++) {
+    // row header
+    const rowLabel = document.createElement('div');
+    rowLabel.className = 'matrix-index';
+    rowLabel.textContent = i;
+    container.appendChild(rowLabel);
+
+    // the actual matrix cells
+    for (let j = 0; j < n; j++) {
+      const div = document.createElement('div');
+      div.className = 'matrix-element';
+
+      // highlight the k-th row/col or cell
+      if (highlight.k !== undefined && j === highlight.k) {
+        div.classList.add('col-highlight');
+      }
+      if (highlight.k !== undefined && i === highlight.k) {
+        div.classList.add('row-highlight');
+      }
+      if (highlight.i === i && highlight.j === j) {
+        div.classList.add('highlight');
+      }
+
+      div.textContent = M[i][j];
+      container.appendChild(div);
+    }
+  }
+
+
+    }
+
+
+    function cloneMatrix(M) { return M.map(row => row.slice()); }
+
+    function buildEvents(A) {
+  const ev = [];
+  const n = A.length;
+  let Rprev = cloneMatrix(A);
+  ev.push({ type: 'init', R: cloneMatrix(Rprev) });
+  for (let k = 0; k < n; k++) {
+    const changed = [];              // ← add this line to track changed cells
+    for (let i = 0; i < n; i++) {
+      for (let j = 0; j < n; j++) {
+        const oldVal = Rprev[i][j];
+        const newVal = oldVal || (Rprev[i][k] && Rprev[k][j]) ? 1 : 0;
+        ev.push({ type: 'cell', k, i, j, oldVal, newVal, Rprev: cloneMatrix(Rprev) });
+        if (newVal !== oldVal) {
+          changed.push({ i, j });   // ← add this line to record each flip
+          Rprev[i][j] = newVal;
+        }
+      }
+    }
+    ev.push({
+      type: 'afterK',
+      k,
+      R: cloneMatrix(Rprev),
+      changed                      // ← include the list in the afterK event
+    });
+  }
+  ev.push({ type: 'done', R: cloneMatrix(Rprev) });
+  return ev;
+}
+
+    // Rebuild UI per event
+    function rebuild() {
+  const e = events[ptr];
+  if (!e) return;
+
+  // ─── New init (highlight k=0 exactly like Demo 47) ──────────────────
+if (e.type === 'init') {
+  // build the static graph *and* ring node 0 in black
+  renderGraph(A, edges, {
+    buildStatic: true,
+    node:        0
+  });
+
+  // draw R⁰ and tint row 0 + column 0
+  renderMatrix(matR, e.R, { k: 0 });
+
+  commentBox.innerHTML = 
+    `Computing R<sup>1</sup> using R<sup>0</sup>, considering intermediate vertices involving 0`;
+  prevBtn.disabled = true;
+  nextBtn.disabled = false;
+  playBtn.disabled = false;
+}
+
+  // rebuild()’s cell step:
+else if (e.type === 'cell') {
+  // 1) always highlight all three legs for (i,j,k)
+  const opts = {
+    node: e.k,
+    considerEdges: [
+      { from: e.i, to: e.j },
+      { from: e.i, to: e.k },
+      { from: e.k, to: e.j }
+    ]
+  };
+
+  // 2) if this step just discovered a new transitive edge, freeze it
+  if (e.newVal !== e.oldVal && direction === 'forward') {
+    edges.push({ from: e.i, to: e.j, transitive: true });
+    opts.buildStatic = true;
+  }
+
+  // 3) draw the graph + highlight the three edges
+  renderGraph(A, edges, opts);
+
+  // 4) draw the matrix cell + row/col highlight
+  renderMatrix(matR, e.Rprev, { i: e.i, j: e.j, k: e.k });
+
+  // 5) update your cell-comment exactly as before
+  commentBox.innerHTML = `
+      k=${e.k} (Intermediate node is ${e.k}): Considering path from ${e.i} to ${e.j} via ${e.k}.<br>
+   R[${e.i}][${e.j}] ∨ (R[${e.i}][${e.k}] ∧ R[${e.k}][${e.j}]) =
+    ${e.Rprev[e.i][e.j]} ∨  (${e.Rprev[e.i][e.k]} ∧ ${e.Rprev[e.k][e.j]}) = ${e.newVal}<br>
+         ${ e.newVal === 1
+         ? (e.oldVal === 1
+             ? 'Path already existed.'
+             : 'Transitive path was found.')
+         : 'No path exists.'}
+  `;
+
+  prevBtn.disabled = false;
+  nextBtn.disabled = false;
+  playBtn.disabled = false;
+}
+
+else if (e.type === 'afterK') {
+  // 1) highlight this node
+  renderGraph(A, edges, { node: e.k });
+
+  // 2) show the batch of changed cells
+  renderMatrix(matR, e.R, { changed: e.changed });
+
+  // 3) prepare the comment for the *next* k, if any
+  if (e.k < A.length - 1) {
+    commentBox.innerHTML =
+      `Computing R<sup>${e.k + 2}</sup> using R<sup>${e.k + 1}</sup>, `
+      + `considering intermediate vertices involving ${e.k + 1}`;
+  }
+
+  prevBtn.disabled = false;
+  nextBtn.disabled = false;
+  playBtn.disabled = false;
+}
+
+
+
+// New
+else if (e.type === 'done') {
+  renderGraph(A, edges);
+  renderMatrix(matR, e.R);
+
+  updateTheme(
+    '#fde2e2',            // fill
+    'black',              // ← remain black
+    'rgba(198,219,239,0.7)', 
+    A.length              
+  );
+
+  commentBox.textContent = 'Done! Transitive closure computed.';
+  prevBtn.disabled = false;
+  nextBtn.disabled = true;
+  playBtn.disabled = true;
+}
+
+
+}
+
+
+    // Generate Button Handler
+  genBtn.addEventListener('click', () => {
+    let n = parseInt(dimInput.value, 10) || 0;
+    if (n < 1) n = 1;
+    if (n > 10) n = 10;
+    dimInput.value = n;
+    const g = genRandomGraph(n);
+    A = g.M; edges = g.ed;
+    events = buildEvents(A);
+    ptr = 0;
+    clearInterval(timer);
+    playing = false;
+    playBtn.textContent = 'Play';
+    // ← apply red theme immediately
+    updateTheme(
+    '#fde2e2',    // graph fill
+    'black',      // graph stroke ← now your base edges will be black
+    'rgba(198,219,239,0.7)',
+    0
+  );
+    rebuild();
+  });
+
+
+  // ─── New nextBtn handler ─────────────────────────────────────────────────────
+// New nextBtn handler – show every cell step exactly like Warshall Demo
+nextBtn.addEventListener('click', () => {
+  direction = 'forward';
+
+  if (ptr < events.length - 1) {
+    ptr++;
+    const peek = events[ptr];
+    // only skip the final afterK ⟶ done transition
+    if (peek.type === 'afterK' && peek.k === A.length - 1) {
+      ptr++;
+    }
+  } else {
+    ptr = 0;  // wrap back to start
+  }
+
+  const e = events[ptr];
+  if (e.type !== 'done') {
+    const kVal = (e.k !== undefined)
+      ? (e.type === 'afterK' ? e.k + 1 : e.k)
+      : 0;
+    // keep your black stroke here
+    updateTheme('#fde2e2', 'black', 'rgba(198,219,239,0.7)', kVal);
+  }
+
+  rebuild();
+});
+
+
+ // Prev button (skip the final “done” event)
+ prevBtn.addEventListener('click', () => {
+   direction = 'backward';
+
+   // if we're currently on the 'done' event, drop back one more immediately
+   if (events[ptr]?.type === 'done') {
+     ptr--;
+   }
+
+   if (ptr > 0) {
+     // undo exactly one real step
+     const evUndo = events[ptr];
+     ptr--;
+     if (evUndo.type === 'cell' && evUndo.newVal !== evUndo.oldVal) {
+       edges.pop();
+     }
+   } else {
+     return; // at the very start
+   }
+
+   // now update your theme and UI based on the new ptr
+   const e = events[ptr];
+   const kVal = (e.k !== undefined)
+     ? (e.type === 'afterK' ? e.k + 1 : e.k)
+     : 0;
+   // NEW: base edges will now draw in black
+    updateTheme(
+      '#fde2e2',
+      'black',
+      'rgba(198,219,239,0.7)',
+      kVal
+    );
+
+   rebuild();
+ });
+
+    playBtn.addEventListener('click', () => {
+      if (!playing) {
+        playing = true;
+        playBtn.textContent = 'Pause';
+        timer = setInterval(() => {
+          if (ptr < events.length - 1) {
+            ptr++;
+            const e = events[ptr];
+            // ← only update current-k for non-done steps
+            if (e.type !== 'done') {
+              const kVal = (e.k !== undefined)
+                ? (e.type === 'afterK' ? e.k + 1 : e.k)
+                : 0;
+              updateTheme('#fde2e2', 'black', 'rgba(198,219,239,0.7)', kVal);
+            }
+            rebuild();
+          } else {
+            clearInterval(timer);
+            playing = false;
+            playBtn.textContent = 'Play';
+          }
+        }, 700 / speed);
+      } else {
+        clearInterval(timer);
+        playing = false;
+        playBtn.textContent = 'Play';
+      }
+    });
+    speedSelect.addEventListener('change', () => { speed = parseInt(speedSelect.value,10)||1; });
+
+    // Init
+    genBtn.click();
+  })();
+  </script>
+</body>
+</html>
