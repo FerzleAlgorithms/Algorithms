@@ -88,6 +88,7 @@
           <input id="neg-cycle" type="checkbox"> Negative cycle
         </label>
         <button id="gen-btn">Generate</button>
+        <br>
         <button id="prev-btn" disabled>Previous</button>
         <button id="next-btn" disabled>Next</button>
         <button id="play-btn" disabled>Play</button>
@@ -101,6 +102,7 @@
             <option value="32">32×</option>
           </select>
         </label>
+        <button id="restart-btn">Restart</button>
     </div>
 
 <!-- Legend (use shared demo.css classes) -->
@@ -852,6 +854,8 @@ function buildEvents(D) {
       }
     }
   }
+  // Append a final done state with the completed distances
+  ev.push({ type: 'done', R: cloneMatrix(Rprev) });
 
   return ev;
 }
@@ -870,8 +874,8 @@ function buildEvents(D) {
       commentBox.innerHTML = '';
     }
     prevBtn.disabled = true;
-    nextBtn.disabled = false;
-    playBtn.disabled = false;
+    nextBtn.disabled = (events.length <= 1);
+    playBtn.disabled = (events.length <= 1);
   }
   // rebuild()’s cell step:
 else if (e.type === 'cell') {
@@ -949,7 +953,17 @@ commentBox.innerHTML = `
 </table>
 `;
 
-  prevBtn.disabled = nextBtn.disabled = false;
+  // Enable/disable step controls at this state
+  prevBtn.disabled = (ptr === 0);
+  nextBtn.disabled = (ptr >= events.length - 1);
+  playBtn.disabled = (ptr >= events.length - 1);
+  // If this is the last event, append a brief done note
+  if (ptr >= events.length - 1) {
+    const doneNote = hasNegCycle ? ' End of sequence.' : ' Done! All-pairs shortest paths computed.';
+    if (!/Done!|End of sequence\./.test(commentBox.textContent)) {
+      commentBox.innerHTML += `<br><b>${doneNote}</b>`;
+    }
+  }
 }
  else if (e.type === 'afterK') {
   const baseEdges = baseEdgesFor(e.R);
@@ -961,9 +975,9 @@ commentBox.innerHTML = `
       `Computing D<sup>${e.k+2}</sup> from D<sup>${e.k+1}</sup> (allowing vertex ${e.k+1} as an intermediate).`;
    }
   // ← make sure you can always step forward again
-  prevBtn.disabled = false;
-  nextBtn.disabled = false;
-  playBtn.disabled = false;
+  prevBtn.disabled = (ptr === 0);
+  nextBtn.disabled = (ptr >= events.length - 1);
+  playBtn.disabled = (ptr >= events.length - 1);
 }
 // New
 else if (e.type === 'done') {
@@ -978,6 +992,10 @@ else if (e.type === 'done') {
     'rgba(198,219,239,0.7)', // keep your matrix bg
     A.length              // ← n, not n-1
   );
+  commentBox.textContent = hasNegCycle ? 'End of sequence.' : 'Done! All-pairs shortest paths computed.';
+  prevBtn.disabled = false;
+  nextBtn.disabled = true;
+  playBtn.disabled = true;
 
   commentBox.textContent = 'Done! All-pairs shortest paths computed.';
   prevBtn.disabled = false;
@@ -1156,16 +1174,17 @@ genBtn.addEventListener('click', () => {
   // ─── New nextBtn handler ─────────────────────────────────────────────────────
 nextBtn.addEventListener('click', () => {
   direction = 'forward';
-    if (ptr < events.length - 1) {
+  if (ptr < events.length - 1) {
     // move forward one event...
     ptr++;
-    // …but if that event is the final afterK (k === n-1) with no comment, skip it straight to done
+    // …but if that event is the final afterK (k === n-1) with no comment, skip ahead one more safely
     const peek = events[ptr];
-    if (peek.type === 'afterK' && peek.k === A.length - 1) {
-      ptr++;
+    if (peek && peek.type === 'afterK' && peek.k === A.length - 1) {
+      ptr = Math.min(ptr + 1, events.length - 1);
     }
   } else {
-    ptr = 0;
+    // already at the last event; do not loop
+    return;
   }
   const e = events[ptr];
   if (e.type !== 'done') {
@@ -1181,27 +1200,22 @@ nextBtn.addEventListener('click', () => {
  prevBtn.addEventListener('click', () => {
    direction = 'backward';
 
-   // if we're currently on the 'done' event, drop back one more immediately
-   if (events[ptr]?.type === 'done') {
-     ptr--;
-   }
-
-   if (ptr > 0) {
-     // undo exactly one real step
-     const evUndo = events[ptr];
-     ptr--;
-   } else {
-     return; // at the very start
-   }
+    if (ptr <= 0) return; // at the very start
+    // If currently on the 'done' event, step back exactly once; otherwise step back one
+    if (events[ptr]?.type === 'done') {
+      ptr = Math.max(0, ptr - 1);
+    } else {
+      ptr--;
+    }
 
    // now update your theme and UI based on the new ptr
    const e = events[ptr];
    const kVal = (e.k !== undefined)
      ? (e.type === 'afterK' ? e.k + 1 : e.k)
      : 0;
-   updateTheme('#fde2e2', '#e63946', 'rgba(198,219,239,0.7)', kVal);
-   rebuild();
- });
+    updateTheme('#fde2e2', '#e63946', 'rgba(198,219,239,0.7)', kVal);
+    rebuild();
+  });
 
     playBtn.addEventListener('click', () => {
       if (!playing) {
@@ -1237,6 +1251,20 @@ nextBtn.addEventListener('click', () => {
       }
     });
     speedSelect.addEventListener('change', () => { speed = parseInt(speedSelect.value,10)||1; });
+    // Restart: return to initial frame without regenerating
+    const restartBtn = document.getElementById('restart-btn');
+    restartBtn.addEventListener('click', () => {
+      clearInterval(timer);
+      playing = false;
+      playBtn.textContent = 'Play';
+      ptr = 0;
+      const e = events[ptr];
+      const kVal = (e && e.k !== undefined)
+        ? (e.type === 'afterK' ? e.k + 1 : e.k)
+        : 0;
+      updateTheme('#fde2e2', '#e63946', 'rgba(198,219,239,0.7)', kVal);
+      rebuild();
+    });
     // toggle for showing only original edges
     onlyOriginalChk.addEventListener('change', () => {
       rebuild();

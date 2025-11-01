@@ -26,8 +26,8 @@ const TOP_LEVEL_ORDER = [
   'More'
 ];
 const PROBLEMS_ORDER = [
-  'Foundational',
   'Problem List',
+  'Foundational',
   'Optimization',
   'Geometry',
   'Graphs',

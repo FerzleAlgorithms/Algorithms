@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Warshall's Algorithm</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js"></script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <script src="/Algorithms/scripts/chapterScripts.js"></script>
+  <link rel="stylesheet" href="/Algorithms/css/style.css">
+  <link rel="stylesheet" href="/Algorithms/css/chapter.css">
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DQ5LVZVFDC"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag() { dataLayer.push(arguments); }
+    gtag('js', new Date());
+    gtag('config', 'G-DQ5LVZVFDC');
+  </script>
+</head>
+
+<body>
+  <h1>Warshall's Algorithm (Transitive Closure)</h1>
+
+    <section id="problem-solved" section-title="Problem Solved">
+    <h2>Problem Solved</h2>
+    <p>
+      Warshall's Algorithm solves the
+      <a class="problem" href="?path=Problems/Graphs/Transitive%20Closure">Transitive Closure</a>
+      problem.
+    </p>
+  </section>
+<section id="design" section-title="Design and Strategy">
+  <h2>Design and Strategy</h2>
+
+  <p>
+    Warshall’s algorithm determines which vertices in a directed graph are reachable from which others.
+    Starting from the adjacency matrix, it systematically expands known connections until every indirect
+    path has been accounted for. The result is the <em>transitive closure</em>—a Boolean matrix showing
+    whether a path (of any length) exists between each pair of vertices.
+  </p>
+
+  <p>
+    Let \(R\) be the adjacency matrix of a directed graph, where \(R[i,j] = 1\) if there is a direct edge
+    \(i \to j\), and \(0\) otherwise. Optionally set \(R[i,i] = 1\) if you wish to include reflexive
+    reachability (each vertex can reach itself).
+  </p>
+
+  <p>
+    The key idea is to gradually allow more intermediate vertices to appear on possible paths.
+    After the first pass, only vertex 1 may appear as an intermediate; after the second, vertices
+    1 and 2 may appear, and so on. We use \(R^{(k)}\) to denote the reachability matrix when
+    intermediates are restricted to the set \(\{1,\dots,k\}\).
+  </p>
+
+  <p>
+    Suppose we are moving from \(R^{(k-1)}\) to \(R^{(k)}\). 
+    For each pair of vertices \((i,j)\), there are two ways for a path from \(i\) to \(j\) to exist:
+  </p>
+
+  <ul class="spaced">
+    <li>There was already a path using only vertices from \(\{1,\dots,k-1\}\), or</li>
+    <li>There is now a path that goes from \(i\) to \(k\) and from \(k\) to \(j\).</li>
+  </ul>
+
+  <p>
+    This leads to the recurrence:
+    \[
+      R^{(k)}[i,j] = R^{(k-1)}[i,j] \lor (R^{(k-1)}[i,k] \land R^{(k-1)}[k,j]).
+    \]
+    The algorithm updates the matrix directly ("in place"), since when processing vertex \(k\),
+     row \(k\) and column \(k\) are only being read, not modified.
+  </p>
+
+  <h3>Pseudocode</h3>
+  <p>
+    The input is an \(n\times n\) Boolean matrix \(R\), where \(R[i,j]=1\) iff there is a direct edge \(i\to j\). Optionally, set \(R[i,i]=1\) for reflexive closure.
+	The algorithm proceeds by trying every vertex \(k\) as an intermediate vertex between
+	every pair of vertices \((i,j)\).
+  </p>
+
+  <ul>
+    <li>For \(k = 1\) to \(n\):</li>
+    <li style="list-style: none;">
+      <ul>
+        <li>For \(i = 1\) to \(n\):</li>
+        <li style="list-style: none;">
+          <ul>
+            <li>For \(j = 1\) to \(n\):</li>
+            <li style="list-style: none;">
+              <ul>
+                <li>\(R[i,j] \gets R[i,j] \lor (R[i,k] \land R[k,j])\).</li>
+              </ul>
+            </li>
+          </ul>
+        </li>
+      </ul>
+    </li>
+  </ul>
+
+  <p>
+    When all iterations are complete, \(R[i,j]=1\) exactly when there exists <em>some path</em> from vertex \(i\)
+    to vertex \(j\). To reconstruct an example path (if desired), one can maintain a separate
+    <code>Next</code> matrix to record intermediate vertices.
+  </p>
+ <p>
+  If you are familiar with Floyd’s algorithm for shortest paths, Warshall’s algorithm will look very familiar.
+  Both update an \(n\times n\) matrix through a triple loop over vertices, gradually allowing more intermediates
+  in possible paths. The difference lies in what the entries represent and how they are combined:
+  Floyd uses numerical weights with addition and minimum to compute shortest distances,
+  while Warshall uses Boolean values with logical AND and OR to compute reachability.
+</p>
+</section>
+
+
+
+  <section id="demo" section-title="Interactive Demo">
+    <div class="embeddedDemoContainer">
+      <iframe class="embeddedDemo" src="/Algorithms/Content/Demos/Dynamic%20Programming/Warshall%27s%20Demo.html"
+        allow="fullscreen" name="Warshall-demo">
+      </iframe>
+    </div>
+  </section>
+
+  <section id="code" section-title="Implementation in Java, C++, Python">
+    <h2>Implementation in Java, C++, Python</h2>
+    <p>
+      The implementations below follow the same structure as the pseudocode and update a Boolean matrix \(R\) in place with three nested loops.
+	  If the reflexive transitive closure is desired (as opposed to just the transtive closure), the diagonal entries must be set to 1 before calling the algorithm.
+    </p>
+
+    <div class="tab-group">
+      <div class="tabs" role="tablist">
+        <button id="tab-java" class="tablink active" data-lang="java" role="tab" aria-controls="java"
+          aria-selected="true">Java</button>
+        <button id="tab-cpp" class="tablink" data-lang="cpp" role="tab" aria-controls="cpp"
+          aria-selected="false">C++</button>
+        <button id="tab-python" class="tablink" data-lang="python" role="tab" aria-controls="python"
+          aria-selected="false">Python</button>
+      </div>
+
+      <div id="java" class="code-container active" role="tabpanel" aria-labelledby="tab-java">
+        <pre><code class="language-java">void warshall(boolean[][] R, int n) {
+  for (int k = 0; k &lt; n; k++) {
+    for (int i = 0; i &lt; n; i++) {
+      if (R[i][k]) {
+        for (int j = 0; j &lt; n; j++) {
+           R[i][j] = R[i][j] || (R[i][k] &amp;&amp; R[k][j]);
+        }
+      }
+    }
+  }
+}</code></pre>
+      </div>
+
+      <div id="cpp" class="code-container" role="tabpanel" aria-labelledby="tab-cpp">
+        <pre><code class="language-cpp">void warshall(boolean** R, int n) {
+  for (int k = 0; k &lt; n; k++) {
+    for (int i = 0; i &lt; n; i++) {
+      if (R[i][k]) {
+        for (int j = 0; j &lt; n; j++) {
+           R[i][j] = R[i][j] || (R[i][k] &amp;&amp; R[k][j]);
+        }
+      }
+    }
+  }
+}</code></pre>
+      </div>
+
+      <div id="python" class="code-container" role="tabpanel" aria-labelledby="tab-python">
+        <pre><code class="language-python">def warshall(R):
+    n = len(R)
+    for k in range(n):
+        for i in range(n):
+            if R[i][k]:
+                for j in range(n):
+                    R[i][j] = R[i][j] or (R[i][k] and R[k][j])
+</code></pre>
+      </div>
+    </div>
+	<p>You may notice that the implementations are slightly different than the pseudocode. 
+    The in-class activites and exercises will explore what that difference is all about.</p>
+  </section>
+  
+  <section id="analysis" section-title="Time/Space Analysis">
+    <h2>Time/Space Analysis</h2>
+
+    <p><strong>Time Complexity.</strong> For each ordered triple \((i,j,k)\), 
+	Warshall performs constant-time Boolean operations, giving total time \(\Theta(n^3)\).
+	We leave determining how the slight optimization given in the implementations changes
+	the complexity to the exercises.</p>
+
+    <p><strong>Space Complexity.</strong> 
+	 When \(R\) is updated in place, the algorithm requires only \(\Theta(n^2)\) space for the matrix itself. 
+    Maintaining an optional <code>Next</code> matrix to reconstruct paths does not change the asymptotic space bound&mdash;it also requires \(\Theta(n^2)\).</p>
+  </section>
+
+ <section id="variations" section-title="Variations/Improvements">
+  <h2>Variations and Improvements</h2>
+
+  <p>
+    Several extensions and implementation strategies can make Warshall’s algorithm more practical or expressive:
+  </p>
+
+  <ul class="spaced">
+    <li><strong>Witness (Next) matrix.</strong>  
+      Record, for each reachable pair \((i,j)\), the next vertex along one possible path.
+      This allows reconstruction of explicit routes after computing the transitive closure.
+    </li>
+
+    <li><strong>Bitset optimization.</strong>  
+      Represent each row of the matrix as a bitset and perform row updates using word-level
+      bitwise operations. This can speed up the inner loop substantially on modern hardware.
+    </li>
+
+    <li><strong>Transitive reduction.</strong>  
+      After obtaining the closure, it is sometimes useful to find a minimal edge set that preserves
+      the same reachability relation. This <em>transitive reduction</em> is unique for DAGs.
+    </li>
+
+    <li><strong>Parallel and vector implementations.</strong>  
+      For each fixed \(k\), updates across all \((i,j)\) pairs are independent and can be parallelized.
+      Bitset-based versions also lend themselves to SIMD vectorization.
+    </li>
+  </ul>
+</section>
+
+<section id="links" section-title="Links to Resources">
+  <h2>Links to Resources</h2>
+  <ul class="resource-list">
+    <li>
+      <a href="https://en.wikipedia.org/wiki/Floyd%E2%80%93Warshall_algorithm" target="_blank">
+        Wikipedia: Floyd–Warshall (includes Warshall variant)
+      </a> Concise overview of the recurrence and its connection to transitive closure.
+    </li>
+    <li>
+    <a href="https://cs.winona.edu/lin/cs440/Ch08-2.pdf" target="_blank">
+      Lecture slides: Warshall’s Algorithm: Transitive Closure (Winona State)
+    </a> Clear slide-by-slide breakdown of the algorithm on Boolean adjacency matrices.
+  </li>
+  <li>
+    <a href="https://cusack.hope.edu/Notes/Notes/DiscreteMath/Warshall.pdf" target="_blank">
+      Warshall’s Algorithm (Hope College)
+    </a> Concise note written purely for the transitive-closure case; shows two variants and bit-level comments.
+  </li>
+  <li>
+    <a href="https://codingtechroom.com/question/-transitive-closure-warshall-algorithm" target="_blank">
+      Understanding Transitive Closure and the Warshall Algorithm (CodingTechRoom)
+    </a> Tutorial format, includes simple Python code and explanation of Boolean matrix version. 
+  </li>
+  <li>
+    <a href="https://www.slideshare.net/slideshow/find-transitive-closure-of-a-graph-using-warshalls-algorithm/182774035" target="_blank">
+      Find Transitive Closure of a Graph Using Warshall’s Algorithm (Slideshare)
+    </a> Slide deck with examples, step-by-step matrix updates in the transitive-closure context. 
+  </li>
+  </ul>
+</section>
+
+
+
+ <section id="reading-questions" section-title="Reading Comprehension Questions">
+  <h2>Reading Comprehension Questions</h2>
+  <ol>
+    <li><strong>Goal and meaning:</strong> What does Warshall’s algorithm compute, and what does the entry \(R[i,j] = 1\) signify after the algorithm has completed?</li>
+
+    <li><strong>Reflexive option:</strong> How do you obtain the reflexive transitive closure instead of the strict transitive closure?</li>
+
+    <li><strong>Stages:</strong> Precisely define \(R^{(k)}\). What changes between \(R^{(k-1)}\) and \(R^{(k)}\)?</li>
+
+    <li><strong>Recurrence:</strong> State the Boolean update rule for \(R^{(k)}[i,j]\) in terms of \(R^{(k-1)}\) and clearly explain what it means.</li>
+
+    <li><strong>In-place safety:</strong> Why is it correct to overwrite \(R[i,j]\) during iteration \(k\) without corrupting other updates in that same iteration?</li>
+
+    <li><strong>Which entries can change at step \(k\)?</strong> For a fixed \(k\), characterize the pairs \((i,j)\) whose values might change and explain why.</li>
+
+    <li><strong>Code-level optimization:</strong> The implementations first test \(R[i][k]\) before looping over \(j\). What does this prune, and does it change the asymptotic running time?</li>
+  </ol>
+
+  <button id="toggleAnswers" class="show-answer" aria-expanded="false">Show Answers</button>
+  <div id="answers" class="answer" hidden>
+    <ol>
+      <li><strong>Answer:</strong> It computes the transitive closure. \(R[i,j] = 1\) means there exists some path (length \(\ge 1\), or \(\ge 0\) if you include the diagonal) from \(i\) to \(j\).</li>
+
+      <li><strong>Answer:</strong> Set the diagonal to \(1\) before running the triple loop (i.e., \(R[i,i] = 1\) for all \(i\)), then perform the same updates.</li>
+
+      <li><strong>Answer:</strong> \(R^{(k)}\) is the reachability matrix when only vertices in \(\{1,\dots,k\}\) are allowed as intermediates on paths. 
+	  If an entry \(R^{(k)}[i,j]=1\) when \(R^{(k-1)}[i,j]=0\), then there is a path from 
+	  \(i\) to \(j\) that uses some of the vertices \(\{1,\dots,k-1\}\) and definitely
+	  needs to go through \(k\).</li>
+
+	<li><strong>Answer:</strong> 
+	  The update rule is 
+	  \[
+		R^{(k)}[i,j] = R^{(k-1)}[i,j] \lor \big(R^{(k-1)}[i,k] \land R^{(k-1)}[k,j]\big).
+	  \]
+	  This means that after allowing vertex \(k\) as a possible intermediate, a path from \(i\) to \(j\) exists
+	  if it already existed before (using only vertices \(\{1,\dots,k-1\}\)), 
+	  or if there is a way to reach \(k\) from \(i\) and then continue from \(k\) to \(j\).
+	  The logical AND checks whether both subpaths exist, and the OR adds this new option to any previously known reachability.
+	</li>
+	
+      <li><strong>Answer:</strong> During iteration \(k\), the algorithm only reads row \(k\) and column \(k\) from the previous stage, and those entries are not modified while processing \(k\). Therefore overwriting \(R[i,j]\) cannot affect other reads at step \(k\).</li>
+
+      <li><strong>Answer:</strong> Only pairs \((i,j)\) for which a path \(i \to k\) and a path \(k \to j\) may exist can change. Concretely, if \(R[i,k]\) is false, then no \((i,j)\) will be enabled by \(k\) from that row; similarly, if \(R[k,j]\) is false, \(j\) cannot be reached via \(k\).</li>
+
+      <li><strong>Answer:</strong> The guard "if \(R[i][k]\)" skips the inner \(j\)-loop when there is no path \(i \to k\), avoiding useless work. It can reduce practical runtime, but the worst-case bound remains \(\Theta(n^3)\).</li>
+    </ol>
+  </div>
+</section>
+<section id="activities" section-title="In-Class Activities">
+  <h2>In-Class Activities</h2>
+
+  <ol>
+    <li><strong>Tracing reachability.</strong> 
+      Consider the following directed graph:
+      <figure class="inline-figure">
+        <svg width="560" height="340" viewBox="0 0 560 340" xmlns="http://www.w3.org/2000/svg"
+          aria-labelledby="fig-warshall-sample-graph-title">
+          <style>
+            .node {
+              fill: #fff;
+              stroke: #2f2f2f;
+              stroke-width: 2;
+            }
+            .nlabel {
+              font: 14px monospace;
+              fill: #222;
+              text-anchor: middle;
+              dominant-baseline: middle;
+            }
+            .edge {
+              stroke: #505050;
+              stroke-width: 1.4;
+              fill: none;
+              stroke-linecap: round;
+              stroke-linejoin: round;
+            }
+          </style>
+          <defs>
+            <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6"
+              orient="auto-start-reverse">
+              <path d="M 0 0 L 10 5 L 0 10 z" fill="#505050" />
+            </marker>
+          </defs>
+
+          <!-- Nodes arranged in a pentagon -->
+          <g id="nodes">
+            <circle class="node" cx="280" cy="50" r="22" />
+            <circle class="node" cx="480" cy="170" r="22" />
+            <circle class="node" cx="360" cy="300" r="22" />
+            <circle class="node" cx="200" cy="300" r="22" />
+            <circle class="node" cx="80" cy="170" r="22" />
+          </g>
+          <g id="nlabels">
+            <text class="nlabel" x="280" y="50">1</text>
+            <text class="nlabel" x="480" y="170">2</text>
+            <text class="nlabel" x="360" y="300">3</text>
+            <text class="nlabel" x="200" y="300">4</text>
+            <text class="nlabel" x="80" y="170">5</text>
+          </g>
+
+          <!-- Edges (unweighted) -->
+          <g id="edges" marker-end="url(#arrow)">
+            <path class="edge" d="M 100 160 C 160 115, 220 80, 260 62" /> <!-- 5→1 -->
+            <path class="edge" d="M 300 60 C 360 88, 420 130, 462 155" /> <!-- 1→2 -->
+            <path class="edge" d="M 292 68 C 320 120, 340 200, 352 278" /> <!-- 1→3 -->
+            <path class="edge" d="M 470 190 C 440 230, 400 265, 375 285" /> <!-- 2→3 -->
+            <path class="edge" d="M 458 170 C 380 170, 200 170, 102 170" /> <!-- 2→5 -->
+            <path class="edge" d="M 338 300 C 310 300, 250 300, 222 300" /> <!-- 3→4 -->
+            <path class="edge" d="M 178 300 C 140 270, 110 215, 92 187" /> <!-- 4→5 -->
+            <path class="edge" d="M 98 182 C 180 235, 270 270, 340 290" /> <!-- 5→3 -->
+          </g>
+        </svg>
+      </figure>
+
+      <ol type="a">
+        <li><strong>Warshall trace:</strong> Compute \(R^{(k)}\) for \(k = 1, 2, 3, 4, 5\)
+		using the pseudocode.  
+          Highlight entries that become 1 at each step and note which via-\(k\) caused the change. Count the number of times the main operation \(R[i,j] \gets R[i,j] \lor (R[i,k] \land R[k,j])\) executes.</li>
+        <li><strong>Shortcut comparison:</strong> Repeat the algorithm but run the version from
+		the implementations with the added conditional statement, again counting the number of times the main operation \(R[i,j] \gets R[i,j] \lor (R[i,k] \land R[k,j])\) executes.</li>
+		<li>Explain the logic behind the shortcut, and discuss whether or not it seems worthwhile.</li>
+      </ol>
+    </li>
+
+    <li><strong>Emerging paths.</strong>  
+      Choose one specific pair \((i,j)\) that is not initially connected.  
+      Determine the smallest \(k\) for which \(R^{(k)}[i,j]\) becomes 1.  
+      Draw or describe the intermediate vertices along that path.
+    </li>
+
+    <li><strong>Complexity reflection.</strong>  
+      For the version of the algorithm that tests \(R[i][k]\) before the inner loop, reason about its best, worst, and average cases.  
+      When will the overall complexity still behave as \(\Theta(n^3)\), and when might it be closer to \(O(n^2)\) in practice?
+    </li>
+<li><strong>Augment Warshall with a Next matrix (design + trace).</strong>
+  Extend the algorithm so you can later output an explicit path from \(i\) to \(j\).
+  You will need to use an additional matrix \(Next\) that will store 
+  the appropriate information that will allow the reconstruction of the paths.
+  <ol type="a">
+    <li>Explain how to add the required calculations into the algorithm to update \(Next\).</li>
+	<li>Given the \(Next\) matrix, give clear pseudocode that will return the path 
+	from \(i\) to \(j\).</li>
+  </ol>
+</li>
+
+  </ol>
+</section>
+
+<section id="problems" section-title="Homework Problems">
+  <h2>Homework Problems</h2>
+  <ol>
+    <li><strong>Trace on small graph:</strong>
+      Apply Warshall’s algorithm to the graph below.
+      Show the reachability matrix \(R^{(k)}\) after each iteration \(k = 1, 2, 3, 4, 5, 6\).
+      Highlight all entries that change at each step and briefly note the via-\(k\) that caused each update.
+	  <figure class="inline-figure">
+  <svg width="620" height="390" viewBox="0 0 620 390"
+       xmlns="http://www.w3.org/2000/svg"
+       aria-labelledby="fig-warshall-directed-graph-title">
+    <title id="fig-warshall-directed-graph-title">Directed graph with six vertices</title>
+    <style>
+      .node   { fill: #fff; stroke: #2f2f2f; stroke-width: 2; }
+      .nlabel { font: 14px monospace; fill: #222; text-anchor: middle; dominant-baseline: middle; }
+      .edge   { stroke: #505050; stroke-width: 1.6; fill: none;
+                stroke-linecap: round; stroke-linejoin: round;
+                marker-end: url(#arrowhead); }
+    </style>
+
+    <!-- Improved arrowhead definition -->
+    <defs>
+      <marker id="arrowhead" markerUnits="strokeWidth"
+              markerWidth="8" markerHeight="8"
+              viewBox="0 0 10 10" refX="9" refY="5"
+              orient="auto">
+        <path d="M 0 0 L 10 5 L 0 10 z" fill="#505050" />
+      </marker>
+    </defs>
+
+    <!-- Edges (directed) -->
+    <g id="edges">
+      <path class="edge" d="M 330 50 C 395 78, 460 108, 500 122" />  <!-- 1→2 -->
+      <path class="edge" d="M 322 58 C 380 130, 445 210, 508 272" />  <!-- 1→3 -->
+      <path class="edge" d="M 512 150 C 510 190, 514 240, 518 270" />  <!-- 2→3 -->
+      <path class="edge" d="M 498 298 C 438 320, 368 340, 332 352" />  <!-- 3→4 -->
+      <path class="edge" d="M 288 360 C 240 345, 170 320, 122 298" />  <!-- 4→5 -->
+      <path class="edge" d="M 118 276 C 180 220, 250 150, 298 62" />   <!-- 5→1 -->
+      <path class="edge" d="M 120 300 C 210 330, 410 330, 508 298" />  <!-- 5→3 -->
+      <path class="edge" d="M 122 138 C 220 120, 420 120, 498 130" />  <!-- 6→2 -->
+      <path class="edge" d="M 110 148 C 180 210, 240 280, 298 342" />  <!-- 6→4 -->
+    </g>
+
+    <!-- Nodes -->
+    <g id="nodes">
+      <circle class="node" cx="310" cy="40"  r="22" />  <!-- 1 -->
+      <circle class="node" cx="520" cy="130" r="22" />  <!-- 2 -->
+      <circle class="node" cx="520" cy="290" r="22" />  <!-- 3 -->
+      <circle class="node" cx="310" cy="360" r="22" />  <!-- 4 -->
+      <circle class="node" cx="100" cy="290" r="22" />  <!-- 5 -->
+      <circle class="node" cx="100" cy="130" r="22" />  <!-- 6 -->
+    </g>
+
+    <!-- Labels -->
+    <g id="nlabels">
+      <text class="nlabel" x="310" y="40">1</text>
+      <text class="nlabel" x="520" y="130">2</text>
+      <text class="nlabel" x="520" y="290">3</text>
+      <text class="nlabel" x="310" y="360">4</text>
+      <text class="nlabel" x="100" y="290">5</text>
+      <text class="nlabel" x="100" y="130">6</text>
+    </g>
+  </svg>
+</figure>
+    </li>
+
+    <li><strong>Witness matrix:</strong>
+      Extend Warshall to maintain a \(\text{Next}\) matrix that allows you to output a concrete path from \(i\) to \(j\) whenever \(R[i,j]=1\).
+      Specify initialization, the via-\(k\) update rule, and a path reconstruction routine.
+	  Does the computational complexity of the algorithm change? What is the worst-case
+	  complexity of the reconstruction routine?
+    </li>
+
+    <li><strong>Shortcut guard analysis:</strong>
+      Consider the implementation that checks \(R[i,k]\) before iterating \(j\).
+      <ol type="a">
+        <li>Give an input family where this guard allows the algorithm to run with \(\Theta(n^2)\) operations in practice.</li>
+        <li>Give an input family where the guard has no effect.</li>
+        <li>Argue why the worst-case time remains \(\Theta(n^3)\).</li>
+      </ol>
+    </li>
+
+    <li><strong>Proof of correctness:</strong>
+      Prove by induction on \(k\) that after iteration \(k\), \(R^{(k)}[i,j]\) is true iff there exists a path from \(i\) to \(j\) whose internal vertices lie in \(\{1,\dots,k\}\).
+    </li>
+	
+    <li><strong>Design a similar DP: bounded-hop reachability.</strong>
+      Define \(H^{(\ell)}[i,j]\) to be true iff there is a directed path from \(i\) to \(j\) using at most \(\ell\) edges.
+      <ol type="a">
+        <li>Give a dynamic programming recurrence to compute \(H^{(\ell)}\) for \(\ell=0,1,\dots,n-1\), starting from the adjacency matrix.</li>
+        <li>Explain how your state and transition relate to Warshall’s "allow more intermediates" idea.</li>
+        <li>Analyze the time and space complexity of your method. Can you update all \(\ell\) layers in \(O(n^3)\) total time, or is it \(O(n^4)\)? Justify.</li>
+        <li>(Optional) Modify your DP to also store the first hop of a shortest-in-hops path, and describe a reconstruction procedure.</li>
+      </ol>
+    </li>
+
+  </ol>
+</section>
+
+</body>
+
+</html>

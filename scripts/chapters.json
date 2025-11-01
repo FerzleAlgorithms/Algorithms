@@ -31,7 +31,8 @@
     {
       "Dynamic Programming": [
         "0-1 Knapsack.html",
-        "Floyd's.html"
+        "Floyd's.html",
+        "Warshall's.html"
       ]
     },
     {
@@ -135,8 +136,7 @@
         "Fibonacci Bottom Up Demo.html",
         "Fibonacci Top Down Demo.html",
         "Floyd's Demo.html",
-        "Warshall's Demo.html",
-        "Warshall's OLD Demo.html"
+        "Warshall's Demo.html"
       ]
     },
     {
@@ -199,7 +199,6 @@
     {
       "DRAFTS": [
         "Algorithms/Decrease-and-Conquer/Topological Sort DRAFT.html",
-        "Algorithms/Dynamic Programming/Warshall's DRAFT.html",
         "Algorithms/Exhaustive Search/Topological Sort (DFS) DRAFT.html",
         "Algorithms/Space-Time Tradeoff/Boyer-Moore_DRAFT.html",
         "Algorithms/Transform-and-Conquer/Horners Rule DRAFT.html"
@@ -234,7 +233,8 @@
         "Minimum Spanning Tree.html",
         "Single-Source Shortest Path.html",
         "Spanning Tree.html",
-        "Topological Sort.html"
+        "Topological Sort.html",
+        "Transitive Closure.html"
       ]
     },
     {
