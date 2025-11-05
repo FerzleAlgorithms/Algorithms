@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Binary Exponentiation</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js"></script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <script src="/Algorithms/scripts/chapterScripts.js"></script>
+  <link rel="stylesheet" href="/Algorithms/css/style.css">
+  <link rel="stylesheet" href="/Algorithms/css/chapter.css">
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DQ5LVZVFDC"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-DQ5LVZVFDC');
+  </script>
+</head>
+<body>
+  <h1>Binary Exponentiation</h1>
+
+  <section id="problem-solved" section-title="Problem Solved">
+  <h2>Problem Solved</h2>
+  <p>
+    Binary Exponentiation solves the
+    <a class="problem" href="?path=Problems/Foundational/Exponentiation">Exponentiation</a>
+    problem.
+  </p>
+  </section>
+
+  <section id="design-and-strategy" section-title="Design and Strategy">
+  <h2>Design and Strategy</h2>
+
+  <p>
+    Binary Exponentiation is a classic example of the <em>Transform-and-Conquer</em> technique. 
+    The idea is simple but powerful: instead of directly computing \(a^n\) through \(n-1\) multiplications,
+    we first <em>transform</em> the exponent \(n\) into its binary representation.  
+    Once expressed as a sequence of bits, the exponent reveals a structure that can be exploited to compute 
+    \(a^n\) using only \(O(\log n)\) multiplications and squarings.
+  </p>
+
+    <p>
+    Writing \(n\) in base 2 gives
+    \[
+      n = (b_k b_{k-1} \ldots b_1 b_0)_2 
+      = \sum_{i=0}^k b_i 2^i,\quad b_i \in \{0,1\}.
+    \]
+     Each bit \(b_i\) is either 0 or 1, indicating whether the corresponding power \(2^i\)
+  contributes to \(n\).
+    Thus
+    \[
+      a^n = a^{\sum b_i 2^i}
+      = \prod_{i=0}^k (a^{2^i})^{b_i}.
+    \]
+    </p>
+    <p>
+  For example, if \(n = 13 = (1101)_2\), then
+  \[
+    a^{13} = (a^{2^3})^{1} (a^{2^2})^{1} (a^{2^1})^{0} (a^{2^0})^{1}
+    = a^{8} \cdot a^{4} \cdot a^{1}.
+  \]
+  This expansion shows that we only multiply the powers of \(a\) 
+  corresponding to bits equal to 1.
+    This means we can obtain \(a^n\) by repeatedly squaring \(a\) and multiplying together 
+    only those powers corresponding to bits \(b_i = 1\).  
+  The transformation&mdash;from an integer to its binary digits&mdash;is what allows the conquer step to be logarithmic in time.  
+  Next, we'll see how scanning those bits from left to right yields a Horner-style version of the same idea.
+</p>
+
+<section id="ltr" section-title="Left-to-Right">
+  <h3>Left-to-Right (Horner-Based) Version</h3>
+
+  <p>
+    In the <em>Left-to-Right</em> version, we process the bits of \(n\) from most significant to least significant.
+    This approach mirrors <a href="?path=Algorithms/Transform-and-Conquer/Horner%27s%20Rule">Horner's Rule</a>:
+    as each new bit is read, the current result is squared (to account for shifting left in binary)
+    and multiplied by \(a\) if the bit is 1.
+  </p>
+
+  <p>
+  Writing \(n\) in base 2 means expressing it as a polynomial in 2 whose
+  coefficients are the bits of its binary representation:
+  \[
+\begin{array}{rcl}
+n &=& (b_k b_{k-1} \ldots b_0)_2   \quad\text{where } b_i \in \{0,1\}, \\[4pt]
+  &=& b_k 2^k + b_{k-1} 2^{k-1} + \cdots + b_1 2 + b_0. \\[4pt]
+ 
+\end{array}
+\]
+</p>
+<p>
+  Using Horner's rule, this can be rewritten as
+  \[
+    n = (((b_k \cdot 2 + b_{k-1}) \cdot 2 + b_{k-2}) \cdots \cdot 2 + b_1) \cdot 2 + b_0.
+  \]
+  </p>
+<p>
+  Using the exponentiation laws \(a^{x+y}=a^x a^y\) and \(a^{2x}=(a^x)^2\), we obtain
+</p>
+
+
+\[
+\begin{aligned}
+a^n
+  &= a^{\bigl((((b_k\cdot 2 + b_{k-1}) 2 + b_{k-2})\cdots b_2) 2 + b_1\bigr) 2 + b_0} \\[6pt]
+  &= a^{\bigl((((b_k\cdot 2 + b_{k-1}) 2 + b_{k-2})\cdots b_2) 2 + b_1\bigr) 2}\; a^{\,b_0}
+     && \text{(use } a^{x+y}=a^x a^y\text{)} \\[6pt]
+  &= \Bigl(a^{(((b_k\cdot 2 + b_{k-1}) 2 + b_{k-2})\cdots b_2) 2 + b_1}\Bigr)^{2}\; a^{\,b_0}
+     && \text{(use } a^{2x}=(a^x)^2\text{)} \\[6pt]
+  &= \Bigl(\;a^{(((b_k\cdot 2 + b_{k-1}) 2 + b_{k-2})\cdots b_2) 2}\; a^{\,b_1}\Bigr)^{2}\; a^{\,b_0} 
+  && \text{(use } a^{x+y}=a^x a^y\text{ again)} \\[6pt]
+  & \vdots \\[6pt]
+  &= \Bigl(\;\bigl(\bigl((a^{\,b_k})^{2}\, a^{\,b_{k-1}}\bigr)^{2}\, a^{\,b_{k-2}} \cdots a^{b_2} \bigr)^{2}\, a^{\,b_1}\Bigr)^{2}\, a^{\,b_0}.
+\end{aligned}
+\]
+
+<p><em>Example.</em> For \(n=13=(1101)_2\),
+\(a^{13} = (((a^{1})^2 a^{1})^2 a^{0})^2 a^{1} = ((a^{2}\cdot a)^2)^2 \cdot a.\)</p>
+
+<p>Notice that \(a^{b_i}\) is either \(a\) or \(1\) depending on whether or not \(b_i = 1\).
+  This leads to the LTR binary exponentiation algorithm: at each step, we square the current result
+  and multiply by \(a\) if the current bit is \(1\). Here is the pseudocode:
+</p>
+
+<ol class="pseudocode">
+    <li>Let \(bits\) be the binary digits of \(n\) (from most significant to least).</li>
+    <li>\(result = 1\)</li>
+    <li>for each bit \(b\) in \(bits\):</li>
+    <ol>
+      <li>\(result = result \times result\)</li>
+      <li>if \(b = 1\): \(result = result \times a\)</li>
+    </ol>
+    <li>return \(result\)</li>
+  </ol>
+
+
+<!-- Example box (uses your site's example styling if .example exists) -->
+<div class="example-box">
+  <h4>Example: LTR trace for \(a=3,\; n=13=(1101)_2\)</h4>
+  <table class="example-table">
+    <tr><th>Bit (MSB→LSB)</th><th>Operation</th><th>result (running value)</th></tr>
+    <tr><td>Start</td><td>—</td><td>1</td></tr>
+    <tr><td>1</td><td>\(result\leftarrow result^2=1\); <br>\(result\leftarrow result\cdot 3=3\)</td><td>3</td></tr>
+    <tr><td>1</td><td>\(result\leftarrow result^2=9\); <br>\(result\leftarrow result\cdot 3=27\)</td><td>27</td></tr>
+    <tr><td>0</td><td>\(result\leftarrow result^2=729\); <br>(no multiply)</td><td>729</td></tr>
+    <tr><td>1</td><td>\(result\leftarrow result^2=531441\); <br>\(result\leftarrow result\cdot 3=1{,}594{,}323\)</td><td>1,594,323</td></tr>
+  </table>
+  <p class="example-footnote">
+    Final: \(result = 3^{13} = 1{,}594{,}323\). Each step squares, then multiplies by \(a\) iff the current bit is 1.
+  </p>
+</div>
+
+<p>Here is a demonstration that will allow you to explore the algorithm with a few more bases and exponents.</p>
+
+  <div class="embeddedDemoContainer">
+    <iframe class="embeddedDemo"
+            src="/Algorithms/Content/Demos/Transform-and-Conquer/Binary%20Exponentiation%20LTR%20Demo.html"
+            allow="fullscreen"
+            name="ALGORITHM_NAME-demo">
+    </iframe>
+  </div>
+  </section>
+
+  <section id="rtl" section-title="Right-to-Left">
+  <h3>Right-to-Left (Exponentiation-by-Squaring) Version</h3>
+
+  <p>
+  In the <em>Right-to-Left</em> version, we process the bits of \(n\) from least significant to most significant.
+  First, we write \(n\) as a polynomial in 2,
+  \[
+  \begin{array}{rcl}
+  n &=& (b_k b_{k-1} \ldots b_0)_2 \quad\text{where } b_i \in \{0,1\}, \\[4pt]
+    &=& b_0 + 2b_1 + 2^2b_2 + \cdots + 2^k b_k.
+  \end{array}
+  \]
+  We can separate the contribution of each bit:
+  \[
+    a^n = a^{\,b_0 + 2b_1 + 2^2b_2 + \cdots + 2^k b_k}.
+  \]
+  Using the exponent law \(a^{x+y} = a^x a^y\),
+  \[
+    a^n = a^{b_0} \cdot a^{2b_1} \cdot a^{2^2b_2} \cdots a^{2^k b_k}
+         = \prod_{i=0}^{k} (a^{2^i})^{b_i}.
+  \]
+</p>
+
+  <div class="example-box">
+  For example, with \(n = 13 = (1101)_2\),
+  \[
+  \begin{array}{rcl}
+  a^{13} &=& (a^{2^0})^{1} \cdot (a^{2^1})^{0} \cdot (a^{2^2})^{1} \cdot (a^{2^3})^{1} \\[4pt]
+         &=& a^{1} \cdot (a^2)^{0} \cdot (a^4)^{1} \cdot (a^8)^{1} \\[4pt]
+         &=& a \cdot a^4 \cdot a^8.
+  \end{array}
+  \]
+  </div>
+<p>
+  Each term \((a^{2^i})^{b_i}\) represents a power of \(a\) that should be included
+  in the product only when \(b_i = 1\).  
+  Notice that each new power of \(a\) is the square of the previous one:
+  \(a^{2^{i+1}} = (a^{2^i})^2\).
+  This observation leads directly to an efficient iterative algorithm.
+  We scan the bits of \(n\) starting from \(b_0\) (the least significant bit),
+  maintaining two values: a running result and the current power of \(a\).
+  For each bit \(b_i\):
+  <ul>
+    <li>if \(b_i = 1\), multiply the result by the current power \(a^{2^i}\);</li>
+    <li>then square the power to get \(a^{2^{i+1}}\) for the next bit.</li>
+  </ul>
+  This way, we never recompute any power from scratch—each arises naturally by squaring the one before.
+</p>
+
+
+  <p>
+  This leads directly to the iterative Right-to-Left (square-and-multiply) algorithm:
+  at each step, if the current bit of \(n\) is 1, we multiply the result by the current base.
+  Then we square the base and shift the bits of \(n\) to the right (by dividing by 2).
+</p>
+
+<ol class="pseudocode">
+  <li>\(result = 1\)</li>
+  <li>\(base = a\)</li>
+  <li><strong>while</strong> \(n > 0\):</li>
+  <ol>
+    <li><strong>if</strong> \(n\) is odd: \(result = result \times base\)</li>
+    <li>\(base = base \times base\)</li>
+    <li>\(n = \lfloor n / 2 \rfloor\)</li>
+  </ol>
+  <li><strong>return</strong> \(result\)</li>
+</ol>
+
+<div class="example-box">
+  <h4>Example: RTL trace for \(a=3,\; n=13=(1101)_2\)</h4>
+  <table class="example-table">
+    <tr><th>Step</th><th>\(n\) (binary)</th><th>Bit \(b_0\)</th><th>Operation(s)</th>
+      <th style="width: 110px;">\(result\)</th><th style="width: 110px;">\(base\)</th></tr>
+    <tr><td>Start</td><td>1101</td><td>—</td><td>Initialize</td><td>1</td><td>3</td></tr>
+    <tr>
+      <td>1</td><td>1101</td><td>1</td>
+      <td>
+        Multiply: \(result = 1\times 3 = 3\)<br>
+        Square base: \(base = 3^2 = 9\)
+      </td>
+      <td>3</td><td>9</td>
+    </tr>
+    <tr>
+      <td>2</td><td>110</td><td>0</td>
+      <td>
+        Skip multiply<br>
+        Square base: \(base = 9^2 = 81\)
+      </td>
+      <td>3</td><td>81</td>
+    </tr>
+    <tr>
+      <td>3</td><td>11</td><td>1</td>
+      <td>
+        Multiply: \(result = 3\times 81 = 243\)<br>
+        Square base: \(base = 81^2 = 6561\)
+      </td>
+      <td>243</td><td>6561</td>
+    </tr>
+    <tr>
+      <td>4</td><td>1</td><td>1</td>
+      <td>
+        Multiply: \(result = 243\times 6561 = 1{,}594{,}323\)<br>
+        Square base: \(base = 6561^2 = 43{,}046{,}721\)
+      </td>
+      <td>1,594,323</td><td>43,046,721</td>
+    </tr>
+  </table>
+  <p class="example-footnote">
+    Final: \(r = 3^{13} = 1{,}594{,}323\).  
+    Each iteration multiplies by the current base if the bit is 1, then squares the base for the next bit.
+  </p>
+</div>
+
+  <p>Here is a demonstration that will allow you to explore the algorithm with a few more bases and exponents.</p>
+
+  <div class="embeddedDemoContainer">
+    <iframe class="embeddedDemo"
+            src="/Algorithms/Content/Demos/Transform-and-Conquer/Binary%20Exponentiation%20RTL%20Demo.html"
+            allow="fullscreen"
+            name="ALGORITHM_NAME-demo">
+    </iframe>
+  </div>
+  </section>
+
+</section>
+
+  <section id="code" section-title="Implementation in Java, C++, Python">
+  <h2>Implementation in Java, C++, Python</h2>
+  <p>Notes about the implementations, if any</p>
+  <div class="tab-group">
+    <div class="tabs" role="tablist">
+      <button id="tab-java" class="tablink active" data-lang="java" role="tab" aria-controls="java" aria-selected="true">Java</button>
+      <button id="tab-cpp" class="tablink" data-lang="cpp" role="tab" aria-controls="cpp" aria-selected="false">C++</button>
+      <button id="tab-python" class="tablink" data-lang="python" role="tab" aria-controls="python" aria-selected="false">Python</button>
+    </div>
+    <div id="java" class="code-container active" role="tabpanel" aria-labelledby="tab-java">
+      <pre><code class="language-java">// Java code here</code></pre>
+    </div>
+    <div id="cpp" class="code-container" role="tabpanel" aria-labelledby="tab-cpp">
+      <pre><code class="language-cpp">// C++ code here</code></pre>
+    </div>
+    <div id="python" class="code-container" role="tabpanel" aria-labelledby="tab-python">
+      <pre><code class="language-python"># Python code here</code></pre>
+    </div>
+  </div>
+  </section>
+
+  <section id="analysis" section-title="Time/Space Analysis">
+  <h2>Time/Space Analysis</h2>
+  <p><strong>Time Complexity:</strong> Describe and justify.</p>
+  <p><strong>Space Complexity:</strong> Describe and justify.</p>
+  <section id="compare" section-title="Comparing the Two">
+  <h3>Comparing the Two</h3>
+
+  <p>
+    Both methods exploit the same transformation—representing \(n\) in binary—but 
+    differ in how they traverse those bits. The left-to-right approach
+    can be viewed as Horner’s rule applied to base 2, while the right-to-left
+    version is often more convenient for iterative implementation and modular arithmetic.
+  </p>
+
+  <p>
+    Regardless of direction, the key insight is that by <em>transforming</em> the exponent 
+    into its binary representation, we <em>conquer</em> the problem in logarithmic time:
+    the algorithm performs at most \(\lfloor \log_2 n \rfloor\) squarings and 
+    at most that many multiplications again—an exponential improvement 
+    over the naive \(O(n)\) method.
+  </p>
+  </section>
+  </section>
+  
+  
+  <section id="variations" section-title="Variations/Improvements">
+  <h2>Variations/Improvements</h2>
+  <p>
+    Describe known improvements or variants of the algorithm. Mention which situations they are better suited for.
+  </p>
+  </section>
+
+  <section id="links" section-title="Links to Resources">
+  <h2>Links to Resources</h2>
+  <ul>
+    <li><a href="URL1" target="_blank">title 1</a> Short description of website</li>
+    <li><a href="URL2" target="_blank">title 2</a> Short description of website</li>
+    <li><a href="URL3" target="_blank">title 3</a> Short description of website</li>
+  </ul>
+  </section>
+
+  <section id="reading-questions" section-title="Reading Comprehension Questions">
+    <h2>Reading Comprehension Questions</h2>
+    <ol>
+      <li><strong>Short Title:</strong> Question text here.</li>
+      <li><strong>Short Title:</strong> Another question text.</li>
+    </ol>
+    <button id="toggleAnswers" class="show-answer" aria-expanded="false">Show Answers</button>
+    <div id="answers" class="answer" hidden>
+      <ol>
+        <li><strong>Answer:</strong> Explanation here.</li>
+        <li><strong>Answer:</strong> Explanation here.</li>
+      </ol>
+    </div>
+  </section>
+
+  <section id="activities" section-title="In-Class Activities">
+    <h2>In-Class Activities</h2>
+    <ol>
+      <li><strong>Activity Title:</strong> Description of activity.</li>
+      <li><strong>Another Title:</strong> Another activity description.</li>
+    </ol>
+  </section>
+
+  <section id="problems" section-title="Homework Problems">
+    <h2>Homework Problems</h2>
+    <ol>
+      <li><strong>Short Description 1:</strong> Problem statement 1.</li>
+      <li><strong>Short Description 2:</strong> Problem statement 2.</li>
+    </ol>
+  </section>
+
+</body>
+</html>

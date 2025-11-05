@@ -61,7 +61,8 @@
     },
     {
       "Transform-and-Conquer": [
-        "Heapsort.html"
+        "Heapsort.html",
+        "Horner's Rule.html"
       ]
     }
   ],
@@ -201,7 +202,7 @@
         "Algorithms/Decrease-and-Conquer/Topological Sort DRAFT.html",
         "Algorithms/Exhaustive Search/Topological Sort (DFS) DRAFT.html",
         "Algorithms/Space-Time Tradeoff/Boyer-Moore_DRAFT.html",
-        "Algorithms/Transform-and-Conquer/Horners Rule DRAFT.html"
+        "Algorithms/Transform-and-Conquer/Binary Exponentiation DRAFT.html"
       ]
     }
   ],
