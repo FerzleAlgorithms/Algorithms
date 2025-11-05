@@ -43,7 +43,7 @@
     /* ─── TABLE STYLING ─── */
     table {
       border-collapse: collapse;
-      margin-top: 1em;
+      margin-top: 0.5em; /* tighten spacing to match RTL */
       width: auto;
     }
     
@@ -71,6 +71,15 @@
       font-style: italic;
       min-height: 1em;
     }
+
+    /* Bits strip */
+    .bits-strip { font-size: 1.1em; letter-spacing: 1px; margin-bottom: 0; }
+
+    /* Pseudocode box (add) */
+    .pc-box { margin-top: 10px; background: #fcfcff; border: 1px solid #dfe3ff; padding: 8px 10px; }
+    .pc-line { font-family: monospace; padding: 2px 4px; }
+    .pc-inner { padding-left: 1.5em; display: block; }
+    .pc-active { background: #fff7cc; outline: 1px solid #e0b000; }
 
    /* 1) reset every TH and TD in our demo table to normal weight */
 #step-table th,
@@ -109,7 +118,7 @@
       <div class="input-row">
         <label>
           <strong>Base (a):</strong>
-          <input id="a-input" type="number" value="2" min="0" max="99" style="width: 4em;"
+          <input id="a-input" type="number" value="3" min="0" max="99" style="width: 4em;"
           oninput="
                 // if out-of-bounds or non-numeric, reset to closest valid
                 if (this.validity.badInput) this.value = '';
@@ -119,7 +128,7 @@
         </label>
         <label>
           <strong>Exponent (n):</strong>
-          <input id="n-input" type="number" value="19" min="0" max="1023" style="width: 6em;"
+          <input id="n-input" type="number" value="101" min="0" max="1023" style="width: 6em;"
            oninput="
                 // if out-of-bounds or non-numeric, reset to closest valid
                 if (this.validity.badInput) this.value = '';
@@ -141,14 +150,21 @@
       </div>
     </div>
 
+    <div class="pc-box">
+      <div class="pc-line" id="pc-line-init">result = a;  // first bit is 1</div>
+      <div class="pc-line" id="pc-for">for each next bit (high to low) {</div>
+      <div class="pc-line pc-inner" id="pc-line-square">result = result * result;  // square</div>
+      <div class="pc-line pc-inner" id="pc-line-if">if (bit == 1) result *= a;  // include a</div>
+      <div class="pc-line" id="pc-close">}</div>
+    </div>
+    
+    <div class="comment" id="comment"><br></div>
     <!-- DISPLAY THE “INITIAL EXPRESSION” -->
     <div id="initial-expression" style="font-size: 1.2em; margin-bottom: 0.5em;">
       <!-- e.g. “Compute 2^19 using RTL binary exponentiation” -->
     </div>
-
-    <div class="comment" id="comment"><br></div>
     <div class="stats" id="stats"></div>
-    <div class="stats" id="bits-display" style="font-size:1.25em;"></div>
+    <div class="stats bits-strip" id="bits-display"></div>
     <div class="comment" id="final-display"></div>
 
       <!-- in your HTML, replace your current <table id="step-table">…<thead>…</thead> with this: -->
@@ -206,8 +222,21 @@
     const commentDiv = document.getElementById('comment');
     const statsDiv = document.getElementById('stats');
     const bitsDisplayDiv  = document.getElementById('bits-display');
-    const stepTableBody = document.querySelector('#step-table tbody');
-    const finalDisplayDiv = document.getElementById('final-display');
+  const stepTableBody = document.querySelector('#step-table tbody');
+  const finalDisplayDiv = document.getElementById('final-display');
+  
+  function setPseudocodeActiveLTR({ init=false, square=false, ifMul=false }) {
+    const lInit = document.getElementById('pc-line-init');
+    const lFor  = document.getElementById('pc-for');
+    const lSq   = document.getElementById('pc-line-square');
+    const lIf   = document.getElementById('pc-line-if');
+    const lClose= document.getElementById('pc-close');
+    [lInit,lFor,lSq,lIf,lClose].forEach(el => el.classList.remove('pc-active'));
+    // Only highlight inner lines or init; never the for/close lines
+    if (init)   lInit.classList.add('pc-active');
+    if (square) lSq.classList.add('pc-active');
+    if (ifMul)  lIf.classList.add('pc-active');
+  }
 
     /****************************************************************************************
      * 2) BUILD THE RTL BINARY EXPONENTIATION EVENTS
@@ -250,25 +279,26 @@ if (n === 0) {
   let result     = a;
   let totalMults = 0;
 
-// ─── New ─── show the square on every bit, then (if bit=1) append “× a” ───
+// Two-line computation per bit: line1 square, line2 bit action
 bits.slice(1).forEach((bit) => {
-  // 1) square step
   const beforeSquare = result;
-  result    *= result;
+  // square
+  result     = beforeSquare * beforeSquare;
   totalMults += 1;
-  let multCount  = 1;
+  let multCount = 1;
 
-  // start the text with the square
-  let resultComp = `bit=${bit} → result = ${beforeSquare}<sup>2</sup>`;
+  // compose computation column: first line is the square
+  let resultComp = `result = ${beforeSquare}<sup>2</sup>`;
 
-  // 2) multiply‐by‐a step (only when bit===1)
+  // optional multiply by a
   if (bit === 1) {
     const beforeMul = result;
     result      = beforeMul * a;
     totalMults += 1;
     multCount  += 1;
-    // append the × a onto the existing string
-    resultComp += ` × ${a}`;
+    resultComp += `<br><span class="mul-step">bit=1 → result *= ${a}</span>`;
+  } else {
+    resultComp += `<br>bit=0 → skip multiply`;
   }
 
   evs.push({
@@ -311,8 +341,8 @@ bits.slice(1).forEach((bit) => {
     // ─── New: rebuildAllEvents ───
 function rebuildAllEvents() {
   // 1) grab inputs
-  const aVal = parseInt(aInput.value, 10) || 1;
-  const nVal = parseInt(nInput.value, 10) || 0;
+  const aVal = parseInt(aInput.value, 10) || 3;
+  const nVal = parseInt(nInput.value, 10) || 101;
 
   // 2) precompute the full demo sequence once
   fullEvents = buildLtrEvents(aVal, nVal);
@@ -400,25 +430,25 @@ for (let idx = 0; idx <= pointer; idx++) {
               `Binary representation: ${ev.binaryRep || '—'}`;
           }
           statsDiv.textContent = `Total multiplications: ${ev.totalMults}`;
-
-
+          setPseudocodeActiveLTR({ init: false, square: false, ifMul: false });
           // We’ve already shown the binary‐representation above, so clear out any old content here:
           finalDisplayDiv.innerHTML = '';
       }  else {
   // ─── Iteration step: compute bits up front ───
-  const nVal = parseInt(nInput.value, 10) || 0;
+  const nVal = parseInt(nInput.value, 10) || 101;
   const displayBits = nVal.toString(2).split('').map(Number);
 
   // ─── 1) Update comment using the correct total # of bits ───
   // ─── New ─── handle the init step specially, and tweak the skip text
-if (ev.type === 'init') {
-  commentDiv.innerHTML = 'Initializing result and bit array.';
-} else {
-  commentDiv.innerHTML =
-    ev.bit === 1
-      ? 'Square result and then multiply by a.'
-      : 'Square result; skip a multiplication.';
-}
+  if (ev.type === 'init') {
+    commentDiv.innerHTML = 'Initialize result = a.';
+    setPseudocodeActiveLTR({ init: true, square: false, ifMul: false });
+  } else {
+    commentDiv.innerHTML = ev.bit === 1
+      ? 'Square result; then multiply by a.'
+      : 'Square result; skip multiply.';
+    setPseudocodeActiveLTR({ init: false, square: true, ifMul: ev.bit === 1 });
+  }
 
 
   // ─── 2) Update stats ───
@@ -433,7 +463,7 @@ const bitsHtml = displayBits
       : b
   )
   .join('');
-bitsDisplayDiv.innerHTML = `Exponent bits (for visuals): ${bitsHtml}`;
+bitsDisplayDiv.innerHTML = `n in binary: ${bitsHtml}`;
 
 }
 

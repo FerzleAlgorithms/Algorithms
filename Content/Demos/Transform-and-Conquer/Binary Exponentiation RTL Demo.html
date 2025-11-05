@@ -2,106 +2,61 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Right-to-Left Binary Exponentiation Demo</title>
+  <title>Right-to-Left Binary Exponentiation Demo (NEW)</title>
 
-  <!--
-    Assumes the same folder structure as the Horner demo:
-      • style.css
-      • demo.css
-  -->
   <link rel="stylesheet" href="../../../css/style.css">
   <link rel="stylesheet" href="../../../css/demo.css">
 
   <style>
-    /* ─── BUTTON / CONTROL STYLING ─── */
-    .controls {
-      margin-bottom: 1em;
-    }
-    button {
-      padding: 0.3em 0.6em;
-      margin-left: 0.5em;
-      font-size: 1em;
-      cursor: pointer;
-    }
-    button:disabled {
-      opacity: 0.5;
-      cursor: default;
-    }
-    #play {
-      margin-left: 0.5em;
-    }
-    #speed {
-      margin-left: 0.25em;
-    }
-    .input-row {
-      margin-bottom: 16px;
-      display: flex;
-      align-items: center;
-      gap: 1em;
-    }
+    /* Controls */
+    .controls { margin-bottom: 1em; }
+    .input-row { margin-bottom: 12px; display: flex; align-items: center; gap: 1em; flex-wrap: wrap; }
+    .button-row { display: flex; align-items: center; gap: 0.5em; flex-wrap: wrap; }
+    button { padding: 0.3em 0.6em; font-size: 1em; cursor: pointer; }
+    button:disabled { opacity: 0.5; cursor: default; }
+    #speed { margin-left: 0.25em; }
 
-    /* ─── TABLE STYLING ─── */
-    table {
-      border-collapse: collapse;
-      margin-top: 1em;
-      width: auto;
-    }
-    
-    th, td {
-      border: 1px solid #ccc;
-      padding: 0.4em;
-      text-align: center;
-      font-family: monospace;
-    }
-    th {
-      background: #f0f0f0;
-    }
-    .highlight-cell {
-      background-color: #fffb91;
-    }
+    /* Table */
+    table { border-collapse: collapse; margin-top: 0.5em; width: auto; }
+    th, td { border: 1px solid #ccc; padding: 0.4em; text-align: center; font-family: monospace; }
+    th { background: #f0f0f0; }
 
-    /* ─── COMMENT & STATS AREA ─── */
-    .comment {
-      margin-top: 0.5em;
-      font-style: italic;
-      min-height: 2em;
-    }
-    .stats {
-      margin-top: 0.5em;
-      font-style: italic;
-      min-height: 1em;
-    }
+    /* Highlights for actions */
+    .highlight-cell { background-color: #fffb91; }
+    .square-step { background-color: #e8f2ff; }   /* blue-ish for squaring pow */
+    .mul-step { background-color: #e8ffe8; }      /* green-ish for result *= pow */
 
-   /* 1) reset every TH and TD in our demo table to normal weight */
-#step-table th,
-#step-table td {
-  font-weight: normal !important;
-}
+    /* Comment & stats */
+    .comment { margin-top: 0.5em; font-style: italic; min-height: 2em; }
+    .stats { margin-top: 0.25em; font-style: italic; min-height: 1em; }
 
-/* 2) bold only col 1, 3 and 6 (headers + data) */
-#step-table th:nth-child(1),
-#step-table td:nth-child(1),
+    /* Bits strip */
+    .bits-strip { font-size: 1.1em; letter-spacing: 1px; margin-bottom: 0; }
 
-#step-table th:nth-child(3),
-#step-table td:nth-child(3),
+    /* Pseudocode box */
+    .pc-box { margin-top: 10px; background: #fcfcff; border: 1px solid #dfe3ff; padding: 8px 10px; }
+    .pc-line { font-family: monospace; padding: 2px 4px; }
+    .pc-inner { padding-left: 1.5em; display: block; }
+    .pc-active { background: #fff7cc; outline: 1px solid #e0b000; }
 
-#step-table th:nth-child(6),
-#step-table td:nth-child(6) {
-  font-weight: bold !important;
-}
-
-
+    /* Make some table columns bold for quick scanning */
+    #step-table th:nth-child(1),
+    #step-table td:nth-child(1),
+    #step-table th:nth-child(3),
+    #step-table td:nth-child(3),
+    #step-table th:nth-child(4),
+    #step-table td:nth-child(4) { font-weight: bold; }
   </style>
-<!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-DQ5LVZVFDC"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-  gtag('config', 'G-DQ5LVZVFDC');
-</script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DQ5LVZVFDC"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);} 
+    gtag('js', new Date());
+    gtag('config', 'G-DQ5LVZVFDC');
+  </script>
 </head>
-<body class = "no-tooltips">
+<body class="no-tooltips">
   <div class="demo-container">
     <h2>Binary Exponentiation (Right-to-Left)</h2>
 
@@ -109,465 +64,317 @@
       <div class="input-row">
         <label>
           <strong>Base (a):</strong>
-          <input id="a-input" type="number" value="2" min="0" max="99" style="width: 4em;"
-          oninput="
-                // if out-of-bounds or non-numeric, reset to closest valid
-                if (this.validity.badInput) this.value = '';
-                if (this.value < 0) this.value = 0;
-                if (this.value > 99) this.value = 99;
-              ">
+          <input id="a-input" type="number" value="3" min="0" max="99" style="width: 4em;"
+            aria-label="Base a">
         </label>
         <label>
           <strong>Exponent (n):</strong>
-          <input id="n-input" type="number" value="19" min="0" max="1023" style="width: 6em;"
-           oninput="
-                // if out-of-bounds or non-numeric, reset to closest valid
-                if (this.validity.badInput) this.value = '';
-                if (this.value < 0) this.value = 0;
-                if (this.value > 1023) this.value = 1023;
-              ">
-      </label>
+          <input id="n-input" type="number" value="101" min="0" max="1023" style="width: 6em;"
+            aria-label="Exponent n">
+        </label>
+        <button id="reset-btn" title="Reset to current values">Reset</button>
       </div>
       <div class="button-row">
-        <button id="prev-btn" disabled>Previous</button>
-        <button id="next-btn">Next</button>
-        <button id="play">Play</button>
+        <button id="prev-btn" disabled title="Previous step (Left Arrow)">Previous</button>
+        <button id="next-btn" title="Next step (Right Arrow)">Next</button>
+        <button id="play" title="Play/Pause (Space)">Play</button>
         <label for="speed">Speed:</label>
-        <select id="speed">
+        <select id="speed" aria-label="Playback speed">
           <option value="1">1×</option>
           <option value="2">2×</option>
           <option value="4">4×</option>
         </select>
       </div>
     </div>
-
-    <!-- DISPLAY THE “INITIAL EXPRESSION” -->
-    <div id="initial-expression" style="font-size: 1.2em; margin-bottom: 0.5em;">
-      <!-- e.g. “Compute 2^19 using RTL binary exponentiation” -->
+    
+    <div class="pc-box">
+      <div class="pc-line" id="pc-while">while (n &gt; 0) {</div>
+      <div class="pc-line pc-inner" id="pc-line1">if (n % 2 == 1) result *= pow;  // include current power</div>
+      <div class="pc-line pc-inner" id="pc-line2">pow = pow * pow;                // square power of a</div>
+      <div class="pc-line pc-inner" id="pc-line3">n = floor(n / 2);               // shift right one bit</div>
+      <div class="pc-line" id="pc-close">}</div>
     </div>
 
-    <div class="comment" id="comment"><br></div>
-    <div class="stats" id="stats"></div>
-    <div class="stats" id="bits-display" style="font-size:1.25em;"></div>
+    <div class="comment" id="comment" aria-live="polite"></div>
+    <div class="stats" id="stats" aria-live="polite"></div>
+    <div class="stats bits-strip" id="bits-display"></div>
     <div class="comment" id="final-display"></div>
 
-    <!-- CORRECTED TABLE WITH EIGHT COLUMNS -->
     <table id="step-table">
       <thead>
         <tr>
-          <th style="font-weight: bold !important;">n</th>
-          <th>n % 2 (bit)</th>
-          <th style="font-weight: bold !important;">pow</th>
-          <th>result computation</th>
-          <th style="font-weight: bold !important;">result</th>
-          <th>number of *</th>
+          <th>n</th>
+          <th>bit (n%2)</th>
+          <th>pow = a^(2^i)</th>
+          <th>result</th>
+          <th>step</th>
+          <th>multiplies</th>
         </tr>
       </thead>
-
-
-      <tbody>
-        <!-- Rows get appended here -->
-      </tbody>
+      <tbody></tbody>
     </table>
 
+    <div style="margin-top:8px; font-size:0.95em; color:#555;">
+      Counting convention: each squaring counts as one multiply; when bit = 1, we count one extra multiply for result *= pow.
+    </div>
   </div>
 
   <script>
-
-
-  /**
-     * Convert a non-negative integer (in decimal) into its Unicode superscript form.
-     * e.g. 2 → "²", 4 → "⁴", 16 → "¹⁶", 32 → "³²", etc.
-     */
     function toSuperscript(num) {
-      const supMap = {
-        '0': '⁰', '1': '¹', '2': '²', '3': '³', '4': '⁴',
-        '5': '⁵', '6': '⁶', '7': '⁷', '8': '⁸', '9': '⁹'
-      };
-      return String(num)
-        .split('')
-        .map(ch => supMap[ch] || '')
-        .join('');
+      const supMap = { '0':'⁰','1':'¹','2':'²','3':'³','4':'⁴','5':'⁵','6':'⁶','7':'⁷','8':'⁸','9':'⁹' };
+      return String(num).split('').map(ch => supMap[ch] || '').join('');
     }
 
-    /****************************************************************************************
-     * 1) GLOBAL VARIABLES & DOM REFERENCES
-     ****************************************************************************************/
-    let events = [];       // sequence of events for each iteration + final
-    let pointer = -1;      // current event index
+    // Globals & DOM
+    let events = [];
+    let pointer = -1;
     let playing = false;
     let intervalId = null;
 
     const aInput = document.getElementById('a-input');
     const nInput = document.getElementById('n-input');
+    const resetBtn = document.getElementById('reset-btn');
     const prevBtn = document.getElementById('prev-btn');
     const nextBtn = document.getElementById('next-btn');
     const playBtn = document.getElementById('play');
     const speedSelect = document.getElementById('speed');
-    const initialExprDiv = document.getElementById('initial-expression');
     const commentDiv = document.getElementById('comment');
     const statsDiv = document.getElementById('stats');
-    const bitsDisplayDiv  = document.getElementById('bits-display');
+    const bitsDisplayDiv = document.getElementById('bits-display');
     const stepTableBody = document.querySelector('#step-table tbody');
     const finalDisplayDiv = document.getElementById('final-display');
 
-    /****************************************************************************************
-     * 2) BUILD THE RTL BINARY EXPONENTIATION EVENTS
-     ****************************************************************************************/
-     function buildExpEvents(a, n) {
-  const evs = [];
-  let result = 1;
-  let aPower = a;
-  let exponent = 1;
-  // Keep track of how we’ve written the “power‐of‐a” (e.g. "2", "2²", "(2²)²", …)
-  let expExpr = `${a}`;
-  let totalMults = 0;
-  let currentN = n;
-  const powersUsed = [];
-    // ─── Step 1: initial LSB check ───
-    const initialBit = currentN % 2;
-    if (initialBit === 1) {
-    // Instead of multiplying, do an assignment: result = a
-   evs.push({
-     type: 'iter',
-     n: currentN,
-     bit: 1,
-     aPowerVal: aPower,
-     exponent: exponent,
-     expExpr: expExpr,
-     resultComp: `bit=1 → result = ${expExpr}`,  // say “bit=1 → result = 2” (for example)
-     aPowComp: `${aPower}`,               // still show base “2”
-     multCount: 0,                        // zero multiplications here
-     resultAfter: aPower,                 // result becomes aPower
-     totalMultsSoFar: totalMults         // totalMults is unchanged
-   });
-   result = aPower;
-   powersUsed.push(exponent);
-    } else {
-    evs.push({
-      type: 'iter',
-      n: currentN,
-      bit: 0,
-      aPowerVal: aPower,
-      exponent: exponent,
-      expExpr: expExpr,
-      resultComp: 'bit=0 → skipped assignment',
-      aPowComp: `${aPower}`,     // show “2” even if bit = 0
-      multCount: 0,
-      resultAfter: result,
-      totalMultsSoFar: totalMults
-    });
-  }
+    // Build events for RTL
+    function buildExpEvents(a, n) {
+      const evs = [];
 
-
-  // ─── Step 2: loop while n > 0 ───
-  while (currentN > 1) {
-        // save the symbolic power *before* we square it
-     const prevExpExpr = expExpr;
-
-     const prevAPower = aPower;                    // e.g. 2, 2², 2⁴, 2⁸, …
-      const newAPower = prevAPower * prevAPower;     // numeric *behind the scenes*    
-      // Build aPowCompStr in true “normal‐writing” form:
-      let aPowCompStr;
-      if (expExpr === `${a}`) {
-        // This is the *first* squaring.  expExpr === "2" initially.
-        // We want “2²” (no parentheses around the base on row 2).
-        aPowCompStr = `${expExpr}${toSuperscript(2)}`;
-      } else {
-        // In subsequent rows, expExpr is already something like "2²" or "2⁴" or "2⁸".
-        // We want, for example, "(2²)² = 2⁴", or "(2⁴)² = 2⁸", etc.
-        // Notice that 'exponent * 2' is the new exponent (e.g. 4, 8, 16, …).
-        const newExpValue = exponent * 2;  
-        aPowCompStr = `(${expExpr})² = ${a}${toSuperscript(newExpValue)}`;
-      }
-      totalMults += 1;                              // count that squaring
-
-      // Now update the numeric aPower and exponent for the *next* iteration:
-      aPower = newAPower;                           // e.g. 4, then 16, then 256, but we don’t display that directly
-      exponent = exponent * 2;                      // e.g. 2, then 4, then 8, then 16, …
-
-      // Finally, update expExpr to reflect the new *symbolic* exponent in superscript form:
-      if (expExpr === `${a}`) {
-        // e.g. "2" → "2²"
-        expExpr = `${expExpr}${toSuperscript(2)}`;
-      } else {
-        // e.g. "2²" → "2⁴", or "2⁴" → "2⁸", etc.
-        expExpr = `${a}${toSuperscript(exponent)}`;
+      // Special case n=0: a^0 = 1, zero multiplies
+      if (n === 0) {
+        evs.push({ type: 'done', finalResult: 1, binaryRep: `${a}${toSuperscript(0)}`, totalMults: 0, zeroCase: true });
+        return evs;
       }
 
-    // (You no longer need to touch expExpr here; 
-    //  aPowCompStr is purely numeric now.)
+      let result = 1;
+      let aPower = a;       // numeric accumulator for pow
+      let exponent = 1;     // 1,2,4,8,... (this is 2^i)
+      let expExpr = `${a}`; // symbolic for pow column
+      let totalMults = 0;
+      let currentN = n;
 
-    // (b) Now divide n by 2 (floor)
-    currentN = Math.floor(currentN / 2);
+      // First check the initial LSB
+      const initialBit = currentN % 2;
+      if (initialBit === 1) {
+        evs.push({
+          type: 'iter', n: currentN, bit: 1, aPowerVal: aPower, exponent, expExpr,
+          resultComp: `bit=1 → <span class="mul-step">result = ${expExpr}</span>`,
+          aPowComp: `${expExpr} = ${aPower}`,
+          multCount: 0, resultAfter: aPower, totalMultsSoFar: totalMults
+        });
+        result = aPower;
+      } else {
+        evs.push({
+          type: 'iter', n: currentN, bit: 0, aPowerVal: aPower, exponent, expExpr,
+          resultComp: 'bit=0 → result unchanged',
+          aPowComp: `${expExpr} = ${aPower}`,
+          multCount: 0, resultAfter: result, totalMultsSoFar: totalMults
+        });
+      }
 
-    // (c) Check the new LSB of currentN
-    const bitNow = currentN % 2;
-    let resultCompStr;
-    let multThisIter = 1; // always at least the squaring
+      // Loop until n becomes 1; each loop squares pow, shifts n, and maybe multiplies result
+      while (currentN > 1) {
+        // Square pow (one multiply)
+        const prevExpExpr = expExpr;
+        const newAPower = aPower * aPower; // numeric
+        totalMults += 1;
 
-    if (bitNow === 1) {
-      // Capture the old result so we can print it
-     const oldResult = result;
-     const newResult = oldResult * aPower;
-  resultCompStr = `bit=1 → result = ${oldResult} * ${aPower}`;
-     result = newResult;
-     powersUsed.push(exponent);
-     multThisIter += 1; // extra multiply (the “multiply result by aPower”)
-     totalMults += 1;
-    } else {
-      resultCompStr = 'bit=0 → result unchanged'
-      // The only multiply in this iteration was the squaring above
+        // Update pow and its symbolic exponent
+        aPower = newAPower;
+        exponent = exponent * 2;
+        if (expExpr === `${a}`) {
+          expExpr = `${expExpr}${toSuperscript(2)}`;
+        } else {
+          expExpr = `${a}${toSuperscript(exponent)}`;
+        }
+
+        // Shift n and check new LSB
+        currentN = Math.floor(currentN / 2);
+        const bitNow = currentN % 2;
+
+        let resultCompStr = `<span class="square-step">pow = pow<sup>2</sup></span><br>`;
+        let multThisIter = 1; // squaring
+        if (bitNow === 1) {
+          const oldResult = result;
+          result = oldResult * aPower;
+          resultCompStr += `<span class="mul-step">bit=1 → result *= pow</span>`;
+          multThisIter += 1;
+          totalMults += 1;
+        } else {
+          resultCompStr += 'bit=0 → skip multiply';
+        }
+
+        const aPowDisplay = `${expExpr} = ${aPower}`;
+        evs.push({
+          type: 'iter', n: currentN, bit: bitNow, aPowerVal: aPower, exponent, expExpr,
+          prevExpExpr, resultComp: resultCompStr, aPowComp: aPowDisplay,
+          multCount: multThisIter, resultAfter: result, totalMultsSoFar: totalMults
+        });
+      }
+
+      // Final event
+      const bits = n.toString(2).split('').map(Number); // MSB→LSB
+      const weights = bits
+        .map((b,i) => b ? 2 ** (bits.length - 1 - i) : null)
+        .filter(Boolean)
+        .sort((x,y) => y - x);
+      const binRepr = weights.map(w => `${a}${toSuperscript(w)}`).join(' × ');
+      evs.push({ type: 'done', finalResult: result, binaryRep: binRepr, totalMults: totalMults });
+      return evs;
     }
 
-    // (d) Record this entire iteration as one “iter” event
-    evs.push({
-      type: 'iter',
-      n: currentN,
-      bit: bitNow,
-      aPowerVal: aPower,
-      exponent: exponent,
-      expExpr: expExpr,
-      prevExpExpr: prevExpExpr,      // ← new field
-      resultComp: resultCompStr,
-      aPowComp: aPowCompStr,
-      multCount: multThisIter,
-      resultAfter: result,
-      totalMultsSoFar: totalMults
-    });
-  }
-
-  // ─── Step 3: final “done” event ───
-  powersUsed.sort((x, y) => y - x);
-  // Show “a^eₖ” terms in descending order
-
-  const binRepr = powersUsed
-   .map(e => `${a}${toSuperscript(e)}`)
-   .join(' × ');
-
-  evs.push({
-    type: 'done',
-    finalResult: result,
-    binaryRep: binRepr,
-    totalMults: totalMults
-  });
-
-  return evs;
-}
-
-
-    /****************************************************************************************
-     * 3) INITIALIZE DEMO: build events & reset pointer
-     ****************************************************************************************/
     function rebuildAllEvents() {
-      const aVal = parseInt(aInput.value, 10) || 1;
-      const nVal = parseInt(nInput.value, 10) || 0;
-
-
-      // Build event sequence
+      const aVal = clampInt(aInput.value, 1, 99, 3);
+      const nVal = clampInt(nInput.value, 0, 1023, 101);
+      aInput.value = aVal; nInput.value = nVal;
       events = buildExpEvents(aVal, nVal);
       pointer = -1;
-
-      // Clear final display
       finalDisplayDiv.innerHTML = '';
       rebuildDisplay();
     }
 
-    /****************************************************************************************
-     * 4) RENDER DISPLAY BASED ON “pointer”
-     ****************************************************************************************/
+    function clampInt(val, min, max, fallback) {
+      let x = parseInt(val, 10);
+      if (Number.isNaN(x)) x = fallback;
+      if (x < min) x = min;
+      if (x > max) x = max;
+      return x;
+    }
+
     function rebuildDisplay() {
-      // Clear previous table rows & final display
       stepTableBody.innerHTML = '';
       finalDisplayDiv.innerHTML = '';
 
       if (pointer < 0) {
-        // No iterations shown yet
-        commentDiv.innerHTML = '<br>';
+        commentDiv.innerHTML = '';
         statsDiv.textContent = '';
-        bitsDisplayDiv.innerHTML = '';    // ─── CLEAR bits-string when we’re “before step 0” ───
+        bitsDisplayDiv.innerHTML = buildBitsStrip();
         prevBtn.disabled = true;
         nextBtn.disabled = false;
+        setPseudocodeActive({ whileLine: false, ifLine: false, square: false, shift: false });
         return;
       }
 
       const ev = events[pointer];
 
-      // Build table rows for every iteration up to “pointer”
+      // Build rows up to current pointer
       for (let idx = 0; idx <= pointer; idx++) {
         const e = events[idx];
-        if (e.type === 'iter') {
-          const tr = document.createElement('tr');
+        if (e.type !== 'iter') continue;
+        const tr = document.createElement('tr');
 
-          // n
-          const tdN = document.createElement('td');
-          tdN.textContent = e.n;
-          tr.appendChild(tdN);
+        // n
+        const tdN = document.createElement('td'); tdN.textContent = e.n; tr.appendChild(tdN);
+        // bit
+        const tdBit = document.createElement('td'); tdBit.textContent = e.bit; tr.appendChild(tdBit);
+        // pow
+        const tdPow = document.createElement('td'); tdPow.textContent = e.aPowComp; tr.appendChild(tdPow);
+        // result
+        const tdRes = document.createElement('td'); tdRes.textContent = e.resultAfter; tr.appendChild(tdRes);
+        // step text
+        const tdStep = document.createElement('td'); tdStep.innerHTML = e.resultComp; tr.appendChild(tdStep);
+        // multiplies this iter
+        const tdCnt = document.createElement('td'); tdCnt.textContent = e.multCount; tr.appendChild(tdCnt);
 
-          // n % 2
-          const tdBit = document.createElement('td');
-          tdBit.textContent = e.bit;
-          tr.appendChild(tdBit);
-
-          const tdAPowComp = document.createElement('td');
-          tdAPowComp.textContent = e.aPowComp;
-          tr.appendChild(tdAPowComp);
-
-          // result computation column
-          const tdResComp = document.createElement('td');
-          tdResComp.textContent = e.resultComp;
-          tr.appendChild(tdResComp);
-
-
-          // result after multiply (or unchanged if bit=0)
-          const tdRes = document.createElement('td');
-          tdRes.textContent = e.resultAfter;
-          tr.appendChild(tdRes);
-
-          // multiplication count (this iteration)
-          const tdMCount = document.createElement('td');
-          tdMCount.textContent = e.multCount;
-          tr.appendChild(tdMCount);
-
-          // Highlight the current iteration’s row’s computation cells
-          if (pointer < events.length && events[pointer].type === 'iter' && idx === pointer) {
-            // highlight the “result computation” cell
-            tdResComp.classList.add('highlight-cell');
-            // highlight the “aPow computation” cell
-            tdAPowComp.classList.add('highlight-cell');
-          }
-
-          stepTableBody.appendChild(tr);
+        if (idx === pointer) {
+          if (e.resultComp.includes('pow<sup>2</sup>')) tdStep.classList.add('square-step');
+          if (e.bit === 1) tdStep.classList.add('mul-step');
         }
+        stepTableBody.appendChild(tr);
       }
 
-      // Update comment & stats or handle done event
       if (ev.type === 'done') {
-          // Show “Done! …” plus the numeric base’s binary‐factorization, all in the top comment:
-          commentDiv.innerHTML = 
-            `Done! Final answer = ${ev.finalResult}<br>` +
-            `Binary representation: ${ev.binaryRep || '—'}`;
-          
-          // Leave stats (multiplication count) unchanged:
-          statsDiv.textContent = `Total multiplications: ${ev.totalMults}`;
-
-          // We’ve already shown the binary‐representation above, so clear out any old content here:
-          finalDisplayDiv.innerHTML = '';
+        commentDiv.innerHTML = ev.zeroCase
+          ? `Done! Final answer = ${ev.finalResult} (returned 1 for n=0)<br>Binary representation: ${ev.binaryRep}`
+          : `Done! Final answer = ${ev.finalResult}<br>Binary representation: ${ev.binaryRep || '—'}`;
+        statsDiv.textContent = `Total multiplications: ${ev.totalMults}`;
+        bitsDisplayDiv.innerHTML = buildBitsStrip();
+        setPseudocodeActive({ whileLine: false, ifLine: false, square: false, shift: false });
       } else {
-         // ─── Any “iter” step: decide if it’s the very first row (pointer===0) or a later row ───
-       if (pointer === 0) {
-         // FIRST step: show only one branch (bit=1 OR bit=0), no “then square” line here
-         if (ev.bit === 1) {
-               commentDiv.innerHTML = `n mod 2 = 1, so result = pow.`;
-         } else {    
-               commentDiv.innerHTML = `n mod 2 = 0, so result = 1.`;
-         }
-       } else {
-               commentDiv.innerHTML =
-        `n=&lfloor;n/2&rfloor; and  pow = pow<sup>2</sup>.  n mod 2 = ${ev.bit}, ` +
-        `${ev.bit === 1  ? `so result *= pow` : 'so skip multiplying result'};`;
-       }
-       // ─── Show “Total multiplications so far” on every iteration, including pointer===0 ───
-       statsDiv.textContent = `Total multiplications so far: ${ev.totalMultsSoFar}`;
+        // Step comment
+        if (pointer === 0) {
+          commentDiv.innerHTML = ev.bit === 1
+            ? 'Initial LSB is 1 → include a^1 in result.'
+            : 'Initial LSB is 0 → result stays 1.';
+          setPseudocodeActive({ whileLine: false, ifLine: true, square: false, shift: false });
+        } else {
+          commentDiv.innerHTML = `Square pow; shift n; ${ev.bit === 1 ? 'then multiply result by pow.' : 'skip multiply.'}`;
+          setPseudocodeActive({ whileLine: false, ifLine: ev.bit === 1, square: true, shift: true });
+        }
+        statsDiv.textContent = `Total multiplications so far: ${ev.totalMultsSoFar}`;
+        bitsDisplayDiv.innerHTML = buildBitsStrip(pointer);
+      }
 
-             // ─── Build a string of all bits up to this pointer, highlight the last one ───
-          {
-      // 1) grab every iteration’s bit in LSB→MSB order
-      const fullBits = events
-        .filter(e => e.type === 'iter')
-        .map(e => e.bit);
-
-      // 2) flip for MSB→LSB display
-      const displayBits = fullBits.slice().reverse();
-
-      // 3) figure out which index to highlight:
-      //    pointer=0 → highlight LSB (last in MSB→LSB array)
-      //    pointer=fullBits.length-1 → highlight MSB (first in array)
-      const highlightIndex = displayBits.length - pointer - 1;
-
-      // 4) build the HTML, wrapping only that one bit
-      const bitsHtml = displayBits
-        .map((b, i) =>
-          i === highlightIndex
-            ? `<span class="highlight-cell">${b}</span>`
-            : b
-        )
-        .join('');
-
-      bitsDisplayDiv.innerHTML =
-        `Exponent bits (for visuals): ${bitsHtml}`;
-    }
-
-     }
-
-      // Enable/disable buttons
       prevBtn.disabled = (pointer < 0);
       nextBtn.disabled = (pointer >= events.length - 1);
     }
 
-    /****************************************************************************************
-     * 5) CONTROLS: next / previous / play
-     ****************************************************************************************/
-    nextBtn.addEventListener('click', () => {
-      if (pointer < events.length - 1) {
-        pointer++;
-        rebuildDisplay();
-      }
-    });
-    prevBtn.addEventListener('click', () => {
-      if (pointer > -1) {
-        pointer--;
-        rebuildDisplay();
-      }
-    });
+    function buildBitsStrip(activeIdx = undefined) {
+      // Visualize n in natural MSB→LSB order and highlight current processed bit
+      const nVal = clampInt(nInput.value, 0, 1023, 19);
+      const rawBits = nVal.toString(2).split('').map(Number); // MSB→LSB
 
+      // event bits are stored per iteration in LSB→MSB order; compute which index to highlight
+      const iterBits = events.filter(e => e.type === 'iter').map(e => e.bit); // LSB→MSB
+      const display = rawBits.slice();
+      let highlightIndex = undefined;
+      if (activeIdx !== undefined && iterBits.length > 0) {
+        // activeIdx 0 = first iteration (LSB), which is last in MSB→LSB display
+        highlightIndex = display.length - activeIdx - 1;
+      }
+
+      const parts = display.map((b, i) => i === highlightIndex ? `<span class="highlight-cell">${b}</span>` : `${b}`);
+      return `n in binary: ${parts.join('')}`;
+    }
+
+    function setPseudocodeActive({ whileLine, ifLine, square, shift }) {
+      // Only highlight the lines inside the loop, not the while/closing brace
+      const l1 = document.getElementById('pc-line1');
+      const l2 = document.getElementById('pc-line2');
+      const l3 = document.getElementById('pc-line3');
+      [l1,l2,l3].forEach(el => el.classList.remove('pc-active'));
+      if (ifLine) l1.classList.add('pc-active');
+      if (square) l2.classList.add('pc-active');
+      if (shift) l3.classList.add('pc-active');
+    }
+
+    // Controls
+    nextBtn.addEventListener('click', () => { if (pointer < events.length - 1) { pointer++; rebuildDisplay(); }});
+    prevBtn.addEventListener('click', () => { if (pointer > -1) { pointer--; rebuildDisplay(); }});
     playBtn.addEventListener('click', () => {
-      if (playing) {
-        playing = false;
-        playBtn.textContent = 'Play';
-        clearInterval(intervalId);
-        intervalId = null;
-      } else {
-        playing = true;
-        playBtn.textContent = 'Pause';
-        const speed = parseInt(speedSelect.value, 10) || 1;
-        const delay = 1000 / speed;
+      if (playing) { playing = false; playBtn.textContent = 'Play'; clearInterval(intervalId); intervalId = null; }
+      else {
+        playing = true; playBtn.textContent = 'Pause';
+        const speed = parseInt(speedSelect.value, 10) || 1; const delay = 1000 / speed;
         intervalId = setInterval(() => {
-          if (pointer < events.length - 1) {
-            pointer++;
-            rebuildDisplay();
-          } else {
-            playing = false;
-            playBtn.textContent = 'Play';
-            clearInterval(intervalId);
-            intervalId = null;
-          }
+          if (pointer < events.length - 1) { pointer++; rebuildDisplay(); }
+          else { playing = false; playBtn.textContent = 'Play'; clearInterval(intervalId); intervalId = null; }
         }, delay);
       }
     });
+    speedSelect.addEventListener('change', () => { if (playing) { clearInterval(intervalId); playing = false; playBtn.textContent = 'Play'; playBtn.click(); }});
+    aInput.addEventListener('change', rebuildAllEvents);
+    nInput.addEventListener('change', rebuildAllEvents);
+    resetBtn.addEventListener('click', rebuildAllEvents);
+    // (presets removed)
 
-    speedSelect.addEventListener('change', () => {
-      if (playing) {
-        clearInterval(intervalId);
-        playing = false;
-        playBtn.textContent = 'Play';
-        playBtn.click();
-      }
+    // Keyboard shortcuts
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight') { nextBtn.click(); e.preventDefault(); }
+      else if (e.key === 'ArrowLeft') { prevBtn.click(); e.preventDefault(); }
+      else if (e.code === 'Space') { playBtn.click(); e.preventDefault(); }
     });
 
-    /****************************************************************************************
-     * 6) INPUTS CHANGE: re‐initialize demo
-     ****************************************************************************************/
-    aInput.addEventListener('change', () => {
-      rebuildAllEvents();
-    });
-    nInput.addEventListener('change', () => {
-      rebuildAllEvents();
-    });
-
-    // Initialize on load
+    // Initialize
     rebuildAllEvents();
   </script>
 </body>
 </html>
-

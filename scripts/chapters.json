@@ -61,6 +61,7 @@
     },
     {
       "Transform-and-Conquer": [
+        "Binary Exponentiation.html",
         "Heapsort.html",
         "Horner's Rule.html"
       ]
@@ -180,6 +181,7 @@
     {
       "Transform-and-Conquer": [
         "Binary Exponentiation LTR Demo.html",
+        "Binary Exponentiation RTL Demo OLD.html",
         "Binary Exponentiation RTL Demo.html",
         "Fibonacci Number (Matrix) Demo.html",
         "Heapsort Demo.html",
@@ -201,8 +203,7 @@
       "DRAFTS": [
         "Algorithms/Decrease-and-Conquer/Topological Sort DRAFT.html",
         "Algorithms/Exhaustive Search/Topological Sort (DFS) DRAFT.html",
-        "Algorithms/Space-Time Tradeoff/Boyer-Moore_DRAFT.html",
-        "Algorithms/Transform-and-Conquer/Binary Exponentiation DRAFT.html"
+        "Algorithms/Space-Time Tradeoff/Boyer-Moore_DRAFT.html"
       ]
     }
   ],

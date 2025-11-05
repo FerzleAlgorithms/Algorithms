@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Binary Exponentiation</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js"></script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <script src="/Algorithms/scripts/chapterScripts.js"></script>
+  <link rel="stylesheet" href="/Algorithms/css/style.css">
+  <link rel="stylesheet" href="/Algorithms/css/chapter.css">
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DQ5LVZVFDC"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-DQ5LVZVFDC');
+  </script>
+</head>
+<body>
+  <h1>Binary Exponentiation</h1>
+
+  <section id="problem-solved" section-title="Problem Solved">
+  <h2>Problem Solved</h2>
+  <p>
+    Binary Exponentiation solves the
+    <a class="problem" href="?path=Problems/Foundational/Exponentiation">Exponentiation</a>
+    problem.
+  </p>
+  </section>
+
+  <section id="design-and-strategy" section-title="Design and Strategy">
+  <h2>Design and Strategy</h2>
+
+  <p>
+    Binary Exponentiation is a classic example of the <em>Transform-and-Conquer</em> technique. 
+    The idea is simple but powerful: instead of directly computing \(a^n\) through \(n-1\) multiplications,
+    we first <em>transform</em> the exponent \(n\) into its binary representation.  
+    Once expressed as a sequence of bits, the exponent reveals a structure that can be exploited to compute 
+    \(a^n\) using only \(O(\log n)\) multiplications and squarings.
+  </p>
+
+    <p>
+    Writing \(n\) in base 2 gives
+    \[
+      n = (b_k b_{k-1} \ldots b_1 b_0)_2 
+      = \sum_{i=0}^k b_i 2^i,\quad b_i \in \{0,1\}.
+    \]
+     Each bit \(b_i\) is either 0 or 1, indicating whether the corresponding power \(2^i\)
+  contributes to \(n\).
+    Thus
+    \[
+      a^n = a^{\sum b_i 2^i}
+      = \prod_{i=0}^k (a^{2^i})^{b_i}.
+    \]
+    </p>
+    <p>
+  For example, if \(n = 13 = (1101)_2\), then
+  \[
+    a^{13} = (a^{2^3})^{1} (a^{2^2})^{1} (a^{2^1})^{0} (a^{2^0})^{1}
+    = a^{8} \cdot a^{4} \cdot a^{1}.
+  \]
+  This expansion shows that we only multiply the powers of \(a\) 
+  corresponding to bits equal to 1.
+    This means we can obtain \(a^n\) by repeatedly squaring \(a\) and multiplying together 
+    only those powers corresponding to bits \(b_i = 1\).  
+  The transformation&mdash;from an integer to its binary digits&mdash;is what allows the conquer step to be logarithmic in time.  
+  Next, we'll see how scanning those bits from left to right yields a Horner-style version of the same idea.
+</p>
+
+<section id="ltr" section-title="Left-to-Right">
+  <h3>Left-to-Right (Horner-Based) Version</h3>
+
+  <p>
+    In the <em>Left-to-Right</em> version, we process the bits of \(n\) from most significant to least significant.
+    This approach mirrors <a href="?path=Algorithms/Transform-and-Conquer/Horner%27s%20Rule">Horner's Rule</a>:
+    as each new bit is read, the current result is squared (to account for shifting left in binary)
+    and multiplied by \(a\) if the bit is 1.
+  </p>
+
+  <p>
+  Writing \(n\) in base 2 means expressing it as a polynomial in 2 whose
+  coefficients are the bits of its binary representation:
+  \[
+\begin{array}{rcl}
+n &=& (b_k b_{k-1} \ldots b_0)_2   \quad\text{where } b_i \in \{0,1\}, \\[4pt]
+  &=& b_k 2^k + b_{k-1} 2^{k-1} + \cdots + b_1 2 + b_0. \\[4pt]
+ 
+\end{array}
+\]
+</p>
+<p>
+  Using Horner's rule, this can be rewritten as
+  \[
+    n = (((b_k \cdot 2 + b_{k-1}) \cdot 2 + b_{k-2}) \cdots \cdot 2 + b_1) \cdot 2 + b_0.
+  \]
+  </p>
+<p>
+  Using the exponentiation laws \(a^{x+y}=a^x a^y\) and \(a^{2x}=(a^x)^2\), we obtain
+</p>
+
+
+\[
+\begin{aligned}
+a^n
+  &= a^{\bigl((((b_k\cdot 2 + b_{k-1}) 2 + b_{k-2})\cdots b_2) 2 + b_1\bigr) 2 + b_0} \\[6pt]
+  &= a^{\bigl((((b_k\cdot 2 + b_{k-1}) 2 + b_{k-2})\cdots b_2) 2 + b_1\bigr) 2}\; a^{\,b_0}
+     && \text{(use } a^{x+y}=a^x a^y\text{)} \\[6pt]
+  &= \Bigl(a^{(((b_k\cdot 2 + b_{k-1}) 2 + b_{k-2})\cdots b_2) 2 + b_1}\Bigr)^{2}\; a^{\,b_0}
+     && \text{(use } a^{2x}=(a^x)^2\text{)} \\[6pt]
+  &= \Bigl(\;a^{(((b_k\cdot 2 + b_{k-1}) 2 + b_{k-2})\cdots b_2) 2}\; a^{\,b_1}\Bigr)^{2}\; a^{\,b_0} 
+  && \text{(use } a^{x+y}=a^x a^y\text{ again)} \\[6pt]
+  & \vdots \\[6pt]
+  &= \Bigl(\;\bigl(\bigl((a^{\,b_k})^{2}\, a^{\,b_{k-1}}\bigr)^{2}\, a^{\,b_{k-2}} \cdots a^{b_2} \bigr)^{2}\, a^{\,b_1}\Bigr)^{2}\, a^{\,b_0}.
+\end{aligned}
+\]
+
+<p><em>Example.</em> For \(n=13=(1101)_2\),
+\(a^{13} = (((a^{1})^2 a^{1})^2 a^{0})^2 a^{1} = ((a^{2}\cdot a)^2)^2 \cdot a.\)</p>
+
+<p>Notice that \(a^{b_i}\) is either \(a\) or \(1\) depending on whether or not \(b_i = 1\).
+  This leads to the LTR binary exponentiation algorithm: at each step, we square the current result
+  and multiply by \(a\) if the current bit is \(1\). Here is the pseudocode:
+</p>
+
+<ol class="pseudocode">
+    <li>Let \(bits\) be the binary digits of \(n\) (from most significant to least).</li>
+    <li>\(result = 1\)</li>
+    <li>for each bit \(b\) in \(bits\):</li>
+    <ol>
+      <li>\(result = result \times result\)</li>
+      <li>if \(b = 1\): \(result = result \times a\)</li>
+    </ol>
+    <li>return \(result\)</li>
+  </ol>
+
+
+<!-- Example box (uses your site's example styling if .example exists) -->
+<div class="example-box">
+  <h4>Example: LTR trace for \(a=3,\; n=13=(1101)_2\)</h4>
+  <table class="example-table">
+    <tr><th>Bit (MSB→LSB)</th><th>Operation</th><th>result (running value)</th></tr>
+    <tr><td>Start</td><td>—</td><td>1</td></tr>
+    <tr><td>1</td><td>\(result\leftarrow result^2=1\); <br>\(result\leftarrow result\cdot 3=3\)</td><td>3</td></tr>
+    <tr><td>1</td><td>\(result\leftarrow result^2=9\); <br>\(result\leftarrow result\cdot 3=27\)</td><td>27</td></tr>
+    <tr><td>0</td><td>\(result\leftarrow result^2=729\); <br>(no multiply)</td><td>729</td></tr>
+    <tr><td>1</td><td>\(result\leftarrow result^2=531441\); <br>\(result\leftarrow result\cdot 3=1{,}594{,}323\)</td><td>1,594,323</td></tr>
+  </table>
+  <p class="example-footnote">
+    Final: \(result = 3^{13} = 1{,}594{,}323\). Each step squares, then multiplies by \(a\) iff the current bit is 1.
+  </p>
+</div>
+
+<p>Here is a demonstration that will allow you to explore the algorithm with a few more bases and exponents.</p>
+
+  <div class="embeddedDemoContainer">
+    <iframe class="embeddedDemo"
+            src="/Algorithms/Content/Demos/Transform-and-Conquer/Binary%20Exponentiation%20LTR%20Demo.html"
+            allow="fullscreen"
+            name="ALGORITHM_NAME-demo">
+    </iframe>
+  </div>
+  </section>
+
+  <section id="rtl" section-title="Right-to-Left">
+  <h3>Right-to-Left (Exponentiation-by-Squaring) Version</h3>
+
+  <p>
+  In the <em>Right-to-Left</em> version, we process the bits of \(n\) from least significant to most significant.
+  First, we write \(n\) as a polynomial in 2,
+  \[
+  \begin{array}{rcl}
+  n &=& (b_k b_{k-1} \ldots b_0)_2 \quad\text{where } b_i \in \{0,1\}, \\[4pt]
+    &=& b_0 + 2b_1 + 2^2b_2 + \cdots + 2^k b_k.
+  \end{array}
+  \]
+  We can separate the contribution of each bit:
+  \[
+    a^n = a^{\,b_0 + 2b_1 + 2^2b_2 + \cdots + 2^k b_k}.
+  \]
+  Using the exponent law \(a^{x+y} = a^x a^y\),
+  \[
+    a^n = a^{b_0} \cdot a^{2b_1} \cdot a^{2^2b_2} \cdots a^{2^k b_k}
+         = \prod_{i=0}^{k} (a^{2^i})^{b_i}.
+  \]
+</p>
+
+  <div class="example-box">
+  For example, with \(n = 13 = (1101)_2\),
+  \[
+  \begin{array}{rcl}
+  a^{13} &=& (a^{2^0})^{1} \cdot (a^{2^1})^{0} \cdot (a^{2^2})^{1} \cdot (a^{2^3})^{1} \\[4pt]
+         &=& a^{1} \cdot (a^2)^{0} \cdot (a^4)^{1} \cdot (a^8)^{1} \\[4pt]
+         &=& a \cdot a^4 \cdot a^8.
+  \end{array}
+  \]
+  </div>
+<p>
+  Each term \((a^{2^i})^{b_i}\) represents a power of \(a\) that should be included
+  in the product only when \(b_i = 1\).  
+  Notice that each new power of \(a\) is the square of the previous one:
+  \(a^{2^{i+1}} = (a^{2^i})^2\).
+  This observation leads directly to an efficient iterative algorithm.
+  We scan the bits of \(n\) starting from \(b_0\) (the least significant bit),
+  maintaining two values: a running result and the current power of \(a\).
+  For each bit \(b_i\):
+  <ul>
+    <li>if \(b_i = 1\), multiply the result by the current power \(a^{2^i}\);</li>
+    <li>then square the power to get \(a^{2^{i+1}}\) for the next bit.</li>
+  </ul>
+  This way, we never recompute any power from scratch—each arises naturally by squaring the one before.
+</p>
+
+
+  <p>
+  This leads directly to the iterative Right-to-Left (square-and-multiply) algorithm:
+  at each step, if the current bit of \(n\) is 1, we multiply the result by the current base.
+  Then we square the base and shift the bits of \(n\) to the right (by dividing by 2).
+</p>
+
+<ol class="pseudocode">
+  <li>\(result = 1\)</li>
+  <li>\(base = a\)</li>
+  <li><strong>while</strong> \(n > 0\):</li>
+  <ol>
+    <li><strong>if</strong> \(n\) is odd: \(result = result \times base\)</li>
+    <li>\(base = base \times base\)</li>
+    <li>\(n = \lfloor n / 2 \rfloor\)</li>
+  </ol>
+  <li><strong>return</strong> \(result\)</li>
+</ol>
+
+<div class="example-box">
+  <h4>Example: RTL trace for \(a=3,\; n=13=(1101)_2\)</h4>
+  <table class="example-table">
+    <tr><th>Step</th><th>\(n\) (binary)</th><th>Bit \(b_0\)</th><th>Operation(s)</th>
+      <th style="width: 110px;">\(result\)</th><th style="width: 110px;">\(base\)</th></tr>
+    <tr><td>Start</td><td>1101</td><td>—</td><td>Initialize</td><td>1</td><td>3</td></tr>
+    <tr>
+      <td>1</td><td>1101</td><td>1</td>
+      <td>
+        Multiply: \(result = 1\times 3 = 3\)<br>
+        Square base: \(base = 3^2 = 9\)
+      </td>
+      <td>3</td><td>9</td>
+    </tr>
+    <tr>
+      <td>2</td><td>110</td><td>0</td>
+      <td>
+        Skip multiply<br>
+        Square base: \(base = 9^2 = 81\)
+      </td>
+      <td>3</td><td>81</td>
+    </tr>
+    <tr>
+      <td>3</td><td>11</td><td>1</td>
+      <td>
+        Multiply: \(result = 3\times 81 = 243\)<br>
+        Square base: \(base = 81^2 = 6561\)
+      </td>
+      <td>243</td><td>6561</td>
+    </tr>
+    <tr>
+      <td>4</td><td>1</td><td>1</td>
+      <td>
+        Multiply: \(result = 243\times 6561 = 1{,}594{,}323\)<br>
+        Square base: \(base = 6561^2 = 43{,}046{,}721\)
+      </td>
+      <td>1,594,323</td><td>43,046,721</td>
+    </tr>
+  </table>
+  <p class="example-footnote">
+    Final: \(r = 3^{13} = 1{,}594{,}323\).  
+    Each iteration multiplies by the current base if the bit is 1, then squares the base for the next bit.
+  </p>
+</div>
+
+  <p>Here is a demonstration that will allow you to explore the algorithm with a few more bases and exponents.</p>
+
+  <div class="embeddedDemoContainer">
+    <iframe class="embeddedDemo"
+            src="/Algorithms/Content/Demos/Transform-and-Conquer/Binary%20Exponentiation%20RTL%20Demo.html"
+            allow="fullscreen"
+            name="ALGORITHM_NAME-demo">
+    </iframe>
+  </div>
+  </section>
+
+</section>
+<section id="code" section-title="Implementation in Java, C++, Python">
+  <h2>Implementation in Java, C++, Python</h2>
+
+<p>
+  The implementations below use the <em>Right-to-Left</em> form of binary exponentiation.
+  It is concise and efficient for typical integer ranges, since each loop step halves the exponent and squares the base.
+  For very large values&mdash;such as those used in modular arithmetic, cryptography, or arbitrary-precision libraries&mdash;
+  you would normally replace the built-in numeric type with a <code>BigInteger</code> (Java),
+  <code>long long</code> or multiprecision type (C++), or Python's native arbitrary-precision <code>int</code>.
+</p>
+
+<p>
+  The <em>Left-to-Right</em> (Horner-style) version follows the same principles but updates the running value in a different order:
+  it squares the current result at each step and multiplies by the base only when the current bit of the exponent is 1.
+  Implementing that variant is left as an exercise for the reader.
+</p>
+
+
+  <div class="tab-group">
+    <div class="tabs" role="tablist">
+      <button id="tab-java" class="tablink active" data-lang="java" role="tab"
+              aria-controls="java" aria-selected="true">Java</button>
+      <button id="tab-cpp" class="tablink" data-lang="cpp" role="tab"
+              aria-controls="cpp" aria-selected="false">C++</button>
+      <button id="tab-python" class="tablink" data-lang="python" role="tab"
+              aria-controls="python" aria-selected="false">Python</button>
+    </div>
+
+    <!-- Java -->
+    <div id="java" class="code-container active" role="tabpanel" aria-labelledby="tab-java">
+      <pre><code class="language-java">long powerRTL(long a, long n) {
+    long result = 1;
+    long base = a;
+    while (n > 0) {
+        if ((n & 1) == 1) {
+           result *= base;
+        }
+        base *= base;
+        n >>= 1;   // divide n by 2
+    }
+    return result;
+}</code></pre>
+    </div>
+
+    <!-- C++ -->
+    <div id="cpp" class="code-container" role="tabpanel" aria-labelledby="tab-cpp">
+      <pre><code class="language-cpp">long powerRTL(long a, long n) {
+    long result = 1;
+    long base = a;
+    while (n > 0) {
+        if (n & 1) {
+           result *= base;
+        }
+        base *= base;
+        n >>= 1;   // divide n by 2
+    }
+    return result;
+}</code></pre>
+    </div>
+
+    <!-- Python -->
+    <div id="python" class="code-container" role="tabpanel" aria-labelledby="tab-python">
+      <pre><code class="language-python">def powerRTL(a: int, n: int) -> int:
+    result = 1
+    base = a
+    while n > 0:
+        if n % 2 == 1:
+            result *= base
+        base *= base
+        n //= 2
+    return result</code></pre>
+    </div>
+  </div>
+</section>
+
+
+  <section id="analysis" section-title="Time/Space Analysis">
+  <h2>Time/Space Analysis</h2>
+
+  <p><strong>Time Complexity:</strong></p>
+  <p>
+    Let \(n\) have \(k+1\) bits, so \(k = \lfloor \log_2 n \rfloor\).
+    Both versions of binary exponentiation perform one squaring for each bit of \(n\),
+    and one additional multiplication for each bit equal to 1.
+    The number of 1s in \(n\) is called its <em>population count</em> or <em>Hamming weight</em>,
+    denoted \(\mathrm{popcount}(n)\).
+    Given this, the algorithm performs 
+    \((k+1)\) squarings and \(\mathrm{popcount}(n)\leq k+1\) multiplies.
+    In the worst case (all bits 1), this is at most \(2\lfloor \log_2 n \rfloor + 2\) multiplications.
+    Thus, both the Left-to-Right and Right-to-Left algorithms run in
+    \(O(\log n)\)
+    time.  The constant factors are small, and each step requires only a few arithmetic operations.
+  </p>
+
+  <p>
+    The Left-to-Right version processes bits in descending order, while the Right-to-Left version
+    works upward from the least significant bit.
+    Their operation counts differ slightly depending on how multiplications are grouped,
+    but asymptotically they are identical.
+    In practice, the RTL variant is especially convenient when halving \(n\) by division or bit shifts,
+    while the LTR version is natural when bits are read from a precomputed array.
+  </p>
+
+  <p><strong>Space Complexity:</strong></p>
+  <p>
+    Both versions use only a constant number of variables&mdash;two or three accumulators
+    (for the result, current base, and loop index)&mdash;so the extra space required is \(O(1)\).
+    A recursive implementation of the Right-to-Left method would add
+    \(O(\log n)\) space for the call stack, but the iterative forms shown here
+    require only constant additional memory.
+  </p>
+
+  <p><strong>Summary:</strong></p>
+  <ul>
+    <li>Naive repeated multiplication: \(O(n)\) time, \(O(1)\) space</li>
+    <li>Binary exponentiation (either version): \(O(\log n)\) time, \(O(1)\) space</li>
+  </ul>
+
+  <p>
+    The improvement is exponential: doubling the exponent increases the work by only one additional squaring.
+    This efficiency is what makes binary exponentiation the standard technique for fast modular powers and
+    large integer computations.
+  </p>
+</section>  
+  
+<section id="variations" section-title="Variations/Improvements">
+  <h2>Variations and Improvements</h2>
+
+  <p>
+    Binary exponentiation has several well-known variants and refinements.
+    Each keeps the same basic idea—using the binary representation of the exponent
+    to minimize multiplications—but adjusts the method to fit particular needs.
+  </p>
+
+  <ul>
+    <li><strong>Modular Exponentiation:</strong>  
+      When working under a modulus \(m\), all intermediate results are reduced modulo \(m\):
+      \[
+        result = (result \times base) \bmod m, \qquad
+        base = (base \times base) \bmod m.
+      \]
+      This prevents overflow and keeps all values bounded by \(m\).
+      It is essential for cryptographic applications such as RSA and Diffie–Hellman.
+    </li>
+
+    <li><strong>Handling Large Integers:</strong>  
+      For very large bases or exponents, native integer types may overflow.
+      Use arbitrary-precision libraries such as <code>BigInteger</code> (Java),
+      <code>boost::multiprecision</code> or <code>GMP</code> (C++),
+      or Python's built-in <code>int</code>.  
+      The algorithm remains the same, but each multiplication becomes more expensive.
+    </li>
+
+    <li><strong>Windowed (k-ary) Exponentiation:</strong>  
+      Instead of processing one bit per step, the exponent can be read in small groups of \(k\) bits.
+      Precomputing powers \(a^1, a^2, \ldots, a^{2^k-1}\) allows several bits to be handled at once,
+      reducing the total number of multiplications.
+      This trade-off is widely used in high-performance modular exponentiation.
+    </li>
+
+    <li><strong>Montgomery and Barrett Reduction:</strong>  
+      In modular arithmetic, specialized multiplication methods such as
+      <em>Montgomery reduction</em> and <em>Barrett reduction</em>
+      can replace the costly division step in modular reduction.
+      These are the standard techniques in modern cryptographic libraries.
+    </li>
+
+    <li><strong>Parallel and Vector Implementations:</strong>  
+      When many exponentiations must be computed, individual instances can run in parallel.
+      GPUs and vector units benefit from this since each iteration of binary exponentiation
+      is independent of others.  
+      Windowed and modular methods are often combined with parallelism for large-scale computations.
+    </li>
+
+    <li><strong>Left-to-Right vs. Right-to-Left:</strong>  
+      Both versions perform the same number of operations overall,
+      but differ in data flow.
+      The Right-to-Left (square-and-multiply) form naturally fits
+      bitwise manipulation of \(n\),
+      while the Left-to-Right (Horner-style) form aligns with streamed bit input
+      or situations where the base must remain constant between iterations.
+    </li>
+  </ul>
+
+  <p>
+    All of these refinements build on the same insight:
+    by transforming the exponent into binary form, the work grows only as
+    \(O(\log n)\) rather than \(O(n)\),
+    making binary exponentiation the foundation for most fast-power algorithms.
+  </p>
+</section>
+<section id="links" section-title="Links to Resources">
+  <h2>Links to Resources</h2>
+  <ul>
+    <li>
+      <a href="https://en.wikipedia.org/wiki/Exponentiation_by_squaring" target="_blank">
+        Exponentiation by Squaring (Wikipedia)
+      </a> Overview of both Left-to-Right and Right-to-Left binary exponentiation, including pseudocode and mathematical derivation.
+    </li>
+
+    <li>
+      <a href="https://cp-algorithms.com/algebra/binary-exp.html" target="_blank">
+        Binary Exponentiation (CP-Algorithms)
+      </a> Clear explanation with iterative and recursive code in C++ and notes on modular and matrix exponentiation.
+    </li>
+
+    <li>
+      <a href="https://www.geeksforgeeks.org/modular-exponentiation-power-in-modular-arithmetic/" target="_blank">
+        Modular Exponentiation (GeeksforGeeks)
+      </a> Step-by-step description of modular binary exponentiation with code examples and complexity analysis.
+    </li>
+  </ul>
+</section>
+
+<section id="reading-questions" section-title="Reading Comprehension Questions">
+  <h2>Reading Comprehension Questions</h2>
+  <ol>
+    <li><strong>Transform-and-Conquer:</strong>
+      In one or two sentences, explain why binary exponentiation is classified as transform-and-conquer.
+    </li>
+
+    <li><strong>Binary as Polynomial:</strong>
+      Given that \(n=(b_kb_{k-1}\cdots b_1 b_0)_2\), write \(n\) as a polynomial in 2 using the \(b_i\) as the coefficients, 
+      and then rewrite it using Horner's rule.
+    </li>
+    <li><strong>Binary Expansion Practice (123):</strong>
+      Find the binary representation of \(n = 123\), then write it as a polynomial in 2 using its binary digits.
+      Finally, Rewrite the polynomial using Horner's rule.
+    </li>
+
+    <li><strong>Product View (RTL):</strong>
+      Starting from \(n=\sum_{i=0}^k b_i 2^i\), derive the identity
+      \(a^n=\prod_{i=0}^k (a^{2^i})^{b_i}\). What does \(b_i\) decide at step \(i\)?
+    </li>
+
+    <li><strong>Expanded Product Representation:</strong>  
+      Write \(4^{75}\) in the product form used for the Right-to-Left derivation:
+      \(a^n = \prod_{i=0}^k (a^{2^i})^{b_i}.\)
+    </li>
+
+    <li><strong>LTR Algebra:</strong>
+      Show the key algebraic "peel" that justifies the LTR update
+      (square the running value, then multiply by \(a\) iff the current bit is 1).
+      You may write one line of the derivation that removes the final \(+\,b_0\).
+    </li>
+
+    <li><strong>Operation Count:</strong>
+      If \(n\) has \(k+1\) bits and \(\mathrm{popcount}(n)=t\), how many squarings/multiplications are performed?
+      Give the worst-case bound in terms of \(k\).
+    </li>
+
+    <li><strong>Expanded Product Representation (7^91):</strong>  
+      Write \(7^{91}\) in the product form used for the Right-to-Left derivation:
+      \(a^n = \prod_{i=0}^k (a^{2^i})^{b_i}\).
+      First, express \(91\) in binary and identify its bits \(b_k,\ldots,b_0\).
+      Then expand \(7^{91}\) step by step as a product of terms
+      \((7^{2^i})^{b_i}\), showing which powers of 7 are included (for bits equal to 1)
+      and which are skipped (for bits equal to 0).
+    </li>
+    <li><strong>Edge Cases:</strong>
+      For nonnegative \(n\), what should the algorithm return for \(n=0\)?  
+      What subtle change (if any) is needed if \(a=0\) and \(n=0\)?
+    </li>
+  </ol>
+
+  <button id="toggleAnswers" class="show-answer" aria-expanded="false">Show Answers</button>
+  <div id="answers" class="answer" hidden>
+    <ol>
+      <li><strong>Answer:</strong>
+        We <em>transform</em> the problem by expressing \(n\) in base 2; the resulting bit structure lets us
+        <em>conquer</em> with \(O(\log n)\) steps (squarings plus selective multiplies), instead of \(O(n)\) naive multiplications.
+      </li>
+
+      <li><strong>Answer:</strong>
+        Polynomial form:
+        \(n=b_k2^k+b_{k-1}2^{k-1}+\cdots+b_1 2+b_0\) with \(b_i\in\{0,1\}\).
+        <br>Horner form:
+        \(n=(((b_k\cdot 2+b_{k-1})\cdot 2+b_{k-2})\cdots\cdot 2+b_1)\cdot 2+b_0.\)
+      </li>
+      <li><strong>Answer:</strong>
+        \(123_{10} = (1111011)_2\), so  
+        polynomial form:
+        \[
+          n = 1\cdot2^6 + 1\cdot2^5 + 1\cdot2^4 + 1\cdot2^3 + 0\cdot2^2 + 1\cdot2^1 + 1\cdot2^0.
+        \]
+        Horner's rule form:
+        \[
+          n = ((((((1)\cdot2 + 1)\cdot2 + 1)\cdot2 + 1)\cdot2 + 0)\cdot2 + 1)\cdot2 + 1.
+        \]
+      </li>
+      <li><strong>Answer:</strong>
+        Starting from
+        \[
+          n = \sum_{i=0}^k b_i 2^i
+              = b_0 \cdot 2^0 + b_1 \cdot 2^1 + b_2 \cdot 2^2 + \cdots + b_k \cdot 2^k,
+          \qquad b_i \in \{0,1\},
+        \]
+        apply the exponent laws \(a^{x+y}=a^x a^y\) and \(a^{c x}=(a^x)^c\) (for integer \(c\)):
+        \[
+        \begin{aligned}
+          a^n
+            &= a^{\,\sum_{i=0}^k b_i 2^i} \\[4pt]
+            &= a^{\,b_0 2^0 + b_1 2^1 + b_2 2^2 + \cdots + b_k 2^k} \\[4pt]
+            &= a^{\,b_0 2^0} \cdot a^{\,b_1 2^1} \cdot a^{\,b_2 2^2} \cdots a^{\,b_k 2^k} \\[4pt]     
+            &= (a^{2^0})^{b_0} \cdot (a^{2^1})^{b_1} \cdot (a^{2^2})^{b_2} \cdots (a^{2^k})^{b_k}.\\[4pt]
+            &= \prod_{i=0}^k (a^{2^i})^{b_i}.
+        \end{aligned}
+        \]
+        This final product shows that each bit \(b_i\) acts as a switch&mdash;if \(b_i = 1\),
+        the corresponding factor \(a^{2^i}\) is included in the product; if \(b_i = 0\),
+        it is skipped.
+        In the RTL algorithm, this becomes the rule:
+        multiply the running result by the current base when the least significant bit of \(n\) is 1,
+        then square the base so that \(a^{2^i}\!\rightarrow\!a^{2^{i+1}}\) for the next iteration.
+      </li>
+      <li><strong>Answer:</strong>
+        First convert \(75\) to binary:
+        \[
+          75 = 64 + 8 + 2 + 1 = (1001011)_2.
+        \]
+        Thus the bits (from \(b_6\) down to \(b_0\)) are
+        \[
+          (b_6,b_5,b_4,b_3,b_2,b_1,b_0) = (1,0,0,1,0,1,1).
+        \]
+        Using the product form
+        \(\displaystyle a^n = \prod_{i=0}^{k} (a^{2^i})^{b_i}\) with \(a=4\), \(n=75\), \(k=6\),
+        \[
+          4^{75}
+            = \prod_{i=0}^{6} \bigl(4^{2^i}\bigr)^{b_i}
+            = (4^{2^6})^{1} (4^{2^5})^{0} (4^{2^4})^{0} (4^{2^3})^{1} (4^{2^2})^{0} (4^{2^1})^{1} (4^{2^0})^{1}.
+        \]
+        Dropping the zero-bit factors:
+        \[
+          4^{75} = 4^{64} \cdot 4^{8} \cdot 4^{2} \cdot 4^{1}.
+        \]
+        (Equivalently, \(4^{75} = 4^{64+8+2+1}\).)
+      </li>
+
+
+      <li><strong>Answer:</strong>
+        Example "peel" of the last bit:
+        \(a^{((\cdots)\cdot 2 + b_0)}=a^{(\cdots)\cdot 2}\,a^{b_0}=(a^{(\cdots)})^2\,a^{b_0}.\)
+        This matches the LTR step: square, then if \(b_0=1\) multiply by \(a\).
+      </li>
+
+      <li><strong>Answer:</strong>
+        Squarings: \(k+1\) (one per bit).  
+        Multiplies: \(\mathrm{popcount}(n)=t\).  
+        Worst case (all bits 1): at most \((k+1)+t \le 2(k+1)\) total multiplications, i.e., \(O(\log n)\).
+      </li>
+
+      <li><strong>Answer:</strong>
+        Convert \(91\) to binary:
+        \[
+          91 = 64 + 16 + 8 + 2 + 1 = (1011011)_2.
+        \]
+        Thus the bits (from \(b_6\) down to \(b_0\)) are
+        \[
+          (b_6,b_5,b_4,b_3,b_2,b_1,b_0) = (1,0,1,1,0,1,1).
+        \]
+        Using the product form
+        \(\displaystyle a^n = \prod_{i=0}^{6} (a^{2^i})^{b_i}\)
+        with \(a=7\),
+        \[
+          7^{91}
+            = (7^{2^6})^{1} (7^{2^5})^{0} (7^{2^4})^{1} (7^{2^3})^{1}
+              (7^{2^2})^{0} (7^{2^1})^{1} (7^{2^0})^{1}.
+        \]
+        Removing the zero-bit factors gives
+        \[
+          7^{91} = 7^{64} \cdot 7^{16} \cdot 7^{8} \cdot 7^{2} \cdot 7^{1}.
+        \]
+        These correspond exactly to the bits of \(91=(1011011)_2\) that are 1:
+        \(b_6, b_4, b_3, b_1,\) and \(b_0.\)
+      </li>
+
+
+      <li><strong>Answer:</strong>
+        Return \(a^0=1\) for all \(a\neq 0\).  
+        If \(a=0\) and \(n=0\), the value \(0^0\) is undefined/conventional; many libraries return \(1\), but it should be specified.
+      </li>
+    </ol>
+  </div>
+</section>
+
+<section id="activities" section-title="In-Class Activities">
+  <h2>In-Class Activities</h2>
+  <ol>
+    <li><strong>Trace by Hand (Small Exponent):</strong>  
+      Work out \(a^n\) for \(a=2,\; n=42\) using both the Left-to-Right and Right-to-Left algorithms.  
+      Show every squaring and multiplication step.  
+      Verify that both versions yield the same same final result.
+      You can also check your work with the demos <em>after you have done it by hand!</em>
+    </li>
+
+    <li><strong>Binary Breakdown:</strong>  
+      Convert several decimal exponents&mdash;such as 27, 45, and 91&mdash;into binary.  
+      For each, write the product form  
+      \(\displaystyle a^n = \prod_{i=0}^{k}(a^{2^i})^{b_i}\)  
+      and highlight which powers of \(a\) are used (where \(b_i=1\)).
+    </li>
+
+    <li><strong>Compare Operation Counts:</strong>  
+      For \(n=31,\; n=32,\; n=33\), determine how many squarings and multiplications occur.  
+      Discuss how the number of 1-bits (the Hamming weight) affects the total work.
+    </li>
+
+    <li><strong>Explore the Demo:</strong>  
+      Use the embedded demos to visualize the LTR and RTL processes.  
+      Try exponents that differ by one bit (e.g., 15 vs. 16) and observe how a single binary change alters the sequence of operations.
+    </li>
+
+    <li><strong>Edge Case Check:</strong>  
+      Predict and confirm what each algorithm returns for  
+      \(n=0,\; n=1,\; a=0,\) and \(a=1\).  
+      Discuss why these cases must be handled explicitly in an implementation.
+    </li>
+
+    <li><strong>Modulo Version:</strong>  
+      Modify the pseudocode to compute \(a^n \bmod m\) safely without overflow.  
+      Test your version with small moduli and compare results against direct computation.
+    </li>
+
+    <li><strong>Horner's Rule Connection:</strong>  
+      For the LTR form, express \(n=45\) in Horner's rule notation and show how each new bit produces a "square then maybe multiply" step.  
+      Compare this to evaluating a polynomial using Horner's method.
+    </li>
+
+    <li><strong>Think Ahead:</strong>  
+      Suppose you need to compute \(a^n\) repeatedly for the same \(a\) but many different \(n\).  
+      Brainstorm with your group how you might reuse work&mdash;what could be precomputed, 
+      and which variant of binary exponentiation would help most?
+      What algorithmic technique are you using?
+    </li>
+  </ol>
+</section>
+<section id="problems" section-title="Homework Problems">
+  <h2>Homework Problems</h2>
+  <ol>
+    <li><strong>Modular Extension:</strong>  
+      Modify the iterative algorithm to compute \(a^n \bmod m\).  
+      Show that all intermediate results remain below \(m^2\), and explain why this prevents overflow in fixed-width integer arithmetic.
+    </li>
+
+    <li><strong>Manual Trace of Modular Extension:</strong>  
+      Compute \(5^{101}\bmod 1000\) by hand using both the Left-to-Right and Right-to-Left binary exponentiation algorithms.  
+      Show every squaring and multiplication step, and verify that both approaches produce the same final result.
+    </li>
+
+    <li><strong>Binary Expansion Practice:</strong>  
+      Express \(n = 123\) as a polynomial in 2 using its bits, then rewrite it using Horner's rule.  
+      (Show all steps as in the derivation for the Left-to-Right version.)
+    </li>
+
+    <li><strong>Operation Counting:</strong>  
+      For \(n = 31, 32, 33,\) determine how many squarings and multiplications occur in binary exponentiation.  
+      Relate your counts to the binary representation of each exponent.
+    </li>
+
+    <li><strong>Comparing Growth:</strong>  
+      Plot/tabulate the number of multiplications used by naive exponentiation and binary exponentiation  
+      for \(n = 1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024\).
+      What pattern do you observe?  How large must \(n\) be before binary exponentiation saves more than 90% of the work?
+    </li>
+  </ol>
+</section>
+
+
+</body>
+</html>
