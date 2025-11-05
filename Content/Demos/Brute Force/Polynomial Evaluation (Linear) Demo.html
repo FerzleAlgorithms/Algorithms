@@ -69,6 +69,8 @@
     .input-row {
       margin-bottom: 16px;
     }
+
+    /* (no scroll container for linear demo) */
   </style>
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-DQ5LVZVFDC"></script>
@@ -123,9 +125,8 @@
     <table id="step-table">
       <thead>
         <tr>
-          <th>i (term index)</th>
-          <th>power</th>
-          <th>term = a<sub>i</sub>·x<sup>i</sup></th>
+          <th>i</th>
+          <th>computation</th>
           <th>result</th>
           <th>#mult</th>
           <th>#add</th>
@@ -152,7 +153,7 @@
 
     let events = [];
     let pointer = -1;
-    let termToSpan = [];
+    let coeffIndexToSpan = {}; // map coefficient index -> span element
     let playing = false;
     let intervalId = null;
 
@@ -181,103 +182,95 @@
 
     function renderPolynomial() {
       polyDisplay.innerHTML = '';
-      const termStrings = buildPolynomialHTML(coefficients);
-      termToSpan = [];
-      termStrings.forEach((ts, idx) => {
+      coeffIndexToSpan = {};
+      let hasTerm = false;
+      for (let i = 0; i < coefficients.length; i++) {
+        const a = coefficients[i];
+        if (a === 0) continue;
+        let sign = '';
+        if (hasTerm) {
+          sign = (a > 0) ? '+ ' : '- ';
+        } else {
+          sign = (a < 0) ? '- ' : '';
+        }
+        const absA = Math.abs(a);
+        let term = '';
+        if (i === 0) {
+          term = `${absA}`;
+        } else {
+          term = (absA !== 1 ? `${absA}` : '') + 'x' + (i > 1 ? `<sup>${i}</sup>` : '');
+        }
+
         const span = document.createElement('span');
         span.className = 'term';
-        span.innerHTML = ts;
-        span.setAttribute('data-nz-index', idx);
-        termToSpan[idx] = span;
+        span.innerHTML = sign + term;
+        span.dataset.coeffIndex = String(i);
         polyDisplay.appendChild(span);
-        if (idx < termStrings.length - 1) {
+        coeffIndexToSpan[i] = span;
+        hasTerm = true;
+        if (i < coefficients.length - 1) {
           polyDisplay.appendChild(document.createTextNode(' '));
         }
-      });
+      }
     }
 function buildEvents(x) {
   events = [];
   let cumulative = 0;
   let power = 1;
-  let rowIdxCounter = 0;
+  // explicit init for clarity
+  events.push({
+    type: 'init',
+    computation: 'Initialize: result = 0; power = 1',
+    resultAfter: 0,
+    multCount: 0,
+    addCount: 0,
+    desc: 'Initialize result to 0 and power to 1.'
+  });
 
   for (let i = 0; i < coefficients.length; i++) {
-    if (i === 0) {
-      // i = 0: power is already 1
-      const coeff = coefficients[0];
-      if (coeff !== 0) {
-        const initialTerm = coeff;
-        events.push({
-          type: 'createRow',
-          rowIdx: rowIdxCounter,
-          termIdx: rowIdxCounter,
-          i,
-          initialTerm,
-          power,  // will be 1
-          desc: `Start i = 0, coefficient = a[0] = ${initialTerm}, power = ${power}`
-        });
-        const prevTotal = cumulative;
-        cumulative += initialTerm;
-        events.push({
-          type: 'updateAdd',
-          rowIdx: rowIdxCounter,
-          i,
-          prevTotal,
-          term: initialTerm,
-          total: cumulative,
-          addCount: 1,
-          desc: `Add term to result: ${prevTotal} + ${initialTerm} = ${cumulative}`
-        });
-        rowIdxCounter++;
-      }
-      // <-- removed the `power = x;` here! -->
-    } else {
-      // now for i>=1, bump the power exactly once:
-      oldpow = power;
-      power = power * x;
-      
+    const ai = coefficients[i];
+    let multThisStep = 0;
+    let addThisStep  = 0;
+    let compLines = [];
 
-      const coeff = coefficients[i];
-      if (coeff !== 0) {
-        const initialTerm = coeff;
-        events.push({
-          type: 'createRow',
-          rowIdx: rowIdxCounter,
-          termIdx: rowIdxCounter,
-          i,
-          initialTerm,
-          power,  // now correctly x^i
-          desc: `Start i = ${i}, coefficient = a[${i}] = ${initialTerm}, power = power*x = ${oldpow}*${x} = ${power}`
-        });
-        // one multiplication:
-        const term = initialTerm * power;
-        events.push({
-          type: 'updateMult',
-          rowIdx: rowIdxCounter,
-          i,
-          prevTerm: initialTerm,
-          x: power,
-          term,
-          multCount: 1,
-          total: cumulative,
-          desc: `Multiply coefficient by power: ${initialTerm} * ${power} = ${term}`
-        });
-        // then add:
-        const prevTotal = cumulative;
-        cumulative += term;
-        events.push({
-          type: 'updateAdd',
-          rowIdx: rowIdxCounter,
-          i,
-          prevTotal,
-          term,
-          total: cumulative,
-          addCount: 1,
-          desc: `Add term to result: ${prevTotal} + ${term} = ${cumulative}`
-        });
-        rowIdxCounter++;
-      }
+    if (i === 0) {
+      // power is 1; term = a0
+      const term = ai; // a0 * 1
+      const prev = cumulative;
+      cumulative = prev + term;
+      addThisStep = 1; // count adding a0
+      compLines.push(`term = a[0] = ${ai}`);
+      compLines.push(`result = ${prev} + ${term} = ${cumulative}`);
+    } else {
+      // update power: power *= x
+      const beforePow = power;
+      power = power * x;
+      multThisStep += 1; // count the power update multiply
+      compLines.push(`power = ${beforePow} * ${x} = ${power}`);
+
+      // compute term = ai * power
+      const term = ai * power;
+      multThisStep += 1; // coefficient*power multiply (counted even if ai=0)
+      compLines.push(`term = a[${i}] * power = ${ai} * ${power} = ${term}`);
+
+      // add term to result
+      const prev = cumulative;
+      cumulative = prev + term;
+      addThisStep = 1;
+      compLines.push(`result = ${prev} + ${term} = ${cumulative}`);
     }
+
+    events.push({
+      type: 'iter',
+      i,
+      computation: compLines.join('<br>'),
+      multCount: multThisStep,
+      addCount: addThisStep,
+      resultAfter: cumulative,
+      desc: (i === 0)
+        ? 'Start with a[0]; no multiplications.'
+        : 'Update power, multiply by coefficient, then add to result.'
+    });
   }
 
   events.push({
@@ -375,93 +368,78 @@ function buildEvents(x) {
     */
 
     function rebuildDisplay() {
-      document.querySelectorAll('.highlight-cell').forEach(td => td.classList.remove('highlight-cell'));
-      document.querySelectorAll('.term.current').forEach(span => span.classList.remove('current'));
+      // clear polynomial highlights
+      document.querySelectorAll('.term.current').forEach(el => el.classList.remove('current'));
+
       stepTableBody.innerHTML = '';
 
-      const rows = [];
       let totalMult = 0;
       let totalAdd = 0;
-      let lastHighlight = null;
 
       for (let idx = 0; idx <= pointer; idx++) {
         const ev = events[idx];
-        switch (ev.type) {
-          case 'createRow': {
-            const { rowIdx, termIdx, i, initialTerm, power } = ev;
+        if (ev.type === 'init') {
+          const tr = document.createElement('tr');
+          const tdI = document.createElement('td');
+          tdI.textContent = '—';
+          const tdC = document.createElement('td');
+          tdC.innerHTML = ev.computation;
+          const tdR = document.createElement('td');
+          tdR.textContent = ev.resultAfter;
+          const tdM = document.createElement('td');
+          tdM.textContent = ev.multCount;
+          const tdA = document.createElement('td');
+          tdA.textContent = ev.addCount;
 
-            document.querySelectorAll('.term.current').forEach(el => el.classList.remove('current'));
-            termToSpan[termIdx].classList.add('current');
+          tr.appendChild(tdI);
+          tr.appendChild(tdC);
+          tr.appendChild(tdR);
+          tr.appendChild(tdM);
+          tr.appendChild(tdA);
+          stepTableBody.appendChild(tr);
 
-            const tr = document.createElement('tr');
-            // i
-            const tdI = document.createElement('td');
-            tdI.textContent = i;
-            tr.appendChild(tdI);
-            // power
-            const tdPower = document.createElement('td');
-            tdPower.textContent = power;
-            tr.appendChild(tdPower);
-            // term
-            const tdTerm = document.createElement('td');
-            tdTerm.textContent = initialTerm;
-            tr.appendChild(tdTerm);
-            // result
-            const tdRes = document.createElement('td');
-            tdRes.textContent = '';
-            tr.appendChild(tdRes);
-            // mult
-            const tdMult = document.createElement('td');
-            tdMult.textContent = '';
-            tr.appendChild(tdMult);
-            // add
-            const tdAdd = document.createElement('td');
-            tdAdd.textContent = '';
-            tr.appendChild(tdAdd);
+          if (idx === pointer) tdC.classList.add('highlight-cell');
+        } else if (ev.type === 'iter') {
+          totalMult += ev.multCount;
+          totalAdd  += ev.addCount;
 
-            rows[rowIdx] = tr;
-            stepTableBody.appendChild(tr);
+          const tr = document.createElement('tr');
+          const tdI = document.createElement('td');
+          tdI.textContent = ev.i;
+          const tdC = document.createElement('td');
+          tdC.innerHTML = ev.computation;
+          const tdR = document.createElement('td');
+          tdR.textContent = ev.resultAfter;
+          const tdM = document.createElement('td');
+          tdM.textContent = ev.multCount;
+          const tdA = document.createElement('td');
+          tdA.textContent = ev.addCount;
 
-            lastHighlight = { rowIdx, cellIdx: 2 }; // term cell is now index 2
-            break;
-          }
+          tr.appendChild(tdI);
+          tr.appendChild(tdC);
+          tr.appendChild(tdR);
+          tr.appendChild(tdM);
+          tr.appendChild(tdA);
+          stepTableBody.appendChild(tr);
 
-          case 'updateMult': {
-            const { rowIdx, term, multCount } = ev;
-            totalMult++;
-            const tr = rows[rowIdx];
-            const cells = tr.querySelectorAll('td');
-            cells[2].textContent = term;    // term cell
-            cells[4].textContent = multCount;
-            lastHighlight = { rowIdx, cellIdx: 2 };
-            break;
-          }
+          if (idx === pointer) tdC.classList.add('highlight-cell');
 
-          case 'updateAdd': {
-            const { rowIdx, total, addCount } = ev;
-            totalAdd++;
-            const tr = rows[rowIdx];
-            const cells = tr.querySelectorAll('td');
-            cells[3].textContent = total;   // result cell
-            cells[5].textContent = addCount;
-            lastHighlight = { rowIdx, cellIdx: 3 };
-            break;
-          }
-
-          case 'done':
-            break;
+          // highlight current term in the displayed polynomial if it exists
+          const span = coeffIndexToSpan[ev.i];
+          if (idx === pointer && span) span.classList.add('current');
         }
       }
 
-      if (pointer >= 0 && events[pointer].type === 'done') {
-        document.querySelectorAll('.term.current').forEach(el => el.classList.remove('current'));
-      } else if (lastHighlight) {
-        const tr = rows[lastHighlight.rowIdx];
-        const cell = tr.querySelectorAll('td')[ lastHighlight.cellIdx ];
-        cell.classList.add('highlight-cell');
+      const ev = pointer >= 0 ? events[pointer] : null;
+      if (!ev) {
+        commentDiv.innerHTML = '<br>';
+        statsDiv.textContent = '';
+      } else if (ev.type === 'done') {
+        commentDiv.innerHTML = `Done! Final answer = ${ev.final}`;
+      } else {
+        commentDiv.innerHTML = ev.desc;
       }
 
-      commentDiv.innerHTML = pointer < 0 ? '<br>' : events[pointer].desc + '<br>';
       statsDiv.textContent = `Total multiplications: ${totalMult}, Total additions: ${totalAdd}`;
       prevBtn.disabled = (pointer <= -1);
       nextBtn.disabled = (pointer >= events.length - 1);

@@ -59,6 +59,28 @@
       margin-left: 0.25em;
     }
 
+    /* Scrollable table container */
+    .table-container {
+      /* Responsive purely via CSS: adjusts with viewport changes */
+      max-height: 70vh;
+      min-height: 300px;
+      overflow-y: auto;
+      border: 1px solid #eee;
+      padding: 2px;
+      margin-top: 8px;
+      background: #fff;
+      box-sizing: border-box;
+      width: 100%;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    /* Sticky table header within scroll pane */
+    #step-table thead th {
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      background: #f0f0f0; /* re-assert to cover underlay */
+    }
     
   </style>
 <!-- Google tag (gtag.js) -->
@@ -130,11 +152,12 @@
       <!-- Shows total multiplications/additions -->
     </div>
 
+    <div class="table-container">
     <table id="step-table">
       <thead>
         <tr>
-          <th>i (term index)</th>
-          <th>power = x<sup>i</sup></th>
+          <th>i</th>
+          <th>computation</th>
           <th>result</th>
           <th>#mult</th>
           <th>#add</th>
@@ -144,6 +167,7 @@
         <!-- Rows will be appended here -->
       </tbody>
     </table>
+    </div>
   </div>
 
   <script>
@@ -185,6 +209,7 @@
     // Event structure
     let events = [];
     let pointer = -1;
+    let lastPointer = -1; // for auto-scroll detection
     let termToSpan = [];
 
     // Play/Pause state
@@ -241,6 +266,16 @@
       events = [];
       let cumulative = 0;
 
+      // Global initialization step (explicit)
+      events.push({
+        type: 'init',
+        computation: 'Initialize: result = 0; power resets per term',
+        resultAfter: 0,
+        multCount: 0,
+        addCount: 0,
+        desc: 'Initialize result to 0.'
+      });
+
       // Identify nonzero indices
       const nonzeroIndices = [];
       for (let i = 0; i < coefficients.length; i++) {
@@ -250,14 +285,14 @@
       nonzeroIndices.forEach((i, nzIdx) => {
         const coeff = coefficients[i];
 
-        // Create new row with initial power = 1
+        // Create term start event
         events.push({
           type: 'createRow',
           rowIdx: nzIdx,
           termIdx: nzIdx,
           i,
           power: 1,
-          desc: `Start i=${i}, power = 1`
+          desc: `Start term i = ${i}: power = 1`
         });
 
         // Compute power = x^i
@@ -270,6 +305,7 @@
           events.push({
             type: 'updatePower',
             rowIdx: nzIdx,
+            termIdx: nzIdx,
             i,
             prevPower,
             x,
@@ -277,7 +313,7 @@
             multCount,
             total: cumulative,
             totalMultSteps: i + 1,
-            desc: `Multiply x: power = power * x = ${prevPower} * ${x} = ${power} (multiplication ${multCount} of ${i + 1})`
+            desc: `power = ${prevPower} * ${x} = ${power}  (step ${multCount} of ${i} to build x^${i})`
           });
         }
 
@@ -289,15 +325,16 @@
         events.push({
           type: 'updateAdd',
           rowIdx: nzIdx,
+          termIdx: nzIdx,
           i,
           prevTotal,
           term,
           power,
           coeff,
-          multCount,
+          multCount,      // cumulative for term
           total: cumulative,
           addCount: 1,
-          desc: `Multiply coefficient and add: ${prevTotal} + ${coeff}*${power} = ${cumulative} (multiplication ${multCount} of ${i + 1})`
+          desc: `term = a[${i}] * power = ${coeff} * ${power} = ${term}<br>result = ${prevTotal} + ${term} = ${cumulative}`
         });
       });
 
@@ -310,142 +347,145 @@
     }
 
     // Rebuild display up to current pointer
+    // Height management: try to size relative to top window when embedded
+    function setTableContainerHeight() {
+      const container = document.querySelector('.table-container');
+      if (!container) return;
+
+      let topWin = window;
+      try {
+        if (window.top && window.top !== window) topWin = window.top;
+      } catch (e) { /* cross-origin: stay within iframe */ }
+
+      let viewportH = 0;
+      try {
+        viewportH = (topWin.visualViewport && topWin.visualViewport.height) || topWin.innerHeight || window.innerHeight;
+      } catch (e) {
+        viewportH = window.innerHeight;
+      }
+
+      // Compute container's offset from the top-level viewport
+      let offsetTop = container.getBoundingClientRect().top;
+      try {
+        if (topWin !== window && window.frameElement && window.frameElement.getBoundingClientRect) {
+          const iframeRect = window.frameElement.getBoundingClientRect();
+          offsetTop += iframeRect.top;
+        }
+      } catch (e) { /* ignore if cross-origin */ }
+
+      const footerPad = 16;
+      const available = Math.max(0, Math.floor(viewportH - offsetTop - footerPad));
+      const target = Math.floor(viewportH * 0.70);
+      const heightPx = Math.max(300, Math.min(target, available));
+      container.style.height = heightPx + 'px';
+    }
+
     function rebuildDisplay() {
-      // 1) CLEAR ALL EXISTING HIGHLIGHTS (table cells and polynomial terms)
-      document.querySelectorAll('.highlight-cell').forEach(td => {
-        td.classList.remove('highlight-cell');
-      });
-      document.querySelectorAll('.term.current').forEach(span => {
-        span.classList.remove('current');
-      });
-
-      // 2) WIPE OUT THE TABLE BODY COMPLETELY
+      // Clear table and highlights
       stepTableBody.innerHTML = '';
+      document.querySelectorAll('.term.current').forEach(el => el.classList.remove('current'));
 
-      // 3) REBUILD UP TO pointer
-      const rows = [];
       let totalMult = 0;
       let totalAdd = 0;
-      let lastHighlight = null;   // we'll re‐apply one highlight at the end
 
       for (let idx = 0; idx <= pointer; idx++) {
         const ev = events[idx];
-        switch (ev.type) {
-          case 'createRow': {
-            const { rowIdx, termIdx, i, power } = ev;
 
-            // 3a) Highlight the new polynomial term
-            document.querySelectorAll('.term.current').forEach(el => 
-              el.classList.remove('current')
-            );
-            termToSpan[termIdx].classList.add('current');
+        if (ev.type === 'init') {
+          const tr = document.createElement('tr');
+          const tdI = document.createElement('td'); tdI.textContent = '—';
+          const tdC = document.createElement('td'); tdC.innerHTML = ev.computation;
+          const tdR = document.createElement('td'); tdR.textContent = ev.resultAfter;
+          const tdM = document.createElement('td'); tdM.textContent = '0';
+          const tdA = document.createElement('td'); tdA.textContent = '0';
+          tr.appendChild(tdI); tr.appendChild(tdC); tr.appendChild(tdR); tr.appendChild(tdM); tr.appendChild(tdA);
+          stepTableBody.appendChild(tr);
+          if (idx === pointer) tdC.classList.add('highlight-cell');
+          continue;
+        }
 
-            // 3b) Build the new <tr> (no immediate highlight here)
-            const tr = document.createElement('tr');
+        if (ev.type === 'createRow') {
+          // highlight current term
+          const span = termToSpan[ev.termIdx];
+          if (span && idx === pointer) span.classList.add('current');
 
-            // i cell
-            const tdI = document.createElement('td');
-            tdI.textContent = i;
-            tr.appendChild(tdI);
+          const tr = document.createElement('tr');
+          const tdI = document.createElement('td'); tdI.textContent = ev.i;
+          const tdC = document.createElement('td'); tdC.innerHTML = `Start term i=${ev.i}: power = 1`;
+          const tdR = document.createElement('td'); tdR.textContent = '';
+          const tdM = document.createElement('td'); tdM.textContent = '0';
+          const tdA = document.createElement('td'); tdA.textContent = '0';
+          tr.appendChild(tdI); tr.appendChild(tdC); tr.appendChild(tdR); tr.appendChild(tdM); tr.appendChild(tdA);
+          stepTableBody.appendChild(tr);
+          if (idx === pointer) tdC.classList.add('highlight-cell');
+          continue;
+        }
 
-            // power cell – we will highlight at the very end
-            const tdPower = document.createElement('td');
-            tdPower.textContent = power;
-            tr.appendChild(tdPower);
+        if (ev.type === 'updatePower') {
+          totalMult += 1;
+          const span = termToSpan[ev.termIdx];
+          if (span && idx === pointer) span.classList.add('current');
 
-            // result cell (blank for now)
-            const tdRes = document.createElement('td');
-            tdRes.textContent = '';
-            tr.appendChild(tdRes);
+          const tr = document.createElement('tr');
+          const tdI = document.createElement('td'); tdI.textContent = ev.i;
+          const tdC = document.createElement('td'); tdC.innerHTML = `power = ${ev.prevPower} * ${ev.x} = ${ev.power}`;
+          const tdR = document.createElement('td'); tdR.textContent = ev.total;
+          const tdM = document.createElement('td'); tdM.textContent = '1';
+          const tdA = document.createElement('td'); tdA.textContent = '0';
+          tr.appendChild(tdI); tr.appendChild(tdC); tr.appendChild(tdR); tr.appendChild(tdM); tr.appendChild(tdA);
+          stepTableBody.appendChild(tr);
+          if (idx === pointer) tdC.classList.add('highlight-cell');
+          continue;
+        }
 
-            // multCount cell
-            const tdMult = document.createElement('td');
-            tdMult.textContent = '';
-            tr.appendChild(tdMult);
+        if (ev.type === 'updateAdd') {
+          totalMult += 1; // coefficient * power
+          totalAdd  += 1;
+          const span = termToSpan[ev.termIdx];
+          if (span && idx === pointer) span.classList.add('current');
 
-            // addCount cell
-            const tdAdd = document.createElement('td');
-            tdAdd.textContent = '';
-            tr.appendChild(tdAdd);
+          const tr = document.createElement('tr');
+          const tdI = document.createElement('td'); tdI.textContent = ev.i;
+          const tdC = document.createElement('td'); tdC.innerHTML = ev.desc; // already two lines
+          const tdR = document.createElement('td'); tdR.textContent = ev.total;
+          const tdM = document.createElement('td'); tdM.textContent = '1';
+          const tdA = document.createElement('td'); tdA.textContent = '1';
+          tr.appendChild(tdI); tr.appendChild(tdC); tr.appendChild(tdR); tr.appendChild(tdM); tr.appendChild(tdA);
+          stepTableBody.appendChild(tr);
+          if (idx === pointer) tdC.classList.add('highlight-cell');
+          continue;
+        }
 
-            rows[rowIdx] = tr;
-            stepTableBody.appendChild(tr);
-
-            // 3c) Remember to highlight THIS term cell later:
-            lastHighlight = { rowIdx, cellIdx: 1 };
-            break;
-          }
-
-          case 'updatePower': {
-            const { rowIdx, power, multCount } = ev;
-            totalMult++;
-
-            const tr = rows[rowIdx];
-            const cells = tr.querySelectorAll('td');
-
-            // 3d) Update power text and #mult (no highlight yet)
-            cells[1].textContent = power;
-            cells[3].textContent = multCount;
-
-            // Track highlight: power cell at the very end
-
-            lastHighlight = { rowIdx, cellIdx: 1 };
-            break;
-          }
-
-
-          case 'updateAdd': {
-            const { rowIdx, total, addCount, prevTotal, term, coeff, power, multCount } = ev;
-
-            totalAdd++;
-            if (multCount) totalMult++;
-
-            const tr = rows[rowIdx];
-            const cells = tr.querySelectorAll('td');
-
-            // 3e) Update result text and #add (no highlight yet)
-            cells[2].textContent = `${prevTotal} + ${coeff}*${power} = ${total}`;
-            if (multCount) cells[3].textContent = multCount;
-
-            cells[4].textContent = addCount;
-
-            // Track highlight: result cell at the very end
-            lastHighlight = { rowIdx, cellIdx: 2 };
-            break;
-          }
-
-          case 'done':
-            // Nothing changes the table itself. lastHighlight still points
-            // to the previous updateAdd, but we will clear it if pointer is "done".
-            break;
+        if (ev.type === 'done') {
+          // no row; just show comment below
+          continue;
         }
       }
 
-      // 4) IF current event IS "done", clear ANY polynomial‐term highlight
-      //    and do NOT highlight any table cell. Otherwise, re‐apply the one highlight.
-      if (pointer >= 0 && events[pointer].type === 'done') {
-        // explicitly un‐highlight any polynomial term:
-        document.querySelectorAll('.term.current').forEach(el =>
-          el.classList.remove('current')
-        );
-        // do not highlight any <td> for "done"
-      } else if (lastHighlight) {
-        // Re‐apply exactly one highlight on the correct <td>
-        const tr = rows[lastHighlight.rowIdx];
-        const cell = tr.querySelectorAll('td')[ lastHighlight.cellIdx ];
-        cell.classList.add('highlight-cell');
-      }
-
-      // 5) UPDATE COMMENT / STATS / BUTTONS
-      if (pointer < 0) {
+      // Comment & stats
+      const ev = pointer >= 0 ? events[pointer] : null;
+      if (!ev) {
         commentDiv.innerHTML = '<br>';
+      } else if (ev.type === 'done') {
+        commentDiv.innerHTML = `Done! Final answer = ${ev.final}`;
       } else {
-        // This ensures the final "done" description is shown when pointer is on done
-        commentDiv.innerHTML = events[pointer].desc + '<br>';
+        commentDiv.innerHTML = ev.desc;
       }
       statsDiv.textContent = `Total multiplications: ${totalMult}, Total additions: ${totalAdd}`;
       prevBtn.disabled = (pointer <= -1);
       nextBtn.disabled = (pointer >= events.length - 1);
+
+      // Auto-scroll to bottom only when advancing
+      if (pointer >= 0 && pointer > lastPointer) {
+        const container = document.querySelector('.table-container');
+        if (container) {
+          container.scrollTop = container.scrollHeight;
+        }
+      }
+      lastPointer = pointer;
+
+      // Recompute height in case layout/viewport changed
+      setTableContainerHeight();
     }
 
     // Initialize demo
@@ -454,7 +494,10 @@
       const x = parseFloat(xInput.value) || 0;
       buildEvents(x);
       pointer = -1;
+      lastPointer = -1;
       rebuildDisplay();
+      // Ensure height matches current viewport
+      setTableContainerHeight();
     }
 
     // Event listeners
@@ -513,6 +556,16 @@
 
     // On load
     initDemo();
+    // Adjust height with viewport changes (best effort)
+    window.addEventListener('resize', setTableContainerHeight);
+    window.addEventListener('orientationchange', setTableContainerHeight);
+    try {
+      if (window.top && window.top !== window && window.top.visualViewport) {
+        window.top.visualViewport.addEventListener('resize', setTableContainerHeight);
+      } else if (window.visualViewport) {
+        window.visualViewport.addEventListener('resize', setTableContainerHeight);
+      }
+    } catch (e) { /* cross-origin */ }
   </script>
 </body>
 </html>
