@@ -23,13 +23,15 @@
 <body>
   <h1>Insertion Sort</h1>
 
-  
-    <h2>Problem Solved</h2>
+<section id="problem-solved" section-title="Problem Solved">
+  <h2>Problem Solved</h2>
     <p>Insertion Sort solves the 
 	<a class="problem" href="?path=Problems%2FFoundational%2FSorting">Sorting</a>  problem.
 	</p>
-   
-    <h2>Design and Strategy</h2>
+
+  </section>
+
+<section id="design" section-title="Design and Strategy">
 	
 	
 	<p>
@@ -65,6 +67,10 @@ Thus, Insertion Sort is considered a <b>decrease-and-conquer</b> algorithm.
   </li>
 </ol>
 
+</section>
+
+
+  <section id="demo" section-title="Interactive Demo">
 <div class="embeddedDemoContainer">
   <iframe class="embeddedDemo"
           src="/Algorithms/Content/Demos/Decrease-and-Conquer/Insertion Sort Demo.html"
@@ -72,8 +78,9 @@ Thus, Insertion Sort is considered a <b>decrease-and-conquer</b> algorithm.
           name="insertion-sort-demo">
   </iframe>
 </div>
-  
-    <h2>Code Implementations</h2>
+   </section>
+
+  <section id="code" section-title="Implementation in Java, C++, Python">
 <div class="tab-group">
    <div class="tabs" role="tablist">
    <button
@@ -145,9 +152,9 @@ Thus, Insertion Sort is considered a <b>decrease-and-conquer</b> algorithm.
     </div>
 	</div>
   
-
-
-<h2>Time/Space Analysis</h2>
+ </section>
+<section id="analysis" section-title="Time/Space Analysis">
+  <h2>Time/Space Analysis</h2>
 
 <p>
 To analyze the complexity of Insertion Sort, we'll consider the worst-case scenario, 
@@ -224,18 +231,27 @@ efficient than more advanced sorting methods (e.g., Merge Sort, Quicksort) for l
 a constant amount of extra space to hold variables for indexing and temporary storage during 
 shifts. Hence, its space complexity is <i>O(1)</i>.
 </p>
+</section>
 
+<section id="links-to-resources" section-title="Links to Resources">
+<h2>Links to Resources</h2>
+<ul>
+  <li><a href="https://www.youtube.com/watch?v=ROalU379l3U" target="_blank">Insert-sort with Romanian folk dance</a></li>
+  <li><a href="http://www.cs.usfca.edu/~galles/visualization/ComparisonSort.html" target="_blank">Sorting Demos</a></li>
+  <li><a href="https://www.youtube.com/watch?v=kPRA0W1kECg" target="_blank">15 Sorting Algorithms in 6 Minutes</a></li>
+</ul>
+</section>
 
-  <div class="section">
-    <h2>Reading Comprehension Questions</h2>
+<section id="reading-questions" section-title="Reading Comprehension Questions">
+  <h2>Reading Comprehension Questions</h2>
     <ol>
-    <li><strong>Q1:</strong> What is the worst-case time complexity of insertion sort, and when does it occur?</li>
-    <li><strong>Q2:</strong> What is the best-case time complexity, and when does it occur?</li>
-    <li><strong>Q3:</strong> Why is insertion sort considered a decrease-and-conquer algorithm?</li>
-    <li><strong>Q4:</strong> Use insertion sort on <code>[5, 2, 4, 6, 1]</code>. Show the array after each insertion (i=1…4).</li>
-    <li><strong>Q5:</strong> Does insertion sort swap elements?</li>
-    <li><strong>Q6:</strong> In the nested loops, which loop selects the next element to insert, and which loop shifts elements?</li>
-	 <li><strong>Q7:</strong> After finishing iteration <var>i</var>, which part of the array is guaranteed to be sorted?</li>
+    <li>What is the worst-case time complexity of insertion sort, and when does it occur?</li>
+    <li>What is the best-case time complexity, and when does it occur?</li>
+    <li>Why is insertion sort considered a decrease-and-conquer algorithm?</li>
+    <li>Use insertion sort on <code>[5, 2, 4, 6, 1]</code>. Show the array after each insertion (i=1…4).</li>
+    <li>Does insertion sort swap elements?</li>
+    <li>In the nested loops, which loop selects the next element to insert, and which loop shifts elements?</li>
+	 <li>After finishing iteration <var>i</var>, which part of the array is guaranteed to be sorted?</li>
   </ol>
 
   <button id="toggleAnswers" class="show-answer" aria-expanded="false">Show Answers</button>
@@ -258,17 +274,19 @@ shifts. Hence, its space complexity is <i>O(1)</i>.
 	   <li><strong>Answer:</strong> The subarray from index 0 up to index <var>i</var> (inclusive) is sorted.</li>
     </ol>
   </div>
-  </div>
-<div class="section">
-    <h2>In-Class Activities</h2>
-    <ul>
+  </section>
+  
+<section id="activities" section-title="In-Class Activities">
+  <h2>In-Class Activities</h2>
+    <ol>
       <li>Use cards to physically insert elements into a sorted row to demonstrate the inner loop of Insertion Sort.</li>
       <li>Compare performance of Insertion Sort on nearly-sorted vs. reverse-sorted arrays.</li>
 	  <li>During insertion sort, a portion of the array is sorted, are those elements guaranteed to be in their final spot? Discuss.</li>
-    </ul>
-  </div>
-  <div class="section">
-    <h2>Problems</h2>
+    </ol>
+ </section>
+
+<section id="problems" section-title="Homework Problems">
+  <h2>Homework Problems</h2>
     <ol>
       <li>Implement insertion sort recursively.</li>
       <li>Count the number of shifts and comparisons, (data movements) for <code>[1, 2, 4, 5, 6]</code>, 
@@ -277,6 +295,7 @@ shifts. Hence, its space complexity is <i>O(1)</i>.
       <li>Integrate binary search to optimize comparisons. 
 	  Explain how it changes the overall complexity of the algorithm.</li>
     </ol>
-  </div>
+</section>
+
 </body>
 </html>
