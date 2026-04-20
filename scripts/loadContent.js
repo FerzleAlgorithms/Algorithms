@@ -59,6 +59,11 @@ const DECREASE_AND_CONQUER_ORDER = [
 // For "Demos", we just mirror the same order as the algorithm names:
 const DEMOS_ORDER = [...ALGORITHMS_ORDER];
 const TECHNIQUES_ORDER = [...ALGORITHMS_ORDER];
+const MENU_ORDER_STORAGE_KEY = 'algorithms-menu-order';
+
+let menuSortMode = localStorage.getItem(MENU_ORDER_STORAGE_KEY) === 'flat'
+  ? 'flat'
+  : 'default';
 
 // ─── Utility Functions ────────────────────────────────────────────────────────
 // Return the current “path” either from history.state or URL param or fallback
@@ -79,6 +84,94 @@ const getKey = (entry) =>
   typeof entry === 'string'
     ? entry.replace(/\.html$/, '')
     : Object.keys(entry)[0];
+
+const getDisplayLabel = (entry) => {
+  const key = getKey(entry);
+  return key.split('/').pop().replace(/Demo$/, '').trim();
+};
+
+const sortEntries = (items, orderList = []) => {
+  const sortedItems = [...items];
+
+  if (menuSortMode === 'flat') {
+    return sortedItems.sort((a, b) =>
+      getDisplayLabel(a).localeCompare(getDisplayLabel(b), undefined, {
+        numeric: true,
+        sensitivity: 'base'
+      })
+    );
+  }
+
+  return sortedItems.sort((a, b) => {
+    const indexA = orderList.indexOf(getKey(a));
+    const indexB = orderList.indexOf(getKey(b));
+    return (indexA === -1 ? 9999 : indexA) - (indexB === -1 ? 9999 : indexB);
+  });
+};
+
+const createMenuLink = (fullPath, label, level = 1, title = '') => {
+  const a = document.createElement('a');
+  a.textContent = label;
+  a.href = `?path=${encodeURIComponent(fullPath)}`;
+  a.style.fontSize = `${1 - (level - 1) * 0.1}em`;
+  if (title) a.title = title;
+
+  a.addEventListener('click', (e) => {
+    if (aKeyDown) {
+      e.preventDefault();
+      e.stopImmediatePropagation();
+
+      const menu = document.querySelector('#menu');
+      menu.classList.add('noselect');
+      const sel = window.getSelection?.();
+      if (sel && !sel.isCollapsed) sel.removeAllRanges();
+      requestAnimationFrame(() => {
+        menu.classList.remove('noselect');
+      });
+
+      const url = new URL(window.location.href);
+      url.search = `?path=${encodeURIComponent(fullPath)}`;
+      const html = `<li><a href="${url.href}">DAIA: ${a.textContent}</a></li>`;
+
+      navigator.clipboard.writeText(html)
+        .then(() => {
+          a.title = 'Copied!';
+          setTimeout(() => (a.title = title), 1000);
+        })
+        .catch(() => alert('Failed to copy link'));
+    }
+  });
+
+  return a;
+};
+
+const flattenSectionItems = (items, pathPrefix, contextParts = []) => {
+  const flattened = [];
+
+  items.forEach((item) => {
+    if (typeof item === 'string') {
+      const raw = item.replace(/\.html$/, '');
+      const fullPath = (pathPrefix.includes('More/DRAFTS') && raw.includes('/'))
+        ? raw
+        : pathPrefix + raw;
+
+      flattened.push({
+        fullPath,
+        label: raw.split('/').pop().replace(/Demo$/, '').trim(),
+        context: contextParts.join(' / ')
+      });
+      return;
+    }
+
+    Object.entries(item).forEach(([dir, sub]) => {
+      flattened.push(
+        ...flattenSectionItems(sub, `${pathPrefix}${dir}/`, [...contextParts, dir])
+      );
+    });
+  });
+
+  return flattened;
+};
 
 // -----------------------------------------------------------------
 function highlightActiveLink(path) {
@@ -629,8 +722,20 @@ const buildMenu = (chapters) => {
   const menuContainer = document.querySelector('#menu');
   menuContainer.innerHTML = `
     <div class="menu-controls">
-      <button id="expandAll" class="link-style">Expand All</button>
-      <button id="collapseAll" class="link-style">Collapse All</button>
+      <div class="menu-icon-controls" aria-label="Menu display controls">
+        <button id="expandAll" class="menu-icon-button" type="button" title="Expand all sections" aria-label="Expand all sections">▾▾</button>
+        <button id="collapseAll" class="menu-icon-button" type="button" title="Collapse all sections" aria-label="Collapse all sections">▸▸</button>
+      </div>
+      <button
+        id="toggleSort"
+        class="menu-view-toggle ${menuSortMode === 'flat' ? 'is-flat' : 'is-grouped'}"
+        type="button"
+        aria-pressed="${menuSortMode === 'flat' ? 'true' : 'false'}"
+        title="Switch between grouped and alphabetical navigation"
+      >
+        <span class="toggle-option toggle-grouped">Grouped</span>
+        <span class="toggle-option toggle-flat">Alphabetic</span>
+      </button>
     </div>
     <ul> </ul>
   `;
@@ -645,50 +750,14 @@ const buildMenu = (chapters) => {
     if (pathPrefix === 'Demos/') return DEMOS_ORDER;
     return [];
   })();
-    items
-      .sort((a, b) => {
-        const indexA = orderList.indexOf(getKey(a));
-        const indexB = orderList.indexOf(getKey(b));
-        return (indexA === -1 ? 9999 : indexA) - (indexB === -1 ? 9999 : indexB);
-      })
-      .forEach((item) => {
+    sortEntries(items, orderList).forEach((item) => {
         const li = document.createElement('li');
         if (typeof item === 'string') {
           const raw = item.replace(/\.html$/, '');
           const fullPath = (pathPrefix.includes('More/DRAFTS') && raw.includes('/'))
             ? raw // already a full path
             : pathPrefix + raw;
-          const a = document.createElement('a');
-          a.textContent = raw.split('/').pop().replace(/Demo$/, '').trim();
-          a.href = `?path=${encodeURIComponent(fullPath)}`;
-          a.style.fontSize = `${1 - (level - 1) * 0.1}em`;
-		  
-		 
-		a.addEventListener('click', (e) => {
-		  if (aKeyDown) {
-			e.preventDefault();
-			e.stopImmediatePropagation();
-
-			const menu = document.querySelector('#menu');
-			menu.classList.add('noselect');
-			const sel = window.getSelection?.();
-			if (sel && !sel.isCollapsed) sel.removeAllRanges();
-			requestAnimationFrame(() => {
-			  menu.classList.remove('noselect');
-			});
-
-			const url = new URL(window.location.href);
-			url.search = `?path=${encodeURIComponent(fullPath)}`;
-			const html = `<li><a href="${url.href}">DAIA: ${a.textContent}</a></li>`;
-
-			navigator.clipboard.writeText(html)
-			  .then(() => {
-				a.title = 'Copied!';
-				setTimeout(() => (a.title = ''), 1000);
-			  })
-			  .catch(() => alert('Failed to copy link'));
-		  }
-		});
+          const a = createMenuLink(fullPath, raw.split('/').pop().replace(/Demo$/, '').trim(), level);
           li.appendChild(a);
         } else {
           Object.entries(item).forEach(([dir, sub]) => {
@@ -712,7 +781,9 @@ const buildMenu = (chapters) => {
       });
   };
 
-  TOP_LEVEL_ORDER.forEach((sectionName) => {
+  const topLevelSections = TOP_LEVEL_ORDER;
+
+  topLevelSections.forEach((sectionName) => {
     const contents = chapters[sectionName];
     if (!contents) return;
 
@@ -730,11 +801,52 @@ const buildMenu = (chapters) => {
     li.appendChild(span);
 
     const ul = document.createElement('ul');
-    
-    buildList(contents, ul, `${sectionName}/`);
+
+    if (menuSortMode === 'flat') {
+      const flatItems = flattenSectionItems(contents, `${sectionName}/`);
+      const labelCounts = flatItems.reduce((counts, item) => {
+        counts[item.label] = (counts[item.label] || 0) + 1;
+        return counts;
+      }, {});
+
+      flatItems
+        .sort((a, b) => a.label.localeCompare(b.label, undefined, {
+          numeric: true,
+          sensitivity: 'base'
+        }))
+        .forEach((item) => {
+          const itemLi = document.createElement('li');
+          const needsContext = labelCounts[item.label] > 1 && item.context;
+          const visibleLabel = needsContext
+            ? `${item.label} (${item.context})`
+            : item.label;
+          itemLi.appendChild(
+            createMenuLink(item.fullPath, visibleLabel, 2, item.context)
+          );
+          ul.appendChild(itemLi);
+        });
+    } else {
+      buildList(contents, ul, `${sectionName}/`);
+    }
+
     li.appendChild(ul);
     menuRoot.appendChild(li);
   });
+
+  menuContainer.querySelector('#expandAll').onclick = () => {
+    document.querySelectorAll('#menu li').forEach((li) => li.classList.add('open'));
+  };
+
+  menuContainer.querySelector('#collapseAll').onclick = () => {
+    document.querySelectorAll('#menu li').forEach((li) => li.classList.remove('open'));
+  };
+
+  menuContainer.querySelector('#toggleSort').onclick = () => {
+    menuSortMode = menuSortMode === 'flat' ? 'default' : 'flat';
+    localStorage.setItem(MENU_ORDER_STORAGE_KEY, menuSortMode);
+    buildMenu(chapters);
+    highlightActiveLink(getCurrentPath());
+  };
 
 };
 
@@ -858,13 +970,6 @@ document.addEventListener('DOMContentLoaded', () => {
     .then((res) => res.json())
     .then((chaptersData) => {
       buildMenu(chaptersData);
-
-      document
-        .querySelector('#expandAll')
-        .onclick = () => document.querySelectorAll('#menu li').forEach((li) => li.classList.add('open'));
-      document
-        .querySelector('#collapseAll')
-        .onclick = () => document.querySelectorAll('#menu li').forEach((li) => li.classList.remove('open'));
 
       // Load initial content from URL and ensure the initial history state is set
       loadFromURLParams();

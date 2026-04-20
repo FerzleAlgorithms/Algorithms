@@ -222,26 +222,77 @@ body.mainSite nav#menu a:hover {
 nav#menu .menu-controls {
   margin-bottom: 0.5em;
   display: flex;
-  gap: 0.5em;
-  justify-content: space-between;
+  flex-direction: column;
+  gap: 0.3em;
+  align-items: stretch;
 }
 
-nav#menu .menu-controls button {
-  background: none;
-  border: none;
-  padding: 2px 4px;
-  font: inherit;
-  font-size: 0.9em;
-  color: #0366d6;               /* similar to .problem */
+nav#menu .menu-icon-controls {
+  display: flex;
+  gap: 0.25em;
+  flex: 0 0 auto;
+  justify-content: flex-start;
+}
+
+nav#menu .menu-icon-button {
+  min-width: 1.45rem;
+  width: 1.45rem;
+  height: 1.45rem;
+  border: 1px solid #94a3b8;
+  background: #f8fafc;
+  color: #1e3a5f;
+  border-radius: 4px;
   cursor: pointer;
-  border-radius: 3px;
-  transition: background-color 0.2s, color 0.2s;
-  text-decoration: none;       /* no underline */
+  font: inherit;
+  font-size: 0.72em;
+  line-height: 1;
+  padding: 0;
+  transition: background-color 0.2s, border-color 0.2s, color 0.2s;
 }
 
-nav#menu .menu-controls button:hover {
-  color: #024f9a; /* old color? #a8b7cc; */
-  background-color: #dbeafe;   /* subtle hover background */
+nav#menu .menu-icon-button:hover {
+  background-color: #dbeafe;
+  border-color: #64748b;
+  color: #0f172a;
+}
+
+nav#menu .menu-view-toggle {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr;
+  align-items: stretch;
+  border: 1px solid #94a3b8;
+  background: #f8fafc;
+  border-radius: 10px;
+  padding: 0.14rem;
+  min-height: auto;
+  cursor: pointer;
+  font: inherit;
+  color: #1e293b;
+}
+
+nav#menu .menu-view-toggle .toggle-option {
+  text-align: center;
+  padding: 0.18rem 0.35rem;
+  border-radius: 8px;
+  font-size: 0.78em;
+  font-weight: 600;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+nav#menu .menu-view-toggle.is-grouped .toggle-grouped,
+nav#menu .menu-view-toggle.is-flat .toggle-flat {
+  background: #4f7aa1;
+  color: #ffffff;
+}
+
+nav#menu .menu-view-toggle.is-grouped .toggle-flat,
+nav#menu .menu-view-toggle.is-flat .toggle-grouped {
+  color: #475569;
+}
+
+nav#menu .menu-view-toggle:hover {
+  border-color: #64748b;
 }
 /* Highlight the displayed menu item */
 body.mainSite nav#menu a.active {
